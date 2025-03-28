@@ -1,5 +1,5 @@
 import unittest
-from person import Person
+from src.person import Person
 
 class TestPerson(unittest.TestCase):
     def test_person_creation(self):
