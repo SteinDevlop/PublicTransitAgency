@@ -1,25 +1,24 @@
+# Dockerfile
 FROM python:3.9-slim
 
-# Crea un usuario no-root (por ejemplo, "appuser")
+# Create a non-root user (e.g., "appuser")
 RUN adduser --disabled-password --gecos '' appuser
 
-# Establece el directorio de trabajo
+# Set the working directory
 WORKDIR /app
 
-# Copia el archivo de requerimientos y instala dependencias
+# Copy the requirements file and install dependencies
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
-# Copia el resto del código
-# COPY . /app
-COPY src/backend /app/main.py .
+# Copy the rest of the code
 COPY src/backend /app/
 
-# Cambia al usuario no-root
+# Change to the non-root user
 USER appuser
 
-# Expone el puerto que usa la aplicación
+# Expose the port that the app uses
 EXPOSE 8080
 
-# Comando para iniciar la aplicación
+# Command to start the application
 CMD ["python", "main.py"]
