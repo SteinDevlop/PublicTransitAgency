@@ -33,7 +33,52 @@ For executing the application we will use:
 ### **Docker**
 
 The development environment is configured through our `Dockerfile`, designed for use on Linux enviroment. It defines dependencies, configurations, and setup commands, ensuring a consistent and reproducible deployment.
+## Estructure
 
+```
+📦 PublicTransitAgency
+├── 📜 coverage.ini
+├── 📜 Dockerfile
+├── 📜 estructura.txt
+├── 📜 LICENSE
+├── 📜 pytest.ini
+├── 📜 README.md
+├── 📜 requirements.txt
+├── 📜 sonar-project.properties
+│
+├── 📂 .github/workflows
+│   ├── build.yml
+│   ├── docker-image.yml
+│   ├── python-app.yml
+│
+├── 📂 docs
+│   ├── __init__.py
+│
+└── 📂 src
+    ├── 📂 backend
+    │   ├── 📂 app
+    │   │   ├── config.py
+    │   │   ├── main.py
+    │   │   │
+    │   │   ├── 📂 models
+    │   │   │   ├── __init__.py
+    │   │   │
+    │   │   ├── 📂 routes
+    │   │   │   ├── __init__.py
+    │   │   │
+    │   │   ├── 📂 services
+    │   │   │   ├── __init__.py
+    │
+    ├── 📂 frontend
+    │   ├── 📂 assets
+    │   │   ├── __init__.py
+    │   │
+    │   ├── 📂 lib
+    │   │   ├── __init__.py
+    │   │
+    │   ├── 📂 web
+    │   │   ├── __init__.py
+```
 ## Classes descriptions and funtions
 ### **User**
 `User(self, user_id, name, email, password, role)` - Base class for all users.
