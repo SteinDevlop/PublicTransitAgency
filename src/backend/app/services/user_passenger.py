@@ -1,5 +1,5 @@
 from user import User
-
+import re
 class Passenger(User):
     def __init__(self, id_user, type_identification,identification, name, email, password, role):
         super().__init__(id_user,type_identification,identification, name, email, password, role)
@@ -57,13 +57,15 @@ class Passenger(User):
 
     @staticmethod
     def verify_name(value):
-        return value.replace(" ", "").isalpha() and len(value) > 1  # Permite nombres con espacios
+        """Valida que el nombre solo contenga letras y espacios, sin múltiples espacios consecutivos"""
+        return bool(re.match(r"^[A-Za-z]+(?:\s[A-Za-z]+)*$", value))
 
     @staticmethod
     def verify_email(value):
-        import re
-        return re.match(r"^[\w\.-]+@[\w\.-]+\.\w+$", value) is not None
+        """Valida que el email tenga un formato correcto"""
+        return bool(re.match(r"^[\w\.-]+@[\w\.-]+\.\w+$", value))
 
     @staticmethod
     def verify_password(value):
-        return len(value) >= 6  # Se puede mejorar con más reglas
+        """Valida que la contraseña tenga al menos 6 caracteres, un número y un carácter especial"""
+        return bool(re.match(r"^(?=.*[A-Za-z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{6,}$", value))
