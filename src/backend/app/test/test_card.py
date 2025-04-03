@@ -1,5 +1,5 @@
 import unittest
-from services.card import Card
+from src.backend.app.services.card import Card
 
 class TestCard(unittest.TestCase):
     def setUp(self):
