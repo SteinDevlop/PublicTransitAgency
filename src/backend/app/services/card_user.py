@@ -1,4 +1,4 @@
-from card import Card
+from src.backend.app.services.card import Card
 class CardUser(Card):
     def __init__(self, id_card: int, card_type: str, balance: float, user_id: int):
         super().__init__(id_card, card_type, balance)

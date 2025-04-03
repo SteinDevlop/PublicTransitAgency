@@ -1,5 +1,5 @@
 from typing import List
-from transport_parade import Parade
+from src.backend.app.services.transport_parade import Parade
 
 class Route:
     """
