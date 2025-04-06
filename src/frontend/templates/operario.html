@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Panel del Operario</title>
+    <link rel="stylesheet" href="operario.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <h2>Operario</h2>
+            <button class="menu-btn">Reportar Incidencia</button>
+        </aside>
+
+        <!-- Área principal -->
+        <main class="main-content">
+            <header class="header">
+                <h1>Información General</h1>
+            </header>
+
+            <div class="info-cascade">
+                <div class="info-block">
+                    <h3>Nombre</h3>
+                    <p>{nombre}</p>
+                </div>
+                <div class="info-block">
+                    <h3>Turno</h3>
+                    <p>{turno}</p>
+                </div>
+                <div class="info-block">
+                    <h3>Horario</h3>
+                    <p>{hora:entrada} AM - {hora:salida} PM</p>
+                </div>
+                <div class="info-block">
+                    <h3>Unidad Asignada</h3>
+                    <p>{unidad}</p>
+                </div>
+                <div class="info-block">
+                    <h3>Zona</h3>
+                    <p>{zona (opcional)}</p>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

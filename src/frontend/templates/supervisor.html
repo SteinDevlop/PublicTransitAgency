@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Supervisor - Dashboard</title>
+    <link rel="stylesheet" href="supervisor.css">
+</head>
+<body>
+    <div class="dashboard">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <h2>Supervisor</h2>
+            <button class="menu-btn">Asignar turnos</button>
+            <button class="menu-btn">Generar reporte de desempeño</button>
+            <button class="menu-btn">Obtener información de Unidad</button>
+        </aside>
+
+        <!-- Panel principal -->
+        <main class="main-content">
+            <header class="header">
+                <h1>Panel de Supervisor</h1>
+            </header>
+
+            <div class="cards">
+                <div class="card">
+                    <h3>Solicitudes Abiertas</h3>
+                    <p class="big-number">8</p>
+                    <p>Total en curso</p>
+                </div>
+                <div class="card red">
+                    <h3>Solicitudes Atrasadas</h3>
+                    <p class="big-number">0</p>
+                    <p>Sin resolver</p>
+                </div>
+                <div class="card orange">
+                    <h3>Tareas Vencidas</h3>
+                    <p class="big-number">7</p>
+                    <p>Supervisión requerida</p>
+                </div>
+            </div>
+
+            <div class="charts">
+                <div class="chart-box">
+                    <h4>Distribución por Regulación</h4>
+                    <div class="chart-placeholder">[Gráfico circular aquí]</div>
+                </div>
+                <div class="chart-box">
+                    <h4>Distribución por Actividad</h4>
+                    <div class="chart-placeholder">[Gráfico circular aquí]</div>
+                </div>
+                <div class="chart-box full">
+                    <h4>Solicitudes en el tiempo</h4>
+                    <div class="chart-placeholder">[Gráfico de líneas aquí]</div>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

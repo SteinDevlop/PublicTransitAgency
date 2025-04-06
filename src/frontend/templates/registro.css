@@ -1,0 +1,85 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  
+  body {
+    font-family: 'Segoe UI', sans-serif;
+    background: url('img/bus.webp') no-repeat center center fixed;
+    background-size: cover;
+    position: relative;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  body::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-color: rgba(255, 255, 255, 0.75); /* capa translúcida */
+    z-index: 0;
+  }
+  
+  .register-container {
+    background-color: rgba(255, 255, 255, 0.95);
+    padding: 30px 40px;
+    border-radius: 12px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    width: 100%;
+    max-width: 400px;
+    position: relative;
+    z-index: 1;
+  }
+  
+  .register-form h2 {
+    text-align: center;
+    color: #004d66;
+    margin-bottom: 25px;
+  }
+  
+  .register-form label {
+    display: block;
+    margin-top: 15px;
+    margin-bottom: 5px;
+    font-weight: bold;
+    color: #004d66;
+  }
+  
+  .register-form input,
+  .register-form select {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #b2ebf2;
+    border-radius: 8px;
+    background-color: #f1fafa;
+    font-size: 14px;
+    transition: border 0.3s ease;
+  }
+  
+  .register-form input:focus,
+  .register-form select:focus {
+    outline: none;
+    border-color: #00bcd4;
+  }
+  
+  .register-form button {
+    width: 100%;
+    margin-top: 25px;
+    background-color: #00bcd4;
+    color: white;
+    font-weight: bold;
+    border: none;
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background 0.3s ease;
+  }
+  
+  .register-form button:hover {
+    background-color: #0097a7;
+  }
+  

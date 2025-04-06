@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Panel del Administrador</title>
+  <link rel="stylesheet" href="administrador.css">
+</head>
+<body>
+  <div class="container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <h2>Administrador</h2>
+
+      <button class="menu-btn">Actualizar Flota</button>
+      <button class="menu-btn">Agendar Mantenimiento</button>
+      <button class="menu-btn">Asignar Ruta Vehículo</button>
+      <button class="menu-btn">Reporte de Operaciones</button>
+
+      <div class="sublist-title">Gestión CRUD</div>
+
+      <!-- CRUD: Rutas -->
+      <div class="crud-section">
+        <button class="crud-toggle">▶ Rutas</button>
+        <div class="crud-options">
+          <button class="crud-btn">➕ Añadir Ruta</button>
+          <button class="crud-btn">📄 Leer Rutas</button>
+          <button class="crud-btn">🖊️ Actualizar Ruta</button>
+          <button class="crud-btn">🗑️ Eliminar Ruta</button>
+        </div>
+      </div>
+
+      <!-- CRUD: Usuarios -->
+      <div class="crud-section">
+        <button class="crud-toggle">▶ Usuarios</button>
+        <div class="crud-options">
+          <button class="crud-btn">➕ Añadir Usuario</button>
+          <button class="crud-btn">📄 Leer Usuarios</button>
+          <button class="crud-btn">🖊️ Actualizar Usuario</button>
+          <button class="crud-btn">🗑️ Eliminar Usuario</button>
+        </div>
+      </div>
+
+      <!-- CRUD: Operarios -->
+      <div class="crud-section">
+        <button class="crud-toggle">▶ Operarios</button>
+        <div class="crud-options">
+          <button class="crud-btn">➕ Añadir Operario</button>
+          <button class="crud-btn">📄 Leer Operarios</button>
+          <button class="crud-btn">🖊️ Actualizar Operario</button>
+          <button class="crud-btn">🗑️ Eliminar Operario</button>
+        </div>
+      </div>
+
+      <!-- CRUD: Mantenimiento -->
+      <div class="crud-section">
+        <button class="crud-toggle">▶ Mantenimiento</button>
+        <div class="crud-options">
+          <button class="crud-btn">➕ Añadir Mantenimiento</button>
+          <button class="crud-btn">📄 Leer Mantenimientos</button>
+          <button class="crud-btn">🖊️ Actualizar Mantenimiento</button>
+          <button class="crud-btn">🗑️ Eliminar Mantenimiento</button>
+        </div>
+      </div>
+
+      <!-- CRUD: Supervisores -->
+      <div class="crud-section">
+        <button class="crud-toggle">▶ Supervisores</button>
+        <div class="crud-options">
+          <button class="crud-btn">➕ Añadir Supervisor</button>
+          <button class="crud-btn">📄 Leer Supervisores</button>
+          <button class="crud-btn">🖊️ Actualizar Supervisor</button>
+          <button class="crud-btn">🗑️ Eliminar Supervisor</button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Contenido principal -->
+    <main class="main-content">
+      <header class="header">
+        <h1>Panel General del Administrador</h1>
+      </header>
+
+      <div class="dashboard">
+        <div class="dashboard-card">
+          <h3>Total de Vehículos</h3>
+          <p>150</p>
+        </div>
+        <div class="dashboard-card">
+          <h3>Usuarios Registrados</h3>
+          <p>1,245</p>
+        </div>
+        <div class="dashboard-card">
+          <h3>Operarios Activos</h3>
+          <p>73</p>
+        </div>
+        <div class="dashboard-card">
+          <h3>Supervisores</h3>
+          <p>15</p>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- JS para acordeones -->
+  <script>
+    document.querySelectorAll('.crud-toggle').forEach(toggle => {
+      toggle.addEventListener('click', () => {
+        const options = toggle.nextElementSibling;
+        options.classList.toggle('show');
+        toggle.textContent = options.classList.contains('show') ? '▼ ' + toggle.textContent.slice(2) : '▶ ' + toggle.textContent.slice(2);
+      });
+    });
+  </script>
+</body>
+</html>

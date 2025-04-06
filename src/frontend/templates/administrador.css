@@ -1,0 +1,137 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+  }
+  
+  body {
+    font-family: 'Segoe UI', sans-serif;
+    background-color: #f4faff;
+  }
+  
+  .container {
+    display: flex;
+    height: 100vh;
+  }
+  
+  .sidebar {
+    width: 280px;
+    background-color: #002b40;
+    color: white;
+    padding: 20px;
+    box-shadow: 2px 0 10px rgba(0,0,0,0.1);
+    overflow-y: auto;
+  }
+  
+  .sidebar h2 {
+    font-size: 24px;
+    text-align: center;
+    margin-bottom: 25px;
+  }
+  
+  .menu-btn {
+    background-color: #00b7c2;
+    color: white;
+    padding: 10px 12px;
+    border: none;
+    width: 100%;
+    font-weight: bold;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-bottom: 10px;
+    transition: background 0.3s ease;
+  }
+  
+  .menu-btn:hover {
+    background-color: #0097a7;
+  }
+  
+  .sublist-title {
+    font-size: 16px;
+    margin: 20px 0 10px;
+    color: #b2ebf2;
+    text-transform: uppercase;
+  }
+  
+  .main-content {
+    flex: 1;
+    padding: 30px;
+    overflow-y: auto;
+  }
+  
+  .header h1 {
+    font-size: 28px;
+    color: #004d66;
+    margin-bottom: 30px;
+  }
+  
+  .dashboard {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 20px;
+  }
+  
+  .dashboard-card {
+    background: #e0f7fa;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    text-align: center;
+  }
+  
+  .dashboard-card h3 {
+    color: #007c91;
+    margin-bottom: 10px;
+  }
+  
+  .dashboard-card p {
+    font-size: 22px;
+    font-weight: bold;
+    color: #003c4d;
+  }
+  
+  .crud-section {
+    background-color: #004d66;
+    margin-bottom: 15px;
+    border-radius: 10px;
+    padding: 10px;
+  }
+  
+  .crud-toggle {
+    background: none;
+    border: none;
+    color: #ffffff;
+    font-weight: bold;
+    font-size: 16px;
+    margin-bottom: 8px;
+    cursor: pointer;
+    width: 100%;
+    text-align: left;
+  }
+  
+  .crud-options {
+    display: none;
+    margin-top: 8px;
+  }
+  
+  .crud-options.show {
+    display: block;
+  }
+  
+  .crud-btn {
+    background-color: #00bcd4;
+    color: white;
+    border: none;
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 6px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.3s ease;
+  }
+  
+  .crud-btn:hover {
+    background-color: #0097a7;
+  }
+  

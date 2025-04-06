@@ -1,0 +1,89 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(to right, #f0f8ff, #e6f7ff);
+}
+
+.dashboard {
+    display: flex;
+    height: 100vh;
+}
+
+/* Panel Izquierdo */
+.sidebar {
+    width: 260px;
+    background: #004d99;
+    padding: 20px;
+    color: white;
+    box-shadow: 2px 0 8px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.sidebar h2 {
+    font-size: 24px;
+    margin-bottom: 10px;
+    text-align: center;
+    border-bottom: 2px solid #fff;
+    padding-bottom: 10px;
+}
+
+.menu-btn {
+    background-color: #66b2ff;
+    color: #fff;
+    border: none;
+    padding: 12px 10px;
+    border-radius: 10px;
+    text-align: left;
+    font-size: 16px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.menu-btn:hover {
+    background-color: #3399ff;
+}
+
+/* Panel Derecho */
+.main-content {
+    flex: 1;
+    padding: 40px;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+}
+
+.info-box {
+    background-color: #ffffff;
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 600px;
+}
+
+.info-box h2 {
+    color: #004d99;
+    font-size: 26px;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #cce0ff;
+    padding-bottom: 10px;
+    text-align: center;
+}
+
+.user-info {
+    font-size: 1.1rem;
+    line-height: 1.8;
+    color: #333;
+}
+
+.user-info p {
+    margin: 8px 0;
+}
