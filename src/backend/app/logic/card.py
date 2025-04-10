@@ -8,7 +8,7 @@ class Card:
         balance (float): Available balance on the card.
     """
 
-    def __init__(self, id_card: int, card_type: str, balance: float):
+    def __init__(self, id_card: int=1, card_type: str='type', balance: float=0):
         if balance < 0:
             raise ValueError("Balance cannot be negative.")
         self.__id_card = id_card

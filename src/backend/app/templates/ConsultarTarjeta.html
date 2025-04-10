@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Detalles de la Tarjeta</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #eef2f7;
+            padding: 2em;
+        }
+        .card-container {
+            background-color: #ffffff;
+            max-width: 400px;
+            margin: auto;
+            padding: 2em;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        .card-container h2 {
+            color: #333;
+        }
+        .card-detail {
+            margin: 1em 0;
+            font-size: 1.1em;
+        }
+        .label {
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="card-container">
+        <h2>Tarjeta</h2>
+        <div class="card-detail">
+            <span class="label">ID:</span> {{ id }}
+        </div>
+        <div class="card-detail">
+            <span class="label">Tipo:</span> {{ tipo }}
+        </div>
+        <div class="card-detail">
+            <span class="label">Saldo:</span> ${{ saldo }}
+        </div>
+    </div>
+</body>
+</html>
