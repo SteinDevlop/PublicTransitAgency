@@ -1,7 +1,7 @@
 import unittest
 from typing import List
-from src.backend.app.services.transport_parade import Parade
-from src.backend.app.services.transport_route import Route
+from src.backend.app.logic.transport_parade import Parade
+from src.backend.app.logic.transport_route import Route
 
 class MockParade:
     """

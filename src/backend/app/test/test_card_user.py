@@ -1,5 +1,5 @@
 import unittest
-from src.backend.app.services.card_user import CardUser
+from src.backend.app.logic.card_user import CardUser
 
 class TestCardUser(unittest.TestCase):
     def setUp(self):

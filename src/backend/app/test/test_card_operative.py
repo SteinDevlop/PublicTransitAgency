@@ -1,5 +1,5 @@
 import unittest
-from src.backend.app.services.card_operative import CardOperative
+from src.backend.app.logic.card_operative import CardOperative
 
 class TestCardOperative(unittest.TestCase):
     def setUp(self):

@@ -1,5 +1,5 @@
 import datetime
-from services import transport_route
+from logic import transport_route
 class Schedule ():
     def __init__(self, schedule_id: str, arrival_date: datetime.datetime, departure_date: datetime.datetime, route: transport_route.Route):
         self.arrival_date = arrival_date

@@ -1,4 +1,4 @@
-from src.backend.app.services.card import Card
+from src.backend.app.logic.card import Card
 class CardOperative(Card):
     def __init__(self, card_id, card_type, card_number, expiration_date):
         super().__init__(card_id, card_type, card_number, expiration_date)

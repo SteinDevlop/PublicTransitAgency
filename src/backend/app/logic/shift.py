@@ -1,6 +1,6 @@
 import datetime
-from services import unit_transport 
-from services import schedule
+from logic import unit_transport 
+from logic import schedule
 
 class Shift ():
     def __init__(self, unit : unit_transport.Transport, start_time: datetime.datetime, end_time: datetime.datetime, driver: str, schedule: schedule.Schedule):

@@ -1,6 +1,6 @@
 import unittest
 from datetime import datetime
-from src.backend.app.services.transport_parade import Parade
+from src.backend.app.logic.transport_parade import Parade
 class TestParade(unittest.TestCase):
     def setUp(self):
         self.parade = Parade(location='Main Street', id=101, name='Spring Festival')
