@@ -47,9 +47,9 @@ class Card:
     def use_card(self):
         """Abstract method to be implemented in subclasses."""
         raise NotImplementedError("The use_card method must be implemented by subclasses.")
-
-    def __str__(self) -> str:
-        return f"Card(id_card={self.id_card}, card_type='{self.card_type}', balance={self.balance:.2f})"
+    
+    def __str__(self):
+        return dict(idn=self.id_card, tipo=self.card_type, saldo=self.balance).__str__()
 if __name__ == "__main__":
     try:
         card = Card(1001, "Bus", 150.0)

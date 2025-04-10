@@ -40,16 +40,18 @@
 </head>
 <body>
     <h2 style="text-align: center;">Crear Nueva Tarjeta</h2>
-    <form action="/crear-tarjeta" method="post">
+    <form action="/add_tarjeta" method="post">
+        <label for="tipo">Identificador</label>
+        <input type="number" id="id" name="id" min="0" step="0.01" required>
         <label for="tipo">Tipo de Tarjeta:</label>
         <select id="tipo" name="tipo" required>
             <option value="">Selecciona un tipo</option>
-            <option value="Bus">Crédito</option>
-            <option value="Tren">Débito</option>
-            <option value="Eco Barquito">Prepago</option>
+            <option value="Bus">Tren</option>
+            <option value="Tren">Bus</option>
+            <option value="Eco Barquito">Eco Barquito</option>
         </select>
         <label for="monto">Monto:</label>
-        <input type="number" id="monto" name="monto" min="0" step="0.01" required>
+        <input type="number" id="saldo" name="saldo" min="0" step="0.01" required>
 
         <button type="submit">Crear Tarjeta</button>
     </form>

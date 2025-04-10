@@ -7,7 +7,6 @@ from logic.card import Card
 
 
 class CardController(object):
-
     def __init__(self):
         self.file = '{0}{1}'.format(DIR_DATA, 'storage.json')
 
@@ -30,3 +29,11 @@ class CardController(object):
             # Print the string
             print(ast.literal_eval(data_str))
         return data_str
+    def get_by_id(self, idn: str):
+        with open(self.file, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+            for card_str in data:
+                card_dict = ast.literal_eval(card_str)  # convierte el string a dict
+                if card_dict.get("idn") == idn:
+                    return card_dict
+        return None
