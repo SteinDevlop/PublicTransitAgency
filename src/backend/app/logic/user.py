@@ -1,6 +1,7 @@
 import re
+from card import Card
 class User:
-    def __init__(self, id_user: int, type_identification: str, identification: int ,name: str, email: str, password: str, role: str):
+    def __init__(self, id_user: int, type_identification: str, identification: int ,name: str, email: str, password: str, role: str, card: Card):
         self.id_user = id_user
         self.type_identification = type_identification
         self.identification = identification
@@ -8,6 +9,7 @@ class User:
         self.email = email
         self.password = password
         self.role = role
+        self.card = card
 
     
     @property
