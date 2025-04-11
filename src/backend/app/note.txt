@@ -1,0 +1,2 @@
+Se mantendra esta esturctura para probar los servicios, una vez hechos esto.
+Se moveran las apis a services; los templates a routes; y routes a services junto con models

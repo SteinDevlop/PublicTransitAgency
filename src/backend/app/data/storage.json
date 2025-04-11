@@ -1,1 +1,1 @@
-["{'idn': '1', 'tipo': 'Bus', 'saldo': 1.0}", "{'idn': '1', 'tipo': 'Bus', 'saldo': 2.0}", "{'idn': '5', 'tipo': 'Bus', 'saldo': 2000.0}", "{'idn': '43', 'tipo': 'Tren', 'saldo': 30000.0}"]
+["{'idn': '1', 'tipo': 'Bus', 'saldo': 1.0}", "{'idn': '1', 'tipo': 'Bus', 'saldo': 2.0}", "{'idn': '5', 'tipo': 'Bus', 'saldo': 2000.0}", "{'idn': '43', 'tipo': 'Tren', 'saldo': 30000.0}", "{'idn': '322', 'tipo': 'Bus', 'saldo': 0.0}", "{'idn': '112522899', 'tipo': 'Eco Barquito', 'saldo': 0.0}", "{'idn': '2', 'tipo': 'Bus', 'saldo': 0.0}"]

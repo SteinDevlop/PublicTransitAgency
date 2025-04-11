@@ -27,33 +27,16 @@ app.add_middleware(
 )
 @app.get("/", response_class=HTMLResponse)
 def index(request: Request):
-    print("Request for index page received")
     return templates.TemplateResponse("CrearTarjeta.html", {"request": request})
 
-@app.get('/consultar', response_class=HTMLResponse)
-def consultar(request: Request):
-    print("Request for index page received")
-    return templates.TemplateResponse("ConsultarTarjeta.html", {"request": request})
-@app.get("/tarjetas")
-async def get_tarjetas():
-    return st_object.show()
-@app.get("/tarjeta")
-def tarjeta(request:Request, id: str):
-    unitTarjeta=st_object.get_by_id(id)
-    if unitTarjeta != None:
-        return templates.TemplateResponse("tarjeta.html",{"request":request,"id": unitTarjeta["idn"],"tipo": unitTarjeta["tipo"],"saldo": unitTarjeta["saldo"]})
-    if unitTarjeta is None:
-        return templates.TemplateResponse("tarjeta.html",{"request":request,"id": "None","tipo": "None","saldo": "None"})
-@app.post("/add_tarjeta")
+@app.post("/CardCreation/add_tarjeta")
 async def add_tarjeta(
     request: Request,
     id: str = Form(...),
     tipo: str = Form(...),
-    saldo: float = Form(...)
+    saldo: float = 0
 ):
     card_temp = Card(id, tipo, saldo)
-    print(card_temp)
     return st_object.add(card_temp)
-
 if __name__ == "__main__":
     uvicorn.run("app:app", reload=True)
