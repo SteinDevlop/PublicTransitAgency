@@ -4,7 +4,7 @@ class CardUser(Card):
         super().__init__(id_card, card_type, balance)
         self.user_id = user_id
     def use_card(self):
-        if self.balance >= 3000:
+        if self.balance >= 3000: ##Ah? 
             self.balance -= 3000
             print(f"Card {self.id_card} used by user {self.user_id}. Remaining balance: {self.balance}")
             return True

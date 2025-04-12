@@ -1,7 +1,7 @@
 from datetime import datetime
-
+from logic import maintainance_status
 class Maintenance:
-    def __init__(self, id: int, unit: str, date: datetime, type: str, status: str):
+    def __init__(self, id: int, unit: str, date: datetime, type: maintainance_status, status: str):
         self.id = id
         self.unit = unit
         self.date = date

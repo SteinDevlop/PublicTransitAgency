@@ -50,6 +50,7 @@ class Card:
     
     def __str__(self):
         return dict(idn=self.id_card, tipo=self.card_type, saldo=self.balance).__str__()
+        
 if __name__ == "__main__":
     try:
         card = Card(1001, "Bus", 150.0)

@@ -1,11 +1,44 @@
 import datetime
 from logic import transport_route
-class Schedule ():
+
+class Schedule:
     def __init__(self, schedule_id: str, arrival_date: datetime.datetime, departure_date: datetime.datetime, route: transport_route.Route):
-        self.arrival_date = arrival_date
-        self.schedule_id = schedule_id
-        self.departure_date = departure_date
-        self.route = route
+        self._schedule_id = schedule_id
+        self._arrival_date = arrival_date
+        self._departure_date = departure_date
+        self._route = route
+
+    @property
+    def schedule_id(self) -> str:
+        return self._schedule_id
+
+    @schedule_id.setter
+    def schedule_id(self, value: str):
+        self._schedule_id = value
+
+    @property
+    def arrival_date(self) -> datetime.datetime:
+        return self._arrival_date
+
+    @arrival_date.setter
+    def arrival_date(self, value: datetime.datetime):
+        self._arrival_date = value
+
+    @property
+    def departure_date(self) -> datetime.datetime:
+        return self._departure_date
+
+    @departure_date.setter
+    def departure_date(self, value: datetime.datetime):
+        self._departure_date = value
+
+    @property
+    def route(self) -> transport_route.Route:
+        return self._route
+
+    @route.setter
+    def route(self, value: transport_route.Route):
+        self._route = value
 
     def schedule_adjustment(self):
         if self.arrival_date < datetime.datetime.now():

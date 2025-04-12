@@ -1,24 +1,76 @@
-import datetime #aplicar fecha, eliminar id payment
+import datetime
+from logic import card  # Asegúrate de que la clase Card esté bien importada
+
 class Payments:
-    def __init__(self, id_payment: int, user: str, payment_quantity: float, payment_method: str):
-        self.id_payment = id_payment
-        self.user= user
-        self.payment_quantity = payment_quantity
-        self.payment_method = payment_method
+    def __init__(self, user: str, payment_quantity: float, payment_method: bool, vehicle_type: int, card: card.Card):
+        self._date = datetime.datetime.now()
+        self._user = user
+        self._payment_quantity = payment_quantity
+        self._payment_method = payment_method
+        self._vehicle_type = vehicle_type
+        self._card = card
 
-    def process_payment(self, amount):
-        if amount <= 0:
-            raise ValueError("Payment amount must be greater than zero.")
-        if amount > self.payment_quantity:
-            raise ValueError("Insufficient payment quantity.")
-        #Tener en cuenta tipos de vehiculo (crear el dato tipo_vehiculo (1,2,3 tentativamente.))
-        print(f"Processing payment of ${amount}")
-        return True
+        if self._card.balance < self._payment_quantity:
+            raise ValueError("Saldo insuficiente para realizar el pago.")
+        else:
+            self._card.balance -= self._payment_quantity
 
-    def ticket_validation(self, transaction_id):
-        if not transaction_id:
-            raise ValueError("Transaction ID is required.")
-        
-        print(f"Validating ticket with transaction ID: {transaction_id}")
-        return True
+    @property
+    def date(self):
+        return self._date
+
+    @property
+    def user(self):
+        return self._user
+
+    @user.setter
+    def user(self, value: str):
+        self._user = value
+
+    @property
+    def payment_quantity(self):
+        return self._payment_quantity
+
+    @payment_quantity.setter
+    def payment_quantity(self, value: float):
+        if value < 0:
+            raise ValueError("La cantidad del pago no puede ser negativa.")
+        self._payment_quantity = value
+
+    @property
+    def payment_method(self):
+        return self._payment_method
+
+    @payment_method.setter
+    def payment_method(self, value: bool):
+        self._payment_method = value
+
+    @property
+    def vehicle_type(self):
+        return self._vehicle_type
+
+    @vehicle_type.setter
+    def vehicle_type(self, value: int):
+        self._vehicle_type = value
+
+    @property
+    def card(self):
+        return self._card
+
+    @card.setter
+    def card(self, value: card.Card):
+        self._card = value
+
+    def __str__(self):
+        return (
+            f"=== Comprobante de Pago ===\n"
+            f"Fecha:            {self.date.strftime('%Y-%m-%d %H:%M:%S')}\n"
+            f"Usuario:          {self.user}\n"
+            f"Monto Pagado:     ${self.payment_quantity:.2f}\n"
+            f"Método de Pago:   {'Tarjeta' if self.payment_method else 'Efectivo'}\n"
+            f"Tipo de Vehículo: {self.vehicle_type}\n"
+            f"ID Tarjeta:       {self.card.id_card}\n"
+            f"Saldo Restante:   ${self.card.balance:.2f}"
+        )
+
     ## Agregar atributo date, crear clases movimiento (Para guardar los datos (Dates, tipo_transaccion, monto, tipo_vehiculo), Saldo (para reflejar.))

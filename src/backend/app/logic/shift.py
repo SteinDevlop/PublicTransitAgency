@@ -1,15 +1,55 @@
 import datetime
-from logic import unit_transport 
+from logic import unit_transport
 from logic import schedule
 
-class Shift ():
-    def __init__(self, unit : unit_transport.Transport, start_time: datetime.datetime, end_time: datetime.datetime, driver: str, schedule: schedule.Schedule):
-        self.driver = driver
-        self.schedule = schedule
-        self.unit = unit
-        self.start_time = start_time
-        self.end_time = end_time
-        pass
+class Shift:
+    def __init__(self, unit: unit_transport.Transport, start_time: datetime.datetime, end_time: datetime.datetime, driver: str, schedule: schedule.Schedule):
+        self._unit = unit
+        self._start_time = start_time
+        self._end_time = end_time
+        self._driver = driver
+        self._schedule = schedule
+
+    @property
+    def unit(self) -> unit_transport.Transport:
+        return self._unit
+
+    @unit.setter
+    def unit(self, value: unit_transport.Transport):
+        self._unit = value
+
+    @property
+    def start_time(self) -> datetime.datetime:
+        return self._start_time
+
+    @start_time.setter
+    def start_time(self, value: datetime.datetime):
+        self._start_time = value
+
+    @property
+    def end_time(self) -> datetime.datetime:
+        return self._end_time
+
+    @end_time.setter
+    def end_time(self, value: datetime.datetime):
+        self._end_time = value
+
+    @property
+    def driver(self) -> str:
+        return self._driver
+
+    @driver.setter
+    def driver(self, value: str):
+        self._driver = value
+
+    @property
+    def schedule(self) -> schedule.Schedule:
+        return self._schedule
+
+    @schedule.setter
+    def schedule(self, value: schedule.Schedule):
+        self._schedule = value
+
     
     def shift_assigment (self):
         if self.start_time < datetime.datetime.now():
