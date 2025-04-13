@@ -1,5 +1,6 @@
+from logic import ticket
 class Transport:
-    def __init__(self, id, type, status, ubication, capacity):
+    def __init__(self, id: str, type, status: ticket.Ticket, ubication, capacity):
         self._id = id
         self._type = type
         self._status = status
