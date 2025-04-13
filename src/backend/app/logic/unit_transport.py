@@ -1,4 +1,4 @@
-from logic import ticket
+from src.backend.app.logic import ticket
 class Transport:
     def __init__(self, id: str, type, status: ticket.Ticket, ubication, capacity):
         self._id = id
