@@ -1,5 +1,5 @@
 import unittest
-from logic.routes import Routes
+from src.backend.app.logic.routes import Routes
 
 class TestRoutes(unittest.TestCase):
     def setUp(self):
