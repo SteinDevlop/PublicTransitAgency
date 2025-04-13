@@ -16,7 +16,7 @@ jobs:
       - name: Setup Python
         uses: actions/setup-python@v2
         with:
-          python-version: ${{ matrix.python }}
+          python-version: '3.9'
       - name: Install tox and any other packages
         run: pip install tox
       - name: Run tox
@@ -27,4 +27,4 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: https://sonarcloud.io
         with:
-          args: -X
+          args: -Dsonar.projectKey=ISCODEVUTB_PublicTransitAgency -Dsonar.organization=deviscoutb -X
