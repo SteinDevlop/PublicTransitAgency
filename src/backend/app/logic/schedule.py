@@ -1,50 +1,90 @@
 import datetime
-from src.backend.app.logic import transport_route
+from src.backend.app.logic import unit_transport
+from src.backend.app.logic import schedule as schedule_module
 
-class Schedule:
-    def __init__(self, schedule_id: str, arrival_date: datetime.datetime, departure_date: datetime.datetime, route: transport_route.Route):
-        self._schedule_id = schedule_id
-        self._arrival_date = arrival_date
-        self._departure_date = departure_date
-        self._route = route
-
-    @property
-    def schedule_id(self) -> str:
-        return self._schedule_id
-
-    @schedule_id.setter
-    def schedule_id(self, value: str):
-        self._schedule_id = value
-
-    @property
-    def arrival_date(self) -> datetime.datetime:
-        return self._arrival_date
-
-    @arrival_date.setter
-    def arrival_date(self, value: datetime.datetime):
-        self._arrival_date = value
+class Shift:
+    def __init__(
+        self,
+        unit: unit_transport.Transport,
+        start_time: datetime.datetime,
+        end_time: datetime.datetime,
+        driver: str,
+        schedule: schedule_module.Schedule
+    ):
+        self._unit = unit
+        self._start_time = start_time
+        self._end_time = end_time
+        self._driver = driver
+        self._schedule = schedule
 
     @property
-    def departure_date(self) -> datetime.datetime:
-        return self._departure_date
+    def unit(self) -> unit_transport.Transport:
+        return self._unit
 
-    @departure_date.setter
-    def departure_date(self, value: datetime.datetime):
-        self._departure_date = value
+    @unit.setter
+    def unit(self, value: unit_transport.Transport):
+        self._unit = value
 
     @property
-    def route(self) -> transport_route.Route:
-        return self._route
+    def start_time(self) -> datetime.datetime:
+        return self._start_time
 
-    @route.setter
-    def route(self, value: transport_route.Route):
-        self._route = value
+    @start_time.setter
+    def start_time(self, value: datetime.datetime):
+        self._start_time = value
 
-    def schedule_adjustment(self):
-        if self.arrival_date < datetime.datetime.now():
-            raise ValueError("Arrival date cannot be in the past.")
-        if self.departure_date < self.arrival_date:
-            raise ValueError("Departure date must be after arrival date.")
-        ##Por ahora, ni foking idea.
-    
-            
+    @property
+    def end_time(self) -> datetime.datetime:
+        return self._end_time
+
+    @end_time.setter
+    def end_time(self, value: datetime.datetime):
+        self._end_time = value
+
+    @property
+    def driver(self) -> str:
+        return self._driver
+
+    @driver.setter
+    def driver(self, value: str):
+        self._driver = value
+
+    @property
+    def schedule(self) -> schedule_module.Schedule: 
+        return self._schedule
+
+    @schedule.setter
+    def schedule(self, value: schedule_module.Schedule):
+        self._schedule = value
+
+    def shift_assigment(self):
+        if self.start_time < datetime.datetime.now():
+            raise ValueError("Start time cannot be in the past.")
+        
+        if self.end_time < self.start_time:
+            raise ValueError("End time must be after start time.")
+        
+        if not self.unit.is_available(self.start_time, self.end_time):
+            raise ValueError("Unit is not available for the specified time.")
+        
+        if not self.schedule.is_valid():
+            raise ValueError("Schedule is not valid.")
+        
+        print(f"Shift assigned to driver {self.driver} for unit {self.unit.unit_id} from {self.start_time} to {self.end_time}.")
+        return True
+
+    def shift_change(self, new_start_time: datetime.datetime, new_end_time: datetime.datetime):
+        if new_start_time < datetime.datetime.now():
+            raise ValueError("Start time cannot be in the past.")
+        
+        if new_end_time < new_start_time:
+            raise ValueError("End time must be after start time.")
+        
+        if not self.unit.is_available(new_start_time, new_end_time):
+            raise ValueError("Unit is not available for the specified time.")
+        
+        self.start_time = new_start_time
+        self.end_time = new_end_time
+        
+        print(f"Shift changed to {self.start_time} - {self.end_time} for driver {self.driver}.")
+        return True
