@@ -3,24 +3,46 @@ from datetime import datetime
 from src.backend.app.logic.mantainment import Maintenance
 
 class TestMaintenance(unittest.TestCase):
-    def setUp(self):
-        self.maintenance = Maintenance(id=1, unit='Bus 101', date=datetime(2025, 5, 10), type='Oil Change', status='Scheduled')
 
-    def test_schedule_maintenance(self):
-        new_date = datetime(2025, 6, 15)
-        self.maintenance.schedule_maintenance(new_date)
-        self.assertEqual(self.maintenance.date, new_date)
+    def test_maintenance_creation(self):
+        now = datetime.now()
+        m = Maintenance(1, 101, 2, "Preventive", now)
+        
+        self.assertEqual(m.id, 1)
+        self.assertEqual(m.id_unit, 101)
+        self.assertEqual(m.id_status, 2)
+        self.assertEqual(m.type, "Preventive")
+        self.assertEqual(m.date, now)
 
-    def test_update_status(self):
-        self.maintenance.update_status('Completed')
-        self.assertEqual(self.maintenance.status, 'Completed')
-    
-    def test_maintenance_attributes(self):
-        self.assertEqual(self.maintenance.id, 1)
-        self.assertEqual(self.maintenance.unit, 'Bus 101')
-        self.assertEqual(self.maintenance.date, datetime(2025, 5, 10))
-        self.assertEqual(self.maintenance.type, 'Oil Change')
-        self.assertEqual(self.maintenance.status, 'Scheduled')
+    def test_maintenance_str_representation(self):
+        now = datetime(2023, 1, 1, 12, 0)
+        m = Maintenance(2, 202, 3, "Corrective", now)
 
-if __name__ == '__main__':
+        expected = str({
+            "id_mantainment": 2,
+            "id_unit": 202,
+            "id_status": 3,
+            "type": "Corrective",
+            "date": now
+        })
+
+        self.assertEqual(str(m), expected)
+
+    def test_maintenance_setters(self):
+        m = Maintenance(0, 0, 0, "", datetime.now())
+        m.id = 5
+        m.id_unit = 500
+        m.id_status = 1
+        m.type = "Emergency"
+        new_date = datetime(2024, 5, 20)
+        m.date = new_date
+
+        self.assertEqual(m.id, 5)
+        self.assertEqual(m.id_unit, 500)
+        self.assertEqual(m.id_status, 1)
+        self.assertEqual(m.type, "Emergency")
+        self.assertEqual(m.date, new_date)
+
+if __name__ == "__main__":
     unittest.main()
+
