@@ -1,9 +1,16 @@
 import datetime
 from src.backend.app.logic import unit_transport
-from src.backend.app.logic import schedule
+from src.backend.app.logic import schedule as schedule_module 
 
 class Shift:
-    def __init__(self, unit: unit_transport.Transport, start_time: datetime.datetime, end_time: datetime.datetime, driver: str, schedule: schedule.Schedule):
+    def __init__(
+        self,
+        unit: unit_transport.Transport,
+        start_time: datetime.datetime,
+        end_time: datetime.datetime,
+        driver: str,
+        schedule: schedule_module.Schedule 
+    ):
         self._unit = unit
         self._start_time = start_time
         self._end_time = end_time
@@ -43,15 +50,14 @@ class Shift:
         self._driver = value
 
     @property
-    def schedule(self) -> schedule.Schedule:
+    def schedule(self) -> schedule_module.Schedule:
         return self._schedule
 
     @schedule.setter
-    def schedule(self, value: schedule.Schedule):
+    def schedule(self, value: schedule_module.Schedule):
         self._schedule = value
 
-    
-    def shift_assigment (self):
+    def shift_assigment(self):
         if self.start_time < datetime.datetime.now():
             raise ValueError("Start time cannot be in the past.")
         
@@ -66,9 +72,8 @@ class Shift:
         
         print(f"Shift assigned to driver {self.driver} for unit {self.unit.unit_id} from {self.start_time} to {self.end_time}.")
         return True
-        # Por ahora le pongo esto.
-    
-    def shift_change (self, new_start_time: datetime.datetime, new_end_time: datetime.datetime):
+
+    def shift_change(self, new_start_time: datetime.datetime, new_end_time: datetime.datetime):
         if new_start_time < datetime.datetime.now():
             raise ValueError("Start time cannot be in the past.")
         
@@ -83,5 +88,5 @@ class Shift:
         
         print(f"Shift changed to {self.start_time} - {self.end_time} for driver {self.driver}.")
         return True
-        
+
 
