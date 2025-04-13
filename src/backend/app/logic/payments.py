@@ -4,7 +4,7 @@ from logic import card  # Asegúrate de que la clase Card esté bien importada
 class Payments:
     def __init__(self, user: str, payment_quantity: float, payment_method: bool, vehicle_type: int, card: card.Card):
         self._date = datetime.datetime.now()
-        self._user = user
+        self._user = user ## Lo quitare despues 
         self._payment_quantity = payment_quantity
         self._payment_method = payment_method
         self._vehicle_type = vehicle_type
