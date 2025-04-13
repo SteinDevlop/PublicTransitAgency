@@ -1,26 +1,55 @@
 import unittest
-from unittest.mock import patch
 from src.backend.app.logic.unit_transport import Transport
 
 class TestTransport(unittest.TestCase):
-    def setUp(self):
-        self.transport = Transport(id=1, type="Truck", status="Active", ubication="Warehouse", capacity=1000)
 
-    def test_initialization(self):
+    def setUp(self):
+        # Este método se ejecuta antes de cada test
+        self.transport = Transport(id=1, type="Truck", status="Active", ubication="Location A", capacity=100)
+
+    def test_initial_values(self):
+        # Verificamos los valores iniciales de la clase
         self.assertEqual(self.transport.id, 1)
         self.assertEqual(self.transport.type, "Truck")
         self.assertEqual(self.transport.status, "Active")
-        self.assertEqual(self.transport.ubication, "Warehouse")
-        self.assertEqual(self.transport.capacity, 1000)
+        self.assertEqual(self.transport.ubication, "Location A")
+        self.assertEqual(self.transport.capacity, 100)
 
-    def test_actualize_status(self):
-        self.transport.actualize_status("Inactive")
+    def test_setter_getter_id(self):
+        # Probamos el setter y getter de 'id'
+        self.transport.id = 2
+        self.assertEqual(self.transport.id, 2)
+
+    def test_setter_getter_type(self):
+        # Probamos el setter y getter de 'type'
+        self.transport.type = "Bus"
+        self.assertEqual(self.transport.type, "Bus")
+
+    def test_setter_getter_status(self):
+        # Probamos el setter y getter de 'status'
+        self.transport.status = "Inactive"
         self.assertEqual(self.transport.status, "Inactive")
 
+    def test_setter_getter_ubication(self):
+        # Probamos el setter y getter de 'ubication'
+        self.transport.ubication = "Location B"
+        self.assertEqual(self.transport.ubication, "Location B")
+
+    def test_setter_getter_capacity(self):
+        # Probamos el setter y getter de 'capacity'
+        self.transport.capacity = 120
+        self.assertEqual(self.transport.capacity, 120)
+
+    def test_actualize_status(self):
+        # Probamos el método 'actualize_status'
+        self.transport.actualize_status("Under Maintenance")
+        self.assertEqual(self.transport.status, "Under Maintenance")
+
     def test_send_alert(self):
-        with patch('sys.stdout') as mocked_stdout:
-            self.transport.send_alert("Low fuel")
-            mocked_stdout.write.assert_called_with("Alert for Transport ID 1: Low fuel\n")
+        # Probamos el método 'send_alert' y verificamos si imprime el mensaje correcto
+        with self.assertLogs(level='INFO') as log:
+            self.transport.send_alert("Test Alert")
+            self.assertIn("Alert for Transport ID 1: Test Alert", log.output)
 
 if __name__ == "__main__":
     unittest.main()
