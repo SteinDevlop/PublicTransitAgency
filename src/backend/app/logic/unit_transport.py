@@ -45,9 +45,3 @@ class Transport:
     @capacity.setter
     def capacity(self, value):
         self._capacity = value
-
-    def actualize_status(self, new_status):
-        self.status = new_status
-
-    def send_alert(self, message):
-        print(f"Alert for Transport ID {self.id}: {message}")

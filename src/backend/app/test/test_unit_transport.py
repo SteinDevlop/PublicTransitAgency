@@ -40,16 +40,5 @@ class TestTransport(unittest.TestCase):
         self.transport.capacity = 120
         self.assertEqual(self.transport.capacity, 120)
 
-    def test_actualize_status(self):
-        # Probamos el método 'actualize_status'
-        self.transport.actualize_status("Under Maintenance")
-        self.assertEqual(self.transport.status, "Under Maintenance")
-
-    def test_send_alert(self):
-        # Probamos el método 'send_alert' y verificamos si imprime el mensaje correcto
-        with self.assertLogs(level='INFO') as log:
-            self.transport.send_alert("Test Alert")
-            self.assertIn("Alert for Transport ID 1: Test Alert", log.output)
-
 if __name__ == "__main__":
     unittest.main()
