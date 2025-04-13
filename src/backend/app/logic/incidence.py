@@ -1,4 +1,4 @@
-from logic import ticket
+from src.backend.app.logic import ticket
 class Incidence:
     def __init__(self, description: str, type: str, status: ticket, incidence_id: int = None):
         self._description = description
