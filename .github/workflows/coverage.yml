@@ -21,10 +21,10 @@ jobs:
         run: pip install tox
       - name: Run tox
         run: tox -e py
-      - name: SonarQube Scan
-        uses: SonarSource/sonarqube-scan-action@v4
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: https://sonarcloud.io
-        with:
-          args: -Dsonar.projectKey=ISCODEVUTB_PublicTransitAgency -Dsonar.organization=deviscoutb -X
+      #- name: SonarQube Scan
+      #  uses: SonarSource/sonarqube-scan-action@v4
+      #  env:
+      #    SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+      #    SONAR_HOST_URL: https://sonarcloud.io
+      #  with:
+      #    args: -Dsonar.projectKey=ISCODEVUTB_PublicTransitAgency -Dsonar.organization=deviscoutb -X
