@@ -52,7 +52,7 @@ class TestCardClass(unittest.TestCase):
         """
         Test the __str__ method returns the correct string representation.
         """
-        expected = "Card(id_card=1234, card_type='TestType', balance=100.00)"
+        expected = "{'idn': 1234, 'tipo': 'TestType', 'saldo': 100.0}"
         self.assertEqual(str(self.card), expected)
 
     def test_use_card_method(self):
