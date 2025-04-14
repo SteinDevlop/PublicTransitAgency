@@ -10,3 +10,15 @@ class Supervisor(User):
             raise ValueError("Invalid Email")
         if not self.verify_password(password):
             raise ValueError("Invalid Password")
+    def get_driver_assigment(self, driver):
+        """
+        Purpose: Get information of driver's routes assigmented
+        """
+    def create_driver_assigment_report(self, driver):
+        """
+        Purpose: Create reports of driver's routes assigmented
+        """
+    def set_driver_assigment(self, driver):
+        """
+        Purpose: Actualize information of driver's routes assigmented
+        """

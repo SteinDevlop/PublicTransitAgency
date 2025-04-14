@@ -10,3 +10,15 @@ class Technician(User):
             raise ValueError("Invalid Email")
         if not self.verify_password(password):
             raise ValueError("Invalid Password")
+    def create_report(self):
+        """
+        Purpose: Create a manteinment report
+        """
+    def get_manteinment_schedule(self):
+        """
+        Purpose: Get schedule information
+        """
+    def set_manteinment_report(self, atributte, value):
+        """
+        Purpose: Actualize manteinment report
+        """
