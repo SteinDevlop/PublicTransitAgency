@@ -1,46 +1,73 @@
-from fastapi import FastAPI, Form, Request, status, Query
-from fastapi.responses import HTMLResponse, FileResponse, RedirectResponse
-from fastapi.staticfiles import StaticFiles
-from fastapi.templating import Jinja2Templates
+from fastapi import FastAPI, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
+from datetime import datetime
+from uuid import uuid4
 
 from logic.payments import Payments
-from logic.payments_controller import PaymentsController
+from logic.universal_controller_json import UniversalController
+from logic.card import Card  # Suponiendo que tienes esta clase
 
 app = FastAPI()
-st_object = PaymentsController()
-
-# Descomenta esta línea si estás sirviendo archivos estáticos
-# app.mount("/static", StaticFiles(directory="static"), name="static")
-
-templates = Jinja2Templates(directory="templates")
+controller = UniversalController()
 
 # CORS middleware
-origins = ["*"]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
-'''
-Considera que debe haber un limite maximo y minimo por transaccion (ya sea que no se puede recargar mas de cierto valor)
-'''
-def generar_registro(id_tarjeta,tipo_transporte,tipo_pago,valor,fecha):
-    pass #Enviar al servicio de movement
+
+# Configuración de límites de transacción
+MIN_VALOR = 1000
+MAX_VALOR = 100000
+
+def generar_registro(id_tarjeta, tipo_transporte, tipo_pago, valor, fecha):
+    # Aquí luego llamarías al microservicio de movimientos
+    print(f"[LOG] Registro generado - Tarjeta: {id_tarjeta}, Transporte: {tipo_transporte}, Tipo: {tipo_pago}, Valor: {valor}, Fecha: {fecha}")
+    # Puedes guardar en Payments como un registro también si deseas
+
 @app.post('/payment/tarjeta/{id}/recarga')
-def recargar(request: Request):
-    #Puede tener pagina web para aplicar la recarga
-    #Genera recibo de la recarga
-    #Debe recargar el saldo de la tarjeta. Debe llamar generar registro
-    pass
+def recargar(id: str, valor: float, tipo_transporte: str = "virtual"):
+    if valor < MIN_VALOR or valor > MAX_VALOR:
+        raise HTTPException(status_code=400, detail=f"El valor debe estar entre {MIN_VALOR} y {MAX_VALOR}")
+
+    tarjeta = controller.get_by_id(Card, id)
+    if not tarjeta:
+        raise HTTPException(status_code=404, detail="Tarjeta no encontrada")
+
+    tarjeta.saldo += valor
+    controller.update(tarjeta)
+
+    fecha = datetime.now().isoformat()
+    pago = Payments(str(uuid4()), id, tipo_transporte, "recarga", valor, fecha)
+    controller.add(pago)
+
+    generar_registro(id, tipo_transporte, "recarga", valor, fecha)
+
+    return {"mensaje": "Recarga exitosa", "nuevo_saldo": tarjeta.saldo}
+
 @app.post('/payment/tarjeta/{id}/uso')
-def uso(request: Request):
-    pass
-    #debe llamarse cuando se usa la tarjeta en un transporte especifico
-    #Puede mostrar pagina web con la cantidad de saldo despues del pago
-    #Debe descontar una cantidad del saldo de la tarjeta. Debe llamar generar registro
+def uso(id: str, valor: float, tipo_transporte: str):
+    tarjeta = controller.get_by_id(Card, id)
+    if not tarjeta:
+        raise HTTPException(status_code=404, detail="Tarjeta no encontrada")
+
+    if tarjeta.saldo < valor:
+        raise HTTPException(status_code=400, detail="Saldo insuficiente")
+
+    tarjeta.saldo -= valor
+    controller.update(tarjeta)
+
+    fecha = datetime.now().isoformat()
+    pago = Payments(str(uuid4()), id, tipo_transporte, "uso", valor, fecha)
+    controller.add(pago)
+
+    generar_registro(id, tipo_transporte, "uso", valor, fecha)
+
+    return {"mensaje": "Uso registrado", "saldo_restante": tarjeta.saldo}
+
 if __name__ == "__main__":
     uvicorn.run("app:app", reload=True)
