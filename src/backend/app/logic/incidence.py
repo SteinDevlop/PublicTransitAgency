@@ -1,6 +1,6 @@
-from src.backend.app.logic import ticket
+from logic.ticket import Ticket
 class Incidence:
-    def __init__(self, description: str, type: str, status: ticket, incidence_id: int = None):
+    def __init__(self, description: str, type: str, status: Ticket, incidence_id: int = None):
         self._description = description
         self._type = type
         self._status = status
@@ -38,7 +38,7 @@ class Incidence:
     def incidence_id(self, value: int):
         self._incidence_id = value
 
-    def update_incidence(self, description: str, type: str, status: str, incidence_id: int):
+    def update_incidence(self, description: str, type: str, status: Ticket, incidence_id: int):
         if incidence_id is None:
             raise ValueError("Incidence ID is required.")
         self.description = description

@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 from datetime import datetime
 from uuid import uuid4
+import payment_service_recharge as recharge_service
 
 from logic.payments import Payments
 from logic.universal_controller_json import UniversalController
@@ -24,33 +25,10 @@ app.add_middleware(
 MIN_VALOR = 1000
 MAX_VALOR = 100000
 
-def generar_registro(id_tarjeta, tipo_transporte, tipo_pago, valor, fecha):
-    # Aquí luego llamarías al microservicio de movimientos
-    print(f"[LOG] Registro generado - Tarjeta: {id_tarjeta}, Transporte: {tipo_transporte}, Tipo: {tipo_pago}, Valor: {valor}, Fecha: {fecha}")
-    # Puedes guardar en Payments como un registro también si deseas
 
-@app.post('/payment/tarjeta/{id}/recarga')
-def recargar(id: str, valor: float, tipo_transporte: str = "virtual"):
-    if valor < MIN_VALOR or valor > MAX_VALOR:
-        raise HTTPException(status_code=400, detail=f"El valor debe estar entre {MIN_VALOR} y {MAX_VALOR}")
-
-    tarjeta = controller.get_by_id(Card, id)
-    if not tarjeta:
-        raise HTTPException(status_code=404, detail="Tarjeta no encontrada")
-
-    tarjeta.saldo += valor
-    controller.update(tarjeta)
-
-    fecha = datetime.now().isoformat()
-    pago = Payments(str(uuid4()), id, tipo_transporte, "recarga", valor, fecha)
-    controller.add(pago)
-
-    generar_registro(id, tipo_transporte, "recarga", valor, fecha)
-
-    return {"mensaje": "Recarga exitosa", "nuevo_saldo": tarjeta.saldo}
 
 @app.post('/payment/tarjeta/{id}/uso')
-def uso(id: str, valor: float, tipo_transporte: str):
+def use(id: str, valor: float, tipo_transporte: str):
     tarjeta = controller.get_by_id(Card, id)
     if not tarjeta:
         raise HTTPException(status_code=404, detail="Tarjeta no encontrada")
@@ -65,7 +43,7 @@ def uso(id: str, valor: float, tipo_transporte: str):
     pago = Payments(str(uuid4()), id, tipo_transporte, "uso", valor, fecha)
     controller.add(pago)
 
-    generar_registro(id, tipo_transporte, "uso", valor, fecha)
+    recharge_service.generar_registro(id, tipo_transporte, "uso", valor, fecha)
 
     return {"mensaje": "Uso registrado", "saldo_restante": tarjeta.saldo}
 
