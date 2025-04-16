@@ -24,9 +24,7 @@ MIN_VALOR = 1000
 MAX_VALOR = 100000
 
 def generar_registro(id_tarjeta, tipo_transporte, tipo_pago, valor, fecha):
-    # Aquí luego llamarías al microservicio de movimientos
     print(f"[LOG] Registro generado - Tarjeta: {id_tarjeta}, Transporte: {tipo_transporte}, Tipo: {tipo_pago}, Valor: {valor}, Fecha: {fecha}")
-    # Puedes guardar en Payments como un registro también si deseas
 
 @app.post('/payment/tarjeta/{id}/recarga')
 def recharge(id: str, valor: float, tipo_transporte: str = "virtual"):
