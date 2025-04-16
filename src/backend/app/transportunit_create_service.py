@@ -1,4 +1,3 @@
-# transport_unit_create.py
 from fastapi import FastAPI, Form, Request
 from fastapi.middleware.cors import CORSMiddleware
 from logic.unit_transport import Transport
@@ -19,7 +18,7 @@ app.add_middleware(
 async def create_transport_unit(
     id: str = Form(...),
     type: str = Form(...),
-    status: str = Form(...),  # se espera un string, por ahora simulamos
+    status: str = Form(...), 
     ubication: str = Form(...),
     capacity: int = Form(...)
 ):

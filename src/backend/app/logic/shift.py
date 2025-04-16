@@ -1,6 +1,7 @@
 import datetime
 from src.backend.app.logic import unit_transport
 from src.backend.app.logic import schedule as schedule_module 
+from src.backend.app.logic import user_driver
 
 class Shift:
     def __init__(
@@ -8,7 +9,7 @@ class Shift:
         unit: unit_transport.Transport,
         start_time: datetime.datetime,
         end_time: datetime.datetime,
-        driver: str,
+        driver: user_driver,
         schedule: schedule_module.Schedule 
     ):
         self._unit = unit

@@ -1,4 +1,4 @@
-# maintainance_status_create.py
+
 from fastapi import FastAPI, Form
 from fastapi.middleware.cors import CORSMiddleware
 from logic.ticket import Ticket

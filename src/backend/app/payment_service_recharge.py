@@ -20,7 +20,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Configuración de límites de transacción
 MIN_VALOR = 1000
 MAX_VALOR = 100000
 

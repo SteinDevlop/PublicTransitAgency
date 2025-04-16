@@ -1,4 +1,3 @@
-# transport_unit_list_all.py
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from logic.unit_transport import Transport

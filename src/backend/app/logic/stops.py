@@ -1,8 +1,7 @@
 class Stops:
-
-    def __init__(self, stop: dict, id: str) -> None:
+    def __init__(self, stop: dict, stop_id: str = None) -> None:
         self._stop = stop
-        self._stop_id = stop.get("stop_id")
+        self._stop_id = stop_id or stop.get("stop_id")
 
     @property
     def stop(self) -> dict:
@@ -11,7 +10,7 @@ class Stops:
     @stop.setter
     def stop(self, value: dict):
         self._stop = value
-        self._stop_id = value.get("stop_id")  # update stop_id based on new stop dict
+        self._stop_id = value.get("stop_id")
 
     @property
     def stop_id(self) -> str:
@@ -21,4 +20,11 @@ class Stops:
     def stop_id(self, value: str):
         self._stop_id = value
 
-        #Ni idea q hacer con esta 
+    def to_dict(self) -> dict:
+        return {
+            "stop_id": self._stop_id,
+            "stop": self._stop
+        }
+    @classmethod
+    def from_dict(cls, data: dict):
+        return cls(stop=data.get("stop", {}), stop_id=data.get("stop_id"))

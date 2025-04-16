@@ -7,12 +7,11 @@ import payment_service_recharge as recharge_service
 
 from logic.payments import Payments
 from logic.universal_controller_json import UniversalController
-from logic.card import Card  # Suponiendo que tienes esta clase
+from logic.card import Card  
 
 app = FastAPI()
 controller = UniversalController()
 
-# CORS middleware
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
@@ -21,7 +20,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Configuración de límites de transacción
 MIN_VALOR = 1000
 MAX_VALOR = 100000
 
