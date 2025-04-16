@@ -9,7 +9,7 @@ from logic.movement import Movement
 from logic.movement_controller import MovementController
 
 app = FastAPI()
-st_object = MovementController()
+controller = UniversalController()
 
 # Descomenta esta línea si estás sirviendo archivos estáticos
 # app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -27,7 +27,7 @@ app.add_middleware(
 )
 @app.post('/movement/tarjetas/{id}/movimientos')
 def crear_registro(request: Request):
-    pass
+    return controller.add(tipo_mov)
 @app.get('/movement/tarjetas/{id}/movimientos/{movimiento_id}')
 def obtener_detalle_movimiento(id: int, movimiento_id: int):
     pass

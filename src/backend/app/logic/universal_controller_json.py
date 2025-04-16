@@ -13,7 +13,10 @@ class UniversalController:
                 json.dump({}, f)
 
     def _get_entity_name(self, obj: Any) -> str:
+        if hasattr(obj, "__entity_name__"):
+            return getattr(obj, "__entity_name__")
         return obj.__class__.__name__.lower()
+
 
     def _get_id_field(self, obj_dict: dict) -> str:
         for key in obj_dict.keys():
@@ -94,3 +97,6 @@ class UniversalController:
         data[entity_name] = new_data
         self._save_data(data)
         return True
+
+
+        
