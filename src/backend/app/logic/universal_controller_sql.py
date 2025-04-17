@@ -11,7 +11,7 @@ class UniversalController:
 
     def __init__(self):
         """Initialize the database connection and cursor."""
-        self.conn = sqlite3.connect(DB_FILE)
+        self.conn = sqlite3.connect(DB_FILE, check_same_thread=False)
         self.conn.row_factory = sqlite3.Row  # Return rows as dictionaries
         self.cursor = self.conn.cursor()
 

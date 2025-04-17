@@ -1,2 +1,5 @@
-Se mantendra esta esturctura para probar los servicios, una vez hechos esto.
-Se moveran las apis a services; los templates a routes; y routes a services junto con models
+Con los servicios completados 0.1, lo siguiente es estructurarlos en la carpeta api.
+Probar los servicios de forma individual, tomar nota de errores y recomendaciones
+Discucion general sobre posibles optimizaciones (Ej. HTML Create,Delete,Update)
+Se simula el caso de uso y que servicios se llamarian
+Se investiga como iniciar multiples servicios y llamarlos entre si.
