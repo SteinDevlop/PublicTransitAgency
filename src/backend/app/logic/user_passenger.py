@@ -1,5 +1,5 @@
-from user import User
-from payments import Payments
+from logic.user import User
+from logic.payments import Payments
 class Passenger(User):
     def __init__(self, id_user, type_identification,identification, name, email, password, role, card):
         super().__init__(id_user,type_identification,identification, name, email, password, role, card)     

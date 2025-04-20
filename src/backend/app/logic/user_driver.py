@@ -1,4 +1,4 @@
-from user import User
+from logic.user import User
 import re
 
 class Worker(User):

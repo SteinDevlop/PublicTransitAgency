@@ -1,5 +1,5 @@
 import re
-from card import Card
+from logic.card import Card
 from pydantic import BaseModel
 class User:
     def __init__(self, id_user: int, type_identification: str, identification: int ,name: str, email: str, password: str, role: str, card: Card):
