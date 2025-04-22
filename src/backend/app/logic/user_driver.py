@@ -1,4 +1,4 @@
-from logic.user import User
+from src.backend.app.logic.user import User
 import re
 
 class Worker(User):

@@ -1,4 +1,4 @@
-from logic.user import User
+from src.backend.app.logic.user import User
 
 class Administrator(User):
     def __init__(self, id_user, type_identification,identification, name, email, password, role):
