@@ -1,11 +1,9 @@
-
-from fastapi import APIRouter, Query
+from fastapi import APIRouter
 from logic.routes import Routes
-from logic import universal_controller_json
+from logic.universal_controller_json import UniversalController
 
 router = APIRouter()
-routes_controller = universal_controller_json()
-
+routes_controller = UniversalController()
 
 @router.put("/routes/{route_id}")
 def update_route(route_id: str, updated_data: dict):

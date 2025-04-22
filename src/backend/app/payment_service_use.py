@@ -23,8 +23,6 @@ app.add_middleware(
 MIN_VALOR = 1000
 MAX_VALOR = 100000
 
-
-
 @app.post('/payment/tarjeta/{id}/uso')
 def use(id: str, valor: float, tipo_transporte: str):
     tarjeta = controller.get_by_id(Card, id)

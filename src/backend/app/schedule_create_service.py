@@ -6,7 +6,7 @@ import datetime
 
 router = APIRouter()
 controller = universal_controller_json()
-
+ 
 @router.post("/schedules")
 def create_schedule(schedule_data: dict):
     try:
