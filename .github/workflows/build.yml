@@ -37,4 +37,11 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: https://sonarcloud.io
         with:
-          args: -Dsonar.projectKey=ISCODEVUTB_PublicTransitAgency -Dsonar.organization=deviscoutb -X
+          args: >
+            -Dsonar.projectKey=ISCODEVUTB_PublicTransitAgency
+            -Dsonar.organization=deviscoutb
+            -Dsonar.sources=src/backend/app
+            -Dsonar.tests=src/backend/app/test
+            -Dsonar.test.inclusions=src/backend/app/test/**/*.py
+            -Dsonar.source.exclusions=src/backend/app/test/**/*.py
+            -X
