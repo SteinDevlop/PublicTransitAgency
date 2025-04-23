@@ -7,7 +7,6 @@ on:
   pull_request:
     branches:
       - main
-
 jobs:
   sonarcloud:
     runs-on: ubuntu-latest
@@ -25,12 +24,17 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
 
+      - name: Run tests and generate coverage report
+        run: |
+          pytest --cov=src/backend/app --cov-report=xml:coverage.xml
+
       - name: Install SonarScanner
         run: |
           curl -sSLo sonar-scanner-cli.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-4.6.2.2472-linux.zip
           unzip sonar-scanner-cli.zip
           export PATH=$PATH:$(pwd)/sonar-scanner-4.6.2.2472-linux/bin
           echo "$(pwd)/sonar-scanner-4.6.2.2472-linux/bin" >> $GITHUB_PATH
+
       - name: SonarQube Scan
         uses: SonarSource/sonarqube-scan-action@v4
         env:
@@ -44,4 +48,6 @@ jobs:
             -Dsonar.tests=src/backend/app/test
             -Dsonar.test.inclusions=src/backend/app/test/**/*.py
             -Dsonar.source.exclusions=src/backend/app/test/**/*.py
+            -Dsonar.coverageReportPaths=coverage.xml
+            -X
             -X
