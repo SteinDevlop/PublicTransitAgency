@@ -1,5 +1,5 @@
 import sqlite3
-from logic.mantainment import Maintenance
+from src.backend.app.logic.mantainment import Maintenance
 from datetime import datetime
 import os
 

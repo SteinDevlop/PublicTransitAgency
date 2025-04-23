@@ -1,5 +1,5 @@
 import datetime
-from logic.transport_route import Route
+from src.backend.app.logic.transport_route import Route
 
 class Schedule:
     def __init__(self, schedule_id: str, arrival_date: datetime.datetime, departure_date: datetime.datetime, route: Route):

@@ -1,4 +1,4 @@
-from logic.stops import Stops
+from src.backend.app.logic.stops import Stops
 
 class Routes(Stops):
     def __init__(self, route: dict, id: str) -> None:

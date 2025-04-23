@@ -1,5 +1,5 @@
 import datetime
-from logic.card import Card  
+from src.backend.app.logic.card import Card  
 
 class Payments:
     def __init__(self, user: str, payment_quantity: float, payment_method: bool, vehicle_type: int, card: Card):
