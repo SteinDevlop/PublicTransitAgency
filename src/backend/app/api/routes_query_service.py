@@ -1,18 +1,32 @@
-from fastapi import FastAPI
-from logic.routes import Routes
-from logic.universal_controller_json import UniversalController
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from models.routes import RouteOut
+from logic.universal_controller_sql import UniversalController
+import uvicorn
 
 app = FastAPI()
 controller = UniversalController()
 
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["GET"],
+    allow_headers=["*"],
+)
+
 @app.get("/routes")
-def list_all_routes():
-    all_routes = controller.get_all("routes")
-    return {"routes": [r.__dict__ for r in all_routes]}
+async def list_all_routes():
+    dummy = RouteOut.get_empty_instance()
+    routes = controller.read_all(dummy)
+    return {"data": routes}
 
 @app.get("/routes/{route_id}")
-def get_route_by_id(route_id: str):
-    route = controller.get_by_id("routes", route_id)
+async def get_route(route_id: str):
+    route = controller.get_by_id(RouteOut, route_id)
     if not route:
-        return {"error": "Ruta no encontrada"}
-    return {"route": route.__dict__}
+        raise HTTPException(404, detail="Ruta no encontrada")
+    return {"data": route}
+
+if __name__ == "__main__":
+    uvicorn.run("app:app", host="0.0.0.0", port=8002, reload=True)

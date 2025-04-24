@@ -1,7 +1,8 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from logic.maintainance_status import MaintainanceStatus
-from logic.universal_controller_json import UniversalController
+from models.maintainance_status import MaintainanceStatusOut
+from logic.universal_controller_sql import UniversalController
+import uvicorn
 
 app = FastAPI()
 controller = UniversalController()
@@ -10,18 +11,21 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
     allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET"],
     allow_headers=["*"],
 )
 
 @app.get("/maintainance_status/all")
-def get_all_maintainance_status():
-    estados = controller.read_all(MaintainanceStatus(0, "", "", ""))
-    return {"estados_mantenimiento": estados}
+async def get_all_maintainance_status():
+    dummy = MaintainanceStatusOut.get_empty_instance()
+    return {"data": controller.read_all(dummy)}
 
 @app.get("/maintainance_status/{id}")
-def get_maintainance_status_by_id(id: int):
-    estado = controller.get_by_id(MaintainanceStatus, id)
-    if estado:
-        return {"estado_mantenimiento": estado.__dict__}
-    return {"error": "Estado de mantenimiento no encontrado"}
+async def get_maintainance_status(id: int):
+    status = controller.get_by_id(MaintainanceStatusOut, id)
+    if not status:
+        raise HTTPException(404, detail="Estado de mantenimiento no encontrado")
+    return {"data": status}
+
+if __name__ == "__main__":
+    uvicorn.run("app:app", host="0.0.0.0", port=8002, reload=True)

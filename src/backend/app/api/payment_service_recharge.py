@@ -1,53 +1,50 @@
-from fastapi import FastAPI, Request, HTTPException
-from fastapi.middleware.cors import CORSMiddleware
-import uvicorn
-from datetime import datetime
-from uuid import uuid4
-
-from logic.payments import Payments
-from logic.universal_controller_json import UniversalController
-from logic.card import Card  
+from fastapi import FastAPI, HTTPException
+from src.backend.app.models.payments import Payments
+from models.card import Card
+from logic.universal_controller_sql import UniversalController  
 
 app = FastAPI()
-controller = UniversalController()
+controller = UniversalController()  
 
-# CORS middleware
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+@app.get("/payment/schema/pagos")
+async def get_payment_schema():
+    return {
+        "name": "pagos",
+        "fields": [
+            {"name": "id", "type": "str", "required": True},
+            {"name": "user", "type": "str", "required": True},
+            {"name": "payment_quantity", "type": "float", "required": True},
+            {"name": "payment_method", "type": "bool", "required": True},
+            {"name": "vehicle_type", "type": "int", "required": True},
+            {"name": "card", "type": "Card", "required": True}
+        ]
+    }
 
-MIN_VALOR = 1000
-MAX_VALOR = 100000
+@app.get("/payment/")
+async def get_all_payments():
+    dummy = Payments(
+        user="",
+        payment_quantity=0,
+        payment_method=False,
+        vehicle_type=0,
+        card=Card(id=0, tipo="", balance=0)
+    )
+    return controller.read_all(dummy)
 
-def generar_registro(id_tarjeta, tipo_transporte, tipo_pago, valor, fecha):
-    print(f"[LOG] Registro generado - Tarjeta: {id_tarjeta}, Transporte: {tipo_transporte}, Tipo: {tipo_pago}, Valor: {valor}, Fecha: {fecha}")
+app.get("/{payment_id}", response_model=Payments)
+async def get_payment(payment_id: str):
+    """Obtener un pago específico"""
+    payment = controller.get_by_id(Payments, payment_id)
+    if not payment:
+        raise HTTPException(status_code=404, detail="Pago no encontrado")
+    return payment
 
-@app.post('/payment/tarjeta/{id}/recarga')
-def recharge(id: str, valor: float, tipo_transporte: str = "virtual"):
-    if valor < MIN_VALOR or valor > MAX_VALOR:
-        raise HTTPException(status_code=400, detail=f"El valor debe estar entre {MIN_VALOR} y {MAX_VALOR}")
-
-    tarjeta = controller.get_by_id(Card, id)
-    if not tarjeta:
+@app.get("/tarjeta/{card_id}", response_model=list[Payments])
+async def get_payments_by_card(card_id: str):
+    """Obtener todos los pagos de una tarjeta"""
+    card = controller.get_by_id(Card, card_id)
+    if not card:
         raise HTTPException(status_code=404, detail="Tarjeta no encontrada")
-
-    tarjeta.saldo += valor
-    controller.update(tarjeta)
-
-    fecha = datetime.now().isoformat()
-    pago = Payments(str(uuid4()), id, tipo_transporte, "recarga", valor, fecha)
-    controller.add(pago)
-
-    generar_registro(id, tipo_transporte, "recarga", valor, fecha)
-
-    return {"mensaje": "Recarga exitosa", "nuevo_saldo": tarjeta.saldo}
-
-
-if __name__ == "__main__":
-    uvicorn.run("app:app", reload=True)
-
-#Da un error en payments.py que en payments.py no existe, que mamada.
+    
+    all_payments = await get_all_payments()
+    return [p for p in all_payments if p.card.id == card_id]

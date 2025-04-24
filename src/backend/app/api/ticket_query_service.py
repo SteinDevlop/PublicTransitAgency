@@ -1,7 +1,7 @@
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-from logic.ticket import Ticket
-from logic.universal_controller_json import UniversalController
+from fastapi import FastAPI, HTTPException, CORSMiddleware
+from models import TicketOut
+from logic.universal_controller_sql import UniversalController
+import uvicorn
 
 app = FastAPI()
 controller = UniversalController()
@@ -9,19 +9,21 @@ controller = UniversalController()
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
+    allow_methods=["GET"],
     allow_headers=["*"],
 )
 
-@app.get("/ticket/all")
-def get_all_ticket():
-    estados = controller.read_all(Ticket(0, "", "", ""))
-    return {"estados_mantenimiento": estados}
+@app.get("/tickets/all")
+async def get_all_tickets():
+    tickets = controller.read_all(TicketOut.get_empty_instance())
+    return {"tickets": tickets}
 
-@app.get("/maintainance_status/{id}")
-def get_tickets_by_id(id: int):
-    estado = controller.get_by_id(Ticket, id)
-    if estado:
-        return {"Ticket": estado.__dict__}
-    return {"error": "Ticket no encontrado"}
+@app.get("/tickets/{ticket_id}")
+async def get_ticket(ticket_id: str):
+    ticket = controller.get_by_id(TicketOut, ticket_id)
+    if not ticket:
+        raise HTTPException(status_code=404, detail="Ticket no encontrado")
+    return ticket
+
+if __name__ == "__main__":
+    uvicorn.run("app:app", host="0.0.0.0", port=8002, reload=True)

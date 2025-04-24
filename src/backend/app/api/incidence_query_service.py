@@ -1,24 +1,41 @@
-from fastapi import APIRouter, HTTPException, Query
-from logic.incidence import Incidence
-from logic.universal_controller_json import UniversalController
+from fastapi import FastAPI, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from models.incidence import IncidenceOut
+from logic.universal_controller_sql import UniversalController
+import uvicorn
 
-router = APIRouter()
+app = FastAPI()
 controller = UniversalController()
 
-@router.get("/incidence/list")
-def list_incidences():
-    return controller.read_all(Incidence("", "", "", 0))
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["GET"],
+    allow_headers=["*"],
+)
 
-@router.get("/incidence/{incidence_id}")
-def get_incidence_by_id(incidence_id: int):
-    incidence = controller.get_by_id(Incidence, incidence_id)
-    if incidence:
-        return incidence.to_dict()
-    raise HTTPException(status_code=404, detail="Incidencia no encontrada")
-@router.get("/incidence/unit_transport/{unit_transport_id}")
+@app.get("/incidence/list")
+async def list_incidences():
+    dummy = IncidenceOut.get_empty_instance()
+    return {"data": controller.read_all(dummy)}
 
-def get_incidences_by_unit_transport(unit_transport_id: int):
-    incidences = controller.get_by_unit_transport(Incidence, unit_transport_id)
-    if incidences:
-        return [incidence.to_dict() for incidence in incidences]
-    raise HTTPException(status_code=404, detail="No se encontraron incidencias para la unidad de transporte especificada")
+@app.get("/incidence/{incidence_id}")
+async def get_incidence(incidence_id: int):
+    incidence = controller.get_by_id(IncidenceOut, incidence_id)
+    if not incidence:
+        raise HTTPException(404, detail="Incidencia no encontrada")
+    return {"data": incidence}
+
+@app.get("/incidence/unit_transport/{unit_transport_id}")
+async def get_by_unit_transport(unit_transport_id: int):
+    # Implementar lógica específica de filtrado si es necesario
+    all_incidences = controller.read_all(IncidenceOut.get_empty_instance())
+    filtered = [i for i in all_incidences if i.get("unit_transport_id") == unit_transport_id]
+    
+    if not filtered:
+        raise HTTPException(404, detail="No se encontraron incidencias")
+    return {"data": filtered}
+
+if __name__ == "__main__":
+    uvicorn.run("app:app", host="0.0.0.0", port=8002, reload=True)
