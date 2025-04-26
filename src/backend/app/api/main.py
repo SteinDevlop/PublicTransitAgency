@@ -1,4 +1,4 @@
-from fastapi import APIRouter,FastAPI
+from fastapi import APIRouter, FastAPI
 
 from backend.app.api.routes import (
     #assign_rol_user_service,
@@ -33,7 +33,10 @@ from backend.app.api.routes import (
     #transport_unit_query_service
 )
 
+# Include the API routes.
 api_router = APIRouter()
+
+# Include the routes for different services.
 api_router.include_router(card_cud_service.app)
 api_router.include_router(card_query_service.app)
 api_router.include_router(maintance_cud_service.app)
@@ -41,6 +44,8 @@ api_router.include_router(maintance_query_service.app)
 api_router.include_router(type_card_cud_service.app)
 api_router.include_router(type_card_query_service.app)
 
+# Initialize the FastAPI application.
 app = FastAPI()
 
+# Include the router for the API.
 app.include_router(api_router)
