@@ -1,6 +1,6 @@
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from logic.rol_user import RolUserCreate, RolUserOut
+from backend.app.models.rol_user import RolUserCreate, RolUserOut
 from logic.universal_controller_json import UniversalController
 import uvicorn
 

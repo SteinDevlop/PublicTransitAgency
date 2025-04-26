@@ -1,6 +1,6 @@
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from logic.price import PriceCreate, PriceOut
+from backend.app.models.price import PriceCreate, PriceOut
 from logic.universal_controller_json import UniversalController
 import uvicorn
 
