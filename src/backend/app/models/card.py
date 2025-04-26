@@ -5,10 +5,8 @@ class CardCreate(BaseModel):
     id: int
     tipo: str
     balance: float
-
     def to_dict(self):
         return self.dict()
-
 class CardOut(CardCreate):
     __entity_name__ = "card"
     @classmethod
