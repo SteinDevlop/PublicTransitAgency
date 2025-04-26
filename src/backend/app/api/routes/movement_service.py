@@ -5,7 +5,7 @@ from fastapi.templating import Jinja2Templates
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 
-from logic.movement import Movement
+from backend.app.models.movement import Movement
 from logic.movement_controller import MovementController
 
 app = FastAPI()

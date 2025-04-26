@@ -1,6 +1,6 @@
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from logic.type_transport import TypeTransportCreate, TypeTransportOut
+from backend.app.models.type_transport import TypeTransportCreate, TypeTransportOut
 from logic.universal_controller_json import UniversalController
 import uvicorn
 

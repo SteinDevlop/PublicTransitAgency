@@ -1,6 +1,6 @@
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from logic.type_movement import TypeMovementCreate, TypeMovementOut
+from backend.app.models.type_movement import TypeMovementCreate, TypeMovementOut
 from logic.universal_controller_json import UniversalController
 import uvicorn
 
