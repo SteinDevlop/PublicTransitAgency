@@ -1,63 +1,92 @@
-from fastapi import FastAPI, Form, Request, status,Query
+from fastapi import APIRouter, Form, Request, HTTPException
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from fastapi.middleware.cors import CORSMiddleware
-from logic.mantainment import Maintenance
-from logic.universal_controller_sql import UniversalController
+from backend.app.models.maintainance import MaintenanceCreate, MaintenanceOut
+from backend.app.logic.universal_controller_sql import UniversalController
 from datetime import datetime
 
-app = FastAPI()
+# Inicializa el router y controlador
+app = APIRouter(prefix="/maintainance", tags=["maintainance"])
 controller = UniversalController()
-templates = Jinja2Templates(directory="templates")
+templates = Jinja2Templates(directory="src/backend/app/templates")
 
-# Middleware for CORS
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
 
-# Combined route with query parameter to load different pages
+# Ruta para crear un mantenimiento
 @app.get("/crear", response_class=HTMLResponse)
 def crear_mantenimiento(request: Request):
     return templates.TemplateResponse("CrearMantenimiento.html", {"request": request})
 
+# Ruta para eliminar un mantenimiento
 @app.get("/eliminar", response_class=HTMLResponse)
 def eliminar_mantenimiento(request: Request):
     return templates.TemplateResponse("EliminarMantenimiento.html", {"request": request})
 
+# Ruta para actualizar un mantenimiento
 @app.get("/actualizar", response_class=HTMLResponse)
 def actualizar_mantenimiento(request: Request):
     return templates.TemplateResponse("ActualizarMantenimiento.html", {"request": request})
-# Add mantainment
-@app.post("/mantainment")
-def add(
+
+# Ruta para agregar un mantenimiento
+@app.post("/create")
+async def add(
+    id_unit: int = Form(...),
+    id_status: int = Form(...),
+    type: str = Form(...),
+    date: datetime = Form(...),
+):
+    # Crear una instancia de MaintenanceCreate
+    mantainment_temp = MaintenanceCreate(
+        id_unit=id_unit, id_status=id_status, type=type, date=date
+    )
+    try:
+        # Agregar mantenimiento utilizando el controlador
+        controller.add(mantainment_temp)
+        return {"message": "Mantenimiento agregado exitosamente"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# Ruta para actualizar un mantenimiento
+@app.post("/update")
+async def update(
     id: int = Form(...),
     id_unit: int = Form(...),
     id_status: int = Form(...),
     type: str = Form(...),
-    date: datetime = Form(...)
+    date: datetime = Form(...),
 ):
-    mantainment_temp = Maintenance(id, id_unit, id_status, type, date)
-    return controller.add(mantainment_temp)
+    # Buscar el mantenimiento existente
+    existing_mantainment = controller.get_by_id(MaintenanceOut, id)
+    if not existing_mantainment:
+        raise HTTPException(status_code=404, detail="Mantenimiento no encontrado")
+    
+    # Crear una instancia de MaintenanceCreate con el nuevo tipo y fecha
+    mantainment_temp = MaintenanceCreate(
+        id=id,  # El ID debe ser el mismo para actualizar el objeto
+        id_unit=id_unit,
+        id_status=id_status,
+        type=type,
+        date=date
+    )
+    
+    try:
+        # Actualizar el mantenimiento
+        controller.update(mantainment_temp)
+        return {"message": f"Mantenimiento {id} actualizado exitosamente"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
-# Update mantainment
-@app.post("/mantainment/")
-def update(
-    id: int = Form(...),
-    id_unit: int = Form(...),
-    id_status: int = Form(...),
-    type: str = Form(...),
-    date: datetime = Form(...)
-):
-    mantainment_temp = Maintenance(id, id_unit, id_status, type, date)
-    return controller.update(mantainment_temp)
-
-# Delete mantainment
-@app.post("/mantainment/eliminar")
-def delete_mantainment(id: int = Form(...)):
-    mantainment_temp = Maintenance(id)
-    controller.delete(mantainment_temp)
-    return controller.delete(mantainment_temp)
+# Ruta para eliminar un mantenimiento
+@app.post("/delete")
+async def delete_mantainment(id: int = Form(...)):
+    try:
+        # Buscar el mantenimiento existente
+        existing_mantainment = controller.get_by_id(MaintenanceOut, id)
+        if not existing_mantainment:
+            raise HTTPException(status_code=404, detail="Mantenimiento no encontrado")
+        
+        # Eliminar el mantenimiento
+        controller.delete(existing_mantainment)
+        return {"message": f"Mantenimiento {id} eliminado exitosamente"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

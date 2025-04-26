@@ -2,8 +2,9 @@ import os
 import sqlite3
 from typing import Any
 
+# Definir la ruta a la base de datos
 PATH = os.getcwd()
-DIR_DATA = os.path.join(PATH, 'data')
+DIR_DATA = os.path.join(PATH, 'src', 'backend', 'app', 'data')
 DB_FILE = os.path.join(DIR_DATA, 'data.db')
 
 class UniversalController:
@@ -16,8 +17,14 @@ class UniversalController:
         self.cursor = self.conn.cursor()
 
     def _get_table_name(self, obj: Any) -> str:
-        """Retrieve the table name based on the class name."""
-        return obj.__class__.__name__.lower()
+        """Retrieve the table name based on the object's class."""
+        # Usamos __entity_name__ en lugar de table_name()
+        if hasattr(obj, "__entity_name__"):
+            return obj.__entity_name__
+        elif hasattr(obj.__class__, "__entity_name__"):
+            return obj.__class__.__entity_name__
+        else:
+            raise ValueError("El objeto o su clase no tienen definido '__entity_name__'.")
 
     def _ensure_table_exists(self, obj: Any):
         """Ensure that the table exists in the database; create it if it doesn't."""
@@ -60,7 +67,7 @@ class UniversalController:
         """Retrieve an object by its ID."""
         dummy = cls.from_dict({k: None for k in cls.get_fields().keys()})
         self._ensure_table_exists(dummy)
-        table = cls.__name__.lower()
+        table = self._get_table_name(dummy)
         id_field = list(cls.get_fields().keys())[0]
 
         sql = f"SELECT * FROM {table} WHERE {id_field} = ?"

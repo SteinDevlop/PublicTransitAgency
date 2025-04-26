@@ -1,37 +1,37 @@
-from fastapi import FastAPI, Form, HTTPException,APIRouter
+from fastapi import FastAPI, Form, HTTPException,APIRouter,Request
 from fastapi.middleware.cors import CORSMiddleware
-from src.backend.app.models.card import CardCreate, CardOut  # Asegúrate de que tus modelos estén en este archivo
-from  src.backend.app.logic.card_controller import CardController 
+from fastapi.templating import Jinja2Templates
+from fastapi.responses import HTMLResponse, FileResponse, RedirectResponse
+from backend.app.models.card import CardCreate, CardOut  # Asegúrate de que tus modelos estén en este archivo
+from  backend.app.logic.universal_controller_sql import UniversalController 
 import uvicorn
 
 app = APIRouter(prefix="/card", tags=["card"])
-controller = CardController()  # Asegúrate de tener el controlador correspondiente
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["POST"],  
-    allow_headers=["*"],
-)
-
-@app.post("/card/create")
+controller = UniversalController()  # Asegúrate de tener el controlador correspondiente
+templates = Jinja2Templates(directory="src/backend/app/templates")
+@app.get("/crear", response_class=HTMLResponse)
+def index(request: Request):
+    return templates.TemplateResponse("CrearTarjeta.html", {"request": request})
+@app.get("/actualizar", response_class=HTMLResponse)
+def index(request: Request):
+    return templates.TemplateResponse("ActualizarTarjeta.html", {"request": request})
+@app.get("/eliminar", response_class=HTMLResponse)
+def index(request: Request):
+    return templates.TemplateResponse("EliminarTarjeta.html", {"request": request})
+@app.post("/create")
 async def create_card(
     id: int = Form(...),
     tipo: str = Form(...),
-    saldo: float = Form(...)
 ):
     try:
-        # Crear una instancia del modelo CardCreate para validar los datos de entrada
         new_card = CardCreate(
             id=id,
             tipo=tipo,
-            balance=saldo
+            balance=0
         )
-        # Usamos el controlador para agregar la tarjeta (convertimos el modelo a dict)
-        result = controller.add(new_card.to_dict())
+        # AQUÍ: NO LLAMES to_dict()
+        result = controller.add(new_card)
         
-        # Devolvemos la respuesta utilizando CardOut para devolver los datos de la tarjeta
         return {
             "operation": "create",
             "success": True,
@@ -41,13 +41,12 @@ async def create_card(
     except ValueError as e:
         raise HTTPException(400, detail=str(e))
     except Exception as e:
-        raise HTTPException(500, detail="Error interno del servidor")
+        raise HTTPException(500, detail=f"Error interno del servidor: {str(e)}")
 
-@app.post("/card/update")
+@app.post("/update")
 async def update_card(
     id: int = Form(...),
     tipo: str = Form(...),
-    saldo: float = Form(...)
 ):
     try:
         # Buscar la tarjeta existente para actualización
@@ -59,10 +58,10 @@ async def update_card(
         updated_card = CardCreate(
             id=id,
             tipo=tipo,
-            balance=saldo
+            saldo=existing.balance
         )
         # Usamos el controlador para actualizar la tarjeta (convertimos el modelo a dict)
-        result = controller.update(updated_card.to_dict())
+        result = controller.update(updated_card)
         
         # Devolvemos la respuesta con la tarjeta actualizada utilizando CardOut
         return {
@@ -74,7 +73,7 @@ async def update_card(
     except ValueError as e:
         raise HTTPException(400, detail=str(e))
 
-@app.post("/card/delete")
+@app.post("/delete")
 async def delete_card(id: int = Form(...)):
     try:
         # Buscar la tarjeta para eliminar

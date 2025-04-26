@@ -3,7 +3,7 @@ import os
 import ast
 PATH = os.getcwd()
 DIR_DATA = PATH + '{0}data{0}'.format(os.sep)
-from logic.card import Card
+from backend.app.logic.card import Card
 
 
 class CardController(object):

@@ -1,47 +1,43 @@
-from fastapi import FastAPI, Form, Request, status, Query
+from fastapi import FastAPI, Form, Request, status, Query,APIRouter
 from fastapi.responses import HTMLResponse, FileResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 
-from logic.card import Card
-from logic.card_controller import CardController
+from backend.app.models.card import CardCreate, CardOut
+from backend.app.logic.universal_controller_sql import UniversalController
 
-app = FastAPI()
-st_object = CardController()
-
+app = APIRouter(prefix="/card", tags=["card"])
+controller = UniversalController()  # Asegúrate de tener el controlador correspondiente
 # Descomenta esta línea si estás sirviendo archivos estáticos
 # app.mount("/static", StaticFiles(directory="static"), name="static")
 
-templates = Jinja2Templates(directory="templates")
+controller = UniversalController()
 
-# CORS middleware
-origins = ["*"]
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-@app.get('/CardQuery/consultar', response_class=HTMLResponse)
+# Descomenta esta línea si vas a servir archivos estáticos (CSS, JS, imágenes)
+# app.mount("/static", StaticFiles(directory="static"), name="static")
+
+# Plantillas HTML
+templates = Jinja2Templates(directory="src/backend/app/templates")
+
+@app.get('/consultar', response_class=HTMLResponse)
 def consultar(request: Request):
     return templates.TemplateResponse("ConsultarTarjeta.html", {"request": request})
 
-@app.get("/CardQuery/tarjetas")
+@app.get("/tarjetas")
 async def get_tarjetas():
-    return st_object.show()
+    return controller.read_all(CardOut)
 
-@app.get("/CardQuery/tarjeta")
-def tarjeta(request:Request, id: str):
-    unitTarjeta = st_object.get_by_id(id)
-    if unitTarjeta:
+@app.get("/tarjeta", response_class=HTMLResponse)
+def tarjeta(request: Request, id: int = Query(...)):
+    unit_tarjeta = controller.get_by_id(CardOut, id)
+    if unit_tarjeta:
         return templates.TemplateResponse("tarjeta.html", {
             "request": request,
-            "id": unitTarjeta["idn"],
-            "tipo": unitTarjeta["tipo"],
-            "saldo": unitTarjeta["saldo"]
+            "id": unit_tarjeta.id,
+            "tipo": unit_tarjeta.tipo,
+            "saldo": unit_tarjeta.balance
         })
     return templates.TemplateResponse("tarjeta.html", {
         "request": request,
@@ -49,5 +45,3 @@ def tarjeta(request:Request, id: str):
         "tipo": "None",
         "saldo": "None"
     })
-if __name__ == "__main__":
-    uvicorn.run("app:app", reload=True)

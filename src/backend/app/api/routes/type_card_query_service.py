@@ -1,24 +1,19 @@
-from fastapi import FastAPI, HTTPException
-from logic.type_card import TypeCard
-from logic.universal_controller_sql import UniversalController
+from fastapi import FastAPI, HTTPException,APIRouter, Form, Request, status,Query
+from backend.app.models.type_card import TypeCardOut, TypeCardCreate
+from backend.app.logic.universal_controller_sql import UniversalController
 
-app = FastAPI()
 controller = UniversalController()
+app = APIRouter(prefix="/typecard", tags=["Type Card"])
 
-@app.get("/typecard/")
+@app.get("/typecards/")
 def read_all():
-    """
-    Retorna todos los registros de TypeCard.
-    """
-    dummy = TypeCard(None, "")  # se necesita para que `read_all` sepa de qué tabla leer
-    return controller.read_all(dummy)
-
-@app.get("/typecard/{id}")
+    return controller.read_all(TypeCardOut)
+@app.get("/{id}")
 def get_by_id(id: int):
     """
     Retorna un registro de TypeCard por su ID.
     """
-    result = controller.get_by_id(TypeCard, id)
+    result = controller.get_by_id(TypeCardOut, id)
     if not result:
         raise HTTPException(status_code=404, detail="No encontrado")
     return result.to_dict()

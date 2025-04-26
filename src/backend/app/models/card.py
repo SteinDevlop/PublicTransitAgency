@@ -1,14 +1,24 @@
+from typing import Optional
 from pydantic import BaseModel
 
 class CardCreate(BaseModel):
-    __entity_name__ =  "card"
-    id: int
-    tipo: str
-    balance: float
+    __entity_name__ = "card"
+    id: Optional[int] = None
+    tipo: Optional[str] = None
+    balance: Optional[float] = None
+
     def to_dict(self):
         return self.dict()
+
+    @classmethod
+    def get_fields(cls):
+        return {
+            "id": "INTEGER PRIMARY KEY",
+            "tipo": "TEXT",
+            "balance": "REAL"
+        }
+
 class CardOut(CardCreate):
-    __entity_name__ = "card"
     @classmethod
     def from_dict(cls, data: dict):
         return cls(**data)

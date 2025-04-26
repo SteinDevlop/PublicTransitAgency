@@ -1,18 +1,16 @@
-from fastapi import FastAPI, HTTPException
-from logic.mantainment import Maintenance
-from logic.mantainment_controller import Controller
+from fastapi import FastAPI, HTTPException,APIRouter, Form, Request
+from backend.app.logic.mantainment_controller import Controller
 
-app = FastAPI()
 controller_maintenance = Controller()
-
-@app.get("/maintenance")
+app = APIRouter(prefix="/maintainance", tags=["maintainance"])
+@app.get("/maintainancements", response_model=list[dict])
 def get_all():
     """
     Retorna todos los datos de mantenimiento.
     """
     return controller_maintenance.get_all()
 
-@app.get("/maintenance/{id}")
+@app.get("/{id}")
 def get_by_id(id: int):
     """
     Retorna el dato de un mantenimiento por su ID.
@@ -22,7 +20,7 @@ def get_by_id(id: int):
         raise HTTPException(status_code=404, detail="No encontrado")
     return result.to_dict()
 
-@app.get("/maintenance/unit/{unit_id}")
+@app.get("/unit/{unit_id}")
 def get_by_unit(unit_id: int):
     """
     Retorna todos los mantenimientos asociados a una unidad.
