@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Eliminar Mantenimiento</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 2em;
+            background-color: #f2f2f2;
+        }
+        form {
+            background-color: #fff;
+            padding: 2em;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            max-width: 400px;
+            margin: auto;
+        }
+        label {
+            display: block;
+            margin-top: 1em;
+        }
+        input {
+            width: 100%;
+            padding: 0.5em;
+            margin-top: 0.3em;
+        }
+        button {
+            margin-top: 1.5em;
+            padding: 0.7em;
+            width: 100%;
+            background-color: #dc3545;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 1em;
+        }
+    </style>
+</head>
+<body>
+    <h2 style="text-align: center;">Eliminar Mantenimiento</h2>
+    <form action="/mantainment/eliminar" method="post">
+        <label for="id">ID del Mantenimiento a Eliminar:</label>
+        <input type="number" id="id" name="id" required>
+
+        <button type="submit">Eliminar Mantenimiento</button>
+    </form>
+</body>
+</html>

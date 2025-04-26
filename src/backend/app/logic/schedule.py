@@ -1,8 +1,8 @@
 import datetime
-from src.backend.app.logic import transport_route
+from src.backend.app.logic.transport_route import Route
 
 class Schedule:
-    def __init__(self, schedule_id: str, arrival_date: datetime.datetime, departure_date: datetime.datetime, route: transport_route.Route):
+    def __init__(self, schedule_id: str, arrival_date: datetime.datetime, departure_date: datetime.datetime, route: Route):
         self._schedule_id = schedule_id
         self._arrival_date = arrival_date
         self._departure_date = departure_date
@@ -33,18 +33,17 @@ class Schedule:
         self._departure_date = value
 
     @property
-    def route(self) -> transport_route.Route:
+    def route(self) -> Route:
         return self._route
 
     @route.setter
-    def route(self, value: transport_route.Route):
+    def route(self, value: Route):
         self._route = value
 
-    def schedule_adjustment(self):
-        if self.arrival_date < datetime.datetime.now():
-            raise ValueError("Arrival date cannot be in the past.")
-        if self.departure_date < self.arrival_date:
-            raise ValueError("Departure date must be after arrival date.")
-        ##Por ahora, ni foking idea.
+    ##def schedule_adjustment(self):
+      ##  if self.arrival_date < datetime.datetime.now():
+        ##    raise ValueError("Arrival date cannot be in the past.")
+       ## if self.departure_date < self.arrival_date:
+         ##   raise ValueError("Departure date must be after arrival date.")
     
             

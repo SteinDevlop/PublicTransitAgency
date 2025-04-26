@@ -1,8 +1,8 @@
 import datetime
-from logic import card  # Asegúrate de que la clase Card esté bien importada
+from src.backend.app.logic.card import Card  
 
 class Payments:
-    def __init__(self, user: str, payment_quantity: float, payment_method: bool, vehicle_type: int, card: card.Card):
+    def __init__(self, user: str, payment_quantity: float, payment_method: bool, vehicle_type: int, card: Card):
         self._date = datetime.datetime.now()
         self._user = user ## Lo quitare despues 
         self._payment_quantity = payment_quantity
@@ -58,7 +58,7 @@ class Payments:
         return self._card
 
     @card.setter
-    def card(self, value: card.Card):
+    def card(self, value: Card):
         self._card = value
 
     def __str__(self):

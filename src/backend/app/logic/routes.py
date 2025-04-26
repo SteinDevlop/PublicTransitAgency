@@ -1,6 +1,6 @@
-from src.backend.app.logic import stops
+from src.backend.app.logic.stops import Stops
 
-class Routes(stops.Stops):
+class Routes(Stops):
     def __init__(self, route: dict, id: str) -> None:
         super().__init__(route, id)
         self._route = route

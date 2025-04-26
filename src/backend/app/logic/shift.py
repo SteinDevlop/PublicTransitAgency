@@ -1,15 +1,16 @@
 import datetime
-from src.backend.app.logic import unit_transport
-from src.backend.app.logic import schedule as schedule_module 
+from src.backend.app.logic.unit_transport import Transport 
+from src.backend.app.logic.schedule import Schedule 
+from src.backend.app.logic.user_driver import Worker
 
 class Shift:
     def __init__(
         self,
-        unit: unit_transport.Transport,
+        unit: Transport,
         start_time: datetime.datetime,
         end_time: datetime.datetime,
-        driver: str,
-        schedule: schedule_module.Schedule 
+        driver: Worker,
+        schedule: Schedule 
     ):
         self._unit = unit
         self._start_time = start_time
@@ -18,11 +19,11 @@ class Shift:
         self._schedule = schedule
 
     @property
-    def unit(self) -> unit_transport.Transport:
+    def unit(self) -> Transport:
         return self._unit
 
     @unit.setter
-    def unit(self, value: unit_transport.Transport):
+    def unit(self, value: Transport):
         self._unit = value
 
     @property
@@ -50,11 +51,11 @@ class Shift:
         self._driver = value
 
     @property
-    def schedule(self) -> schedule_module.Schedule:
+    def schedule(self) -> Schedule:
         return self._schedule
 
     @schedule.setter
-    def schedule(self, value: schedule_module.Schedule):
+    def schedule(self, value: Schedule):
         self._schedule = value
 
     def shift_assigment(self):

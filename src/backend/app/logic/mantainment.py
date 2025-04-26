@@ -1,12 +1,14 @@
 from datetime import datetime
+
 class Maintenance:
-    def __init__(self, id: int, id_unit: int, id_status: int, type: str, date: datetime):
+    def __init__(self, id, id_unit=None, id_status=None, type=None, date=None):
         self.id = id
         self.date = date
         self.type = type
         self.id_unit = id_unit
         self.id_status = id_status
 
+    # Properties
     @property
     def id(self) -> int:
         return self.__id
@@ -47,12 +49,34 @@ class Maintenance:
     def id_status(self, value: int):
         self.__id_status = value
 
-    def __str__(self):
-        return dict(id_mantainment=self.id, id_unit=self.id_unit, id_status=self.id_status, type=self.type, date=self.date).__str__()
+    # Necesario para el controller
+    def to_dict(self) -> dict:
+        return{
+            "id": self.id if self.id is not None else None,
+            "id_unit": self.id_unit if self.id_unit is not None else None,
+            "id_status": self.id_status if self.id_status is not None else None,
+            "type": self.type if self.type is not None else None,
+            "date": self.date.isoformat() if self.date is not None else None
+        }
 
-if __name__ == "__main__":
-    try:
-        m = Maintenance(1, 1, 1, "type", datetime.now())
-        print(m)
-    except Exception as e:
-        print(e)
+    @classmethod
+    def from_dict(cls, data: dict):
+        return cls(
+            id=int(data.get("id")) if data.get("id") is not None else None,
+            id_unit=int(data.get("id_unit")) if data.get("id_unit") is not None else None,
+            id_status=int(data.get("id_status")) if data.get("id_status") is not None else None,
+            type=str(data.get("type")) if data.get("type") is not None else None,
+            date=datetime.fromisoformat(data.get("date")) if isinstance(data.get("date"), str) else None)
+
+    @classmethod
+    def get_fields(cls) -> dict:
+        return {
+            "id": "INTEGER PRIMARY KEY AUTOINCREMENT",
+            "id_unit": "INTEGER",
+            "id_status": "INTEGER",
+            "type": "TEXT",
+            "date": "TEXT"
+        }
+
+    def __str__(self):
+        return str(self.to_dict())

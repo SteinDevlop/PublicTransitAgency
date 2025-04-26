@@ -1,4 +1,4 @@
-from user import User
+from src.backend.app.logic.user import User
 import re
 
 class Worker(User):
@@ -11,3 +11,7 @@ class Worker(User):
             raise ValueError("Invalid Email")
         if not self.verify_password(password):
             raise ValueError("Invalid Password")
+    def get_driver_assigment(self, driver):
+        """
+        Purpose: Get information of driver's routes assigmented
+        """
