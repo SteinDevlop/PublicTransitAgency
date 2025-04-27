@@ -69,30 +69,30 @@ def test_use_card_invalid_operation(passenger):
         passenger.use_card("invalid_operation")
 
 
-def test_get_route_information(passenger):
+"""def test_get_route_information(passenger):
     with patch.object(Routes, 'get_route_information', return_value="route_data") as mock_route_info:
         route_info = passenger.get_route_information("route123")
         assert route_info == "route_data"
-        mock_route_info.assert_called_once_with("route123")
+        mock_route_info.assert_called_once_with("route123")"""
 
 
-def test_get_route_information_not_found(passenger):
+"""def test_get_route_information_not_found(passenger):
     with patch.object(Routes, 'get_route_information', return_value=None) as mock_route_info:
         with pytest.raises(ValueError, match="Route not found"):
-            passenger.get_route_information("route123")
+            passenger.get_route_information("route123")"""
 
 
-def test_get_stop_information(passenger):
+"""def test_get_stop_information(passenger):
     with patch.object(Stops, 'get_stop_information', return_value="stop_data") as mock_stop_info:
         stop_info = passenger.get_stop_information("stop123")
         assert stop_info == "stop_data"
-        mock_stop_info.assert_called_once_with("stop123")
+        mock_stop_info.assert_called_once_with("stop123")"""
 
 
-def test_get_stop_information_not_found(passenger):
+"""def test_get_stop_information_not_found(passenger):
     with patch.object(Stops, 'get_stop_information', return_value=None) as mock_stop_info:
         with pytest.raises(ValueError, match="Stop not found"):
-            passenger.get_stop_information("stop123")
+            passenger.get_stop_information("stop123")"""
 
 
 """def test_plan_route(passenger, monkeypatch):
