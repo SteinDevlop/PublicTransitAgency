@@ -56,8 +56,8 @@ async def create_movement(
         return {
             "operation": "create",
             "success": True,
-            "data": MovementOut(id=new_movement.id, tipo=new_movement.type, amount=new_movement.amount).dict(),
-            "message": "Card created successfully"
+            "data": MovementOut(id=new_movement.id, type=new_movement.type, amount=new_movement.amount).dict(),
+            "message": "Movement created successfully"
         }
     except ValueError as e:
         raise HTTPException(400, detail=str(e))  # Bad request if validation fails
@@ -81,45 +81,45 @@ async def update_movement(
         if not existing:
             raise HTTPException(404, detail="Movement not found")
         
-        # Create a CardCreate instance to validate the update data
+        # Create a MovementCreate instance to validate the update data
         updated_movement = MovementCreate(
             id=id,
             type=type,
             amount=existing.amount
         )
-        # Use the controller to update the card (convert model to dict)
+        # Use the controller to update the movement (convert model to dict)
         result = controller.update(updated_movement)
         
-        # Return the updated card response using CardOut
+        # Return the updated movement response using MovementOut
         return {
             "operation": "update",
             "success": True,
-            "data": MovementOut(id=updated_movement.id, tipo=updated_movement.type, balance=updated_card.balance).dict(),
-            "message": f"Card {id} updated successfully"
+            "data": MovementOut(id=updated_movement.id, type=updated_movement.type, amount=updated_movement.amount).dict(),
+            "message": f"Movement {id} updated successfully"
         }
     except ValueError as e:
         raise HTTPException(400, detail=str(e))  # Bad request if validation fails
 
-# Route to delete a card by its ID
+# Route to delete a movement by its ID
 @app.post("/delete")
-async def delete_card(id: int = Form(...)):
+async def delete_movement(id: int = Form(...)):
     """
-    Deletes an existing card by its ID.
-    If the card does not exist, it returns a 404 error.
+    Deletes an existing movement by its ID.
+    If the movement does not exist, it returns a 404 error.
     """
     try:
-        # Look for the card to delete
-        existing = controller.get_by_id(CardOut, id)  # We use CardOut for looking up the card
+        # Look for the movement to delete
+        existing = controller.get_by_id(MovementOut, id)  # We use MovementOut for looking up the movement
         if not existing:
-            raise HTTPException(404, detail="Card not found")
+            raise HTTPException(404, detail="Movement not found")
         
-        # Use the controller to delete the card
+        # Use the controller to delete the movement
         controller.delete(existing)
         
         return {
             "operation": "delete",
             "success": True,
-            "message": f"Card {id} deleted successfully"
+            "message": f"Movement {id} deleted successfully"
         }
     except Exception as e:
         raise HTTPException(500, detail=str(e))  # General server error
