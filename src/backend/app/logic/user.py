@@ -36,6 +36,7 @@ class User:
             case "password":
                 if not self.verify_password(value):
                     raise ValueError("Invalid Password")
+                self.password = value
             case _:
                 raise ValueError("Not a Valid Attribute")
 
