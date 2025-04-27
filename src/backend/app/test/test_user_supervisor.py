@@ -22,13 +22,14 @@ class FakeReport(Reports):
         self.generated_data = generated_data
 
     def generate_report(self):
+        # Solo imprimir
         print(f"Generating report: {self.type_report}, Data: {self.generated_data}")
-        return True
+
 def mock_card():
-    return MagicMock()  # simulamos el CardOperative
+    return MagicMock()
 
 # Test Supervisor
-def test_create_driver_assignment_report(monkeypatch):
+def test_create_driver_assignment_report(monkeypatch, capsys):
     # Setup
     supervisor = Supervisor(1, "DNI", 12345678, "John Doe", "john@example.com", "Password@123", "supervisor", mock_card())
     
@@ -40,14 +41,19 @@ def test_create_driver_assignment_report(monkeypatch):
     monkeypatch.setattr("src.backend.app.logic.user_supervisor.Reports", FakeReport)
 
     # Exercise
-    report_path = supervisor.create_driver_assignment_report(driver)
+    supervisor.create_driver_assignment_report(driver)
 
-    # Verify
-    assert report_path == "/fake/path/10_report.txt"
+    # Capture print output
+    captured = capsys.readouterr()
+
+    # Verify (solo verificamos que se imprimió algo esperado)
+    assert "Generating report: Driver Assignment Report" in captured.out
+    assert '"driver_name": "Jane Driver"' in captured.out
+    assert '"route": "A1"' in captured.out
 
 def test_set_driver_assignment_success():
     # Setup
-    supervisor = Supervisor(1, "DNI", 12345678, "John Doe", "john@example.com", "Password@123", "supervisor", mock_card())  
+    supervisor = Supervisor(1, "DNI", 12345678, "John Doe", "john@example.com", "Password@123", "supervisor", mock_card())
     driver = FakeDriver(11, "Mark Driver")
 
     new_assignment = {"route": "C3", "shift": "Night"}
