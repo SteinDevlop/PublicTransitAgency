@@ -3,6 +3,7 @@ from src.backend.app.logic.user_supervisor import Supervisor
 from src.backend.app.logic.card_operative import CardOperative
 from src.backend.app.logic.user_driver import Worker
 from src.backend.app.logic.reports import Reports
+from unittest.mock import MagicMock
 
 # Mocks o fakes
 class FakeDriver(Worker):
@@ -22,13 +23,14 @@ class FakeReport(Reports):
 
     def generate_report(self):
         print(f"Generating report: {self.type_report}, Data: {self.generated_data}")
-        return f"/fake/path/{self.driver_id}_report.txt"
+        return True
+def mock_card():
+    return MagicMock()  # simulamos el CardOperative
 
 # Test Supervisor
 def test_create_driver_assignment_report(monkeypatch):
     # Setup
-    card = CardOperative()  # Se asume que CardOperative puede inicializarse vacío
-    supervisor = Supervisor(1, "DNI", 12345678, "John Doe", "john@example.com", "Password123", "supervisor", card)
+    supervisor = Supervisor(1, "DNI", 12345678, "John Doe", "john@example.com", "Password123", "supervisor", mock_card())
     
     driver = FakeDriver(10, "Jane Driver")
     driver.assignments.append({"route": "A1", "shift": "Morning"})
