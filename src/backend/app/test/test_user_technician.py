@@ -1,7 +1,7 @@
 import unittest
 from src.backend.app.logic.user_technician import Technician
 from src.backend.app.logic.card_operative import CardOperative
-from src.backend.app.logic.unit_transport import UnitTransport
+from src.backend.app.logic.unit_transport import Transport
 from src.backend.app.logic.reports import Reports
 from unittest.mock import MagicMock
 
@@ -33,7 +33,7 @@ class TestTechnician(unittest.TestCase):
             role="technician",
             card=self.card
         )
-        self.unit_transport = UnitTransport(
+        self.unit_transport = Transport(
             id=101,
             type="Bus",
             ubication="Garage A",
