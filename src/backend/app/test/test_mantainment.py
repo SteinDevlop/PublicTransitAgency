@@ -19,11 +19,11 @@ class TestMaintenance(unittest.TestCase):
         m = Maintenance(2, 202, 3, "Corrective", now)
 
         expected = str({
-            "id_mantainment": 2,
+            "id": 2,
             "id_unit": 202,
             "id_status": 3,
             "type": "Corrective",
-            "date": now
+            "date": now.isoformat()
         })
 
         self.assertEqual(str(m), expected)
@@ -45,4 +45,5 @@ class TestMaintenance(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
 
