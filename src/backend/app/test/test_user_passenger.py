@@ -12,12 +12,12 @@ mock_card = MagicMock(spec=CardUser)
 mock_card.id_card = 1
 mock_card.balance = 100.0
 mock_card.get_card_information.return_value = {"balance": 100.0}
-mock_route = MagicMock(spec=Routes)
+"""mock_route = MagicMock(spec=Routes)
 mock_route.get_route_information.return_value = "route_data"
 mock_stop = MagicMock(spec=Stops)
 mock_stop.get_stop_information.return_value = "stop_data"
 mock_payments = MagicMock(spec=Payments)
-mock_payments.process_payment.return_value = True
+mock_payments.process_payment.return_value = True"""
 
 @pytest.fixture
 def passenger():
