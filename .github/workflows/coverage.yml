@@ -43,4 +43,8 @@ jobs:
             -Dsonar.host.url=https://sonarcloud.io
             -Dsonar.python.coverage.reportPath=coverage.xml
             -Dsonar.inclusions=**/*.py
+            -Dsonar.coverageReportPaths=reports/coverage.xml'
+            -Dsonar.coverage.dtdVerification=false 
+            -Dsonar.python.coverage.reportPaths=reports/coverage.xml
+            -Dsonar.python.coveragePlugin=cobertura
             -X
