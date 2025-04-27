@@ -27,6 +27,7 @@ class TestRoutes(unittest.TestCase):
     def test_set_route_id(self):
         self.route.route_id = "R3"
         self.assertEqual(self.route.route_id, "R3")
+        self.assertEqual(self.route.route['route_id'], "R3")
 
 if __name__ == "__main__":
     unittest.main()
