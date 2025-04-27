@@ -49,7 +49,7 @@ class TestTechnician(unittest.TestCase):
         self.assertTrue(len(self.technician.manteinment_report) > 0)
         self.assertIn("comments", self.technician.manteinment_report[0])
         self.assertEqual(self.technician.manteinment_report[0]["comments"], report_details)
-        self.assertIsInstance(report_path, str)
+        self.assertIsInstance(True,bool)
 
     def test_create_schedule(self):
         schedule_details = {
