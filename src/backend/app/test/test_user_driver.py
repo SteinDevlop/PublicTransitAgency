@@ -72,7 +72,7 @@ def test_get_driver_assignment():
         password="Driver@Pass123",
         role="Driver",
         card=mock_card
-    )2
+    )
     # Simulamos que el driver tiene rutas asignadas
     driver.routes_assigmented = ["Route 1", "Route 2"]
 
