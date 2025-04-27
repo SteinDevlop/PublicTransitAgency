@@ -21,7 +21,7 @@ class Technician(User):
         self.manteinment_report = []
         self.schedule = []
 
-    def create_report(self, unit_transport:UnitTransport , report_details:str):
+    def create_report(self, unit_transport:Transport , report_details:str):
         """
         Purpose: Create a maintenance report.}
         Args:
