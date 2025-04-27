@@ -9,7 +9,7 @@ from src.backend.app.logic.card_user import CardUser
 mock_card = MagicMock(spec=CardUser)
 mock_card.id_card = 1
 mock_card.balance = 100.0
-mock_card.get.return_value = {"balance": 100.0}
+mock_card.get_balance.return_value = {"balance": 100.0}
 mock_card.recharge.return_value = True
 mock_card.pay.return_value = True
 mock_card.get_card_information.return_value = {"balance": 100.0}
@@ -103,8 +103,6 @@ def test_get_stop_information_success():
 
 
 def test_get_card_information_success():
-    mock_card.get.return_value = {"balance": 50}
-    
     passenger = Passenger(
         id_user=1,
         type_identification="ID",
@@ -115,8 +113,9 @@ def test_get_card_information_success():
         role="passenger",
         card=mock_card
     )
-    card_info = passenger.card.get(card_id=mock_card.id_card)
-    assert card_info == {"balance": 50}
+    card_info = passenger.card.get_card_information(card_id=mock_card.id_card)
+    assert card_info == {"balance": 100.0}
+
 def test_use_card_pay(monkeypatch):
     passenger = Passenger(
         id_user=1,
@@ -191,7 +190,7 @@ def test_plan_route(monkeypatch):
         mock_route_instance = mock_routes_class.return_value
         route = passenger.plan_route()
         assert route == mock_route_instance
-        
+
 def test_use_card_invalid_operation():
     passenger = Passenger(
         id_user=1,
