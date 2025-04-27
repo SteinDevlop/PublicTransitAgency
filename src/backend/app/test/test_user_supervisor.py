@@ -1,67 +1,71 @@
-from src.backend.app.logic.user import User
+import pytest
+from src.backend.app.logic.user_supervisor import Supervisor
 from src.backend.app.logic.card_operative import CardOperative
 from src.backend.app.logic.user_driver import Worker
 from src.backend.app.logic.reports import Reports
-import json
-import os
 
-class Supervisor(User):
-    def __init__(self, id_user:int, type_identification:str, identification:int, name:str, email:str, password:str,
-                  role:str, card: CardOperative):
-        super().__init__(id_user, type_identification, identification, name, email, password, role, card)
+# Mocks o fakes
+class FakeDriver(Worker):
+    def __init__(self, id_driver, name):
+        self.id_driver = id_driver
+        self.name = name
+        self.assignments = []
 
-        if not self.verify_name(name):
-            raise ValueError("Invalid Name")
-        if not self.verify_email(email):
-            raise ValueError("Invalid Email")
-        if not self.verify_password(password):
-            raise ValueError("Invalid Password")
+    def get_driver_assigment(self):
+        return self.assignments
 
-    def get_driver_assignment(self, driver:Worker):
-        """
-        Purpose: Get information about the routes assigned to a driver.
+class FakeReport(Reports):
+    def __init__(self, type_report, driver_id, generated_data):
+        self.type_report = type_report
+        self.driver_id = driver_id
+        self.generated_data = generated_data
 
-        Args:
-            driver (Driver): The driver whose route information is requested.
+    def generate_report(self):
+        print(f"Generating report: {self.type_report}, Data: {self.generated_data}")
+        return f"/fake/path/{self.driver_id}_report.txt"
 
-        Returns:
-            list: List of assignments (routes) assigned to the driver.
-        """
-        return driver.get_driver_assigment()
+# Test Supervisor
+def test_create_driver_assignment_report(monkeypatch):
+    # Setup
+    card = CardOperative()  # Se asume que CardOperative puede inicializarse vacío
+    supervisor = Supervisor(1, "DNI", 12345678, "John Doe", "john@example.com", "Password123", "supervisor", card)
+    
+    driver = FakeDriver(10, "Jane Driver")
+    driver.assignments.append({"route": "A1", "shift": "Morning"})
+    driver.assignments.append({"route": "B2", "shift": "Evening"})
 
-    def create_driver_assignment_report(self, driver):
-        """
-        Purpose: Create a report of the routes assigned to a driver.
+    # Parchar la clase Reports para usar FakeReport
+    monkeypatch.setattr("src.backend.app.logic.user_supervisor.Reports", FakeReport)
 
-        Args:
-            driver (Driver): The driver for whom the report is created.
+    # Exercise
+    report_path = supervisor.create_driver_assignment_report(driver)
 
-        Returns:
-            str: Path to the generated report file.
-        """
-        assignments = self.get_driver_assignment(driver)
-        
-        report_data = {
-            "driver_id": driver.id_driver,
-            "driver_name": driver.name,
-            "assignments": assignments
-        }
-        new_report= Reports("Driver Assignment Report", driver.id_driver, json.dumps(report_data))
-        return new_report.generate_report()
-        
-    def set_driver_assignment(self, driver, new_assignment):
-        """
-        Purpose: Update the route assignment information for a driver.
+    # Verify
+    assert report_path == "/fake/path/10_report.txt"
 
-        Args:
-            driver (Driver): The driver whose assignment information will be updated.
-            new_assignment (dict): A dictionary representing the new assignment.
+def test_set_driver_assignment_success():
+    # Setup
+    card = CardOperative()
+    supervisor = Supervisor(1, "DNI", 12345678, "John Doe", "john@example.com", "Password123", "supervisor", card)
+    driver = FakeDriver(11, "Mark Driver")
 
-        Returns:
-            bool: True if the update was successful, False otherwise.
-        """
-        if not isinstance(new_assignment, dict):
-            raise ValueError("New assignment must be a dictionary")
+    new_assignment = {"route": "C3", "shift": "Night"}
 
-        driver.assignments.append(new_assignment)
-        return True
+    # Exercise
+    result = supervisor.set_driver_assignment(driver, new_assignment)
+
+    # Verify
+    assert result is True
+    assert driver.assignments == [new_assignment]
+
+def test_set_driver_assignment_invalid():
+    # Setup
+    card = CardOperative()
+    supervisor = Supervisor(1, "DNI", 12345678, "John Doe", "john@example.com", "Password123", "supervisor", card)
+    driver = FakeDriver(12, "Anna Driver")
+
+    invalid_assignment = ["route", "shift"]
+
+    # Exercise and Verify
+    with pytest.raises(ValueError, match="New assignment must be a dictionary"):
+        supervisor.set_driver_assignment(driver, invalid_assignment)
