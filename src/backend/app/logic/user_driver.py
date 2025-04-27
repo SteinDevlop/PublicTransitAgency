@@ -14,8 +14,8 @@ class Worker(User):
             raise ValueError("Invalid Email")
         if not self.verify_password(password):
             raise ValueError("Invalid Password")
-    def get_driver_assigment(self, driver):
+    def get_driver_assigment(self):
         """
         Purpose: Get information of driver's routes assigmented
         """
-        return driver.routes_assigmented
+        return self.routes_assigmented
