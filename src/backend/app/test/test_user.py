@@ -30,7 +30,7 @@ def test_update_email(sample_user):
 
 def test_update_password_valid(sample_user):
     sample_user.update_information("password", "Newpass@123")
-    assert sample_user.password == "Test@123"
+    assert sample_user.password == "Newpass@123"
 
 def test_update_invalid_name(sample_user):
     with pytest.raises(ValueError, match="Invalid Name"):
