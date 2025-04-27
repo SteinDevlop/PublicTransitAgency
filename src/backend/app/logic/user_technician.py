@@ -28,11 +28,11 @@ class Technician(User):
             report_details (dict): Details of the maintenance report.
         """
         report_data = {
-            "unit_transport_id": unit_transport.id_unit_transport,
-            "unit_transport_type": unit_transport.type_unit_transport,
+            "unit_transport_id": unit_transport.id,
+            "unit_transport_type": unit_transport.type,
             "comments": report_details
         }
-        new_report= Reports("Maintenace Report", unit_transport.id_unit_transport, json.dumps(report_details))
+        new_report= Reports("Maintenace Report", unit_transport.id, json.dumps(report_details))
         return new_report.generate_report()
 
     def get_manteinment_schedule(self):
