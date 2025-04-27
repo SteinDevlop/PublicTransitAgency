@@ -9,10 +9,11 @@ from src.backend.app.logic.card_user import CardUser
 mock_card = MagicMock(spec=CardUser)
 mock_card.id_card = 1
 mock_card.balance = 100.0
-mock_card.get_balance.return_value = {"balance": 100.0}
+mock_card.balance.return_value = {"balance": 100.0}
 mock_card.recharge.return_value = True
 mock_card.pay.return_value = True
 mock_card.get_card_information.return_value = {"balance": 100.0}
+mock_card.use_card.return_value = True
 
 
 def test_passenger_creation_valid():

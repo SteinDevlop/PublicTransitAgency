@@ -44,6 +44,14 @@ class Card:
             raise ValueError("Balance cannot be negative.")
         self.__balance = value
 
+    def get_card_information(self) -> dict:
+        """Returns a dictionary with card information."""
+        return {
+            "id_card": self.id_card,
+            "card_type": self.card_type,
+            "balance": self.balance
+        }
+    
     def use_card(self):
         """Abstract method to be implemented in subclasses."""
         raise NotImplementedError("The use_card method must be implemented by subclasses.")
