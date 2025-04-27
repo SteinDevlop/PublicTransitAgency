@@ -32,6 +32,5 @@ jobs:
             -Dsonar.organization=deviscoutb
             -Dsonar.sources=src
             -Dsonar.tests=src/backend/app/test
-            -Dsonar.exclusions=src/backend/app/test/**
-            -Dsonar.test.inclusions=src/backend/app/test/**/*.py
+            -Dsonar.python.coverage.reportPaths=cobertura-coverage.xml
             -X
