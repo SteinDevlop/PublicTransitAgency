@@ -1,6 +1,7 @@
 class Stops:
     def __init__(self, stop_data: dict):
-        self._stop = stop_data
+        self._stop = stop_dat 
+        0a
         self._stop_id = stop_data.get('stop_id')
 
     @property

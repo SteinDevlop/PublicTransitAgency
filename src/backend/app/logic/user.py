@@ -75,5 +75,5 @@ class User:
     def use_card(self):
         raise NotImplementedError("The user method must be implemented by subclasses.")
     
-    def assign_card(self, card):
+    def assign_card(self, card: Card):
         self.card = card
