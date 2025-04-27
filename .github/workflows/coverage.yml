@@ -32,5 +32,6 @@ jobs:
             -Dsonar.organization=deviscoutb
             -Dsonar.sources=src
             -Dsonar.tests=src/backend/app/test
-            -Dsonar.python.coverage.reportPaths=cobertura-coverage.xml
+            -Dsonar.host.url=https://sonarcloud.io
+            -Dsonar.python.coverage.reportPaths=coverage.xml
             -X
