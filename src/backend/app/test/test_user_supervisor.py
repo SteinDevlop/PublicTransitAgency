@@ -30,7 +30,7 @@ def mock_card():
 # Test Supervisor
 def test_create_driver_assignment_report(monkeypatch):
     # Setup
-    supervisor = Supervisor(1, "DNI", 12345678, "John Doe", "john@example.com", "Password123", "supervisor", mock_card())
+    supervisor = Supervisor(1, "DNI", 12345678, "John Doe", "john@example.com", "Password@123", "supervisor", mock_card())
     
     driver = FakeDriver(10, "Jane Driver")
     driver.assignments.append({"route": "A1", "shift": "Morning"})
@@ -47,8 +47,7 @@ def test_create_driver_assignment_report(monkeypatch):
 
 def test_set_driver_assignment_success():
     # Setup
-    card = CardOperative()
-    supervisor = Supervisor(1, "DNI", 12345678, "John Doe", "john@example.com", "Password123", "supervisor", card)
+    supervisor = Supervisor(1, "DNI", 12345678, "John Doe", "john@example.com", "Password@123", "supervisor", mock_card())  
     driver = FakeDriver(11, "Mark Driver")
 
     new_assignment = {"route": "C3", "shift": "Night"}
@@ -62,8 +61,7 @@ def test_set_driver_assignment_success():
 
 def test_set_driver_assignment_invalid():
     # Setup
-    card = CardOperative()
-    supervisor = Supervisor(1, "DNI", 12345678, "John Doe", "john@example.com", "Password123", "supervisor", card)
+    supervisor = Supervisor(1, "DNI", 12345678, "John Doe", "john@example.com", "Password@123", "supervisor", mock_card())
     driver = FakeDriver(12, "Anna Driver")
 
     invalid_assignment = ["route", "shift"]
