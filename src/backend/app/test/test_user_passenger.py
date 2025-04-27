@@ -2,7 +2,7 @@
 
 import pytest
 from unittest.mock import MagicMock, patch
-from src.backend.app.logic.passenger import Passenger
+from src.backend.app.logic.user_passenger import Passenger
 from src.backend.app.logic.card_user import CardUser
 
 # Datos simulados
