@@ -72,29 +72,29 @@ async def update_movement(
     amount: float = Form(...),
 ):
     """
-    Updates an existing card by its ID and new type.
-    If the card does not exist, it returns a 404 error.
+    Updates an existing movement by its ID and new type.
+    If the movement does not exist, it returns a 404 error.
     """
     try:
         # Look for the existing movement to update
-        existing = controller.get_by_id(MovementOut, id)  # We use MovementOut for looking up the card
+        existing = controller.get_by_id(MovementOut, id)  # We use MovementOut for looking up the movement
         if not existing:
-            raise HTTPException(404, detail="Card not found")
+            raise HTTPException(404, detail="Movement not found")
         
         # Create a CardCreate instance to validate the update data
-        updated_card = CardCreate(
+        updated_movement = MovementCreate(
             id=id,
-            tipo=tipo,
-            saldo=existing.balance
+            type=type,
+            amount=existing.amount
         )
         # Use the controller to update the card (convert model to dict)
-        result = controller.update(updated_card)
+        result = controller.update(updated_movement)
         
         # Return the updated card response using CardOut
         return {
             "operation": "update",
             "success": True,
-            "data": CardOut(id=updated_card.id, tipo=updated_card.tipo, balance=updated_card.balance).dict(),
+            "data": MovementOut(id=updated_movement.id, tipo=updated_movement.type, balance=updated_card.balance).dict(),
             "message": f"Card {id} updated successfully"
         }
     except ValueError as e:
