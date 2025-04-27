@@ -64,7 +64,7 @@ class Technician(User):
             value: New value for the attribute.
         """
         try:
-            self.manteinment_report[report_index][attribute] = valude
+            self.manteinment_report[report_index][attribute] = value
             print(f"Report attribute '{attribute}' updated successfully.")
         except IndexError:
             print(f"Report at index '{report_index}' not found.")
