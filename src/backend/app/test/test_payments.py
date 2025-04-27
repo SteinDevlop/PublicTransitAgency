@@ -1,88 +1,68 @@
 import unittest
 import datetime
-from src.backend.app.logic.payments import Payments, Movement, TransactionType, Balance
 from src.backend.app.logic.card import Card
+from src.backend.app.logic.payments import Payments
 
-class TestPaymentsSystem(unittest.TestCase):
+class TestPayments(unittest.TestCase):
     def setUp(self):
-        self.card = Card("123", "John Doe", 100.0)
-        self.card.balance_manager = Balance(100.0)
-        
-    def test_payment_creation(self):
-        payment = Payments(
-            user="John Doe",
+        # Crear una tarjeta de prueba con saldo suficiente
+        self.card = Card("123456", "Juan Perez", 100.0)
+        self.valid_payment = Payments(
+            user="Juan Perez",
             payment_quantity=50.0,
             payment_method=True,
             vehicle_type=1,
             card=self.card
         )
-        
-        self.assertEqual(payment.payment_quantity, 50.0)
-        self.assertEqual(self.card.balance, 50.0)
-        
+    
+    def test_payment_initialization(self):
+        """Verifica que el pago se inicialice correctamente"""
+        self.assertEqual(self.valid_payment.user, "Juan Perez")
+        self.assertEqual(self.valid_payment.payment_quantity, 50.0)
+        self.assertTrue(self.valid_payment.payment_method)
+        self.assertEqual(self.valid_payment.vehicle_type, 1)
+        self.assertIsInstance(self.valid_payment.date, datetime.datetime)
+    
+    def test_card_balance_updated(self):
+        """Verifica que el saldo de la tarjeta se actualice correctamente"""
+        self.assertEqual(self.card.balance, 50.0)  # 100 inicial - 50 del pago
+    
     def test_insufficient_balance(self):
+        """Verifica que se lance excepción con saldo insuficiente"""
         with self.assertRaises(ValueError):
             Payments(
-                user="John Doe",
+                user="Juan Perez",
                 payment_quantity=150.0,
                 payment_method=True,
                 vehicle_type=1,
                 card=self.card
             )
-            
-    def test_movement_creation(self):
-        movement = Movement(
-            transaction_type=TransactionType.PAYMENT,
-            amount=30.0,
-            vehicle_type=2
-        )
-        
-        self.assertEqual(movement.transaction_type, TransactionType.PAYMENT)
-        self.assertEqual(movement.amount, 30.0)
-        self.assertEqual(movement.vehicle_type, 2)
-        self.assertIsInstance(movement.date, datetime.datetime)
-        
-    def test_balance_management(self):
-        balance = Balance(100.0)
-        
-        # Test payment
-        payment_movement = Movement(TransactionType.PAYMENT, 40.0, 1)
-        balance.add_movement(payment_movement)
-        self.assertEqual(balance.balance, 60.0)
-        
-        # Test recharge
-        recharge_movement = Movement(TransactionType.RECHARGE, 20.0, 0)
-        balance.add_movement(recharge_movement)
-        self.assertEqual(balance.balance, 80.0)
-        
-        # Test refund
-        refund_movement = Movement(TransactionType.REFUND, 10.0, 0)
-        balance.add_movement(refund_movement)
-        self.assertEqual(balance.balance, 90.0)
-        
-    def test_payment_records_movement(self):
-        payment = Payments(
-            user="John Doe",
-            payment_quantity=25.0,
-            payment_method=True,
-            vehicle_type=1,
-            card=self.card
-        )
-        
-        movements = self.card.balance_manager.get_movements()
-        self.assertEqual(len(movements), 1)
-        self.assertEqual(movements[0].transaction_type, TransactionType.PAYMENT)
-        self.assertEqual(movements[0].amount, 25.0)
-        
-    def test_negative_payment_amount(self):
+    
+    def test_negative_payment(self):
+        """Verifica que no se permitan pagos con cantidad negativa"""
         with self.assertRaises(ValueError):
-            payment = Payments(
-                user="John Doe",
-                payment_quantity=-10.0,
-                payment_method=True,
-                vehicle_type=1,
-                card=self.card
-            )
+            self.valid_payment.payment_quantity = -10.0
+    
+    def test_property_setters(self):
+        """Verifica los setters de las propiedades"""
+        self.valid_payment.user = "Maria Garcia"
+        self.valid_payment.payment_method = False
+        self.valid_payment.vehicle_type = 2
+        
+        self.assertEqual(self.valid_payment.user, "Maria Garcia")
+        self.assertFalse(self.valid_payment.payment_method)
+        self.assertEqual(self.valid_payment.vehicle_type, 2)
+    
+    def test_str_representation(self):
+        """Verifica la representación en cadena del pago"""
+        str_repr = str(self.valid_payment)
+        self.assertIn("=== Comprobante de Pago ===", str_repr)
+        self.assertIn("Usuario:          Juan Perez", str_repr)
+        self.assertIn("Monto Pagado:     $50.00", str_repr)
+        self.assertIn("Método de Pago:   Tarjeta", str_repr)
+        self.assertIn("Tipo de Vehículo: 1", str_repr)
+        self.assertIn("ID Tarjeta:       123456", str_repr)
+        self.assertIn("Saldo Restante:   $50.00", str_repr)
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     unittest.main()
