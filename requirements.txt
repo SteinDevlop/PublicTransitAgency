@@ -4,6 +4,6 @@ uvicorn
 jinja2
 pydantic
 pytest==8.3.5
-coverage==7.8.0
+coverage==5.3
 coverage2clover==3.0.0
 
