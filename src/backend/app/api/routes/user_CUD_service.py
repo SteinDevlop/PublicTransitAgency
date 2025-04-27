@@ -6,7 +6,7 @@ from backend.app.models.user import UserCreate, UserOut  # Asegúrate de que tus
 from  backend.app.logic.universal_controller_sql import UniversalController 
 import uvicorn
 
-app = APIRouter(prefix="/user", tags=["user"])
+app = APIRouter(prefix="/user", tags=["User"])
 controller = UniversalController()  # Asegúrate de tener el controlador correspondiente
 templates = Jinja2Templates(directory="src/backend/app/templates")
 @app.get("/crear", response_class=HTMLResponse)
