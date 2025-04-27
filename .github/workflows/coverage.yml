@@ -40,6 +40,7 @@ jobs:
             -Dsonar.sources=src/backend/app
             -Dsonar.exclusions=src/backend/app/test/**
             -Dsonar.tests=src/backend/app/test
+            -Dsonar.coverageReportPaths=genericTestExecution.xml
             -Dsonar.python.coverage.reportPath=xmlrunner/coverage.xml
             -Dsonar.host.url=https://sonarcloud.io
             -X
