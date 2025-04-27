@@ -8,6 +8,12 @@ from src.backend.app.logic.card_user import CardUser
 # Datos simulados
 mock_card = MagicMock(spec=CardUser)
 mock_card.id_card = 1
+mock_card.balance = 100.0
+mock_card.get.return_value = {"balance": 100.0}
+mock_card.recharge.return_value = True
+mock_card.pay.return_value = True
+mock_card.get_card_information.return_value = {"balance": 100.0}
+
 
 def test_passenger_creation_valid():
     passenger = Passenger(
@@ -16,7 +22,7 @@ def test_passenger_creation_valid():
         identification=123456,
         name="John Doe",
         email="john@example.com",
-        password="StrongPassword123",
+        password="Strong@Password123",
         role="passenger",
         card=mock_card
     )
@@ -31,7 +37,7 @@ def test_passenger_invalid_name():
             identification=123456,
             name="",  # Nombre inválido
             email="john@example.com",
-            password="StrongPassword123",
+            password="Strong@Password123",
             role="passenger",
             card=mock_card
         )
@@ -44,7 +50,7 @@ def test_passenger_invalid_email():
             identification=123456,
             name="John Doe",
             email="invalid-email",
-            password="StrongPassword123",
+            password="Strong@Password123",
             role="passenger",
             card=mock_card
         )
@@ -69,13 +75,15 @@ def test_get_route_information_success():
         identification=123456,
         name="John Doe",
         email="john@example.com",
-        password="StrongPassword123",
+        password="Strong@Password123",
         role="passenger",
         card=mock_card
     )
-    with patch('src.backend.app.logic.routes.Routes.route_id', "route_data"):
+    with patch('src.backend.app.logic.routes.Routes.get_route_id', return_value="route_data") as mock_get_route:
         route_info = passenger.get_route_information("route123")
         assert route_info == "route_data"
+        mock_get_route.assert_called_once_with("route123")
+
 
 def test_get_stop_information_success():
     passenger = Passenger(
@@ -84,13 +92,15 @@ def test_get_stop_information_success():
         identification=123456,
         name="John Doe",
         email="john@example.com",
-        password="StrongPassword123",
+        password="Strong@Password123",
         role="passenger",
         card=mock_card
     )
-    with patch('src.backend.app.logic.stops.Stops.stop_id', "stop_data"):
+    with patch('src.backend.app.logic.stops.Stops.get_stop_id', return_value="stop_data") as mock_get_stop:
         stop_info = passenger.get_stop_information("stop123")
         assert stop_info == "stop_data"
+        mock_get_stop.assert_called_once_with("stop123")
+
 
 def test_get_card_information_success():
     mock_card.get.return_value = {"balance": 50}
@@ -101,7 +111,7 @@ def test_get_card_information_success():
         identification=123456,
         name="John Doe",
         email="john@example.com",
-        password="StrongPassword123",
+        password="Strong@Password123",
         role="passenger",
         card=mock_card
     )
@@ -114,17 +124,18 @@ def test_use_card_pay(monkeypatch):
         identification=123456,
         name="John Doe",
         email="john@example.com",
-        password="StrongPassword123",
+        password="Strong@Password123",
         role="passenger",
         card=mock_card
     )
 
-    # Simular inputs
-    monkeypatch.setattr('builtins.input', lambda _: "100")  # Primero payment_quantity, luego payment_method
+    inputs = iter(["100", "card"])
+    monkeypatch.setattr('builtins.input', lambda _: next(inputs))
+
     # Parchear los métodos internos pay, recharge, get_card_information
     with patch.object(passenger, "pay") as mock_pay:
         passenger.use_card("pay")
-        mock_pay.assert_called_once_with("100", "100")  # input dos veces el mismo valor
+        mock_pay.assert_called_once_with("100", "card")  # input dos veces el mismo valor
 
 def test_use_card_recharge(monkeypatch):
     passenger = Passenger(
@@ -133,15 +144,16 @@ def test_use_card_recharge(monkeypatch):
         identification=123456,
         name="John Doe",
         email="john@example.com",
-        password="StrongPassword123",
+        password="Strong@Password123",
         role="passenger",
         card=mock_card
     )
 
-    monkeypatch.setattr('builtins.input', lambda _: "50")  # Simula ambos inputs
+    inputs = iter(["100", "card"])
+    monkeypatch.setattr('builtins.input', lambda _: next(inputs))
     with patch.object(passenger, "recharge") as mock_recharge:
         passenger.use_card("recharge")
-        mock_recharge.assert_called_once_with("50", "50")
+        mock_recharge.assert_called_once_with("100", "card")
 
 def test_use_card_get_card_information():
     passenger = Passenger(
@@ -150,7 +162,7 @@ def test_use_card_get_card_information():
         identification=123456,
         name="John Doe",
         email="john@example.com",
-        password="StrongPassword123",
+        password="Strong@Password123",
         role="passenger",
         card=mock_card
     )
@@ -166,7 +178,7 @@ def test_plan_route(monkeypatch):
         identification=123456,
         name="John Doe",
         email="john@example.com",
-        password="StrongPassword123",
+        password="Strong@Password123",
         role="passenger",
         card=mock_card
     )
@@ -179,3 +191,18 @@ def test_plan_route(monkeypatch):
         mock_route_instance = mock_routes_class.return_value
         route = passenger.plan_route()
         assert route == mock_route_instance
+        
+def test_use_card_invalid_operation():
+    passenger = Passenger(
+        id_user=1,
+        type_identification="ID",
+        identification=123456,
+        name="John Doe",
+        email="john@example.com",
+        password="Strong@Password123",
+        role="passenger",
+        card=mock_card
+    )
+    
+    with pytest.raises(ValueError, match="Invalid operation"):
+        passenger.use_card("invalid_operation")
