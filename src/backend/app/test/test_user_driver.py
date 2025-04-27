@@ -15,7 +15,7 @@ def test_worker_creation_valid(mock_card):
         identification=12345678,
         name="John Doe",
         email="john.doe@example.com",
-        password="SecurePass123",
+        password="Secure@Pass123",
         role="Driver",
         card=mock_card
     )
@@ -31,7 +31,7 @@ def test_worker_invalid_name(mock_card):
             identification=87654321,
             name="",
             email="john.doe@example.com",
-            password="SecurePass123",
+            password="Secure@Pass123",
             role="Driver",
             card=mock_card
         )
@@ -44,7 +44,7 @@ def test_worker_invalid_email(mock_card):
             identification=12345678,
             name="Jane Doe",
             email="invalid-email",
-            password="SecurePass123",
+            password="Secure@Pass123",
             role="Driver",
             card=mock_card
         )
@@ -69,7 +69,7 @@ def test_get_driver_assignment(mock_card):
         identification=12345678,
         name="Driver One",
         email="driver.one@example.com",
-        password="DriverPass123",
+        password="Driver@Pass123",
         role="Driver",
         card=mock_card
     )
@@ -82,7 +82,7 @@ def test_get_driver_assignment(mock_card):
         identification=87654321,
         name="Worker One",
         email="worker.one@example.com",
-        password="WorkerPass123",
+        password="Worker@Pass123",
         role="Assistant",
         card=mock_card
     )
