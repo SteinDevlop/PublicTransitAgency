@@ -62,7 +62,7 @@ def test_worker_invalid_password(mock_card):
             card=mock_card
         )
 
-def test_get_driver_assignment(mock_card):
+def test_get_driver_assignment():
     driver = Worker(
         id_user=5,
         type_identification="DNI",
