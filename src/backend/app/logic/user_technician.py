@@ -17,23 +17,35 @@ class Technician(User):
         if not self.verify_password(password):
             raise ValueError("Invalid Password")
 
-        # Inicializamos atributos específicos de Technician
         self.manteinment_report = []
         self.schedule = []
 
-    def create_report(self, unit_transport:Transport , report_details:str):
+    def create_report(self, unit_transport:Transport, report_details:str):
         """
-        Purpose: Create a maintenance report.}
-        Args:
-            report_details (dict): Details of the maintenance report.
+        Purpose: Create a maintenance report.
         """
         report_data = {
             "unit_transport_id": unit_transport.id,
             "unit_transport_type": unit_transport.type,
             "comments": report_details
         }
-        new_report= Reports("Maintenace Report", unit_transport.id, json.dumps(report_details))
-        return new_report.generate_report()
+        new_report = Reports("Maintenance Report", unit_transport.id, json.dumps(report_data))
+        report_path = new_report.generate_report()
+
+        
+        self.manteinment_report.append(report_data)
+
+        return report_path
+
+    def create_schedule(self, schedule_details: dict):
+        """
+        Purpose: Create a maintenance schedule.
+        Args:
+            schedule_details (dict): Details of the maintenance schedule.
+        """
+        self.schedule.append(schedule_details)
+        print("Maintenance schedule created successfully.")
+
 
     def get_manteinment_schedule(self):
         """
@@ -43,15 +55,19 @@ class Technician(User):
         """
         return self.schedule
 
-    def set_manteinment_report(self, attribute, value):
+    def set_manteinment_report(self, report_index: int, attribute: str, value):
         """
         Purpose: Update a maintenance report.
         Args:
-            attribute (str): The attribute of the report to update.
-            value: The new value for the attribute.
+            report_index (int): Index of the report in the list.
+            attribute (str): Attribute to update.
+            value: New value for the attribute.
         """
-        if attribute in self.manteinment_report:
-            self.manteinment_report[attribute] = value
+        try:
+            self.manteinment_report[report_index][attribute] = valude
             print(f"Report attribute '{attribute}' updated successfully.")
-        else:
+        except IndexError:
+            print(f"Report at index '{report_index}' not found.")
+        except KeyError:
             print(f"Attribute '{attribute}' not found in the report.")
+
