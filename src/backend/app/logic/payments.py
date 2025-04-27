@@ -4,7 +4,7 @@ from src.backend.app.logic.card import Card
 class Payments:
     def __init__(self, user: str, payment_quantity: float, payment_method: bool, vehicle_type: int, card: Card):
         self._date = datetime.datetime.now()
-        self._user = user ## Lo quitare despues 
+        self._user = user 
         self._payment_quantity = payment_quantity
         self._payment_method = payment_method
         self._vehicle_type = vehicle_type
