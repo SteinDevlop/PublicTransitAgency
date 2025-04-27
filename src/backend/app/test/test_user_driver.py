@@ -76,15 +76,4 @@ def test_get_driver_assignment():
     # Simulamos que el driver tiene rutas asignadas
     driver.routes_assigmented = ["Route 1", "Route 2"]
 
-    worker = Worker(
-        id_user=6,
-        type_identification="DNI",
-        identification=87654321,
-        name="Worker One",
-        email="worker.one@example.com",
-        password="Worker@Pass123",
-        role="Assistant",
-        card=mock_card
-    )
-
-    assert worker.get_driver_assigment(driver) == ["Route 1", "Route 2"]
+    assert driver.get_driver_assigment() == ["Route 1", "Route 2"]
