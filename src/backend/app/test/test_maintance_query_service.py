@@ -1,7 +1,14 @@
 import pytest
 from fastapi.testclient import TestClient
-from src.backend.app.api.routes.maintance_cud_service import app
+from fastapi import FastAPI
+from src.backend.app.api.routes.maintance_cud_service import router  # Importa el router y no la app directamente
 from src.backend.app.logic.mantainment_controller import Controller
+
+# Instancia de FastAPI
+app = FastAPI()
+
+# Incluye el router en la aplicación
+app.include_router(router)
 
 # Mock de la clase MaintainanceController
 class MockMaintainanceController:
@@ -25,8 +32,8 @@ class MockMaintainanceController:
             return [{"id": 2, "unit_id": 102, "status": "in-progress"}]
         return []
 
-# Reemplazamos el controlador real por el mock en el objeto 'app' que es un FastAPI
-app.dependency_overrides[Controller] = MockMaintainanceController  # Reemplazamos con el controlador mockeado
+# Reemplazamos el controlador real por el mock en el objeto 'app'
+app.dependency_overrides[Controller] = MockMaintainanceController
 
 # Inicializamos el cliente de pruebas de FastAPI
 client = TestClient(app)
