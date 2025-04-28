@@ -11,11 +11,13 @@ from unittest.mock import MagicMock
 @pytest.fixture
 def mock_card():
     return MagicMock()
+
+@pytest.fixture
 def mock_ticket():
     return MagicMock()
 
 @pytest.fixture
-def admin():
+def admin(mock_card):
     return Administrator(
         id_user=1,
         type_identification="CC",
@@ -24,11 +26,11 @@ def admin():
         email="admin@example.com",
         password="Secure@Pass123",
         role="Administrator",
-        card=mock_card()
+        card=mock_card  # <- sin paréntesis
     )
 
 @pytest.fixture
-def sample_driver():
+def sample_driver(mock_card):
     return Worker(
         id_user=2,
         type_identification="CC",
@@ -37,7 +39,7 @@ def sample_driver():
         email="driver@example.com",
         password="Driver@Pass456",
         role="Driver",
-        card=mock_card()
+        card=mock_card  # <- sin paréntesis
     )
 
 @pytest.fixture
@@ -51,9 +53,10 @@ def sample_stop():
     return Stops(stop_info)
 
 @pytest.fixture
-def sample_ticket():
-    return mock_ticket()  # Ajusta esto según tu implementación
+def sample_ticket(mock_ticket):
+    return mock_ticket  # <- sin paréntesis
 
+# Aquí ya van los tests
 def test_assign_route(admin, sample_driver, sample_route):
     admin.assign_route(sample_driver, sample_route)
     assert sample_route in sample_driver.routes_assigmented
