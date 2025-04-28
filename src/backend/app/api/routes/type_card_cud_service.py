@@ -97,19 +97,19 @@ async def delete_typecard(id: int = Form(...)):
     If the type of card does not exist, a 404 error is raised.
     """
     try:
-        # Look for the type of card to delete
         existing = controller.get_by_id(TypeCardOut, id)
         if not existing:
             raise HTTPException(404, detail="Card type not found")
-        
-        # Delete the type of card using the controller
+
         controller.delete(existing)
-        
+
         return {
             "operation": "delete",
             "success": True,
             "message": f"Card type {id} deleted successfully"
         }
+    except HTTPException:
+        raise  # ⚡ Deja pasar HTTPException tal como está
     except Exception as e:
-        raise HTTPException(500, detail=str(e))  # General server error
+        raise HTTPException(500, detail=str(e))  # Solo otros errores son 500
 

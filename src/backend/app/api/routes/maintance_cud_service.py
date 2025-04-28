@@ -91,17 +91,14 @@ async def update(
 # Route to delete an existing maintenance record
 @app.post("/delete")
 async def delete_mantainment(id: int = Form(...)):
-    """
-    Define the POST route to delete an existing maintenance record.
-    It searches for the maintenance by ID, and if it exists, deletes it.
-    """
     try:
         existing_mantainment = controller.get_by_id(MaintenanceOut, id)
         if not existing_mantainment:
             raise HTTPException(status_code=404, detail="Maintenance not found")
         
-        # Delete the maintenance record using the controller
         controller.delete(existing_mantainment)
         return {"message": f"Maintenance {id} deleted successfully"}
+    except HTTPException:
+        raise  # Re-lanza las HTTPException tal cual
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))  # Handle any exceptions.
+        raise HTTPException(status_code=500, detail=str(e))

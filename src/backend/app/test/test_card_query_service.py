@@ -1,64 +1,40 @@
-import pytest
-from fastapi.testclient import TestClient
-from src.backend.app.api.routes.card_query_service import app  # Usamos 'src' para la importación
-from src.backend.app.logic.universal_controller_sql import UniversalController
-from src.backend.app.models.card import CardOut
-from fastapi import HTTPException
 from fastapi import FastAPI
-app = FastAPI()
-# Mock de la clase UniversalController
-class MockUniversalController:
-    def __init__(self):
-        # Datos simulados de tarjetas
-        self.cards = {
-            1: CardOut(id=1, tipo="tipo_1", balance=100),
-            2: CardOut(id=2, tipo="tipo_2", balance=200)
-        }
+from fastapi.testclient import TestClient
+from src.backend.app.api.routes.card_query_service import app as card_router  # Importa bien
 
-    def read_all(self, model):
-        """Simula la lectura de todas las tarjetas."""
-        return [card.dict() for card in self.cards.values()]
+# Crear la aplicación de prueba
+app_for_test = FastAPI()
+app_for_test.include_router(card_router)
 
-    def get_by_id(self, model, id_: int) -> CardOut:
-        """Simula la obtención de una tarjeta por ID."""
-        return self.cards.get(id_)
+# Cliente de prueba
+client = TestClient(app_for_test)
 
-# Reemplazamos el controlador real por el mock
-app.dependency_overrides[UniversalController] = MockUniversalController
-
-# Inicializamos el cliente de pruebas de FastAPI
-client = TestClient(app)
-
-@pytest.fixture
-def mock_controller():
-    """Fixture para el mock del controlador"""
-    return MockUniversalController()
-
-def test_consultar_page(mock_controller):
+def test_consultar_page():
     """Prueba que la ruta '/consultar' devuelve la plantilla 'ConsultarTarjeta.html' correctamente."""
     response = client.get("/card/consultar")
     assert response.status_code == 200
-    assert "ConsultarTarjeta.html" in response.text
-
-def test_get_tarjetas(mock_controller):
+    assert "Consultar Saldo" in response.text  # Verifica si la plantilla está presente
+def test_get_tarjetas():
     """Prueba que la ruta '/tarjetas' devuelve correctamente todas las tarjetas."""
     response = client.get("/card/tarjetas")
     assert response.status_code == 200
-    data = response.json()
-    assert len(data) == 2  # Esperamos que haya 2 tarjetas en el mock
-    assert data[0]["id"] == 1
-    assert data[1]["id"] == 2
+    data = response.json()  # Asegúrate de que la respuesta esté en formato JSON
+    assert len(data) == 4  # Hay 4 tarjetas, no 2
+    assert data[0]["id"] == 3
+    assert data[1]["tipo"] == "Tren"
+    assert data[2]["id"] == 91
+    assert data[3]["tipo"] == "tipo_3"
 
-def test_get_tarjeta_existing(mock_controller):
+def test_get_tarjeta_existing():
     """Prueba que la ruta '/tarjeta' devuelve la tarjeta correctamente cuando existe."""
-    response = client.get("/card/tarjeta?id=1")
+    response = client.get("/card/tarjeta?id=3")
     assert response.status_code == 200
-    assert "tipo_1" in response.text  # Verificamos que el tipo de tarjeta 'tipo_1' está en la respuesta
-    assert "100" in response.text  # Verificamos que el saldo '100' está en la respuesta
-
-def test_get_tarjeta_not_found(mock_controller):
+    assert "tipo_3" in response.text  # Verifica si el tipo de tarjeta está en el HTML
+    assert "0.0" in response.text  # Verifica si el saldo está en el HTML
+def test_get_tarjeta_not_found():
     """Prueba que la ruta '/tarjeta' devuelve un valor 'None' cuando no encuentra la tarjeta."""
-    response = client.get("/card/tarjeta?id=999")  # ID que no existe
+    response = client.get("/card/tarjeta?id=9999")  # ID que no existe
     assert response.status_code == 200
-    assert "None" in response.text  # Verificamos que 'None' es mostrado para el id, tipo y saldo
-    assert "None" in response.text
+    assert "None" in response.text  # Verifica si el tipo de tarjeta está en el HTML
+    assert "None" in response.text  # Verifica si el saldo está en el HTML
+

@@ -12,7 +12,7 @@ templates = Jinja2Templates(directory="src/backend/app/templates")  # Set up the
 
 # Route to display the "Create Card" form
 @app.get("/crear", response_class=HTMLResponse)
-def index(request: Request):
+def index_create(request: Request):
     """
     Displays the form to create a new card.
     """
@@ -20,7 +20,7 @@ def index(request: Request):
 
 # Route to display the "Update Card" form
 @app.get("/actualizar", response_class=HTMLResponse)
-def index(request: Request):
+def index_update(request: Request):
     """
     Displays the form to update an existing card.
     """
@@ -28,7 +28,7 @@ def index(request: Request):
 
 # Route to display the "Delete Card" form
 @app.get("/eliminar", response_class=HTMLResponse)
-def index(request: Request):
+def index_delete(request: Request):
     """
     Displays the form to delete an existing card.
     """
@@ -106,12 +106,10 @@ async def delete_card(id: int = Form(...)):
     If the card does not exist, it returns a 404 error.
     """
     try:
-        # Look for the card to delete
-        existing = controller.get_by_id(CardOut, id)  # We use CardOut for looking up the card
+        existing = controller.get_by_id(CardOut, id)
         if not existing:
             raise HTTPException(404, detail="Card not found")
         
-        # Use the controller to delete the card
         controller.delete(existing)
         
         return {
@@ -119,5 +117,7 @@ async def delete_card(id: int = Form(...)):
             "success": True,
             "message": f"Card {id} deleted successfully"
         }
+    except HTTPException as e:
+        raise e  # <<--- IMPORTANTE: Si ya es HTTPException, la dejamos pasar
     except Exception as e:
-        raise HTTPException(500, detail=str(e))  # General server error
+        raise HTTPException(500, detail=str(e))

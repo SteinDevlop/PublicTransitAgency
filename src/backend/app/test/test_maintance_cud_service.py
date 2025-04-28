@@ -1,14 +1,15 @@
-
 import pytest
-
-from fastapi.testclient import TestClient
-from src.backend.app.api.routes.maintance_cud_service import app  # importa tu router
 from fastapi import FastAPI
-app = FastAPI()
-client = TestClient(app)
+from fastapi.testclient import TestClient
+from src.backend.app.api.routes.maintance_cud_service import app as maintainance_router  # importa tu router correctamente
+
+# Usamos el app del router
+app_for_test = FastAPI()
+app_for_test.include_router(maintainance_router)  # <<--- importante incluir el router
+
+client = TestClient(app_for_test)
 
 # Test GET routes (crear, eliminar, actualizar)
-
 def test_crear_mantenimiento_get():
     response = client.get("/maintainance/crear")
     assert response.status_code == 200
@@ -48,7 +49,6 @@ def override_controller(monkeypatch):
     maintance_cud_service.controller = MockController()
 
 # Test POST /create
-
 def test_create_mantainment_post():
     response = client.post("/maintainance/create", data={
         "id_unit": 1,
@@ -60,7 +60,6 @@ def test_create_mantainment_post():
     assert response.json() == {"message": "Maintenance added successfully"}
 
 # Test POST /update para mantenimiento existente
-
 def test_update_mantainment_post_success():
     response = client.post("/maintainance/update", data={
         "id": 1,
@@ -73,7 +72,6 @@ def test_update_mantainment_post_success():
     assert response.json() == {"message": "Maintenance 1 updated successfully"}
 
 # Test POST /update para mantenimiento no encontrado
-
 def test_update_mantainment_post_not_found():
     response = client.post("/maintainance/update", data={
         "id": 999,  # id no existente
@@ -86,7 +84,6 @@ def test_update_mantainment_post_not_found():
     assert response.json() == {"detail": "Maintenance not found"}
 
 # Test POST /delete para mantenimiento existente
-
 def test_delete_mantainment_post_success():
     response = client.post("/maintainance/delete", data={
         "id": 1,
@@ -95,10 +92,7 @@ def test_delete_mantainment_post_success():
     assert response.json() == {"message": "Maintenance 1 deleted successfully"}
 
 # Test POST /delete para mantenimiento no encontrado
-
 def test_delete_mantainment_post_not_found():
-    response = client.post("/maintainance/delete", data={
-        "id": 999,  # id no existente
-    })
+    response = client.post("/maintainance/delete", data={"id": 999})
     assert response.status_code == 404
     assert response.json() == {"detail": "Maintenance not found"}
