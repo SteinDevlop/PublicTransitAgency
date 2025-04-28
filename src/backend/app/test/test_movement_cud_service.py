@@ -13,7 +13,6 @@ app.include_router(movement_router)
 # Mock de la clase UniversalController
 class MockUniversalController:
     def __init__(self):
-        # Datos simulados de movimientos
         self.movements = {
             1: MovementOut(id=1, type="income", amount=100.0),
             2: MovementOut(id=2, type="expense", amount=50.0),
@@ -21,7 +20,7 @@ class MockUniversalController:
 
     def add(self, movement):
         self.movements[movement.id] = movement
-        return None
+        return movement  # Retornamos el objeto agregado
 
     def get_by_id(self, model, id_):
         return self.movements.get(id_)
@@ -29,18 +28,14 @@ class MockUniversalController:
     def update(self, movement):
         if movement.id in self.movements:
             self.movements[movement.id] = movement
-            return None
+            return movement  # Retornamos el objeto actualizado
         raise HTTPException(status_code=404, detail="Movement not found")
 
     def delete(self, movement):
         if movement.id in self.movements:
             del self.movements[movement.id]
-            return None
+            return movement  # Puedes devolver el eliminado o True
         raise HTTPException(status_code=404, detail="Movement not found")
-
-# Reemplazamos el controlador real por el mock
-app.dependency_overrides[UniversalController] = MockUniversalController
-
 # Inicializamos el cliente de pruebas
 client = TestClient(app)
 
