@@ -6,4 +6,5 @@ pydantic
 pytest
 pylint
 fastapi[standard]
+python-jose
 
