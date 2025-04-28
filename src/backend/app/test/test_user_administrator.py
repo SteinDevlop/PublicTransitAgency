@@ -15,7 +15,7 @@ def mock_ticket():
     return MagicMock()
 
 @pytest.fixture
-def admin(sample_card):
+def admin():
     return Administrator(
         id_user=1,
         type_identification="CC",
@@ -24,11 +24,11 @@ def admin(sample_card):
         email="admin@example.com",
         password="Secure@Pass123",
         role="Administrator",
-        card=sample_card
+        card=mock_card()
     )
 
 @pytest.fixture
-def sample_driver(sample_card):
+def sample_driver():
     return Worker(
         id_user=2,
         type_identification="CC",
@@ -37,7 +37,7 @@ def sample_driver(sample_card):
         email="driver@example.com",
         password="Driver@Pass456",
         role="Driver",
-        card=sample_card
+        card=mock_card()
     )
 
 @pytest.fixture
