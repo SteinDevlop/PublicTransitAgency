@@ -4,7 +4,8 @@ from src.backend.app.api.routes.card_cud_service import app  # Usamos 'src' para
 from src.backend.app.logic.universal_controller_sql import UniversalController
 from src.backend.app.models.card import CardCreate, CardOut
 from fastapi import HTTPException
-
+from fastapi import FastAPI
+app = FastAPI()
 # Mock de la clase UniversalController
 class MockUniversalController:
     def __init__(self):

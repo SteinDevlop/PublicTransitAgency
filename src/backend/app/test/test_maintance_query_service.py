@@ -1,7 +1,8 @@
 import pytest
 from fastapi.testclient import TestClient
 from src.backend.app.api.routes.maintance_cud_service import app
-
+from fastapi import FastAPI
+app = FastAPI()
 # Mock de la clase Controller
 class MockController:
     def get_all(self):
