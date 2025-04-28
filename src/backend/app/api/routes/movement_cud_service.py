@@ -1,58 +1,40 @@
-from fastapi import FastAPI, Form, HTTPException, APIRouter, Request
-from fastapi.middleware.cors import CORSMiddleware
+from fastapi import FastAPI, Form, HTTPException, APIRouter, Request, Depends
 from fastapi.templating import Jinja2Templates
-from fastapi.responses import HTMLResponse, FileResponse, RedirectResponse
-from backend.app.models.movement import MovementCreate, MovementOut  # Make sure your models are in this file
-from backend.app.logic.universal_controller_sql import UniversalController 
-import uvicorn
+from fastapi.responses import HTMLResponse
+from backend.app.models.movement import MovementCreate, MovementOut
+from backend.app.logic.universal_controller_sql import UniversalController
 
-app = APIRouter(prefix="/movement", tags=["movement"])  # Initialize the API router with the given prefix and tags
-controller = UniversalController()  # Ensure the controller is correctly instantiated
-templates = Jinja2Templates(directory="src/backend/app/templates")  # Set up the template directory
+app = APIRouter(prefix="/movement", tags=["movement"])
+templates = Jinja2Templates(directory="src/backend/app/templates")
 
-# Route to display the "Create Movement" form
+# --- Nuevo: Inyección de Dependencia ---
+def get_controller():
+    return UniversalController()
+
+# Vistas HTML
 @app.get("/crear", response_class=HTMLResponse)
-def index(request: Request):
-    """
-    Displays the form to create a new movement.
-    """
+def index_crear(request: Request):
     return templates.TemplateResponse("CrearMovimiento.html", {"request": request})
 
-# Route to display the "Update Movement" form
 @app.get("/actualizar", response_class=HTMLResponse)
-def index(request: Request):
-    """
-    Displays the form to update an existing movement.
-    """
+def index_actualizar(request: Request):
     return templates.TemplateResponse("ActualizarMovimiento.html", {"request": request})
 
-# Route to display the "Delete Movement" form
 @app.get("/eliminar", response_class=HTMLResponse)
-def index(request: Request):
-    """
-    Displays the form to delete an existing movement.
-    """
+def index_eliminar(request: Request):
     return templates.TemplateResponse("EliminarMovimiento.html", {"request": request})
 
-# Route to create a new movement
+# Crear un nuevo movimiento
 @app.post("/create")
 async def create_movement(
     id: int = Form(...),
     type: str = Form(...),
     amount: float = Form(...),
+    controller: UniversalController = Depends(get_controller),
 ):
-    """
-    Creates a new movement with the provided ID , type and amount.
-    """
     try:
-        new_movement = MovementCreate(
-            id=id,
-            type=type,
-            amount=amount,
-        )
-        # Do not call to_dict() here
-        result = controller.add(new_movement)
-        
+        new_movement = MovementCreate(id=id, type=type, amount=amount)
+        controller.add(new_movement)
         return {
             "operation": "create",
             "success": True,
@@ -60,37 +42,26 @@ async def create_movement(
             "message": "Movement created successfully"
         }
     except ValueError as e:
-        raise HTTPException(400, detail=str(e))  # Bad request if validation fails
+        raise HTTPException(400, detail=str(e))
     except Exception as e:
-        raise HTTPException(500, detail=f"Internal server error: {str(e)}")  # General server error
+        raise HTTPException(500, detail=f"Internal server error: {str(e)}")
 
-# Route to update an existing movement
+# Actualizar un movimiento
 @app.post("/update")
 async def update_movement(
     id: int = Form(...),
     type: str = Form(...),
     amount: float = Form(...),
+    controller: UniversalController = Depends(get_controller),
 ):
-    """
-    Updates an existing movement by its ID and new type.
-    If the movement does not exist, it returns a 404 error.
-    """
     try:
-        # Look for the existing movement to update
-        existing = controller.get_by_id(MovementOut, id)  # We use MovementOut for looking up the movement
+        existing = controller.get_by_id(MovementOut, id)
         if not existing:
             raise HTTPException(404, detail="Movement not found")
-        
-        # Create a MovementCreate instance to validate the update data
-        updated_movement = MovementCreate(
-            id=id,
-            type=type,
-            amount=existing.amount
-        )
-        # Use the controller to update the movement (convert model to dict)
-        result = controller.update(updated_movement)
-        
-        # Return the updated movement response using MovementOut
+
+        updated_movement = MovementCreate(id=id, type=type, amount=existing.amount)
+        controller.update(updated_movement)
+
         return {
             "operation": "update",
             "success": True,
@@ -98,28 +69,25 @@ async def update_movement(
             "message": f"Movement {id} updated successfully"
         }
     except ValueError as e:
-        raise HTTPException(400, detail=str(e))  # Bad request if validation fails
+        raise HTTPException(400, detail=str(e))
 
-# Route to delete a movement by its ID
+# Eliminar un movimiento
 @app.post("/delete")
-async def delete_movement(id: int = Form(...)):
-    """
-    Deletes an existing movement by its ID.
-    If the movement does not exist, it returns a 404 error.
-    """
+async def delete_movement(
+    id: int = Form(...),
+    controller: UniversalController = Depends(get_controller),
+):
     try:
-        # Look for the movement to delete
-        existing = controller.get_by_id(MovementOut, id)  # We use MovementOut for looking up the movement
+        existing = controller.get_by_id(MovementOut, id)
         if not existing:
             raise HTTPException(404, detail="Movement not found")
-        
-        # Use the controller to delete the movement
+
         controller.delete(existing)
-        
+
         return {
             "operation": "delete",
             "success": True,
             "message": f"Movement {id} deleted successfully"
         }
     except Exception as e:
-        raise HTTPException(500, detail=str(e))  # General server error
+        raise HTTPException(500, detail=str(e))
