@@ -1,13 +1,13 @@
 import pytest
 from fastapi.testclient import TestClient
 from src.backend.app.api.routes.maintance_cud_service import app
-from src.backend.app.logic.mantainment_controller import MaintainanceController  # Importa el controlador correcto
+from src.backend.app.logic.mantainment_controller import Controller  # Importa el controlador correcto
 from fastapi import FastAPI
 
 app = FastAPI()
 
-# Mock de la clase MaintainanceController
-class MockMaintainanceController:
+# Mock de la clase Controller
+class MockController:
     def get_all(self):
         return [
             {"id": 1, "unit_id": 101, "status": "completed"},
@@ -29,7 +29,7 @@ class MockMaintainanceController:
         return []
 
 # Reemplazamos el controlador real por el mock en el objeto 'app'
-app.dependency_overrides[MaintainanceController] = MockMaintainanceController  # Reemplazamos con el controlador correcto
+app.dependency_overrides[Controller] = MockController  # Reemplazamos con el controlador correcto
 
 # Inicializamos el cliente de pruebas de FastAPI
 client = TestClient(app)
@@ -37,7 +37,7 @@ client = TestClient(app)
 @pytest.fixture
 def mock_controller():
     """Fixture para el mock del controlador"""
-    return MockMaintainanceController()
+    return MockController()
 
 def test_get_all(mock_controller):
     response = client.get("/maintainance/maintainancements")
