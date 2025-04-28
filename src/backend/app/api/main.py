@@ -1,5 +1,8 @@
 from fastapi import APIRouter, FastAPI
-
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.cors import CORSMiddleware
+from backend.app.core.config import settings
+from backend.app.core.middlewares import add_middlewares
 from backend.app.api.routes import (
 
     card_cud_service,
@@ -41,9 +44,19 @@ from backend.app.api.routes import (
     movement_query_service
 )
 
-# Include the API routes.
-api_router = APIRouter()
+api_router = FastAPI(title=settings.PROJECT_NAME)
 
+# Middlewares Globales
+add_middlewares(api_router)
+
+# CORS Middleware
+api_router.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.ALLOWED_ORIGINS,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 # Include the routes for different services.
 api_router.include_router(card_cud_service.app)
 api_router.include_router(card_query_service.app)
@@ -51,7 +64,6 @@ api_router.include_router(maintance_cud_service.app)
 api_router.include_router(maintance_query_service.app)
 api_router.include_router(type_card_cud_service.app)
 api_router.include_router(type_card_query_service.app)
-
 api_router.include_router(user_cud_service.app)
 api_router.include_router(user_query_service.app)
 api_router.include_router(type_movement_cud_service.app)
@@ -64,9 +76,3 @@ api_router.include_router(price_cud_service.app)
 api_router.include_router(price_query_service.app)
 api_router.include_router(movement_cud_service.app)
 api_router.include_router(movement_query_service.app)
-
-# Initialize the FastAPI application.
-app = FastAPI()
-
-# Include the router for the API.
-app.include_router(api_router)

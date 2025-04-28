@@ -1,9 +1,10 @@
-from fastapi import FastAPI, Form, HTTPException, APIRouter, Request
+from fastapi import FastAPI, Form, HTTPException, APIRouter, Request,Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse, FileResponse, RedirectResponse
 from backend.app.models.card import CardCreate, CardOut  # Make sure your models are in this file
 from backend.app.logic.universal_controller_sql import UniversalController 
+from backend.app.core.auth import get_current_user
 import uvicorn
 
 app = APIRouter(prefix="/card", tags=["card"])  # Initialize the API router with the given prefix and tags
@@ -39,6 +40,7 @@ def index_delete(request: Request):
 async def create_card(
     id: int = Form(...),
     tipo: str = Form(...),
+    #user = Depends(get_current_user)
 ):
     """
     Creates a new card with the provided ID and type. The balance is initialized to 0.
@@ -68,6 +70,7 @@ async def create_card(
 async def update_card(
     id: int = Form(...),
     tipo: str = Form(...),
+    #user = Depends(get_current_user)
 ):
     """
     Updates an existing card by its ID and new type.

@@ -12,29 +12,16 @@
             <h2>Bienvenido</h2>
             <p>Inicia sesión para continuar</p>
 
-            <form action="#" method="POST">
-                <label for="userType">Tipo de Usuario</label>
-                <select id="userType" name="userType" required>
-                    <option value="">Selecciona tu tipo de usuario</option>
-                    <option value="pasajero">Pasajero</option>
-                    <option value="operario">Operario</option>
-                    <option value="supervisor">Supervisor</option>
-                    <option value="administrador">Administrador</option>
-                    <option value="tecnico">Técnico</option>
-                </select>
-
+            <form action="/login/log" method="POST">
                 <label for="id">ID</label>
-                <input type="text" id="id" name="id" placeholder="Ingresa tu ID" required>
-
+                <input type="text" id="id" name="username" placeholder="Ingresa tu ID" required>
+            
                 <label for="password">Contraseña <span>(Máximo 12 caracteres)</span></label>
                 <input type="password" id="password" name="password" placeholder="Ingresa tu contraseña" maxlength="12" required>
-
-                <div class="forgot-password">
-                    <a href="#">¿Olvidaste tu contraseña?</a>
-                </div>
-
+            
                 <button type="submit">Iniciar sesión</button>
             </form>
+            
 
             <div class="register-link">
                 <a href="registro.html">Registrarme</a>
