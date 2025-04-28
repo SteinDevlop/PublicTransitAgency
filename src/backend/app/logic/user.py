@@ -36,6 +36,7 @@ class User:
             case "password":
                 if not self.verify_password(value):
                     raise ValueError("Invalid Password")
+                self.password = value
             case _:
                 raise ValueError("Not a Valid Attribute")
 
@@ -74,5 +75,5 @@ class User:
     def use_card(self):
         raise NotImplementedError("The user method must be implemented by subclasses.")
     
-    def assign_card(self, card):
+    def assign_card(self, card: Card):
         self.card = card

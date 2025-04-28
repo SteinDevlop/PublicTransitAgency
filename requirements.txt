@@ -1,6 +1,8 @@
-﻿pytest
 pytest-cov
 fastapi
 uvicorn
 jinja2
 pydantic
+pytest
+pylint
+
