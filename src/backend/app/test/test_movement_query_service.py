@@ -1,7 +1,7 @@
 import pytest
 from fastapi.testclient import TestClient
 from unittest.mock import patch, MagicMock
-from backend.app.services.movement_service import app  # Ajusta si el módulo tiene otro nombre
+from src.backend.app.api.routes.movement_query_service import app  # Ajusta si el módulo tiene otro nombre
 from backend.app.models.movement import MovementOut
 
 # Montamos la app de test
