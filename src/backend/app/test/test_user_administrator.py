@@ -65,7 +65,7 @@ def test_create_parade(admin):
     parade_info = {"stop_id": "S002", "name": "North Park", "location": "Uptown"}
     parade = admin.create_parade(parade_info)
     assert isinstance(parade, Stops)
-    assert parade._stops["name"] == "North Park"
+    assert parade._stop["name"] == "North Park"
 
 def test_create_route(admin):
     route_info = {"route_id": "R002", "stops": ["S001", "S002"], "schedule": "9:00-17:00"}
