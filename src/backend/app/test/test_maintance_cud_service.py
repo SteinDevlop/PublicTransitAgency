@@ -1,8 +1,10 @@
 
 import pytest
+
 from fastapi.testclient import TestClient
 from src.backend.app.api.routes.maintance_cud_service import app  # importa tu router
-
+from fastapi import FastAPI
+app = FastAPI()
 client = TestClient(app)
 
 # Test GET routes (crear, eliminar, actualizar)
