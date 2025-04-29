@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CRUD Adaptativo</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet" />
+  <script>
+    let currentService = 'clientes';
+    let editingId = null;
+
+    async function fetchSchema() {
+      const res = await fetch(`/schema/${currentService}`);
+      return res.json();
+    }
+
+    async function buildForm() {
+      const schema = await fetchSchema();
+      const form = document.getElementById('dynamic-form');
+      form.innerHTML = '';
+      schema.fields.forEach(f => {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'mb-4';
+        const label = document.createElement('label');
+        label.textContent = f.name;
+        label.className = 'block font-bold mb-1';
+        const input = document.createElement('input');
+        input.name = f.name;
+        input.required = !!f.required;
+        switch (f.type) {
+          case 'int':
+          case 'number':
+            input.type = 'number';
+            break;
+          case 'string':
+            input.type = 'text';
+            break;
+          case 'email':
+            input.type = 'email';
+            break;
+          case 'bool':
+            input.type = 'checkbox';
+            break;
+          default:
+            input.type = 'text';
+        }
+        if (f.pattern) input.pattern = f.pattern;
+        input.className = 'w-full p-2 border rounded';
+        wrapper.appendChild(label);
+        wrapper.appendChild(input);
+        form.appendChild(wrapper);
+      });
+    }
+
+    async function listRecords(id='') {
+      const res = await fetch(`/${currentService}/${id}`);
+      const data = await res.json();
+      const tbody = document.getElementById('table-body');
+      tbody.innerHTML = '';
+      (Array.isArray(data) ? data : [data]).forEach(row => {
+        const tr = document.createElement('tr');
+        Object.values(row).forEach(v => {
+          const td = document.createElement('td');
+          td.className = 'border px-2 py-1';
+          td.textContent = v;
+          tr.appendChild(td);
+        });
+        const actionTd = document.createElement('td');
+        actionTd.className = 'border px-2 py-1 space-x-2';
+        const editBtn = document.createElement('button');
+        editBtn.textContent = 'Editar';
+        editBtn.className = 'text-blue-600';
+        editBtn.onclick = () => loadForEdit(row);
+        const delBtn = document.createElement('button');
+        delBtn.textContent = 'Eliminar';
+        delBtn.className = 'text-red-600';
+        delBtn.onclick = () => deleteRecord(row.id);
+        actionTd.appendChild(editBtn);
+        actionTd.appendChild(delBtn);
+        tr.appendChild(actionTd);
+        tbody.appendChild(tr);
+      });
+    }
+
+    function loadForEdit(row) {
+      editingId = row.id;
+      const form = document.getElementById('dynamic-form');
+      Object.entries(row).forEach(([k,v])=>{
+        const inp = form.elements[k];
+        if(inp){
+          if(inp.type==='checkbox') inp.checked = !!v;
+          else inp.value = v;
+        }
+      });
+      document.getElementById('submit-btn').textContent = 'Actualizar';
+    }
+
+    async function deleteRecord(id){
+      await fetch(`/${currentService}/${id}`,{method:'DELETE'});
+      await listRecords();
+    }
+
+    async function submitForm(e){
+      e.preventDefault();
+      const data = Object.fromEntries(new FormData(e.target).entries());
+      const method = editingId? 'PUT':'POST';
+      const url = editingId? `/${currentService}/${editingId}`:`/${currentService}`;
+      await fetch(url,{method,headers:{'Content-Type':'application/json'},body:JSON.stringify(data)});
+      editingId=null;
+      e.target.reset();
+      document.getElementById('submit-btn').textContent='Crear';
+      await listRecords();
+    }
+
+    window.addEventListener('DOMContentLoaded',async()=>{
+      const selector=document.getElementById('service');
+      selector.addEventListener('change',async()=>{
+        currentService=selector.value;
+        editingId=null;
+        document.getElementById('submit-btn').textContent='Crear';
+        await buildForm();
+        await listRecords();
+      });
+      document.getElementById('dynamic-form').addEventListener('submit',submitForm);
+      await buildForm();
+      await listRecords();
+      document.getElementById('search-id').addEventListener('input',e=>listRecords(e.target.value));
+    });
+  </script>
+</head>
+<body class="p-6 max-w-3xl mx-auto">
+  <h1 class="text-2xl font-bold mb-4">CRUD Adaptativo</h1>
+  <div class="grid md:grid-cols-2 gap-6">
+    <div>
+      <label class="block font-bold mb-1">Microservicio</label>
+      <select id="service" class="w-full p-2 border rounded mb-4">
+        <option value="clientes">Clientes</option>
+        <option value="productos">Productos</option>
+      </select>
+      <form id="dynamic-form" action="#" method="post" class="bg-gray-50 p-4 rounded border"></form>
+      <button id="submit-btn" form="dynamic-form" class="mt-4 px-4 py-2 bg-blue-600 text-white rounded">Crear</button>
+    </div>
+    <div>
+      <div class="flex items-center mb-2">
+        <input id="search-id" placeholder="Buscar por ID" class="p-2 border rounded w-full" />
+      </div>
+      <table class="w-full text-sm">
+        <thead id="table-head"></thead>
+        <tbody id="table-body"></tbody>
+      </table>
+    </div>
+  </div>
+</body>
+</html>

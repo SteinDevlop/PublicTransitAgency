@@ -13,8 +13,8 @@ from backend.app.api.routes import (
     maintance_cud_service,
     maintance_query_service,
     mantainance_status_query_service,
-    #payment_cud_service,
-    #payment_service_recharge,
+    payment_cud_service,
+    payment_query_service,
     #routes_cud_service,
     #routes_query_service,
     #schedule_cud_service,
@@ -76,3 +76,5 @@ api_router.include_router(price_cud_service.app)
 api_router.include_router(price_query_service.app)
 api_router.include_router(movement_cud_service.app)
 api_router.include_router(movement_query_service.app)
+api_router.include_router(payment_cud_service.app)
+api_router.include_router(payment_query_service.app)

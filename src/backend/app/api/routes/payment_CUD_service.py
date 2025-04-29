@@ -3,10 +3,11 @@ from datetime import datetime
 from uuid import uuid4
 from src.backend.app.models.payments import Payments
 from models.card import Card
-from logic.universal_controller_sql import UniversalController  
+from logic.universal_controller_sql import UniversalController
 import uvicorn
+
 app = FastAPI()
-controller = UniversalController()  
+controller = UniversalController()
 
 MIN_VALOR = 1000
 MAX_VALOR = 100000
@@ -37,31 +38,27 @@ async def recharge(id: str, valor: float, tipo_transporte: str = "virtual"):
         "new_balance": tarjeta.balance,
         "receipt": str(pago)
     }
+
 @app.post("/tarjeta/{id}/uso")
-async def use(
-    id: str, 
-    valor: float, 
-    tipo_transporte: str
-):
+async def use(id: str, valor: float, tipo_transporte: str):
     tarjeta = controller.get_by_id(Card, id)
     if not tarjeta:
         raise HTTPException(status_code=404, detail="Tarjeta no encontrada")
 
     if tarjeta.balance < valor:
         raise HTTPException(
-            status_code=400, 
+            status_code=400,
             detail="Saldo insuficiente"
         )
 
     tarjeta.balance -= valor
     controller.update(tarjeta)
 
-    
     fecha = datetime.now().isoformat()
     pago = Payments(
         user=str(uuid4()),
         payment_quantity=valor,
-        payment_method=True,  
+        payment_method=True,
         vehicle_type=tipo_transporte,
         card=tarjeta
     )
@@ -71,6 +68,16 @@ async def use(
         "message": "Uso registrado",
         "remaining_balance": tarjeta.balance,
         "receipt": str(pago)
+    }
+
+@app.get("/schema/payment")
+async def get_schema():
+    return {
+        "fields": [
+            {"name": "id", "type": "string", "required": True},
+            {"name": "valor", "type": "number", "required": True},
+            {"name": "tipo_transporte", "type": "string", "required": False}
+        ]
     }
 
 if __name__ == "__main__":
