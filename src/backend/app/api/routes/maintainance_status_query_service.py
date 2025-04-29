@@ -1,8 +1,8 @@
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
-from models.maintainance_status import MaintainanceStatusOut
-from logic.universal_controller_sql import UniversalController
+from backend.app.models.maintainance_status import MaintainanceStatusOut
+from backend.app.logic.universal_controller_sql import UniversalController
 import uvicorn
 
 app = FastAPI()

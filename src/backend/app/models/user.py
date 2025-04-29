@@ -1,3 +1,4 @@
+from pydantic import BaseModel
 class UserCreate(BaseModel):
     __entity_name__ = "user"  # <- Aquí se define el nombre general de la entidad
     id: int

@@ -1,7 +1,7 @@
 from fastapi import FastAPI, Form, HTTPException, Request
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
-from models.incidence import IncidenceCreate, IncidenceOut
+from backend.app.models.incidence import IncidenceCreate, IncidenceOut
 from logic.universal_controller_sql import UniversalController
 import uvicorn
 
