@@ -1,5 +1,5 @@
 from fastapi.testclient import TestClient
-from api.routes.payment_cud_service import app
+from backend.app.api.routes.payment_cud_service import app
 from models.card import Card
 
 client = TestClient(app)
