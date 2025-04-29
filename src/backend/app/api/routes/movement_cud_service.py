@@ -131,5 +131,7 @@ async def delete_movement(
             "success": True,
             "message": f"Movement {id} deleted successfully"
         }
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(500, detail=str(e))  # General server error

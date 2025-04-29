@@ -37,6 +37,7 @@ class MockUniversalController:
             return movement
         raise HTTPException(status_code=404, detail="Movement not found")
 
+
 @pytest.fixture
 def mock_controller():
     return MockUniversalController()
