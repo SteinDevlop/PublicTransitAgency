@@ -1,5 +1,5 @@
 from fastapi.testclient import TestClient
-from src.backend.app.api.routes.payment_query_service import app
+from backend.app.api.routes.payment_query_service import app
 
 client = TestClient(app)
 
