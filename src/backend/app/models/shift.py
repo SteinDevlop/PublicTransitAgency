@@ -3,7 +3,7 @@ from datetime import datetime
 from typing import Dict, Any
 from models.transport import TransportOut
 from models.schedule import ScheduleOut
-from models.user_driver import WorkerOut #Implementacion pendiente.
+from models.user import WorkerOut #Implementacion pendiente.
 
 class ShiftBase(BaseModel):
     @classmethod
