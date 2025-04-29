@@ -62,9 +62,9 @@ class MockUniversalController:
 
 @pytest.fixture(autouse=True)
 def override_controller(mock_controller):
-    app.dependency_overrides[get_controller] = lambda: mock_controller
+    test_app.dependency_overrides[get_controller] = lambda: mock_controller
     yield
-    app.dependency_overrides.clear()
+    test_app.dependency_overrides.clear()
 
 def test_create_user():
     response = client.post("/user/create", data={"id": 3, "identification": 12345678, "name": "Alice", "lastname": "Smith", 
