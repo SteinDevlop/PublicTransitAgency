@@ -11,10 +11,13 @@ class MaintainanceStatusBase(BaseModel):
             "status": "TEXT NOT NULL"
         }
 
-class MaintainanceStatusCreate(MaintainanceStatusBase):
+from typing import Optional
+from pydantic import BaseModel
+
+class MaintainanceStatusCreate(BaseModel):
     id: int
-    unit: str
-    type: str
+    unit: Optional[str] = "Sin especificar"  # Valor por defecto
+    type: Optional[str] = "Regular"          # Valor por defecto
     status: str
 
     @validator('status')
@@ -28,6 +31,7 @@ class MaintainanceStatusCreate(MaintainanceStatusBase):
         return self.dict()
 
 class MaintainanceStatusOut(MaintainanceStatusCreate):
+    __entity_name__ = "maintainance_status"
     @classmethod
     def from_dict(cls, data: dict):
         return cls(**data)

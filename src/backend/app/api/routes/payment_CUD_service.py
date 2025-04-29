@@ -2,8 +2,8 @@ from fastapi import FastAPI, HTTPException
 from datetime import datetime
 from uuid import uuid4
 from src.backend.app.models.payments import Payments
-from models.card import Card
-from logic.universal_controller_sql import UniversalController
+from backend.app.models.card import Card
+from backend.app.logic.universal_controller_sql import UniversalController
 import uvicorn
 
 app = FastAPI()
