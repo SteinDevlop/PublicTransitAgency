@@ -2,11 +2,11 @@
 
 import pytest
 from fastapi.testclient import TestClient
-from src.backend.app.api.routes.user_cud_service import app, get_controller  # importa tu router correcto
+from backend.app.api.routes.user_cud_service import app, get_controller  # importa tu router correcto
 from fastapi import FastAPI, HTTPException, Form, Depends
 from fastapi.templating import Jinja2Templates
 from src.backend.app.logic.universal_controller_sql import UniversalController
-from src.backend.app.models.user import UserCreate, UserOut  # Asegúrate de que tus modelos estén en este archivo
+from backend.app.models.user import UserCreate, UserOut  # Asegúrate de que tus modelos estén en este archivo
 from fastapi.responses import HTMLResponse, FileResponse, RedirectResponse
 
 # Montar una app para test
