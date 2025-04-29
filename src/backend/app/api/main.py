@@ -10,9 +10,9 @@ from backend.app.api.routes import (
     #incidence_cud_service,
     #incidence_query_service,
     maintainance_status_cud_service,
+    maintainance_status_query_service,
     maintance_cud_service,
     maintance_query_service,
-    mantainance_status_query_service,
     payment_cud_service,
     payment_query_service,
     #routes_cud_service,
@@ -78,3 +78,16 @@ api_router.include_router(movement_cud_service.app)
 api_router.include_router(movement_query_service.app)
 api_router.include_router(payment_cud_service.app)
 api_router.include_router(payment_query_service.app)
+api_router.include_router(maintainance_status_cud_service.app)
+api_router.include_router(maintainance_status_query_service.app)
+api_router.include_router(payment_query_service.app)
+api_router.include_router(payment_query_service.app)
+api_router.include_router(payment_query_service.app)
+api_router.include_router(payment_query_service.app)
+api_router.include_router(payment_query_service.app)
+api_router.include_router(payment_query_service.app)
+api_router.include_router(payment_query_service.app)
+api_router.include_router(payment_query_service.app)
+api_router.include_router(payment_query_service.app)
+api_router.include_router(payment_query_service.app)
+
