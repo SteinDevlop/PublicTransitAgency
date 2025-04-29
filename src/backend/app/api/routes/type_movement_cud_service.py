@@ -1,12 +1,16 @@
-from fastapi import APIRouter, Form, Request, HTTPException
+from fastapi import APIRouter, Form, Request, HTTPException, Depends
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from backend.app.models.type_movement import TypeMovementCreate, TypeMovementOut
 from backend.app.logic.universal_controller_sql import UniversalController
 
 app = APIRouter(prefix="/typemovement", tags=["Type Movement"])
-controller = UniversalController()  # Ensure the controller is correctly instantiated
 templates = Jinja2Templates(directory="src/backend/app/templates")  # Set up the template directory
+
+def get_Controller():
+
+    return UniversalController()
+
 
 @app.get("/crear", response_class=HTMLResponse)
 def crear_tipo_movimiento(request: Request):
@@ -36,6 +40,7 @@ def actualizar_tipo_movimiento(request: Request):
 async def add_typemovement(
     id: int = Form(...),
     type: str = Form(...),
+    controller: UniversalController = Depends(get_Controller),
 ):
     """
     Creates a new type of movement with the provided ID and type.
@@ -63,6 +68,7 @@ async def add_typemovement(
 async def update_typemovement(
     id: int = Form(...),
     type: str = Form(...),
+    controller: UniversalController = Depends(get_Controller),
 ):
     """
     Updates an existing type of movement by its ID and new type.
@@ -91,7 +97,10 @@ async def update_typemovement(
 
 # Route to delete a type of movement
 @app.post("/delete")
-async def delete_typemovement(id: int = Form(...)):
+async def delete_typemovement(
+    id: int = Form(...), 
+    controller: UniversalController = Depends(get_Controller)
+    ):
     """
     Deletes an existing type of movement by its ID.
     If the type of movement does not exist, a 404 error is raised.

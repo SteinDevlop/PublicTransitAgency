@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Form, HTTPException, APIRouter, Request
+from fastapi import FastAPI, Form, HTTPException, APIRouter, Request, Depends, status, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse, FileResponse, RedirectResponse
@@ -6,9 +6,14 @@ from backend.app.models.movement import MovementCreate, MovementOut  # Make sure
 from backend.app.logic.universal_controller_sql import UniversalController 
 import uvicorn
 
-app = APIRouter(prefix="/movement", tags=["movement"])  # Initialize the API router with the given prefix and tags
-controller = UniversalController()  # Ensure the controller is correctly instantiated
+app = APIRouter(prefix="/movement", tags=["movement"])  # Initialize the API router with the given prefix and tag
 templates = Jinja2Templates(directory="src/backend/app/templates")  # Set up the template directory
+
+def get_controller():
+    """
+    Dependency to get the controller instance.
+    """
+    return UniversalController()
 
 # Route to display the "Create Movement" form
 @app.get("/crear", response_class=HTMLResponse)
@@ -40,6 +45,7 @@ async def create_movement(
     id: int = Form(...),
     type: str = Form(...),
     amount: float = Form(...),
+    controller: UniversalController = Depends(get_controller)
 ):
     """
     Creates a new movement with the provided ID , type and amount.
@@ -70,6 +76,7 @@ async def update_movement(
     id: int = Form(...),
     type: str = Form(...),
     amount: float = Form(...),
+    controller: UniversalController = Depends(get_controller)
 ):
     """
     Updates an existing movement by its ID and new type.
@@ -102,7 +109,10 @@ async def update_movement(
 
 # Route to delete a movement by its ID
 @app.post("/delete")
-async def delete_movement(id: int = Form(...)):
+async def delete_movement(
+    id: int = Form(...),
+    controller: UniversalController = Depends(get_controller)
+):
     """
     Deletes an existing movement by its ID.
     If the movement does not exist, it returns a 404 error.

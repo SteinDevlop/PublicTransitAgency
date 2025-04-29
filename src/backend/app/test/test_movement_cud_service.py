@@ -1,17 +1,16 @@
-
 import pytest
 from fastapi.testclient import TestClient
 from fastapi import FastAPI, HTTPException
 
-from src.backend.app.api.routes.movement_cud_service import app as movement_router
+from src.backend.app.api.routes.movement_cud_service import app as movement_router, get_controller
 from src.backend.app.models.movement import MovementOut
 from src.backend.app.logic.universal_controller_sql import UniversalController
 
-# Creamos una instancia de FastAPI para montar el router
 app = FastAPI()
 app.include_router(movement_router)
+client = TestClient(app)
 
-# Mock de la clase UniversalController
+# Mock del controlador
 class MockUniversalController:
     def __init__(self):
         self.movements = {
@@ -21,7 +20,7 @@ class MockUniversalController:
 
     def add(self, movement):
         self.movements[movement.id] = movement
-        return movement  # Retornamos el objeto agregado
+        return movement
 
     def get_by_id(self, model, id_):
         return self.movements.get(id_)
@@ -29,24 +28,26 @@ class MockUniversalController:
     def update(self, movement):
         if movement.id in self.movements:
             self.movements[movement.id] = movement
-            return movement  # Retornamos el objeto actualizado
+            return movement
         raise HTTPException(status_code=404, detail="Movement not found")
 
     def delete(self, movement):
         if movement.id in self.movements:
             del self.movements[movement.id]
-            return movement  # Puedes devolver el eliminado o True
+            return movement
         raise HTTPException(status_code=404, detail="Movement not found")
-# Inicializamos el cliente de pruebas
-client = TestClient(app)
 
 @pytest.fixture
 def mock_controller():
-    """Fixture para el mock del controlador"""
     return MockUniversalController()
 
-def test_create_movement(mock_controller):
-    """Prueba para crear un nuevo movimiento"""
+@pytest.fixture(autouse=True)
+def override_controller(mock_controller):
+    app.dependency_overrides[get_controller] = lambda: mock_controller
+    yield
+    app.dependency_overrides.clear()
+
+def test_create_movement():
     response = client.post("/movement/create", data={"id": 3, "type": "transfer", "amount": 150.0})
     assert response.status_code == 200
     data = response.json()
@@ -57,8 +58,7 @@ def test_create_movement(mock_controller):
     assert data["data"]["amount"] == 150.0
     assert "Movement created successfully" in data["message"]
 
-def test_update_existing_movement(mock_controller):
-    """Prueba para actualizar un movimiento existente"""
+def test_update_existing_movement():
     response = client.post("/movement/update", data={"id": 1, "type": "investment", "amount": 100.0})
     assert response.status_code == 200
     data = response.json()
@@ -68,15 +68,13 @@ def test_update_existing_movement(mock_controller):
     assert data["data"]["type"] == "investment"
     assert "updated successfully" in data["message"]
 
-def test_update_nonexistent_movement(mock_controller):
-    """Prueba para intentar actualizar un movimiento que no existe"""
+def test_update_nonexistent_movement():
     response = client.post("/movement/update", data={"id": 999, "type": "investment", "amount": 100.0})
     assert response.status_code == 404
     data = response.json()
     assert data["detail"] == "Movement not found"
 
-def test_delete_existing_movement(mock_controller):
-    """Prueba para eliminar un movimiento existente"""
+def test_delete_existing_movement():
     response = client.post("/movement/delete", data={"id": 1})
     assert response.status_code == 200
     data = response.json()
@@ -84,8 +82,7 @@ def test_delete_existing_movement(mock_controller):
     assert data["success"] is True
     assert "deleted successfully" in data["message"]
 
-def test_delete_nonexistent_movement(mock_controller):
-    """Prueba para intentar eliminar un movimiento que no existe"""
+def test_delete_nonexistent_movement():
     response = client.post("/movement/delete", data={"id": 999})
     assert response.status_code == 404
     data = response.json()
