@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Dict, Any
 from src.backend.app.models.base_model import DictModel
-from src.backend.app.models.card import Card  
+from models.card import Card  
 
 class Payment(DictModel):
     id: int
