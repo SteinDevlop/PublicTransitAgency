@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Form, HTTPException,APIRouter,Request
+from fastapi import FastAPI, Form, HTTPException,APIRouter,Request, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse, FileResponse, RedirectResponse
@@ -7,8 +7,11 @@ from  backend.app.logic.universal_controller_sql import UniversalController
 import uvicorn
 
 app = APIRouter(prefix="/user", tags=["User"])
-controller = UniversalController()  # Asegúrate de tener el controlador correspondiente
 templates = Jinja2Templates(directory="src/backend/app/templates")
+
+def get_controller():
+    return UniversalController()
+
 @app.get("/crear", response_class=HTMLResponse)
 def index(request: Request):
     return templates.TemplateResponse("CrearUsuario.html", {"request": request})
@@ -28,6 +31,7 @@ async def create_user(
     password: str = Form(...),
     idtype_user: int = Form(...),
     idturn: int = Form(...),
+    controller: UniversalController = Depends(get_controller)
 ):
     try:
         new_user = UserCreate(
@@ -66,6 +70,7 @@ async def update_user(
     password: str = Form(...),
     idtype_user: int = Form(...),
     idturn: int = Form(...),
+    controller: UniversalController = Depends(get_controller)
 ):
     try:
         # Buscar el usuario existente para actualización
@@ -100,7 +105,7 @@ async def update_user(
         raise HTTPException(400, detail=str(e))
 
 @app.post("/delete")
-async def delete_user(id: int = Form(...)):
+async def delete_user(id: int = Form(...), controller: UniversalController = Depends(get_controller)):
     try:
         # Buscar la usuario para eliminar
         existing = controller.get_by_id(UserOut, id)  # Usamos UserOut para buscar la usuario

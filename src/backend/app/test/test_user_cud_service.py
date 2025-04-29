@@ -1,134 +1,121 @@
 # tests/test_user_routes.py
 
-"""import pytest
+import pytest
 from fastapi.testclient import TestClient
-from src.backend.app.api.routes.user import app  # importa tu router correcto
-from fastapi import FastAPI
+from src.backend.app.api.routes.user_cud_service import app, get_controller  # importa tu router correcto
+from fastapi import FastAPI, HTTPException, Form, Depends
+from fastapi.templating import Jinja2Templates
+from src.backend.app.logic.universal_controller_sql import UniversalController
+from src.backend.app.models.user import UserCreate, UserOut  # Asegúrate de que tus modelos estén en este archivo
+from fastapi.responses import HTMLResponse, FileResponse, RedirectResponse
 
 # Montar una app para test
 test_app = FastAPI()
 test_app.include_router(app)
 client = TestClient(test_app)
 
-# Test GET routes (crear, eliminar, actualizar)
-
-def test_crear_usuario_get():
-    response = client.get("/user/crear")
-    assert response.status_code == 200
-    assert "text/html" in response.headers["content-type"]
-
-def test_eliminar_usuario_get():
-    response = client.get("/user/eliminar")
-    assert response.status_code == 200
-    assert "text/html" in response.headers["content-type"]
-
-def test_actualizar_usuario_get():
-    response = client.get("/user/actualizar")
-    assert response.status_code == 200
-    assert "text/html" in response.headers["content-type"]
-
 # Mock para UniversalController
-class MockController:
-    def add(self, data):
-        return True
+class MockUniversalController:
+    def __init__(self):
+        self.users = {
+            1: UserCreate(
+                id=1,
+                identification=12345678,
+                name="John",
+                lastname="Doe",
+                email="john@example.com",
+                password="password@123",
+                idtype_user=1,
+                idturn=1
+            ),
+            2: UserCreate(
+                id=2,
+                identification=87654321,
+                name="Jane",
+                lastname="Doe",
+                email="jane@example.com",
+                password="password@123",
+                idtype_user=2,
+                idturn=2
+            )
+        }
+        
+    def add(self, user):
+        self.users[user.id] = user
+        return user
 
-    def get_by_id(self, model, id):
-        if id == 1:
-            return {
-                "id": 1,
-                "identification": 12345678,
-                "name": "John",
-                "lastname": "Doe",
-                "email": "john@example.com",
-                "password": "secret",
-                "idtype_user": 1,
-                "idturn": 1
-            }
-        else:
-            return None
+    def get_by_id(self, model, id_):
+        return self.users.get(id_)
 
-    def update(self, data):
-        return True
+    def update(self, user):
+        if user.id in self.users:
+            self.users[user.id] = user
+            return user
+        raise HTTPException(status_code=404, detail="User not found")
 
-    def delete(self, data):
-        return True
+    def delete(self, user):
+        if user.id in self.users:
+            del self.users[user.id]
+            return user
+        raise HTTPException(status_code=404, detail="User not found")
 
-# Patching el controller en tests
 @pytest.fixture(autouse=True)
-def override_controller(monkeypatch):
-    from src.backend.app.api.routes import user
-    user.controller = MockController()
+def override_controller(mock_controller):
+    app.dependency_overrides[get_controller] = lambda: mock_controller
+    yield
+    app.dependency_overrides.clear()
 
-# Test POST /create
-
-def test_create_user_post():
-    response = client.post("/user/create", data={
-        "id": 1,
-        "identification": 12345678,
-        "name": "John",
-        "lastname": "Doe",
-        "email": "john@example.com",
-        "password": "secret",
-        "idtype_user": 1,
-        "idturn": 2
-    })
+def test_create_user():
+    response = client.post("/user/create", data={"id": 3, "identification": 12345678, "name": "Alice", "lastname": "Smith", 
+                        "email": "alice@example.com", "password": "password@123", "idtype_user": 1, "idturn": 1})
     assert response.status_code == 200
-    json_data = response.json()
-    assert json_data["operation"] == "create"
-    assert json_data["success"] is True
-    assert json_data["data"]["name"] == "John"
+    data = response.json()
+    assert data["operation"] == "create"
+    assert data["success"] is True
+    assert data["data"]["id"] == 3
+    assert data["data"]["identification"] == 12345678
+    assert data["data"]["name"] == "Alice"
+    assert data["data"]["lastname"] == "Smith"
+    assert data["data"]["email"] == "alice@example.com"
+    assert data["data"]["password"] == "password@123"
+    assert data["data"]["idtype_user"] == 1
+    assert data["data"]["idturn"] == 1
+    assert "User created successfully" in data["message"]
 
-# Test POST /update para usuario existente
-
-def test_update_user_post_success():
-    response = client.post("/user/update", data={
-        "id": 1,
-        "identification": 87654321,
-        "name": "Johnny",
-        "lastname": "DoeUpdated",
-        "email": "johnny@example.com",
-        "password": "newsecret",
-        "idtype_user": 2,
-        "idturn": 3
-    })
+def test_update_existing_user():
+    response = client.post("/user/update", data={"id": 1, "identification": 12345678, "name": "John", "lastname": "Doe",
+                        "email": "doe@example.com", "password": "newpassword@123", "idtype_user": 1, "idturn": 1})
     assert response.status_code == 200
-    json_data = response.json()
-    assert json_data["operation"] == "update"
-    assert json_data["success"] is True
-    assert json_data["data"]["name"] == "Johnny"
+    data = response.json()
+    assert data["operation"] == "update"
+    assert data["success"] is True
+    assert data["data"]["id"] == 1
+    assert data["data"]["identification"] == 12345678
+    assert data["data"]["name"] == "John"
+    assert data["data"]["lastname"] == "Doe"
+    assert data["data"]["email"] == "doe@example.com"
+    assert data["data"]["password"] == "newpassword@123"
+    assert data["data"]["idtype_user"] == 1
+    assert data["data"]["idturn"] == 1
+    assert "updated successfully" in data["message"]
 
-# Test POST /update para usuario no encontrado
-
-def test_update_user_post_not_found():
-    response = client.post("/user/update", data={
-        "id": 999,  # id no existente
-        "identification": 87654321,
-        "name": "Ghost",
-        "lastname": "User",
-        "email": "ghost@example.com",
-        "password": "nooneknows",
-        "idtype_user": 2,
-        "idturn": 3
-    })
+def test_update_nonexistent_user():
+    response = client.post("/user/update", data={"id": 999, "identification": 12345678, "name": "John", "lastname": "Doe",
+                        "email": "john@example", "password": "newpassword@123", "idtype_user": 1, "idturn": 1})
     assert response.status_code == 404
-    assert response.json() == {"detail": "Usuario no encontrada"}
+    data = response.json()
+    assert data["detail"] == "User not found"
 
-# Test POST /delete para usuario existente
-
-def test_delete_user_post_success():
-    response = client.post("/user/delete", data={
-        "id": 1,
-    })
+def test_delete_existing_user():
+    response = client.post("/user/delete", data={"id": 1})
     assert response.status_code == 200
-    json_data = response.json()
-    assert json_data["operation"] == "delete"
-    assert json_data["success"] is True
+    data = response.json()
+    assert data["operation"] == "delete"
+    assert data["success"] is True
+    assert "deleted successfully" in data["message"]
 
-# Test POST /delete para usuario no encontrado
-
-def test_delete_user_post_not_found():
-    response = client.post("/user/delete", data={
-        "id": 999,  # id no existente
-    })
+def test_delete_nonexistent_user():
+    response = client.post("/user/delete", data={"id": 999})
     assert response.status_code == 404
-    assert response.json() == {"detail": "Usuario no encontrado"}"""
+    data = response.json()
+    assert data["detail"] == "User not found"
