@@ -31,7 +31,8 @@ class MaintainanceStatusCreate(BaseModel):
         return self.dict()
 
 class MaintainanceStatusOut(MaintainanceStatusCreate):
-    __entity_name__ = "maintainance_status"
+    __entity_name__ = "EstadoMantenimiento"
+    __table_name__ = "EstadoMantenimiento"
     @classmethod
     def from_dict(cls, data: dict):
         return cls(**data)
