@@ -2,6 +2,7 @@ from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from models.stops import StopCreate, StopOut
 from logic.universal_controller_sql import UniversalController
+from fastapi.responses import HTMLResponse
 import uvicorn
 
 app = FastAPI()
@@ -15,7 +16,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-@app.post("/stops/create")
+@app.post("/stops/create", response_class=HTMLResponse)
 async def create_stop(request: Request):
     try:
         data = await request.json()
@@ -29,18 +30,23 @@ async def create_stop(request: Request):
         )
         
         result = controller.add(stop.to_dict())
-        return {
-            "operation": "create",
-            "success": True,
-            "data": result,
-            "message": "Stop created successfully"
-        }
+        html_content = f"""
+        <html>
+            <body>
+                <h1>Stop Created Successfully</h1>
+                <p>Operation: create</p>
+                <p>Stop ID: {data['stop_id']}</p>
+                <p>Message: Stop created successfully</p>
+            </body>
+        </html>
+        """
+        return HTMLResponse(content=html_content)
     except ValueError as e:
         raise HTTPException(400, detail=str(e))
     except Exception as e:
         raise HTTPException(500, detail="Internal server error")
 
-@app.post("/stops/update")
+@app.post("/stops/update", response_class=HTMLResponse)
 async def update_stop(request: Request):
     try:
         data = await request.json()
@@ -58,16 +64,21 @@ async def update_stop(request: Request):
         )
         
         result = controller.update(updated.to_dict())
-        return {
-            "operation": "update",
-            "success": True,
-            "data": result,
-            "message": f"Stop {data['stop_id']} updated"
-        }
+        html_content = f"""
+        <html>
+            <body>
+                <h1>Stop Updated Successfully</h1>
+                <p>Operation: update</p>
+                <p>Stop ID: {data['stop_id']}</p>
+                <p>Message: Stop {data['stop_id']} updated</p>
+            </body>
+        </html>
+        """
+        return HTMLResponse(content=html_content)
     except ValueError as e:
         raise HTTPException(400, detail=str(e))
 
-@app.post("/stops/delete")
+@app.post("/stops/delete", response_class=HTMLResponse)
 async def delete_stop(request: Request):
     try:
         data = await request.json()
@@ -80,11 +91,17 @@ async def delete_stop(request: Request):
             raise HTTPException(404, detail="Stop not found")
         
         controller.delete(existing)
-        return {
-            "operation": "delete",
-            "success": True,
-            "message": f"Stop {data['stop_id']} deleted"
-        }
+        html_content = f"""
+        <html>
+            <body>
+                <h1>Stop Deleted Successfully</h1>
+                <p>Operation: delete</p>
+                <p>Stop ID: {data['stop_id']}</p>
+                <p>Message: Stop {data['stop_id']} deleted</p>
+            </body>
+        </html>
+        """
+        return HTMLResponse(content=html_content)
     except Exception as e:
         raise HTTPException(500, detail=str(e))
 

@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException, Form
 from fastapi.middleware.cors import CORSMiddleware
 from datetime import datetime
 from models.schedule import ScheduleCreate, ScheduleOut
@@ -17,17 +17,19 @@ app.add_middleware(
 )
 
 @app.post("/schedule/create")
-async def create_schedule(request: Request):
+async def create_schedule(
+    schedule_id: str = Form(...),
+    arrival_date: str = Form(...),
+    departure_date: str = Form(...),
+    route: str = Form(...)
+):
     try:
-        data = await request.json()
-        
         schedule = ScheduleCreate(
-            schedule_id=data['schedule_id'],
-            arrival_date=datetime.fromisoformat(data['arrival_date']),
-            departure_date=datetime.fromisoformat(data['departure_date']),
-            route=data['route']
+            schedule_id=schedule_id,
+            arrival_date=datetime.fromisoformat(arrival_date),
+            departure_date=datetime.fromisoformat(departure_date),
+            route=route
         )
-        
         result = controller.add(schedule.to_dict())
         return {
             "operation": "create",
@@ -41,37 +43,37 @@ async def create_schedule(request: Request):
         raise HTTPException(500, detail="Internal server error")
 
 @app.post("/schedule/update")
-async def update_schedule(request: Request):
+async def update_schedule(
+    schedule_id: str = Form(...),
+    arrival_date: str = Form(...),
+    departure_date: str = Form(...),
+    route: str = Form(...)
+):
     try:
-        data = await request.json()
-        existing = controller.get_by_id(ScheduleOut, data['schedule_id'])
-        
+        existing = controller.get_by_id(ScheduleOut, schedule_id)
         if not existing:
             raise HTTPException(404, detail="Schedule not found")
         
         updated = ScheduleCreate(
-            schedule_id=data['schedule_id'],
-            arrival_date=datetime.fromisoformat(data['arrival_date']),
-            departure_date=datetime.fromisoformat(data['departure_date']),
-            route=data['route']
+            schedule_id=schedule_id,
+            arrival_date=datetime.fromisoformat(arrival_date),
+            departure_date=datetime.fromisoformat(departure_date),
+            route=route
         )
-        
         result = controller.update(updated.to_dict())
         return {
             "operation": "update",
             "success": True,
             "data": result,
-            "message": f"Schedule {data['schedule_id']} updated"
+            "message": f"Schedule {schedule_id} updated"
         }
     except ValueError as e:
         raise HTTPException(400, detail=str(e))
 
 @app.post("/schedule/delete")
-async def delete_schedule(request: Request):
+async def delete_schedule(schedule_id: str = Form(...)):
     try:
-        data = await request.json()
-        existing = controller.get_by_id(ScheduleOut, data['schedule_id'])
-        
+        existing = controller.get_by_id(ScheduleOut, schedule_id)
         if not existing:
             raise HTTPException(404, detail="Schedule not found")
         
@@ -79,7 +81,7 @@ async def delete_schedule(request: Request):
         return {
             "operation": "delete",
             "success": True,
-            "message": f"Schedule {data['schedule_id']} deleted"
+            "message": f"Schedule {schedule_id} deleted"
         }
     except Exception as e:
         raise HTTPException(500, detail=str(e))

@@ -1,48 +1,21 @@
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi import FastAPI, HTTPException
-from models.transport import TransportOut
-from logic.universal_controller_sql import UniversalController
-import uvicorn
-app = FastAPI()
-controller = UniversalController()
+"""from fastapi.testclient import TestClient
+from backend.app.api.routes.transport_unit_query_service import app
+client = TestClient(app)
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_methods=["GET"],  
-    allow_headers=["*"],
-)
+def test_get_schema():
+    response = client.get("/transport/schema")
+    assert response.status_code == 200
+    data = response.json()
+    assert "name" in data
+    assert data["name"] == "transport"
+    assert isinstance(data["fields"], list)
 
-@app.get("/transport/schema")
-async def get_schema():
-    return {
-        "name": "transport",
-        "fields": [
-            {"name": "id", "type": "str", "required": True},
-            {"name": "type", "type": "str", "required": True},
-            {"name": "status", "type": "str", "required": True},
-            {"name": "ubication", "type": "str", "required": True},
-            {"name": "capacity", "type": "int", "required": True}
-        ]
-    }
+def test_get_all_units():
+    response = client.get("/transport/unit/all")
+    assert response.status_code == 200
+    assert "data" in response.json() or isinstance(response.json(), list)
 
-@app.get("/transport/unit/all")
-async def get_all():
-    dummy = TransportOut.get_empty_instance()
-    return controller.read_all(dummy)
-
-@app.get("/transport/unit/{id}")
-async def get_by_id(id: str):
-    unit = controller.get_by_id(TransportOut, id)
-    if not unit:
-        raise HTTPException(404, detail="Unidad no encontrada")
-    return unit
-
-if __name__ == "__main__":
-    uvicorn.run(
-        app="app:app",
-        host="0.0.0.0",
-        port=8002, 
-        reload=True
-    )
+def test_get_unit_by_id_not_found():
+    response = client.get("/transport/unit/fake-id")
+    assert response.status_code == 404
+"""

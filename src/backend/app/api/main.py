@@ -7,29 +7,29 @@ from backend.app.api.routes import (
 
     card_cud_service,
     card_query_service,
-    #incidence_cud_service,
-    #incidence_query_service,
+    incidence_cud_service,
+    incidence_query_service,
     maintainance_status_cud_service,
     maintainance_status_query_service,
     maintance_cud_service,
     maintance_query_service,
     payment_cud_service,
     payment_query_service,
-    #routes_cud_service,
-    #routes_query_service,
-    #schedule_cud_service,
-    #schedule_query_service,
-    #shifts_cud_service,
-    #stops_cud_service,
-    #stops_query_service,
-    #shifts_query_service,
+    routes_cud_service,
+    routes_query_service,
+    schedule_cud_service,
+    schedule_query_service,
+    shifts_cud_service,
+    stops_cud_service,
+    stops_query_service,
+    shifts_query_service,
     #user_service,
-    #ticket_cud_service,
-    #ticket_query_service,
+    ticket_cud_service,
+    ticket_query_service,
     type_card_cud_service,
     type_card_query_service,
-    #transport_unit_cud_service,
-    #transport_unit_query_service,
+    transport_unit_cud_service,
+    transport_unit_query_service,
     user_cud_service,
     user_query_service,
     type_movement_cud_service,
@@ -80,14 +80,17 @@ api_router.include_router(payment_cud_service.app)
 api_router.include_router(payment_query_service.app)
 api_router.include_router(maintainance_status_cud_service.app)
 api_router.include_router(maintainance_status_query_service.app)
-api_router.include_router(payment_query_service.app)
-api_router.include_router(payment_query_service.app)
-api_router.include_router(payment_query_service.app)
-api_router.include_router(payment_query_service.app)
-api_router.include_router(payment_query_service.app)
-api_router.include_router(payment_query_service.app)
-api_router.include_router(payment_query_service.app)
-api_router.include_router(payment_query_service.app)
-api_router.include_router(payment_query_service.app)
-api_router.include_router(payment_query_service.app)
+api_router.include_router(transport_unit_cud_service.app)
+api_router.include_router(transport_unit_query_service.app)
+api_router.include_router(schedule_cud_service.app)
+api_router.include_router(schedule_query_service.app)
+api_router.include_router(incidence_cud_service.app)
+api_router.include_router(incidence_query_service.app)
+api_router.include_router(ticket_cud_service.app)
+api_router.include_router(ticket_query_service.app)
+api_router.include_router(routes_cud_service.app)
+api_router.include_router(shifts_cud_service.app)
+api_router.include_router(shifts_query_service.app)
+api_router.include_router(stops_cud_service.app)
+api_router.include_router(stops_query_service.app)
 
