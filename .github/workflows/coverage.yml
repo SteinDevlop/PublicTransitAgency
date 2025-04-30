@@ -1,50 +1,51 @@
-name: Coverage_Test
+name: Coverage Test
+
 on:
   push:
     branches:
       - main
   pull_request:
     types: [opened, synchronize, reopened]
+
 jobs:
   sonarqube:
-    name: SonarQube Cloud
+    name: SonarQube
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout repository
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Setup Python
-        uses: actions/setup-python@v2
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
         with:
-          python-version: '3.10'
-      - name: Install tox and any other packages
-        run: pip install tox
-      - name: Run tox
-        run: tox -e py
-        
+          python-version: "3.10"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+      - name: Run tests with coverage
+        run: |
+          export PYTHONPATH=src
+          pytest src/backend/ap/test --cov=src/backend/app --cov-report=xml --cov-report=term --cov-config .coveragerc
       - name: Upload coverage report
         uses: actions/upload-artifact@v4
         with:
           name: coverage-report
-          path: coverage.xml 
-          
-      - name: SonarQube Scan
-        uses: SonarSource/sonarqube-scan-action@v4
+          path: coverage.xml
+
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@v2
         env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+          SONAR_TOKEN: ${{secrets.SONAR_TOKEN }}
         with:
           args: >
             -Dsonar.projectKey=ISCODEVUTB_PublicTransitAgency
             -Dsonar.organization=deviscoutb
-            -Dsonar.sources=src/backend/app
-            -Dsonar.exclusions=src/backend/app/test/**
-            -Dsonar.tests=src/backend/app/test
             -Dsonar.host.url=https://sonarcloud.io
-            -Dsonar.python.coverage.reportPath=coverage.xml
-            -Dsonar.inclusions=**/*.py
-            -Dsonar.coverageReportPaths=reports/coverage.xml
-            -Dsonar.coverage.dtdVerification=false 
-            -Dsonar.python.coverage.reportPaths=reports/coverage.xml
-            -Dsonar.python.coveragePlugin=cobertura
-            -X
+            -Dsonar.python.coverage.reportPaths=backend/coverage.xml
+            -Dsonar.exclusions=src/frontend/**
+            -Dsonar.python.version=3.10
