@@ -27,7 +27,9 @@ def test_delete_incidence_form():
     assert response.status_code == 200
     assert "Borrar Incidencia" in response.text
 
+
 def test_create_incidence():
+    """Prueba la creación de una incidencia a través de la ruta '/incidence/create'."""
     response = client.post(
         "/incidence/create",
         data={"Descripcion": "Incidencia de prueba", "Tipo": "Tipo prueba", "TicketID": 1}
@@ -42,6 +44,7 @@ def test_create_incidence():
 
 
 def test_update_incidence_existing():
+    """Prueba la actualización de una incidencia existente a través de la ruta '/incidence/update'."""
     # Primero, crear una incidencia para actualizar
     create_response = client.post(
         "/incidence/create",
@@ -70,6 +73,7 @@ def test_update_incidence_existing():
 
 
 def test_update_incidence_not_found():
+    """Prueba que la ruta '/incidence/update' devuelve un error 404 si la incidencia no existe."""
     response = client.post(
         "/incidence/update",
         data={"IncidenciaID": 9999, "Descripcion": "NonExistent", "Tipo": "None", "TicketID": 0}
@@ -80,6 +84,7 @@ def test_update_incidence_not_found():
 
 
 def test_delete_incidence_existing():
+    """Prueba la eliminación de una incidencia existente a través de la ruta '/incidence/delete'."""
     # Primero, crear una incidencia para eliminar
     create_response = client.post(
         "/incidence/create",
@@ -96,6 +101,7 @@ def test_delete_incidence_existing():
 
 
 def test_delete_incidence_not_found():
+    """Prueba que la ruta '/incidence/delete' devuelve un error 404 si la incidencia no existe."""
     response = client.post("/incidence/delete", data={"IncidenciaID": 9999})
     assert response.status_code == 404
     assert response.json()["detail"] == "Incidence not found"
