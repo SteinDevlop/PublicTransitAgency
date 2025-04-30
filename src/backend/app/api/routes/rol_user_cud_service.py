@@ -1,13 +1,14 @@
-from fastapi import APIRouter, Form, Request, HTTPException
+from fastapi import APIRouter, Depends, Form, Request, HTTPException
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from backend.app.models.rol_user import RolUserCreate, RolUserOut
 from backend.app.logic.universal_controller_sql import UniversalController
 
 app = APIRouter(prefix="/roluser", tags=["Rol User"])
-controller = UniversalController()  # Ensure the controller is correctly instantiated
 templates = Jinja2Templates(directory="src/backend/app/templates")  # Set up the template directory
 
+def get_controller():
+    return UniversalController()
 
 # Route to create a role of user
 @app.get("/crear", response_class=HTMLResponse)
@@ -38,6 +39,7 @@ def actualizar_rol_user(request: Request):
 async def add_roluser(
     id: int = Form(...),
     type: str = Form(...),
+    controller: UniversalController = Depends(get_controller),
 ):
     """
     Creates a new role of user with the provided ID and type.
@@ -52,7 +54,7 @@ async def add_roluser(
         return {
             "operation": "create",
             "success": True,
-            "data": RolUserCreate(id=new_roluser.id, type=new_roluser.type).dict(),
+            "data": RolUserCreate(id=new_roluser.id, type=new_roluser.type).model_dump(),
             "message": "User Role created successfully"
         }
     except ValueError as e:
@@ -65,6 +67,7 @@ async def add_roluser(
 async def update_roluser(
     id: int = Form(...),
     type: str = Form(...),
+    controller: UniversalController = Depends(get_controller)
 ):
     """
     Updates an existing role of user by its ID and new type.
@@ -73,8 +76,8 @@ async def update_roluser(
     try:
         # Look for the existing role of user to update
         existing = controller.get_by_id(RolUserOut, id)
-        if not existing:
-            raise HTTPException(404, detail="User Role not found")
+        if existing is None:
+            raise HTTPException(404, detail="Role User not found")
         
         # Create a new instance with the updated data
         updated_roluser = RolUserCreate(id=id, type=type)
@@ -85,15 +88,19 @@ async def update_roluser(
         return {
             "operation": "update",
             "success": True,
-            "data": RolUserOut(id=updated_roluser.id, type=updated_roluser.type).dict(),
-            "message": f"User Role {id} updated successfully"
+            "data": RolUserOut(id=updated_roluser.id, type=updated_roluser.type).model_dump(),
+            "message": f"User Role updated successfully"
         }
+    except HTTPException as e:
+        raise e  # <-- Permitir que se propague tal como está
     except ValueError as e:
-        raise HTTPException(400, detail=str(e))  # Bad request if validation fails
+        raise HTTPException(400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(500, detail=f"Internal server error: {str(e)}")
 
 # Route to delete a role of user
 @app.post("/delete")
-async def delete_roluser(id: int = Form(...)):
+async def delete_roluser(id: int = Form(...), controller: UniversalController = Depends(get_controller)):
     """
     Deletes an existing role of user by its ID.
     If the role of user does not exist, a 404 error is raised.
@@ -102,7 +109,7 @@ async def delete_roluser(id: int = Form(...)):
         # Look for the role of user to delete
         existing = controller.get_by_id(RolUserOut, id)
         if not existing:
-            raise HTTPException(404, detail="Role User not found")
+            raise HTTPException(404, detail="User Role not found")
         
         # Delete the role of user using the controller
         controller.delete(existing)
@@ -110,8 +117,11 @@ async def delete_roluser(id: int = Form(...)):
         return {
             "operation": "delete",
             "success": True,
-            "message": f"Role User {id} deleted successfully"
+            "message": f"Role User deleted successfully"
         }
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(500, detail=str(e))  # General server error
+
 

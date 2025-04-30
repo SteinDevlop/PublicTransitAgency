@@ -69,32 +69,32 @@ async def update_typemovement(
     type: str = Form(...),
     controller: UniversalController = Depends(get_controller),
 ):
-    """
-    Updates an existing type of movement by its ID and new type.
-    If the type of movement does not exist, a 404 error is raised.
-    """
     try:
-        # Look for the existing type of card to update
-        existing = controller.get_by_id(TypeMovementOut, id)
+        # Attempt to retrieve the record
+        try:
+            existing = controller.get_by_id(TypeMovementOut, id)
+        except Exception:
+            # This handles exceptions like 'not found' from controller
+            raise HTTPException(404, detail="Movement type not found")
+
         if not existing:
             raise HTTPException(404, detail="Movement type not found")
-        
-        # Create a new instance with the updated data
+
         updated_typemovement = TypeMovementCreate(id=id, type=type)
-        
-        # Update the type of movement using the controller
-        result = controller.update(updated_typemovement)
-        
+        controller.update(updated_typemovement)
+
         return {
             "operation": "update",
             "success": True,
             "data": TypeMovementOut(id=updated_typemovement.id, type=updated_typemovement.type).model_dump(),
-            "message": f"Movement type updated successfully"
+            "message": "Movement type updated successfully"
         }
-    except ValueError as e:
-        raise HTTPException(400, detail=str(e))  # Bad request if validation fails
+
+    except HTTPException:
+        raise  # Let FastAPI handle HTTP errors normally
     except Exception as e:
-        raise HTTPException(500, detail=str(e))  # General server error
+        raise HTTPException(500, detail=str(e))  # Catch-all for unexpected errors
+
 # Route to delete a type of movement
 @app.post("/delete")
 async def delete_typemovement(
