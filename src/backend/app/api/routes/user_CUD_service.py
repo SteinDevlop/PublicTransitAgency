@@ -2,24 +2,35 @@ from fastapi import FastAPI, APIRouter, Form, HTTPException,APIRouter,Request, D
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse, FileResponse, RedirectResponse
-from src.backend.app.models.user import UserCreate, UserOut  # Asegúrate de que tus modelos estén en este archivo
-from  src.backend.app.logic.universal_controller_sql import UniversalController 
+from backend.app.models.user import UserCreate, UserOut  # Asegúrate de que tus modelos estén en este archivo
+from  backend.app.logic.universal_controller_sql import UniversalController 
 import uvicorn
 
 router = APIRouter(prefix="/user", tags=["user"])
 templates = Jinja2Templates(directory="src/backend/app/templates")
 
 def get_controller():
+    """
+    Dependency to get the controller instance.
+    """
     return UniversalController()
 
 @router.get("/crear", response_class=HTMLResponse)
 def index(request: Request):
+    """
+    Displays the form to create a new user.
+    """
     return templates.TemplateResponse("CrearUsuario.html", {"request": request})
 @router.get("/actualizar", response_class=HTMLResponse)
 def index(request: Request):
+    """
+    Displays the form to update an existing user.
+    """
     return templates.TemplateResponse("ActualizarUsuario.html", {"request": request})
 @router.get("/eliminar", response_class=HTMLResponse)
 def index(request: Request):
+    """
+    Displays the form to delete an existing user."""
     return templates.TemplateResponse("EliminarUsuario.html", {"request": request})
 @router.post("/create")
 async def create_user(
