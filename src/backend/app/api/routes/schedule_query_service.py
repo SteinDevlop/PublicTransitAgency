@@ -1,92 +1,50 @@
-from fastapi import FastAPI, Form, HTTPException
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from datetime import datetime
-from models.schedule import ScheduleCreate, ScheduleOut
+from models.schedule import ScheduleOut
 from logic.universal_controller_sql import UniversalController
 import uvicorn
 
 app = FastAPI()
 controller = UniversalController()
 
+# Configuración CORS
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
     allow_credentials=True,
-    allow_methods=["POST"],
+    allow_methods=["GET"],
     allow_headers=["*"],
 )
 
-@app.post("/schedule/create")
-async def create_schedule(
-    schedule_id: str = Form(...),
-    arrival_date: str = Form(...),
-    departure_date: str = Form(...),
-    route: str = Form(...)
-):
+@app.get("/schedule", tags=["schedule"])
+async def get_all_schedules():
     try:
-        schedule = ScheduleCreate(
-            schedule_id=schedule_id,
-            arrival_date=datetime.fromisoformat(arrival_date),
-            departure_date=datetime.fromisoformat(departure_date),
-            route=route
-        )
-        result = controller.add(schedule.to_dict())
+        schedules = controller.read_all(ScheduleOut)
         return {
-            "operation": "create",
+            "operation": "read_all",
             "success": True,
-            "data": result,
-            "message": "Schedule created successfully"
-        }
-    except ValueError as e:
-        raise HTTPException(400, detail=str(e))
-    except Exception:
-        raise HTTPException(500, detail="Internal server error")
-
-@app.post("/schedule/update")
-async def update_schedule(
-    schedule_id: str = Form(...),
-    arrival_date: str = Form(...),
-    departure_date: str = Form(...),
-    route: str = Form(...)
-):
-    try:
-        existing = controller.get_by_id(ScheduleOut, schedule_id)
-        if not existing:
-            raise HTTPException(404, detail="Schedule not found")
-        
-        updated = ScheduleCreate(
-            schedule_id=schedule_id,
-            arrival_date=datetime.fromisoformat(arrival_date),
-            departure_date=datetime.fromisoformat(departure_date),
-            route=route
-        )
-        result = controller.update(updated.to_dict())
-        return {
-            "operation": "update",
-            "success": True,
-            "data": result,
-            "message": f"Schedule {schedule_id} updated"
-        }
-    except ValueError as e:
-        raise HTTPException(400, detail=str(e))
-
-@app.post("/schedule/delete")
-async def delete_schedule(
-    schedule_id: str = Form(...)
-):
-    try:
-        existing = controller.get_by_id(ScheduleOut, schedule_id)
-        if not existing:
-            raise HTTPException(404, detail="Schedule not found")
-        
-        controller.delete(existing)
-        return {
-            "operation": "delete",
-            "success": True,
-            "message": f"Schedule {schedule_id} deleted"
+            "data": schedules,
+            "message": "Schedules retrieved successfully"
         }
     except Exception as e:
-        raise HTTPException(500, detail=str(e))
+        raise HTTPException(500, detail="Internal server error")
+
+@app.get("/schedule/{schedule_id}", tags=["schedule"])
+async def get_schedule_by_id(schedule_id: str):
+    try:
+        schedule = controller.get_by_id(ScheduleOut, schedule_id)
+        if not schedule:
+            raise HTTPException(404, detail="Schedule not found")
+        return {
+            "operation": "read_by_id",
+            "success": True,
+            "data": schedule,
+            "message": f"Schedule {schedule_id} found"
+        }
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        raise HTTPException(500, detail="Internal server error")
 
 if __name__ == "__main__":
     uvicorn.run("app:app", host="0.0.0.0", port=8003, reload=True)
