@@ -39,22 +39,22 @@ def actualizar_tipo_movimiento(request: Request):
 async def add_typemovement(
     id: int = Form(...),
     type: str = Form(...),
-    controller: UniversalController = Depends(get_Controller),
+    controller: UniversalController = Depends(get_controller),
 ):
     """
     Creates a new type of movement with the provided ID and type.
     The controller is used to add the type of movement to the database.
     """
     try:
-        new_typecard = TypeMovementCreate(id=id, type=type)
+        new_typemovement = TypeMovementCreate(id=id, type=type)
         
         # Add the new type of card using the controller
-        result = controller.add(new_typecard)
+        result = controller.add(new_typemovement)
         
         return {
             "operation": "create",
             "success": True,
-            "data": TypeMovementOut(id=new_typecard.id, type=new_typecard.type).dict(),
+            "data": TypeMovementOut(id=new_typemovement.id, type=new_typemovement.type).model_dump(),
             "message": "Movement type created successfully"
         }
     except ValueError as e:
@@ -67,7 +67,7 @@ async def add_typemovement(
 async def update_typemovement(
     id: int = Form(...),
     type: str = Form(...),
-    controller: UniversalController = Depends(get_Controller),
+    controller: UniversalController = Depends(get_controller),
 ):
     """
     Updates an existing type of movement by its ID and new type.
@@ -88,17 +88,18 @@ async def update_typemovement(
         return {
             "operation": "update",
             "success": True,
-            "data": TypeMovementOut(id=updated_typemovement.id, type=updated_typemovement.type).dict(),
-            "message": f"Movement type {id} updated successfully"
+            "data": TypeMovementOut(id=updated_typemovement.id, type=updated_typemovement.type).model_dump(),
+            "message": f"Movement type updated successfully"
         }
     except ValueError as e:
         raise HTTPException(400, detail=str(e))  # Bad request if validation fails
-
+    except Exception as e:
+        raise HTTPException(500, detail=str(e))  # General server error
 # Route to delete a type of movement
 @app.post("/delete")
 async def delete_typemovement(
     id: int = Form(...), 
-    controller: UniversalController = Depends(get_Controller)
+    controller: UniversalController = Depends(get_controller)
     ):
     """
     Deletes an existing type of movement by its ID.
@@ -116,8 +117,10 @@ async def delete_typemovement(
         return {
             "operation": "delete",
             "success": True,
-            "message": f"Movement type {id} deleted successfully"
+            "message": f"Movement type deleted successfully"
         }
+    except HTTPException:
+        raise
     except Exception as e:
         raise HTTPException(500, detail=str(e))  # General server error
 

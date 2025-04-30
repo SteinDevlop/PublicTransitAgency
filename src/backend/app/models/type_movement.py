@@ -3,7 +3,7 @@ from pydantic import BaseModel
 class TypeMovementCreate(BaseModel):
     __entity_name__ = "typemovement"
     id: int
-    tipo: str
+    type: str
 
     def to_dict(self):
         return self.dict()
