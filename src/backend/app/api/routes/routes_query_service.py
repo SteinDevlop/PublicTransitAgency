@@ -1,12 +1,16 @@
-
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, Request, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from models.routes import RouteOut
+from fastapi.templating import Jinja2Templates
+from fastapi.responses import HTMLResponse
+from backend.app.models.routes import RouteOut
 from logic.universal_controller_sql import UniversalController
 import uvicorn
 
 app = FastAPI()
 controller = UniversalController()
+
+# Jinja2 Templates configuration
+templates = Jinja2Templates(directory="src/backend/app/templates")
 
 # CORS Middleware
 app.add_middleware(
@@ -17,32 +21,28 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-@app.get("/routes")
-async def list_all_routes():
+# Endpoint to display all routes in HTML
+@app.get("/routes", response_class=HTMLResponse, tags=["routes"])
+async def list_all_routes(request: Request):
     dummy = RouteOut.get_empty_instance()
     try:
         routes = controller.read_all(dummy)
-        return {
-            "operation": "read_all",
-            "success": True,
-            "data": routes,
-            "message": "Lista de rutas obtenida exitosamente"
-        }
+        return templates.TemplateResponse(
+            "ListarRutas.html", {"request": request, "routes": routes}
+        )
     except Exception as e:
         raise HTTPException(500, detail="Error al obtener las rutas")
 
-@app.get("/routes/{route_id}")
-async def get_route(route_id: str):
+# Endpoint to display a single route by ID in HTML
+@app.get("/routes/{route_id}", response_class=HTMLResponse, tags=["routes"])
+async def get_route(request: Request, route_id: str):
     try:
         route = controller.get_by_id(RouteOut, route_id)
         if not route:
             raise HTTPException(404, detail="Ruta no encontrada")
-        return {
-            "operation": "read_by_id",
-            "success": True,
-            "data": route,
-            "message": f"Ruta {route_id} encontrada"
-        }
+        return templates.TemplateResponse(
+            "DetalleRuta.html", {"request": request, "route": route}
+        )
     except HTTPException as e:
         raise e
     except Exception as e:

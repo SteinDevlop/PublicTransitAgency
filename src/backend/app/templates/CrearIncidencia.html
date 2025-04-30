@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Crear Incidencia</title>
+    <meta charset="UTF-8">
+</head>
+<body>
+    <h1>Crear Incidencia</h1>
+    <form action="/incidence/create" method="post">
+        <label for="incidence_id">ID (opcional):</label><br>
+        <input type="number" id="incidence_id" name="incidence_id"><br><br>
+
+        <label for="description">Descripción:</label><br>
+        <input type="text" id="description" name="description" required><br><br>
+
+        <label for="type">Tipo:</label><br>
+        <input type="text" id="type" name="type" required><br><br>
+
+        <label for="status">Estado:</label><br>
+        <input type="text" id="status" name="status" required><br><br>
+
+        <input type="submit" value="Crear">
+    </form>
+</body>
+</html>
