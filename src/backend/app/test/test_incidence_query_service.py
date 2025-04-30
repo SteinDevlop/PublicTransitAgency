@@ -1,6 +1,6 @@
 import pytest
 from httpx import AsyncClient
-from fastapi import FastAPI, HTTPException, Request, Query, APIRouter
+from fastapi import FastAPI, HTTPException, Request, Query, APIRouter, Path
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 from unittest.mock import AsyncMock, MagicMock, patch
@@ -104,7 +104,7 @@ def test_app():
 
     # Endpoint 2: Obtener incidencia por ID - HTML
     @app.get("/{incidence_id}", response_class=HTMLResponse)
-    async def obtener_incidencia_html(request: Request, incidence_id: int = Query(...)):
+    async def obtener_incidencia_html(request: Request, incidence_id: int = Path(..., description="ID de la incidencia a obtener")):
         try:
             incidence = await mock_controller.get_by_id(IncidenceOut, incidence_id)
             if not incidence:
@@ -117,7 +117,7 @@ def test_app():
 
     # Endpoint 2 (JSON): Obtener incidencia por ID - JSON
     @app.get("/{incidence_id}/json")
-    async def obtener_incidencia_json(incidence_id: int = Query(...)):
+    async def obtener_incidencia_json(incidence_id: int = Path(..., description="ID de la incidencia a obtener")):
         try:
             incidence = await mock_controller.get_by_id(IncidenceOut, incidence_id)
             if not incidence:
@@ -192,3 +192,4 @@ async def test_obtener_incidencia_json_not_found(test_app):
     
     assert response.status_code == 404
     assert response.json()["detail"] == "Incidencia no encontrada"
+
