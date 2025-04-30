@@ -2,8 +2,8 @@ from fastapi import FastAPI, APIRouter, Form, HTTPException,APIRouter,Request, D
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse, FileResponse, RedirectResponse
-from backend.app.models.user import UserCreate, UserOut  # Asegúrate de que tus modelos estén en este archivo
-from  backend.app.logic.universal_controller_sql import UniversalController 
+from src.backend.app.models.user import UserCreate, UserOut  # Asegúrate de que tus modelos estén en este archivo
+from  src.backend.app.logic.universal_controller_sql import UniversalController 
 import uvicorn
 
 router = APIRouter(prefix="/user", tags=["user"])
