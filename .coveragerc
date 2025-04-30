@@ -1,0 +1,6 @@
+[run]
+omit =
+    src/backend/app/api/*
+    src/backend/app/core/*
+    src/backend/app/logic/*
+    src/backend/app/models/*
