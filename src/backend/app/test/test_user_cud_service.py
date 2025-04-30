@@ -1,12 +1,8 @@
 import pytest
 from fastapi.testclient import TestClient
-from fastapi import FastAPI, HTTPException, Form, Depends
-from fastapi.templating import Jinja2Templates
-from fastapi.responses import HTMLResponse, FileResponse, RedirectResponse
-
-from src.backend.app.api.routes.user_cud_service import router as user_router, get_controller
-from src.backend.app.models.user import UserCreate, UserOut
-from src.backend.app.logic.universal_controller_sql import UniversalController
+from fastapi import FastAPI, HTTPException
+from backend.app.api.routes.user_cud_service import app as user_router, get_controller
+from backend.app.models.user import UserCreate
 
 # Montar una app para test
 test_app = FastAPI()

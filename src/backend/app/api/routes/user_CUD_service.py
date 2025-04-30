@@ -4,9 +4,8 @@ from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse, FileResponse, RedirectResponse
 from backend.app.models.user import UserCreate, UserOut  # Asegúrate de que tus modelos estén en este archivo
 from  backend.app.logic.universal_controller_sql import UniversalController 
-import uvicorn
 
-router = APIRouter(prefix="/user", tags=["user"])
+app = APIRouter(prefix="/user", tags=["user"])
 templates = Jinja2Templates(directory="src/backend/app/templates")
 
 def get_controller():
@@ -15,24 +14,24 @@ def get_controller():
     """
     return UniversalController()
 
-@router.get("/crear", response_class=HTMLResponse)
+@app.get("/crear", response_class=HTMLResponse)
 def index(request: Request):
     """
     Displays the form to create a new user.
     """
     return templates.TemplateResponse("CrearUsuario.html", {"request": request})
-@router.get("/actualizar", response_class=HTMLResponse)
+@app.get("/actualizar", response_class=HTMLResponse)
 def index(request: Request):
     """
     Displays the form to update an existing user.
     """
     return templates.TemplateResponse("ActualizarUsuario.html", {"request": request})
-@router.get("/eliminar", response_class=HTMLResponse)
+@app.get("/eliminar", response_class=HTMLResponse)
 def index(request: Request):
     """
     Displays the form to delete an existing user."""
     return templates.TemplateResponse("EliminarUsuario.html", {"request": request})
-@router.post("/create")
+@app.post("/create")
 async def create_user(
     id: int = Form(...),
     identification: int = Form(...),
@@ -71,7 +70,7 @@ async def create_user(
     except Exception as e:
         raise HTTPException(500, detail=f"An error occurred: {str(e)}")
 
-@router.post("/update")
+@app.post("/update")
 async def update_user(
     id: int = Form(...),
     identification: int = Form(...),
@@ -115,7 +114,7 @@ async def update_user(
     except ValueError as e:
         raise HTTPException(400, detail=str(e))
 
-@router.post("/delete")
+@app.post("/delete")
 async def delete_user(id: int = Form(...), controller: UniversalController = Depends(get_controller)):
     try:
         # Buscar la usuario para eliminar
