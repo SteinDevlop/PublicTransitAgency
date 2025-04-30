@@ -3,7 +3,7 @@ from pydantic import BaseModel
 class TypeTransportCreate(BaseModel):
     __entity_name__ =  "typetransportunit"
     id: int
-    tipo: str
+    type: str
 
     def to_dict(self):
         return self.dict()

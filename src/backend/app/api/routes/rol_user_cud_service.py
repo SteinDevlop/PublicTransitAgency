@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, Form, Request, HTTPException
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
-from backend.app.models.rol_user import RolUserCreate, RolUserOut
+from src.backend.app.models.rol_user import RolUserCreate, RolUserOut
 from backend.app.logic.universal_controller_sql import UniversalController
 
 app = APIRouter(prefix="/roluser", tags=["Rol User"])
@@ -55,7 +55,7 @@ async def add_roluser(
             "operation": "create",
             "success": True,
             "data": RolUserCreate(id=new_roluser.id, type=new_roluser.type).model_dump(),
-            "message": "User Role created successfully"
+            "message": "Role User created successfully"
         }
     except ValueError as e:
         raise HTTPException(400, detail=str(e))  # Bad request if validation fails
@@ -77,7 +77,7 @@ async def update_roluser(
         # Look for the existing role of user to update
         existing = controller.get_by_id(RolUserOut, id)
         if existing is None:
-            raise HTTPException(404, detail="Role User not found")
+            raise HTTPException(404, detail="Not found")
         
         # Create a new instance with the updated data
         updated_roluser = RolUserCreate(id=id, type=type)
@@ -89,7 +89,7 @@ async def update_roluser(
             "operation": "update",
             "success": True,
             "data": RolUserOut(id=updated_roluser.id, type=updated_roluser.type).model_dump(),
-            "message": f"User Role updated successfully"
+            "message": f"Role User updated successfully"
         }
     except HTTPException as e:
         raise e  # <-- Permitir que se propague tal como está
@@ -109,7 +109,7 @@ async def delete_roluser(id: int = Form(...), controller: UniversalController = 
         # Look for the role of user to delete
         existing = controller.get_by_id(RolUserOut, id)
         if not existing:
-            raise HTTPException(404, detail="User Role not found")
+            raise HTTPException(404, detail="Not found")
         
         # Delete the role of user using the controller
         controller.delete(existing)
@@ -123,5 +123,6 @@ async def delete_roluser(id: int = Form(...), controller: UniversalController = 
         raise
     except Exception as e:
         raise HTTPException(500, detail=str(e))  # General server error
+
 
 
