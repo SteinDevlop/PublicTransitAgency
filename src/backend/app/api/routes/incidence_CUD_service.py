@@ -1,92 +1,36 @@
-from fastapi import FastAPI, Form, HTTPException, Request
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.templating import Jinja2Templates
-from fastapi.responses import HTMLResponse
-from backend.app.models.incidence import IncidenceCreate, IncidenceOut
-from logic.universal_controller_sql import UniversalController
-import uvicorn
+import pytest
+from fastapi.testclient import TestClient
+from backend.app.api.main import app
 
-app = FastAPI(
-    title="CUD Service - Incidencias",
-    description="Microservicio para creación, actualización y eliminación de incidencias",
-    version="1.0.0"
-)
+client = TestClient(app)
 
-controller = UniversalController()
-templates = Jinja2Templates(directory="src/backend/app/templates")
+# Datos de prueba
+test_incidence = {
+    "description": "Falla de motor",
+    "type": "Mecánica",
+    "status": "Abierta"
+}
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["POST"],
-    allow_headers=["*"],
-)
+def test_create_incidence():
+    response = client.post("/incidence/create", data=test_incidence)
+    assert response.status_code == 200
+    json_data = response.json()
+    assert json_data["description"] == test_incidence["description"]
+    assert json_data["type"] == test_incidence["type"]
+    assert json_data["status"] == test_incidence["status"]
+    # Guardamos el ID generado para futuras pruebas
+    test_incidence["incidence_id"] = json_data["incidence_id"]
 
-# Formularios HTML
-@app.get("/incidence/crear", response_class=HTMLResponse, tags=["incidence"])
-def show_create_form(request: Request):
-    return templates.TemplateResponse("CrearIncidencia.html", {"request": request})
+def test_update_incidence():
+    updated_data = test_incidence.copy()
+    updated_data["description"] = "Falla eléctrica"
+    response = client.post("/incidence/update", data=updated_data)
+    assert response.status_code == 200
+    json_data = response.json()
+    assert json_data["description"] == "Falla eléctrica"
+    assert json_data["incidence_id"] == test_incidence["incidence_id"]
 
-@app.get("/incidence/actualizar", response_class=HTMLResponse, tags=["incidence"])
-def show_update_form(request: Request):
-    return templates.TemplateResponse("ActualizarIncidencia.html", {"request": request})
-
-@app.get("/incidence/eliminar", response_class=HTMLResponse, tags=["incidence"])
-def show_delete_form(request: Request):
-    return templates.TemplateResponse("EliminarIncidencia.html", {"request": request})
-
-# Operaciones POST
-@app.post("/incidence/create", response_model=IncidenceOut, tags=["incidence"])
-async def create_incidence(
-    description: str = Form(...),
-    type: str = Form(...),
-    status: str = Form(...),
-    incidence_id: int = Form(None)
-):
-    try:
-        incidence = IncidenceCreate(
-            description=description,
-            type=type,
-            status=status,
-            incidence_id=incidence_id
-        )
-        result = controller.add(incidence)
-        return result
-    except ValueError as e:
-        raise HTTPException(400, detail=str(e))
-
-@app.post("/incidence/update", response_model=IncidenceOut, tags=["incidence"])
-async def update_incidence(
-    incidence_id: int = Form(...),
-    description: str = Form(...),
-    type: str = Form(...),
-    status: str = Form(...)
-):
-    try:
-        existing = controller.get_by_id(IncidenceOut, incidence_id)
-        if not existing:
-            raise HTTPException(404, detail="Incidencia no encontrada")
-        
-        updated = IncidenceCreate(
-            incidence_id=incidence_id,
-            description=description,
-            type=type,
-            status=status
-        )
-        result = controller.update(updated)
-        return result
-    except ValueError as e:
-        raise HTTPException(400, detail=str(e))
-
-@app.post("/incidence/delete", tags=["incidence"])
-async def delete_incidence(incidence_id: int = Form(...)):
-    existing = controller.get_by_id(IncidenceOut, incidence_id)
-    if not existing:
-        raise HTTPException(404, detail="Incidencia no encontrada")
-    
-    controller.delete(existing)
-    return {"message": f"Incidencia {incidence_id} eliminada correctamente"}
-
-if __name__ == "__main__":
-    uvicorn.run("app:app", host="0.0.0.0", port=8001, reload=True)
+def test_delete_incidence():
+    response = client.post("/incidence/delete", data={"incidence_id": test_incidence["incidence_id"]})
+    assert response.status_code == 200
+    assert f"Incidencia {test_incidence['incidence_id']} eliminada" in response.json()["message"]
