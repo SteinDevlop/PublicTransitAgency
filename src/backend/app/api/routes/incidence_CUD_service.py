@@ -1,69 +1,81 @@
-"""
-import pytest
-from fastapi.testclient import TestClient
-from backend.app.api.main import app
+from fastapi import FastAPI, Form, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
+from models.incidence import IncidenceCreate, IncidenceOut
+from logic.universal_controller_sql import UniversalController
+import uvicorn
 
-client = TestClient(app)
+app = FastAPI()
+controller = UniversalController()
 
-# Datos de prueba válidos
-valid_incidence = {
-    "description": "Falla de motor",
-    "type": "Mecánica",
-    "status": "Abierta"
-}
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["POST"],
+    allow_headers=["*"],
+)
 
-# Guardar ID generado
-incidence_id = None
+@app.post("/incidence/create")
+async def create_incidence(
+    description: str = Form(...),
+    type: str = Form(...),
+    status: str = Form(...),
+    incidence_id: int = Form(None)
+):
+    try:
+        incidence = IncidenceCreate(
+            description=description,
+            type=type,
+            status=status,
+            incidence_id=incidence_id
+        )
+        result = controller.add(incidence.to_dict())
+        return {
+            "operation": "create",
+            "data": result,
+            "message": "Incidencia creada exitosamente"
+        }
+    except ValueError as e:
+        raise HTTPException(400, detail=str(e))
 
-def test_create_incidence_success():
-    global incidence_id
-    response = client.post("/incidence/create", data=valid_incidence)
-    assert response.status_code == 200
-    json_data = response.json()
-    assert json_data["description"] == valid_incidence["description"]
-    assert json_data["type"] == valid_incidence["type"]
-    assert json_data["status"] == valid_incidence["status"]
-    incidence_id = json_data["incidence_id"]
+@app.post("/incidence/update")
+async def update_incidence(
+    incidence_id: int = Form(...),
+    description: str = Form(...),
+    type: str = Form(...),
+    status: str = Form(...)
+):
+    try:
+        existing = controller.get_by_id(IncidenceOut, incidence_id)
+        if not existing:
+            raise HTTPException(404, detail="Incidencia no encontrada")
+        
+        updated = IncidenceCreate(
+            incidence_id=incidence_id,
+            description=description,
+            type=type,
+            status=status
+        )
+        result = controller.update(updated.to_dict())
+        return {
+            "operation": "update",
+            "data": result,
+            "message": f"Incidencia {incidence_id} actualizada"
+        }
+    except ValueError as e:
+        raise HTTPException(400, detail=str(e))
 
-
-def test_create_incidence_missing_fields():
-    response = client.post("/incidence/create", data={"description": "Falla sin tipo"})
-    assert response.status_code == 422  # Unprocessable Entity por validación faltante
-
-
-def test_update_incidence_success():
-    updated_data = {
-        "incidence_id": incidence_id,
-        "description": "Falla eléctrica actualizada",
-        "type": "Eléctrica",
-        "status": "En Proceso"
+@app.post("/incidence/delete")
+async def delete_incidence(incidence_id: int = Form(...)):
+    existing = controller.get_by_id(IncidenceOut, incidence_id)
+    if not existing:
+        raise HTTPException(404, detail="Incidencia no encontrada")
+    
+    controller.delete(existing)
+    return {
+        "operation": "delete",
+        "message": f"Incidencia {incidence_id} eliminada"
     }
-    response = client.post("/incidence/update", data=updated_data)
-    assert response.status_code == 200
-    json_data = response.json()
-    assert json_data["description"] == "Falla eléctrica actualizada"
-    assert json_data["type"] == "Eléctrica"
-    assert json_data["status"] == "En Proceso"
-    assert json_data["incidence_id"] == incidence_id
 
-
-def test_update_incidence_invalid_id():
-    response = client.post("/incidence/update", data={
-        "incidence_id": "fake-id",
-        "description": "Nada",
-        "type": "Otro",
-        "status": "Cerrada"
-    })
-    assert response.status_code in (404, 400)  # Según cómo manejes errores en backend
-
-
-def test_delete_incidence_success():
-    response = client.post("/incidence/delete", data={"incidence_id": incidence_id})
-    assert response.status_code == 200
-    assert f"Incidencia {incidence_id} eliminada" in response.json()["message"]
-
-
-def test_delete_incidence_nonexistent():
-    response = client.post("/incidence/delete", data={"incidence_id": "non-existent-id"})
-    assert response.status_code in (404, 400)  # Según la implementación
-"""
+if __name__ == "__main__":
+    uvicorn.run("app:app", host="0.0.0.0", port=8001, reload=True)
