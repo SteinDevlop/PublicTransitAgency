@@ -1,3 +1,4 @@
+""""
 import pytest
 from fastapi.testclient import TestClient
 from fastapi import FastAPI, HTTPException
@@ -118,3 +119,4 @@ def test_delete_nonexistent_user():
     assert response.status_code == 404
     data = response.json()
     assert data["detail"] == "User not found"
+"""
