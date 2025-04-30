@@ -1,21 +1,15 @@
-from fastapi import FastAPI, Form, HTTPException
-from fastapi.middleware.cors import CORSMiddleware
-from models.stops import StopCreate, StopOut
-from logic.universal_controller_sql import UniversalController
+from fastapi import FastAPI, Form, HTTPException,APIRouter,Request, Depends
+from fastapi.templating import Jinja2Templates
+from backend.app.models.stops import StopCreate, StopOut
+from backend.app.logic.universal_controller_sql import UniversalController
 import uvicorn
 
-app = FastAPI()
+app = APIRouter(prefix="/stops", tags=["Stops"])
 controller = UniversalController()
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["POST"],
-    allow_headers=["*"],
-)
+templates = Jinja2Templates(directory="src/backend/app/templates")  # Set up the template directory
 
-@app.post("/stops/create")
+@app.post("/create")
 async def create_stop(
     stop_id: str = Form(...),
     name: str = Form(...),
@@ -40,7 +34,7 @@ async def create_stop(
     except Exception:
         raise HTTPException(500, detail="Internal server error")
 
-@app.post("/stops/update")
+@app.post("/update")
 async def update_stop(
     stop_id: str = Form(...),
     name: str = Form(...),
@@ -64,7 +58,7 @@ async def update_stop(
         "message": f"Stop {stop_id} updated"
     }
 
-@app.post("/stops/delete")
+@app.post("/delete")
 async def delete_stop(stop_id: str = Form(...)):
     existing = controller.get_by_id(StopOut, stop_id)
     if not existing:
