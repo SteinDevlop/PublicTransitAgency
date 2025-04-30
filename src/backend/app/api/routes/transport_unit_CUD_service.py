@@ -1,4 +1,5 @@
-from fastapi import FastAPI, Form, HTTPException, APIRouter, Request, Depends, HTMLResponse
+from fastapi import FastAPI, Form, HTTPException, APIRouter, Request, Depends
+from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 from backend.app.models.transport import TransportCreate, TransportOut
 from backend.app.logic.universal_controller_sql import UniversalController

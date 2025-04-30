@@ -2,7 +2,7 @@ from fastapi.testclient import TestClient
 from fastapi import FastAPI
 import pytest
 
-from backend.app.api.main import app
+from backend.app.api.main import api_router as app
 from logic.universal_controller_sql import UniversalController
 from backend.app.models.incidence import IncidenceOut
 
