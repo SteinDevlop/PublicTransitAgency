@@ -1,103 +1,110 @@
-from fastapi import FastAPI, Form, HTTPException, Request
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.templating import Jinja2Templates
+from fastapi import FastAPI, Form, HTTPException, APIRouter, Request
 from fastapi.responses import HTMLResponse
+from fastapi.templating import Jinja2Templates
 from backend.app.models.maintainance_status import MaintainanceStatusCreate, MaintainanceStatusOut
 from backend.app.logic.universal_controller_sql import UniversalController
-import uvicorn
 
-app = FastAPI()
+app = APIRouter(prefix="/maintainance_status", tags=["maintainance_status"])
 controller = UniversalController()
 templates = Jinja2Templates(directory="src/backend/app/templates")
 
-# Configuración CORS
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+@app.get("/crear", response_class=HTMLResponse)
+def index_create(request: Request):
+    """Displays the form to create a new maintainance status."""
+    return templates.TemplateResponse("CrearEstadoMantenimiento.html", {"request": request})  # Crear HTML
 
-# Endpoints GET para formularios HTML
-@app.get("/maintainance_status/crear", response_class=HTMLResponse, tags=["maintenance"])
-def show_create_form(request: Request):
-    return templates.TemplateResponse("CrearEstadoMantenimiento.html", {"request": request})
+@app.get("/actualizar", response_class=HTMLResponse)
+def index_update(request: Request):
+    """Displays the form to update an existing maintainance status."""
+    return templates.TemplateResponse("ActualizarEstadoMantenimiento.html", {"request": request}) # Crear HTML
 
-@app.get("/maintainance_status/actualizar", response_class=HTMLResponse, tags=["maintenance"])
-def show_update_form(request: Request):
-    return templates.TemplateResponse("ActualizarEstadoMantenimiento.html", {"request": request})
+@app.get("/eliminar", response_class=HTMLResponse)
+def index_delete(request: Request):
+    """Displays the form to delete an existing maintainance status."""
+    return templates.TemplateResponse("EliminarEstadoMantenimiento.html", {"request": request}) # Crear HTML
 
-@app.get("/maintainance_status/eliminar", response_class=HTMLResponse, tags=["maintenance"])
-def show_delete_form(request: Request):
-    return templates.TemplateResponse("EliminarEstadoMantenimiento.html", {"request": request})
-
-# Endpoints POST para operaciones
-@app.post("/maintainance_status/create", response_model=MaintainanceStatusOut, tags=["maintenance"])
-async def create_status(
-    id: int = Form(...),
-    unit: str = Form(...),
-    type: str = Form(...),
-    status: str = Form(...),
+@app.post("/create")
+async def create_maintainance_status(
+    TipoEstado: str = Form(...),
+    UnidadTransporte: str = Form(None),  # Permite valores nulos
+    Status: str = Form(...)
 ):
+    """Creates a new maintainance status."""
     try:
         new_status = MaintainanceStatusCreate(
-            id=id,
-            unit=unit,
-            type=type,
-            status=status
+            TipoEstado=TipoEstado,
+            UnidadTransporte=UnidadTransporte,
+            Status=Status
         )
         result = controller.add(new_status)
-        return MaintainanceStatusOut(
-            id=result.id,
-            unit=result.unit,
-            type=result.type,
-            status=result.status
-        )
+        return {
+            "operation": "create",
+            "success": True,
+            "data": MaintainanceStatusOut(
+                ID=result.ID, # Asegurarse de que el ID se devuelve correctamente
+                TipoEstado=result.TipoEstado,
+                UnidadTransporte=result.UnidadTransporte,
+                Status=result.Status
+            ).dict(),
+            "message": "Maintainance status created successfully"
+        }
     except ValueError as e:
         raise HTTPException(400, detail=str(e))
     except Exception as e:
-        raise HTTPException(500, detail=f"Error interno del servidor: {str(e)}")
+        raise HTTPException(500, detail=f"Internal server error: {str(e)}")
 
-@app.post("/maintainance_status/update", response_model=MaintainanceStatusOut, tags=["maintenance"])
-async def update_status(
-    id: int = Form(...),
-    unit: str = Form(...),
-    type: str = Form(...),
-    status: str = Form(...),
+@app.post("/update")
+async def update_maintainance_status(
+    ID: int = Form(...),  # Usar "ID"
+    TipoEstado: str = Form(...),
+    UnidadTransporte: str = Form(None), # Permitir nulos
+    Status: str = Form(...)
 ):
+    """Updates an existing maintainance status."""
     try:
-        existing = controller.get_by_id(MaintainanceStatusOut, id)
-        if not existing:
-            raise HTTPException(404, detail="Registro no encontrado")
-        
-        updated_status = MaintainanceStatusCreate(
-            id=id,
-            unit=unit,
-            type=type,
-            status=status
+        existing_status = controller.get_by_id(MaintainanceStatusOut, ID) # Usar MaintainanceStatusOut
+        if not existing_status:
+            raise HTTPException(404, detail="Maintainance status not found")
+
+        updated_status = MaintainanceStatusCreate( # Usar MaintainanceStatusCreate para la validacion
+            ID=ID,
+            TipoEstado=TipoEstado,
+            UnidadTransporte=UnidadTransporte,
+            Status=Status
         )
-        result = controller.update(updated_status)
-        return MaintainanceStatusOut(
-            id=result.id,
-            unit=result.unit,
-            type=result.type,
-            status=result.status
-        )
+        result = controller.update(updated_status) # Pasar el objeto Pydantic
+        return {
+            "operation": "update",
+            "success": True,
+            "data": MaintainanceStatusOut( # Usar MaintainanceStatusOut para la respuesta
+                ID=result.ID,
+                TipoEstado=result.TipoEstado,
+                UnidadTransporte=result.UnidadTransporte,
+                Status=result.Status
+            ).dict(),
+            "message": f"Maintainance status {ID} updated successfully"
+        }
     except ValueError as e:
         raise HTTPException(400, detail=str(e))
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        raise HTTPException(500, detail=f"Internal server error: {str(e)}")
 
-@app.post("/maintainance_status/delete", tags=["maintenance"])
-async def delete_status(id: int = Form(...)):
+@app.post("/delete")
+async def delete_maintainance_status(ID: int = Form(...)): # Usar "ID"
+    """Deletes an existing maintainance status."""
     try:
-        existing = controller.get_by_id(MaintainanceStatusOut, id)
-        if not existing:
-            raise HTTPException(404, detail="Registro no encontrado")
-        
-        controller.delete(existing)
-        return {"message": f"Estado {id} eliminado correctamente"}
+        existing_status = controller.get_by_id(MaintainanceStatusOut, ID) # Usar MaintainanceStatusOut
+        if not existing_status:
+            raise HTTPException(404, detail="Maintainance status not found")
+        controller.delete(existing_status)
+        return {
+            "operation": "delete",
+            "success": True,
+            "message": f"Maintainance status {ID} deleted successfully"
+        }
+    except HTTPException as e:
+        raise e # Dejar pasar las excepciones HTTP
     except Exception as e:
         raise HTTPException(500, detail=str(e))
-
-if __name__ == "__main__":
-    uvicorn.run("main:app", host="0.0.0.0", port=8002, reload=True)

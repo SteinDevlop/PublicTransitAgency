@@ -1,88 +1,87 @@
-"""from fastapi import FastAPI
+from fastapi import FastAPI
 from fastapi.testclient import TestClient
-from backend.app.api.main import app as maintainance_app # Asegúrate de la ruta correcta a tu app
+from backend.app.api.routes.maintainance_status_CUD_service import app as status_router
 
-# Crear la aplicación de prueba
 app_for_test = FastAPI()
-app_for_test.mount("/", maintainance_app) # Monta la aplicación principal
-
-# Cliente de prueba
+app_for_test.include_router(status_router)
 client = TestClient(app_for_test)
-
-def test_show_create_form():
-    response = client.get("/maintainance_status/crear")
-    assert response.status_code == 200
-    assert "Crear Estado de Mantenimiento" in response.text # Verifica contenido específico del formulario
-
-def test_show_update_form():
-    response = client.get("/maintainance_status/actualizar")
-    assert response.status_code == 200
-    assert "Actualizar Estado de Mantenimiento" in response.text # Verifica contenido específico del formulario
-
-def test_show_delete_form():
-    response = client.get("/maintainance_status/eliminar")
-    assert response.status_code == 200
-    assert "Eliminar Estado de Mantenimiento" in response.text # Verifica contenido específico del formulario
 
 def test_create_status():
     response = client.post(
         "/maintainance_status/create",
-        data={"id": 5, "unit": "Unidad F", "type": "Urgente", "status": "pendiente"}
+        data={"TipoEstado": "Nuevo", "UnidadTransporte": "Unidad-X", "Status": "Activo"}
     )
     assert response.status_code == 200
-    assert response.json()["id"] == 5
-    assert response.json()["unit"] == "Unidad F"
-    assert response.json()["type"] == "Urgente"
-    assert response.json()["status"] == "pendiente"
-
-def test_create_status_validation_error():
-    response = client.post(
-        "/maintainance_status/create",
-        data={"id": 6, "unit": "Unidad G", "type": "Anual", "status": "invalido"}
-    )
-    assert response.status_code == 400
-    assert "Estado debe ser uno de" in response.json()["detail"]
+    data = response.json()
+    assert data["success"] == True
+    assert data["operation"] == "create"
+    assert data["data"]["TipoEstado"] == "Nuevo"
+    assert data["data"]["UnidadTransporte"] == "Unidad-X"
+    assert data["data"]["Status"] == "Activo"
 
 def test_update_status_existing():
-    # Primero crea un estado para actualizarlo
-    client.post(
+    # Primero, crear un estado para actualizar
+    create_response = client.post(
         "/maintainance_status/create",
-        data={"id": 7, "unit": "Unidad H", "type": "Semanal", "status": "activo"}
+        data={"TipoEstado": "Original", "UnidadTransporte": "Unidad-Y", "Status": "Inactivo"}
     )
+    assert create_response.status_code == 200
+    created_data = create_response.json()["data"]
+    created_id = created_data["ID"]
+
     response = client.post(
         "/maintainance_status/update",
-        data={"id": 7, "unit": "Unidad H Updated", "type": "Semanal", "status": "completado"}
+        data={
+            "ID": created_id,
+            "TipoEstado": "Actualizado",
+            "UnidadTransporte": "Unidad-Z",
+            "Status": "Activo"
+        }
     )
     assert response.status_code == 200
-    assert response.json()["id"] == 7
-    assert response.json()["unit"] == "Unidad H Updated"
-    assert response.json()["status"] == "completado"
+    data = response.json()
+    assert data["success"] == True
+    assert data["operation"] == "update"
+    assert data["data"]["TipoEstado"] == "Actualizado"
+    assert data["data"]["UnidadTransporte"] == "Unidad-Z"
+    assert data["data"]["Status"] == "Activo"
 
 def test_update_status_not_found():
     response = client.post(
         "/maintainance_status/update",
-        data={"id": 999, "unit": "Unidad I", "type": "Mensual", "status": "activo"}
+        data={"ID": 9999, "TipoEstado": "NonExistent", "UnidadTransporte": "None", "Status": "None"}
     )
     assert response.status_code == 404
-    assert "Registro no encontrado" in response.json()["detail"]
+    assert response.json()["detail"] == "Maintainance status not found"
 
 def test_delete_status_existing():
-    # Primero crea un estado para eliminarlo
-    client.post(
+    # Primero, crear un estado para eliminar
+    create_response = client.post(
         "/maintainance_status/create",
-        data={"id": 8, "unit": "Unidad J", "type": "Diario", "status": "en_proceso"}
+        data={"TipoEstado": "ToDelete", "UnidadTransporte": "Unidad-W", "Status": "Activo"}
     )
-    response = client.post(
-        "/maintainance_status/delete",
-        data={"id": 8}
-    )
+    assert create_response.status_code == 200
+    created_data = create_response.json()["data"]
+    deleted_id = created_data["ID"]
+    response = client.post("/maintainance_status/delete", data={"ID": deleted_id})
     assert response.status_code == 200
-    assert "Estado 8 eliminado correctamente" in response.json()["message"]
+    data = response.json()
+    assert data["success"] == True
+    assert data["operation"] == "delete"
 
 def test_delete_status_not_found():
-    response = client.post(
-        "/maintainance_status/delete",
-        data={"id": 999}
-    )
+    response = client.post("/maintainance_status/delete", data={"ID": 9999})
     assert response.status_code == 404
-    assert "Registro no encontrado" in response.json()["detail"]"""
+    assert response.json()["detail"] == "Maintainance status not found"
+
+def test_index_create_form():
+    response = client.get("/maintainance_status/crear")
+    assert response.status_code == 200
+
+def test_index_update_form():
+    response = client.get("/maintainance_status/actualizar")
+    assert response.status_code == 200
+
+def test_index_delete_form():
+    response = client.get("/maintainance_status/eliminar")
+    assert response.status_code == 200

@@ -1,39 +1,51 @@
 import unittest
-from src.backend.app.logic.maintainance_status import MaintainanceStatus
+from backend.app.models.maintainance_status import MaintainanceStatusCreate
 
 class TestMaintainanceStatus(unittest.TestCase):
-    """
-    Unit tests for the MaintainanceStatus class.
-    """
 
     def setUp(self):
-        """
-        Set up a default MaintainanceStatus instance before each test.
-        """
-        self.status = MaintainanceStatus(1, "Bus-001", "Preventivo", "En proceso")
+        self.status_data = {
+            "ID": 1,
+            "TipoEstado": "Pendiente",
+            "UnidadTransporte": "Bus-123",
+            "Status": "Activo"
+        }
+        self.status = MaintainanceStatusCreate(**self.status_data)
 
     def test_initial_values(self):
-        """
-        Test that initial values are set correctly.
-        """
-        self.assertEqual(self.status.id, 1)
-        self.assertEqual(self.status.unit, "Bus-001")
-        self.assertEqual(self.status.type, "Preventivo")
-        self.assertEqual(self.status.status, "En proceso")
+        self.assertEqual(self.status.ID, 1)
+        self.assertEqual(self.status.TipoEstado, "Pendiente")
+        self.assertEqual(self.status.UnidadTransporte, "Bus-123")
+        self.assertEqual(self.status.Status, "Activo")
 
-    def test_setters_update_values(self):
-        """
-        Test that the setters correctly update the values.
-        """
-        self.status.id = 2
-        self.status.unit = "Bus-002"
-        self.status.type = "Correctivo"
-        self.status.status = "Completado"
+    def test_setters(self):
+        self.status.ID = 2
+        self.status.TipoEstado = "En Proceso"
+        self.status.UnidadTransporte = "Bus-456"
+        self.status.Status = "Inactivo"
 
-        self.assertEqual(self.status.id, 2)
-        self.assertEqual(self.status.unit, "Bus-002")
-        self.assertEqual(self.status.type, "Correctivo")
-        self.assertEqual(self.status.status, "Completado")
+        self.assertEqual(self.status.ID, 2)
+        self.assertEqual(self.status.TipoEstado, "En Proceso")
+        self.assertEqual(self.status.UnidadTransporte, "Bus-456")
+        self.assertEqual(self.status.Status, "Inactivo")
+
+    def test_to_dict(self):
+        expected_dict = {
+            "ID": 1,
+            "TipoEstado": "Pendiente",
+            "UnidadTransporte": "Bus-123",
+            "Status": "Activo"
+        }
+        self.assertEqual(self.status.to_dict(), expected_dict)
+
+    def test_get_fields(self):
+        expected_fields = {
+            "ID": "INTEGER PRIMARY KEY",
+            "TipoEstado": "TEXT NOT NULL",
+            "UnidadTransporte": "TEXT",
+            "Status": "TEXT NOT NULL"
+        }
+        self.assertEqual(MaintainanceStatusCreate.get_fields(), expected_fields)
 
 if __name__ == "__main__":
     unittest.main()
