@@ -6,7 +6,7 @@ class TypeCardCreate(BaseModel):
     id: Optional[int] = None
     type: Optional[str] = None
     def to_dict(self):
-        return self.dict()
+        return self.model_dump()
     @classmethod
     def get_fields(cls):
         return {

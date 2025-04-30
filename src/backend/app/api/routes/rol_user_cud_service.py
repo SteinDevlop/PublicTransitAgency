@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, Form, Request, HTTPException
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
-from src.backend.app.models.rol_user import RolUserCreate, RolUserOut
+from backend.app.models.rol_user import RolUserCreate, RolUserOut
 from backend.app.logic.universal_controller_sql import UniversalController
 
 app = APIRouter(prefix="/roluser", tags=["Rol User"])

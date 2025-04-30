@@ -50,7 +50,7 @@ async def add_typecard(
         return {
             "operation": "create",
             "success": True,
-            "data": TypeCardOut(id=new_typecard.id, type=new_typecard.type).dict(),
+            "data": TypeCardOut(id=new_typecard.id, type=new_typecard.type).model_dump(),
             "message": "Card type created successfully"
         }
     except ValueError as e:
@@ -83,7 +83,7 @@ async def update_typecard(
         return {
             "operation": "update",
             "success": True,
-            "data": TypeCardOut(id=updated_typecard.id, type=updated_typecard.type).dict(),
+            "data": TypeCardOut(id=updated_typecard.id, type=updated_typecard.type).model_dump(),
             "message": f"Card type {id} updated successfully"
         }
     except ValueError as e:

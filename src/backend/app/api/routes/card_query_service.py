@@ -22,7 +22,7 @@ def consultar(request: Request):
     """
     Renders the 'ConsultarTarjeta.html' template to show the card consultation page.
     """
-    return templates.TemplateResponse("ConsultarTarjeta.html", {"request": request})
+    return templates.TemplateResponse(request,"ConsultarTarjeta.html", {"request": request})
 
 # Route to get all the cards from the database
 @app.get("/tarjetas")

@@ -17,7 +17,7 @@ def index_create(request: Request):
     """
     Displays the form to create a new card.
     """
-    return templates.TemplateResponse("CrearTarjeta.html", {"request": request})
+    return templates.TemplateResponse(request, "CrearTarjeta.html", {"request": request})
 
 # Route to display the "Update Card" form
 @app.get("/actualizar", response_class=HTMLResponse)
@@ -25,7 +25,7 @@ def index_update(request: Request):
     """
     Displays the form to update an existing card.
     """
-    return templates.TemplateResponse("ActualizarTarjeta.html", {"request": request})
+    return templates.TemplateResponse(request, "ActualizarTarjeta.html", {"request": request})
 
 # Route to display the "Delete Card" form
 @app.get("/eliminar", response_class=HTMLResponse)
@@ -33,7 +33,7 @@ def index_delete(request: Request):
     """
     Displays the form to delete an existing card.
     """
-    return templates.TemplateResponse("EliminarTarjeta.html", {"request": request})
+    return templates.TemplateResponse(request, "EliminarTarjeta.html", {"request": request})
 
 # Route to create a new card
 @app.post("/create")
@@ -57,7 +57,7 @@ async def create_card(
         return {
             "operation": "create",
             "success": True,
-            "data": CardOut(id=new_card.id, tipo=new_card.tipo, balance=new_card.balance).dict(),
+            "data": CardOut(id=new_card.id, tipo=new_card.tipo, balance=new_card.balance).model_dump(),
             "message": "Card created successfully"
         }
     except ValueError as e:
@@ -95,7 +95,7 @@ async def update_card(
         return {
             "operation": "update",
             "success": True,
-            "data": CardOut(id=updated_card.id, tipo=updated_card.tipo, balance=updated_card.balance).dict(),
+            "data": CardOut(id=updated_card.id, tipo=updated_card.tipo, balance=updated_card.balance).model_dump(),
             "message": f"Card {id} updated successfully"
         }
     except ValueError as e:

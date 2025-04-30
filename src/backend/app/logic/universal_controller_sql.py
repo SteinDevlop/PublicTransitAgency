@@ -68,7 +68,7 @@ class UniversalController:
         dummy = cls.from_dict({k: None for k in cls.model_fields.keys()})
         self._ensure_table_exists(dummy)
         table = self._get_table_name(dummy)
-        id_field = list(cls.model_fields().keys())[0]
+        id_field = list(cls.model_fields.keys())[0]
 
         sql = f"SELECT * FROM {table} WHERE {id_field} = ?"
         self.cursor.execute(sql, (id_value,))
@@ -110,3 +110,11 @@ class UniversalController:
         self.conn.commit()
 
         return True
+    def clear_tables(self):
+        """Delete all data from all tables in the database without dropping them."""
+        self.cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
+        tables = self.cursor.fetchall()
+        for table in tables:
+            table_name = table["name"]
+            self.cursor.execute(f"DELETE FROM {table_name}")
+        self.conn.commit()

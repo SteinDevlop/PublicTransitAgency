@@ -16,7 +16,7 @@ def crear_mantenimiento(request: Request):
     """
     Define the GET route to display the maintenance creation form.
     """
-    return templates.TemplateResponse("CrearMantenimiento.html", {"request": request})
+    return templates.TemplateResponse(request,"CrearMantenimiento.html", {"request": request})
 
 # Route to delete a maintenance record
 @app.get("/eliminar", response_class=HTMLResponse)
@@ -24,7 +24,7 @@ def eliminar_mantenimiento(request: Request):
     """
     Define the GET route to display the maintenance deletion form.
     """
-    return templates.TemplateResponse("EliminarMantenimiento.html", {"request": request})
+    return templates.TemplateResponse(request,"EliminarMantenimiento.html", {"request": request})
 
 # Route to update a maintenance record
 @app.get("/actualizar", response_class=HTMLResponse)
@@ -32,7 +32,7 @@ def actualizar_mantenimiento(request: Request):
     """
     Define the GET route to display the maintenance update form.
     """
-    return templates.TemplateResponse("ActualizarMantenimiento.html", {"request": request})
+    return templates.TemplateResponse(request,"ActualizarMantenimiento.html", {"request": request})
 
 # Route to add a new maintenance record
 @app.post("/create")
