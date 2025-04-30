@@ -7,7 +7,7 @@ from backend.app.api.routes import (
 
     card_cud_service,
     card_query_service,
-    #incidence_cud_service,
+    incidence_cud_service,
     #incidence_query_service,
     #maintainance_status_cud_service,
     maintainance_status_query_service,
@@ -84,7 +84,7 @@ api_router.include_router(maintainance_status_query_service.app)
 #api_router.include_router(transport_unit_query_service.app)
 #api_router.include_router(schedule_cud_service.app)
 #api_router.include_router(schedule_query_service.app)
-#api_router.include_router(incidence_cud_service.app)
+api_router.include_router(incidence_cud_service.app)
 #api_router.include_router(incidence_query_service.app)
 #api_router.include_router(ticket_cud_service.app)
 #api_router.include_router(ticket_query_service.app)
