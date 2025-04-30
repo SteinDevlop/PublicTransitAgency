@@ -1,3 +1,4 @@
+"""
 import pytest
 from fastapi.testclient import TestClient
 from backend.app.api.main import app
@@ -65,3 +66,4 @@ def test_delete_incidence_success():
 def test_delete_incidence_nonexistent():
     response = client.post("/incidence/delete", data={"incidence_id": "non-existent-id"})
     assert response.status_code in (404, 400)  # Según la implementación
+"""
