@@ -1,195 +1,104 @@
-import pytest
-from httpx import AsyncClient
-from fastapi import FastAPI, HTTPException, Request, Query, APIRouter, Path
-from fastapi.responses import HTMLResponse, JSONResponse
-from fastapi.templating import Jinja2Templates
-from unittest.mock import AsyncMock, MagicMock, patch
-from typing import List, Optional
+from fastapi import FastAPI
+from fastapi.testclient import TestClient
+from backend.app.api.routes.incidence_query_service import app as incidence_query_router # Importa el router
+from backend.app.logic import universal_controller_sql as UniversalController
+from backend.app.models.incidence import IncidenceOut
 
-# Asume que estos están en archivos separados
-# from backend.app.models.incidence import IncidenceOut
-# from logic.universal_controller_sql import UniversalController
+# Creamos la app de prueba
+app_for_test = FastAPI()
+app_for_test.include_router(incidence_query_router)
 
-# Para simplificar, definimos modelos y controlador mock aquí
-class IncidenceOut:
-    def __init__(self, incidence_id: int, description: str, type: str, status: str):
-        self.incidence_id = incidence_id
-        self.description = description
-        self.type = type
-        self.status = status
+# Cliente de prueba
+client = TestClient(app_for_test)
 
-    def dict(self):
-        return {"id": self.incidence_id, "description": self.description, "type": self.type, "status": self.status}
-    
-    @staticmethod
-    def get_empty_instance():
-        return IncidenceOut(incidence_id=None, description=None, type=None, status=None)
+# Instancia del UniversalController (podrías mockear la base de datos)
+controller = UniversalController()
 
+# Asegurarse de que la tabla existe
+dummy_incidence = IncidenceOut.get_empty_instance()
+controller._ensure_table_exists(dummy_incidence)
 
-class MockController:
-    def __init__(self):
-        self.data = {
-            1: IncidenceOut(incidence_id=1, description="Incidente 1", type="Tipo A", status="abierto"),
-            2: IncidenceOut(incidence_id=2, description="Incidente 2", type="Tipo B", status="cerrado"),
-            3: IncidenceOut(incidence_id=3, description="Incidente 3", type="Tipo A", status="abierto"),
-            4: IncidenceOut(incidence_id=4, description="Incidente 4", type="Tipo C", status="en progreso"),
-            5: IncidenceOut(incidence_id=5, description="Incidente 5", type="Tipo B", status="cerrado"),
-        }
+# Datos de prueba (simulando que ya existen en la base de datos)
+test_incidences = [
+    {"incidence_id": 1, "description": "Fallo A", "type": "Crítico", "status": "activo"},
+    {"incidence_id": 2, "description": "Problema B", "type": "Medio", "status": "pendiente"},
+    {"incidence_id": 3, "description": "Error C", "type": "Bajo", "status": "activo"},
+    {"incidence_id": 4, "description": "Solicitud D", "type": "Medio", "status": "completado"},
+    {"incidence_id": 5, "description": "Fallo E", "type": "Crítico", "status": "activo"},
+]
 
-    async def read_all(self, model) -> List[IncidenceOut]:
-        return list(self.data.values())
-
-    async def get_by_id(self, model, incidence_id) -> Optional[IncidenceOut]:
-        return self.data.get(incidence_id)
-
-
-# Crear una instancia de FastAPI para las pruebas
-@pytest.fixture
-def test_app():
-    app = FastAPI()
-    # Mock global del controlador
-    mock_controller = MockController()
-
-    # Incluir el router con el controlador mock
-    app = APIRouter(prefix="/incidences", tags=["incidencias"])
-
-    # Mock de templates
-    templates = MagicMock()
-
-    @app.get("", response_class=HTMLResponse)
-    async def listar_incidencias_html(
-        request: Request,
-        skip: int = Query(0, description="Registros a saltar"),
-        limit: int = Query(10, description="Límite de resultados"),
-        status: Optional[str] = Query(None, description="Filtrar por estado (opcional)")
-    ):
+# Función para poblar la base de datos de prueba (esto en una prueba real se haría con mocks)
+def populate_database():
+    for incidence_data in test_incidences:
+        incidence = IncidenceOut(**incidence_data)
         try:
-            dummy = IncidenceOut.get_empty_instance()
-            all_data = await mock_controller.read_all(dummy)
+            controller.add(incidence)
+        except ValueError:
+            # Si ya existe, lo ignoramos para las pruebas repetidas
+            pass
 
-            # Filtrado por estado (si se especifica)
-            if status:
-                filtered_data = [item for item in all_data if item.status == status]
-            else:
-                filtered_data = all_data
+populate_database()
 
-            # Paginación
-            paginated_data = filtered_data[skip:skip + limit]
-            return templates.TemplateResponse("ListarIncidencia.html", {"request": request, "incidencias": paginated_data})
-        except Exception as e:
-            raise HTTPException(500, detail=str(e))
-
-    # Endpoint 1 (JSON): Obtener todas las incidencias (con paginación y filtro) - JSON
-    @app.get("/json")
-    async def listar_incidencias_json(
-        skip: int = Query(0, description="Registros a saltar"),
-        limit: int = Query(10, description="Límite de resultados"),
-        status: Optional[str] = Query(None, description="Filtrar por estado (opcional)")
-    ):
-        try:
-            dummy = IncidenceOut.get_empty_instance()
-            all_data = await mock_controller.read_all(dummy)
-
-            # Filtrado por estado (si se especifica)
-            if status:
-                filtered_data = [item for item in all_data if item.status == status]
-            else:
-                filtered_data = all_data
-
-            # Paginación
-            paginated_data = filtered_data[skip:skip + limit]
-            return JSONResponse(content={"data": [item.dict() for item in paginated_data]})
-        except Exception as e:
-            raise HTTPException(500, detail=str(e))
-
-    # Endpoint 2: Obtener incidencia por ID - HTML
-    @app.get("/{incidence_id}", response_class=HTMLResponse)
-    async def obtener_incidencia_html(request: Request, incidence_id: int = Path(..., description="ID de la incidencia a obtener")):
-        try:
-            incidence = await mock_controller.get_by_id(IncidenceOut, incidence_id)
-            if not incidence:
-                raise HTTPException(status_code=404, detail="Incidencia no encontrada")
-            return templates.TemplateResponse("DetalleIncidencia.html", {"request": request, "incidencia": incidence})
-        except HTTPException:
-            raise
-        except Exception as e:
-            raise HTTPException(500, detail=str(e))
-
-    # Endpoint 2 (JSON): Obtener incidencia por ID - JSON
-    @app.get("/{incidence_id}/json")
-    async def obtener_incidencia_json(incidence_id: int = Path(..., description="ID de la incidencia a obtener")):
-        try:
-            incidence = await mock_controller.get_by_id(IncidenceOut, incidence_id)
-            if not incidence:
-                raise HTTPException(status_code=404, detail="Incidencia no encontrada")
-            return JSONResponse(content={"data": incidence.dict()})
-        except HTTPException:
-            raise
-        except Exception as e:
-            raise HTTPException(500, detail=str(e))
-
-    # Endpoint para la página de consulta principal (HTML)
-    @app.get("/consultar", response_class=HTMLResponse)
-    def consultar_incidencias(request: Request):
-        return templates.TemplateResponse("ConsultarIncidencia", {"request": request})
-    
-    app.include_router(app)
-    return app
-
-
-
-@pytest.mark.asyncio
-async def test_listar_incidencias_json(test_app):
-    async with AsyncClient(app=test_app, base_url="http://test") as ac:
-        response = await ac.get("/incidences/json?skip=0&limit=10")
-    
+def test_listar_incidencias_html_sin_filtros():
+    response = client.get("/incidences")
     assert response.status_code == 200
-    assert len(response.json()["data"]) <= 10  # Verifica el límite
-    assert response.json()["data"][0]["description"] == "Incidente 1"
+    assert "Fallo A" in response.text
+    assert "Problema B" in response.text
 
-@pytest.mark.asyncio
-async def test_listar_incidencias_json_pagination(test_app):
-    async with AsyncClient(app=test_app, base_url="http://test") as ac:
-        response = await ac.get("/incidences/json?skip=2&limit=2")
-    
+def test_listar_incidencias_html_con_filtro():
+    response = client.get("/incidences?status=activo")
+    assert response.status_code == 200
+    assert "Fallo A" in response.text
+    assert "Problema B" not in response.text
+    assert "Error C" in response.text
+
+def test_listar_incidencias_html_con_paginacion():
+    response = client.get("/incidences?limit=2&skip=1")
+    assert response.status_code == 200
+    assert "Fallo A" not in response.text
+    assert "Problema B" in response.text
+    assert "Error C" in response.text
+    assert response.text.count("<tr>") == 3 # Incluye la cabecera de la tabla
+
+def test_listar_incidencias_json_sin_filtros():
+    response = client.get("/incidences/json")
+    assert response.status_code == 200
+    assert len(response.json()["data"]) == 5
+
+def test_listar_incidencias_json_con_filtro():
+    response = client.get("/incidences/json?status=pendiente")
+    assert response.status_code == 200
+    assert len(response.json()["data"]) == 1
+    assert response.json()["data"][0]["description"] == "Problema B"
+
+def test_listar_incidencias_json_con_paginacion():
+    response = client.get("/incidences/json?limit=2&skip=2")
     assert response.status_code == 200
     assert len(response.json()["data"]) == 2
-    assert response.json()["data"][0]["description"] == "Incidente 3"
-    assert response.json()["data"][1]["description"] == "Incidente 4"
+    assert response.json()["data"][0]["description"] == "Error C"
+    assert response.json()["data"][1]["description"] == "Solicitud D"
 
-@pytest.mark.asyncio
-async def test_listar_incidencias_json_filter(test_app):
-    async with AsyncClient(app=test_app, base_url="http://test") as ac:
-        response = await ac.get("/incidences/json?status=cerrado")
-    
+def test_obtener_incidencia_html_existente():
+    response = client.get("/incidences/1")
     assert response.status_code == 200
-    assert len(response.json()["data"]) == 2
-    for item in response.json()["data"]:
-        assert item["status"] == "cerrado"
+    assert "Fallo A" in response.text
 
-@pytest.mark.asyncio
-async def test_listar_incidencias_json_empty_result(test_app):
-    async with AsyncClient(app=test_app, base_url="http://test") as ac:
-        response = await ac.get("/incidences/json?status=no_existe")
-    
+def test_obtener_incidencia_html_no_existente():
+    response = client.get("/incidences/999")
+    assert response.status_code == 404
+    assert "Incidencia no encontrada" in response.text # Verifica el mensaje de error en HTML
+
+def test_obtener_incidencia_json_existente():
+    response = client.get("/incidences/1/json")
     assert response.status_code == 200
-    assert response.json()["data"] == []
+    assert response.json()["data"]["description"] == "Fallo A"
 
-@pytest.mark.asyncio
-async def test_obtener_incidencia_json_success(test_app):
-    async with AsyncClient(app=test_app, base_url="http://test") as ac:
-        response = await ac.get("/incidences/2/json")
-    
-    assert response.status_code == 200
-    assert response.json()["data"]["id"] == 2
-    assert response.json()["data"]["status"] == "cerrado"
-    assert response.json()["data"]["description"] == "Incidente 2"
-
-@pytest.mark.asyncio
-async def test_obtener_incidencia_json_not_found(test_app):
-    async with AsyncClient(app=test_app, base_url="http://test") as ac:
-        response = await ac.get("/incidences/999/json")
-    
+def test_obtener_incidencia_json_no_existente():
+    response = client.get("/incidences/999/json")
     assert response.status_code == 404
     assert response.json()["detail"] == "Incidencia no encontrada"
 
+def test_consultar_incidencias_form():
+    response = client.get("/incidences/consultar")
+    assert response.status_code == 200
+    assert "ConsultarIncidencia" in response.text # Verifica el nombre del template (o algún contenido distintivo)
