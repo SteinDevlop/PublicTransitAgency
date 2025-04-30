@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Listar Horarios</title>
+</head>
+<body>
+    <h1>Lista De Horarios</h1>
+    <div id="listaDeHorarios">
+        {% if horarios %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Id De Horario</th>
+                    <th>Fecha De Llegada</th>
+                    <th>Fecha De Salida</th>
+                    <th>Ruta</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for horario in horarios %}
+                <tr>
+                    <td>{{ horario.schedule_id }}</td>
+                    <td>{{ horario.arrival_date }}</td>
+                    <td>{{ horario.departure_date }}</td>
+                    <td>{{ horario.route }}</td>
+                    <td><a href="/schedules/{{ horario.schedule_id }}">Ver Detalle</a></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p>No Se Encontraron Horarios.</p>
+        {% endif %}
+    </div>
+    <p><a href="/schedules/consultar">Volver A La Página De Consulta</a></p>
+</body>
+</html>

@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalle del Pago</title>
+</head>
+<body>
+    <h1>Detalle del Pago</h1>
+    {% if pago %}
+    <div>
+        <p><strong>ID:</strong> {{ pago.id }}</p>
+        <p><strong>Usuario:</strong> {{ pago.user }}</p>
+        <p><strong>Cantidad:</strong> {{ pago.payment_quantity }}</p>
+        <p><strong>Método de Pago:</strong> {% if pago.payment_method %}Sí{% else %}No{% endif %}</p>
+        <p><strong>Tipo de Transporte:</strong> {{ pago.vehicle_type }}</p>
+        <p><strong>ID de Tarjeta:</strong> {{ pago.card_id }}</p>
+    </div>
+    <p><a href="/payments">Volver a la lista de pagos</a></p>
+    {% else %}
+    <p>No se encontró el pago.</p>
+    {% endif %}
+</body>
+</html>

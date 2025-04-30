@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Actualizar Ticket Existente</title>
+</head>
+<body>
+    <h1>Actualizar Ticket</h1>
+    <form action="/ticket/update" method="post">
+        <div>
+            <label for="ticket_id">ID del Ticket a Actualizar:</label>
+            <input type="text" id="ticket_id" name="ticket_id" required>
+        </div>
+        <div>
+            <label for="status_code">Nuevo Código de Estado (1, 2 o 3):</label>
+            <input type="number" id="status_code" name="status_code" min="1" max="3" required>
+        </div>
+        <button type="submit">Actualizar Ticket</button>
+    </form>
+    <p><a href="/">Volver</a></p>
+</body>
+</html>

@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crear Horario Html</title>
+</head>
+<body>
+    <h1>Crear Nuevo Horario</h1>
+    <form action="/schedule/create" method="post">
+        <div>
+            <label for="schedule_id">ID de Horario:</label>
+            <input type="text" id="schedule_id" name="schedule_id" required>
+        </div>
+        <div>
+            <label for="arrival_date">Fecha de Llegada (YYYY-MM-DD HH:MM:SS):</label>
+            <input type="datetime-local" id="arrival_date" name="arrival_date" required>
+        </div>
+        <div>
+            <label for="departure_date">Fecha de Salida (YYYY-MM-DD HH:MM:SS):</label>
+            <input type="datetime-local" id="departure_date" name="departure_date" required>
+        </div>
+        <div>
+            <label for="route">Ruta:</label>
+            <input type="text" id="route" name="route" required>
+        </div>
+        <button type="submit">Crear Horario</button>
+    </form>
+    <p><a href="/">Volver</a></p>
+</body>
+</html>

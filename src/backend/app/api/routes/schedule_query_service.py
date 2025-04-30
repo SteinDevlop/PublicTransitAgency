@@ -16,7 +16,7 @@ templates = Jinja2Templates(directory="src/backend/app/templates")
 @app.get("/consultar", response_class=HTMLResponse)
 async def consultar_horarios_html(request: Request):
     """Renderiza la página para consultar horarios."""
-    return templates.TemplateResponse("consultar_horarios.html", {"request": request})
+    return templates.TemplateResponse("ConsultarHorarios", {"request": request})
 
 # Endpoint para obtener todos los horarios (HTML)
 @app.get("", response_class=HTMLResponse)
@@ -24,7 +24,7 @@ async def listar_horarios_html(request: Request):
     """Lista todos los horarios en formato HTML."""
     dummy = ScheduleOut.get_empty_instance()
     horarios = controller.read_all(dummy)
-    return templates.TemplateResponse("listar_horarios.html", {"request": request, "horarios": horarios})
+    return templates.TemplateResponse("ListarHorarios", {"request": request, "horarios": horarios})
 
 # Endpoint para obtener todos los horarios (JSON)
 @app.get("/json")
@@ -41,7 +41,7 @@ async def obtener_horario_html(request: Request, schedule_id: str = Query(...)):
     horario = controller.get_by_id(ScheduleOut, schedule_id)
     if not horario:
         raise HTTPException(status_code=404, detail="Horario no encontrado")
-    return templates.TemplateResponse("detalle_horario.html", {"request": request, "horario": horario})
+    return templates.TemplateResponse("DetalleHorario", {"request": request, "horario": horario})
 
 # Endpoint para obtener un horario por ID (JSON)
 @app.get("/{schedule_id}/json")

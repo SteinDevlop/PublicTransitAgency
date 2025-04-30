@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eliminar Turno Existente</title>
+</head>
+<body>
+    <h1>Eliminar Turno</h1>
+    <form action="/shift/delete" method="post">
+        <div>
+            <label for="shift_id">ID del Turno a Eliminar:</label>
+            <input type="text" id="shift_id" name="shift_id" required>
+        </div>
+        <button type="submit">Eliminar Turno</button>
+    </form>
+    <p><a href="/">Volver</a></p>
+</body>
+</html>

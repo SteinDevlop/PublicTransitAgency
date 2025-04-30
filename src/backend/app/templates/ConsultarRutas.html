@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consultar Rutas</title>
+</head>
+<body>
+    <h1>Lista de Rutas</h1>
+    <div id="listaDeRutas">
+        {% if routes %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Id De Ruta</th>
+                    <th>Nombre De Ruta</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for route in routes %}
+                <tr>
+                    <td>{{ route.route_id }}</td>
+                    <td>{{ route.route }}</td>
+                    <td><a href="/routes/{{ route.route_id }}">Ver Detalle</a></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p>No se encontraron rutas.</p>
+        {% endif %}
+    </div>
+</body>
+</html>

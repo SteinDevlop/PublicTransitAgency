@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Uso de Tarjeta</title>
+</head>
+<body>
+    <h1>Registro de Uso de Tarjeta de Transporte</h1>
+    <form action="/tarjeta/uso" method="post">
+        <div>
+            <label for="id">ID de Tarjeta:</label>
+            <input type="text" id="id" name="id" required>
+        </div>
+        <div>
+            <label for="valor">Valor del Uso:</label>
+            <input type="number" id="valor" name="valor" step="0.01" required>
+        </div>
+        <div>
+            <label for="tipo_transporte">Tipo de Transporte:</label>
+            <select id="tipo_transporte" name="tipo_transporte">
+                <option value="virtual" selected>Virtual</option>
+                <option value="fisico">Físico</option>
+                </select>
+        </div>
+        <button type="submit">Registrar Uso</button>
+    </form>
+    <p><a href="/tarjeta/saldo?id=">Consultar Saldo</a> (Ingresa el ID en la URL)</p>
+</body>
+</html>

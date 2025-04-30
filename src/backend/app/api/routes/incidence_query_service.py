@@ -32,7 +32,7 @@ async def listar_incidencias_html(
 
         # Paginación
         paginated_data = filtered_data[skip:skip + limit]
-        return templates.TemplateResponse("listar_incidencias.html", {"request": request, "incidencias": paginated_data})
+        return templates.TemplateResponse("ListarIncidencia.html", {"request": request, "incidencias": paginated_data})
     except Exception as e:
         raise HTTPException(500, detail=str(e))
 
@@ -66,7 +66,7 @@ async def obtener_incidencia_html(request: Request, incidence_id: int = Query(..
         incidence = controller.get_by_id(IncidenceOut, incidence_id)
         if not incidence:
             raise HTTPException(status_code=404, detail="Incidencia no encontrada")
-        return templates.TemplateResponse("detalle_incidencia.html", {"request": request, "incidencia": incidence})
+        return templates.TemplateResponse("DetalleIncidencia.html", {"request": request, "incidencia": incidence})
     except HTTPException:
         raise
     except Exception as e:
@@ -88,7 +88,7 @@ async def obtener_incidencia_json(incidence_id: int = Query(...)):
 # Endpoint para la página de consulta principal (HTML)
 @app.get("/consultar", response_class=HTMLResponse)
 def consultar_incidencias(request: Request):
-    return templates.TemplateResponse("consultar_incidencias.html", {"request": request})
+    return templates.TemplateResponse("ConsultarIncidencia", {"request": request})
 
 if __name__ == "__main__":
     app_main = FastAPI(

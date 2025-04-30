@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalle del Transporte {{ transports[0].id if transports }}</title>
+</head>
+<body>
+    <h1>Detalle del Transporte</h1>
+    {% if transports %}
+    <div>
+        <p><strong>ID:</strong> {{ transports[0].id }}</p>
+        <p><strong>Tipo:</strong> {{ transports[0].type }}</p>
+        <p><strong>Estado:</strong> {{ transports[0].status }}</p>
+        <p><strong>Ubicación:</strong> {{ transports[0].ubication }}</p>
+        <p><strong>Capacidad:</strong> {{ transports[0].capacity }}</p>
+    </div>
+    <p><a href="/transports">Volver a la lista de transportes</a></p>
+    {% else %}
+    <p>Transporte no encontrado.</p>
+    {% endif %}
+</body>
+</html>

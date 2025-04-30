@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista de Incidencias</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        tr:nth-child(even) { background-color: #f9f9f9; }
+    </style>
+</head>
+<body>
+    <h1>Lista de Incidencias</h1>
+
+    {% if incidencias %}
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Descripción</th>
+                    <th>Tipo</th>
+                    <th>Estado</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for incidencia in incidencias %}
+                <tr>
+                    <td>{{ incidencia.incidence_id }}</td>
+                    <td>{{ incidencia.description }}</td>
+                    <td>{{ incidencia.type }}</td>
+                    <td>{{ incidencia.status }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>No se encontraron incidencias.</p>
+    {% endif %}
+
+    <p><a href="/incidences/consultar">Volver a Consultas</a></p>
+
+</body>
+</html>

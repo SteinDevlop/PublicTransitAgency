@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consultar Incidencias</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; }
+        .form-section { margin-bottom: 30px; padding: 15px; border: 1px solid #ccc; border-radius: 5px; }
+        label { display: block; margin-top: 10px; }
+        input[type="text"], input[type="number"] { width: 250px; padding: 8px; margin-top: 5px; }
+        button { padding: 10px 15px; margin-top: 15px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>Consultar Incidencias</h1>
+
+    <div class="form-section">
+        <h2>Listar Incidencias</h2>
+        <form action="/incidences" method="get">
+            <div>
+                <label for="status">Filtrar por Estado (Opcional):</label>
+                <input type="text" id="status" name="status">
+            </div>
+            <div>
+                <label for="skip">Saltar (Paginación):</label>
+                <input type="number" id="skip" name="skip" value="0" min="0">
+            </div>
+            <div>
+                <label for="limit">Límite (Paginación):</label>
+                <input type="number" id="limit" name="limit" value="10" min="1">
+            </div>
+            <button type="submit">Listar Incidencias</button>
+        </form>
+    </div>
+
+    <div class="form-section">
+        <h2>Ver Detalle de Incidencia por ID</h2>
+        <form id="detail-form" onsubmit="redirectToDetail(event)">
+            <div>
+                <label for="incidence_id">ID de Incidencia:</label>
+                <input type="number" id="incidence_id" name="incidence_id" required>
+            </div>
+            <button type="submit">Ver Detalle</button>
+        </form>
+    </div>
+
+    <script>
+        function redirectToDetail(event) {
+            event.preventDefault(); // Prevenir el envío normal del formulario
+            const incidenceId = document.getElementById('incidence_id').value;
+            if (incidenceId) {
+                // Redirigir a la URL de detalle con el ID en la ruta
+                window.location.href = `/incidences/${incidenceId}`;
+            } else {
+                alert('Por favor, ingrese un ID de incidencia.');
+            }
+        }
+    </script>
+
+</body>
+</html>

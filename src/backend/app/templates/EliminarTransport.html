@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eliminar Transporte</title>
+</head>
+<body>
+    <h1>Eliminar Transporte</h1>
+    <form action="/transports/delete" method="post">
+        <div>
+            <label for="id">ID del Transporte a Eliminar:</label>
+            <input type="text" id="id" name="id" required>
+        </div>
+        <button type="submit">Eliminar Transporte</button>
+    </form>
+    <p><a href="/transports/consultar">Volver a la página de consulta</a></p>
+</body>
+</html>

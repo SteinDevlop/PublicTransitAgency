@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalle del Ticket {{ ticket.ticket_id }}</title>
+</head>
+<body>
+    <h1>Detalle del Ticket</h1>
+    {% if ticket %}
+    <div>
+        <p><strong>ID del Ticket:</strong> {{ ticket.ticket_id }}</p>
+        <p><strong>Código de Estado:</strong> {{ ticket.status_code }}</p>
+        {# Aquí podrías mostrar más detalles del ticket si el modelo TicketOut tiene más campos #}
+    </div>
+    <p><a href="/tickets">Volver a la lista de tickets</a></p>
+    <p><a href="/tickets/consultar">Volver a la página de consulta</a></p>
+    {% else %}
+    <p>Ticket no encontrado.</p>
+    {% endif %}
+</body>
+</html>

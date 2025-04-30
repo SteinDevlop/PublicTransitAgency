@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalle del Estado de Mantenimiento</title>
+</head>
+<body>
+    <h1>Detalle del Estado de Mantenimiento</h1>
+
+    {% if data %}
+    <div>
+        {% for key, value in data.dict().items() %}
+        <p><strong>{{ key }}:</strong> {{ value }}</p>
+        {% endfor %}
+    </div>
+    <a href="/maintainance_status/consultar">Volver a la lista</a>
+    {% else %}
+    <p>No se encontraron detalles para este estado de mantenimiento.</p>
+    {% endif %}
+</body>
+</html>

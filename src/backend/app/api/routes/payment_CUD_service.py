@@ -43,7 +43,7 @@ async def mostrar_formulario_uso(request: Request):
 # Endpoint para recarga de tarjeta
 @app.post("/tarjeta/recarga", response_class=HTMLResponse)
 async def recargar_tarjeta(
-    request: Request,
+    request: Request, 
     id: str = Form(...),
     valor: float = Form(...),
     tipo_transporte: str = Form("virtual")

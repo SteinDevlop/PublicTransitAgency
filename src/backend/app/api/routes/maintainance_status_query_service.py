@@ -19,7 +19,7 @@ def consultar_mantenimientos(request: Request):
     """
     Renderiza el template 'consultar_mantenimientos.html' para mostrar la lista.
     """
-    return templates.TemplateResponse("consultar_mantenimientos.html", {"request": request})
+    return templates.TemplateResponse("ConsultarEMantenimiento.html", {"request": request})
 
 # Route to get all maintainance statuses (returns JSON)
 @app.get("/all")
@@ -39,7 +39,7 @@ async def get_status_by_id_html(request: Request, id: int = Query(...)):
     unit_status = controller.get_by_id(MaintainanceStatusOut, id)
 
     if unit_status:
-        return templates.TemplateResponse("detalle_mantenimiento.html", {"request": request, "data": unit_status})
+        return templates.TemplateResponse("DetalleEMantenimiento.html", {"request": request, "data": unit_status})
     else:
         raise HTTPException(status_code=404, detail="Estado de mantenimiento no encontrado")
 

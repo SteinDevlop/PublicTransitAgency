@@ -2,7 +2,7 @@ from fastapi import FastAPI, Form, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse
-from backend.app.models.routes import RouteOut
+from backend.app.models.routes import RouteCreate, RouteOut
 from backend.app.logic.universal_controller_sql import UniversalController
 import uvicorn
 
@@ -19,34 +19,76 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Endpoints GET para formularios HTML
-@app.get("/routes", response_class=HTMLResponse, tags=["routes"])
-def show_all_routes(request: Request):
-    routes = controller.read_all(RouteOut(route_id=0, route=""))
-    return templates.TemplateResponse("ConsultarRutas.html", {"request": request, "routes": routes})
+# Formulario para crear una nueva ruta
+@app.get("/routes/crear", response_class=HTMLResponse, tags=["cud_routes"])
+def show_create_form(request: Request):
+    return templates.TemplateResponse("CrearRuta.html", {"request": request})
 
-@app.get("/routes/{route_id}", response_class=HTMLResponse, tags=["routes"])
-def show_route(request: Request, route_id: int):
-    route = controller.get_by_id(RouteOut, route_id)
-    if not route:
-        raise HTTPException(status_code=404, detail="Ruta no encontrada")
-    return templates.TemplateResponse("ConsultarRutaDetalle.html", {"request": request, "route": route})
+# Formulario para actualizar una ruta existente
+@app.get("/routes/actualizar", response_class=HTMLResponse, tags=["cud_routes"])
+def show_update_form(request: Request):
+    return templates.TemplateResponse("ActualizarRuta.html", {"request": request})
 
-# Endpoints POST para operaciones
-@app.post("/routes/search", response_model=RouteOut, tags=["routes"])
-async def search_route(
+# Formulario para eliminar una ruta existente
+@app.get("/routes/eliminar", response_class=HTMLResponse, tags=["cud_routes"])
+def show_delete_form(request: Request):
+    return templates.TemplateResponse("EliminarRuta.html", {"request": request})
+
+# Crear una nueva ruta
+@app.post("/routes/crear", response_model=RouteOut, tags=["cud_routes"])
+async def create_route(
     request: Request,
-    route_id: int = Form(...),
+    route_id: str = Form(...),
+    route_data: str = Form(...),  # Recibimos la ruta como string JSON
 ):
     try:
-        route = controller.get_by_id(RouteOut, route_id)
-        if not route:
-            raise HTTPException(status_code=404, detail="Ruta no encontrada")
-        return route
+        import json
+        route_dict = json.loads(route_data)
+        new_route = RouteCreate(route_id=route_id, route=route_dict)
+        result = controller.add(new_route)
+        return RouteOut(route_id=result.route_id, route=result.route)
+    except json.JSONDecodeError:
+        raise HTTPException(400, detail="Formato JSON inválido para la ruta")
     except ValueError as e:
         raise HTTPException(400, detail=str(e))
     except Exception as e:
         raise HTTPException(500, detail=f"Error interno del servidor: {str(e)}")
 
+# Actualizar una ruta existente
+@app.post("/routes/actualizar", response_model=RouteOut, tags=["cud_routes"])
+async def update_route(
+    request: Request,
+    route_id: str = Form(...),
+    route_data: str = Form(...),  # Recibimos la ruta como string JSON
+):
+    try:
+        existing_route = controller.get_by_id(RouteOut, route_id)
+        if not existing_route:
+            raise HTTPException(404, detail="Ruta no encontrada")
+
+        import json
+        route_dict = json.loads(route_data)
+        updated_route = RouteCreate(route_id=route_id, route=route_dict) # Usamos RouteCreate para la validación
+        result = controller.update(updated_route)
+        return RouteOut(route_id=result.route_id, route=result.route)
+    except json.JSONDecodeError:
+        raise HTTPException(400, detail="Formato JSON inválido para la ruta")
+    except ValueError as e:
+        raise HTTPException(400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(500, detail=f"Error interno del servidor: {str(e)}")
+
+# Eliminar una ruta existente
+@app.post("/routes/eliminar", tags=["cud_routes"])
+async def delete_route(request: Request, route_id: str = Form(...)):
+    try:
+        existing_route = controller.get_by_id(RouteOut, route_id)
+        if not existing_route:
+            raise HTTPException(404, detail="Ruta no encontrada")
+        controller.delete(existing_route)
+        return {"message": f"Ruta con ID {route_id} eliminada correctamente"}
+    except Exception as e:
+        raise HTTPException(500, detail=str(e))
+
 if __name__ == "__main__":
-    uvicorn.run("main:app", host="0.0.0.0", port=8001, reload=True)
+    uvicorn.run("app_cud_routes:app", host="0.0.0.0", port=8004, reload=True)

@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalle de Incidencia</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; }
+        .detail-item { margin-bottom: 10px; }
+        .detail-item strong { display: inline-block; width: 100px; }
+    </style>
+</head>
+<body>
+    <h1>Detalle de Incidencia</h1>
+
+    {% if incidencia %}
+        <div class="detail-item">
+            <strong>ID:</strong> {{ incidencia.incidence_id }}
+        </div>
+        <div class="detail-item">
+            <strong>Descripción:</strong> {{ incidencia.description }}
+        </div>
+        <div class="detail-item">
+            <strong>Tipo:</strong> {{ incidencia.type }}
+        </div>
+        <div class="detail-item">
+            <strong>Estado:</strong> {{ incidencia.status }}
+        </div>
+    {% else %}
+        <p>Incidencia no encontrada.</p>
+    {% endif %}
+
+    <p><a href="/incidences/consultar">Volver a Consultas</a></p>
+
+</body>
+</html>

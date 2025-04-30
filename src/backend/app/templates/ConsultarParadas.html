@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consultar Paradas</title>
+</head>
+<body>
+    <h1>Consulta De Paradas</h1>
+    <p><a href="/stops">Ver Todas Las Paradas</a></p>
+    <h2>Buscar Paradas</h2>
+    <form action="/stops/buscar" method="get">
+        <div>
+            <label for="nombre">Nombre:</label>
+            <input type="text" id="nombre" name="nombre">
+        </div>
+        <div>
+            <label for="ubicacion">Ubicación:</label>
+            <input type="text" id="ubicacion" name="ubicacion">
+        </div>
+        <button type="submit">Buscar</button>
+    </form>
+</body>
+</html>

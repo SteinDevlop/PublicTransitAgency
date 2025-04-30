@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consultar Estados de Mantenimiento</title>
+</head>
+<body>
+    <h1>Estados de Mantenimiento</h1>
+    <div id="lista-mantenimientos">
+        <p>Cargando lista de mantenimientos...</p>
+    </div>
+
+    <script>
+        // Función para obtener y mostrar los estados de mantenimiento
+        async function cargarMantenimientos() {
+            try {
+                const response = await fetch('/maintainance_status/all');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                const data = await response.json();
+                const listaMantenimientosDiv = document.getElementById('lista-mantenimientos');
+                listaMantenimientosDiv.innerHTML = ''; // Limpiar el mensaje de carga
+
+                if (data.data && data.data.length > 0) {
+                    const tabla = document.createElement('table');
+                    const encabezado = tabla.createTHead();
+                    const filaEncabezado = encabezado.insertRow();
+
+                    // Suponiendo que cada elemento en data.data tiene las mismas claves,
+                    // obtenemos los encabezados del primer elemento.
+                    const keys = Object.keys(data.data[0]);
+                    keys.forEach(key => {
+                        const th = document.createElement('th');
+                        th.textContent = key;
+                        filaEncabezado.appendChild(th);
+                    });
+
+                    const cuerpoTabla = tabla.createTBody();
+                    data.data.forEach(item => {
+                        const fila = cuerpoTabla.insertRow();
+                        keys.forEach(key => {
+                            const celda = fila.insertCell();
+                            celda.textContent = item[key];
+                        });
+
+                        // Opcional: Añadir un enlace para ver el detalle
+                        const celdaDetalle = fila.insertCell();
+                        const enlaceDetalle = document.createElement('a');
+                        enlaceDetalle.href = `/maintainance_status/get?id=${item.id}`; // Asumiendo que 'id' es la clave del ID
+                        enlaceDetalle.textContent = 'Ver Detalle';
+                        celdaDetalle.appendChild(enlaceDetalle);
+                    });
+
+                    listaMantenimientosDiv.appendChild(tabla);
+                } else {
+                    listaMantenimientosDiv.textContent = 'No se encontraron estados de mantenimiento.';
+                }
+
+            } catch (error) {
+                console.error('Error al cargar los estados de mantenimiento:', error);
+                document.getElementById('lista-mantenimientos').textContent = 'Error al cargar los estados de mantenimiento.';
+            }
+        }
+
+        // Cargar los mantenimientos al cargar la página
+        window.onload = cargarMantenimientos;
+    </script>
+</body>
+</html>

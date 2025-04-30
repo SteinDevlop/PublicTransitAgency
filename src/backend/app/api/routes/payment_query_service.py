@@ -32,7 +32,7 @@ async def get_payment_schema():
 async def listar_pagos_html(request: Request):
     """Lista todos los pagos en formato HTML."""
     pagos = controller.read_all(PaymentsOut)
-    return templates.TemplateResponse("listar_pagos.html", {"request": request, "pagos": pagos})
+    return templates.TemplateResponse("ListarPagos.html", {"request": request, "pagos": pagos})
 
 @app.get("/json")
 async def listar_pagos_json():
@@ -46,7 +46,7 @@ async def obtener_pago_html(request: Request, payment_id: str):
     pago = controller.get_by_id(PaymentsOut, payment_id)
     if not pago:
         raise HTTPException(status_code=404, detail="Pago no encontrado")
-    return templates.TemplateResponse("detalle_pago.html", {"request": request, "pago": pago})
+    return templates.TemplateResponse("DetallePago.html", {"request": request, "pago": pago})
 
 @app.get("/{payment_id}/json")
 async def obtener_pago_json(payment_id: str):
@@ -65,7 +65,7 @@ async def obtener_pagos_por_tarjeta_html(request: Request, card_id: str):
 
     todos_los_pagos = controller.read_all(PaymentsOut)
     pagos = [p for p in todos_los_pagos if p.card_id == card_id] # Asumiendo que PaymentsOut tiene card_id
-    return templates.TemplateResponse("pagos_por_tarjeta.html", {"request": request, "pagos": pagos, "card_id": card_id})
+    return templates.TemplateResponse("PagoPorTarjeta.html", {"request": request, "pagos": pagos, "card_id": card_id})
 
 @app.get("/tarjeta/{card_id}/json")
 async def obtener_pagos_por_tarjeta_json(card_id: str):

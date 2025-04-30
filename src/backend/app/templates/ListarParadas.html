@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Listar Paradas</title>
+</head>
+<body>
+    <h1>Lista De Paradas</h1>
+    <div id="listaDeParadas">
+        {% if paradas %}
+        <table>
+            <thead>
+                <tr>
+                    <th>Id De Parada</th>
+                    <th>Nombre</th>
+                    <th>Ubicación</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for parada in paradas %}
+                <tr>
+                    <td>{{ parada.stop_id }}</td>
+                    <td>{{ parada.stop_data.get('name', 'Sin nombre') }}</td>
+                    <td>{{ parada.stop_data.get('location', 'Sin ubicación') }}</td>
+                    <td><a href="/stops/{{ parada.stop_id }}">Ver Detalle</a></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <p>No Se Encontraron Paradas.</p>
+        {% endif %}
+    </div>
+    <p><a href="/stops/consultar">Volver A La Página De Consulta</a></p>
+</body>
+</html>

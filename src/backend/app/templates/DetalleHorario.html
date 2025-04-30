@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalle Del Horario {{ horario.schedule_id }}</title>
+</head>
+<body>
+    <h1>Detalle Del Horario</h1>
+    {% if horario %}
+    <div>
+        <p><strong>Id De Horario:</strong> {{ horario.schedule_id }}</p>
+        <p><strong>Fecha De Llegada:</strong> {{ horario.arrival_date }}</p>
+        <p><strong>Fecha De Salida:</strong> {{ horario.departure_date }}</p>
+        <p><strong>Ruta:</strong> {{ horario.route }}</p>
+    </div>
+    <p><a href="/schedules">Volver A La Lista De Horarios</a></p>
+    <p><a href="/schedules/consultar">Volver A La Página De Consulta</a></p>
+    {% else %}
+    <p>No Se Encontró El Horario.</p>
+    {% endif %}
+</body>
+</html>

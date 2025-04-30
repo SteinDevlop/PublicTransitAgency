@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista de Transportes</title>
+</head>
+<body>
+    <h1>Lista de Transportes</h1>
+    {% if transports %}
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Tipo</th>
+                <th>Estado</th>
+                <th>Ubicación</th>
+                <th>Capacidad</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for transport in transports %}
+            <tr>
+                <td>{{ transport.id }}</td>
+                <td>{{ transport.type }}</td>
+                <td>{{ transport.status }}</td>
+                <td>{{ transport.ubication }}</td>
+                <td>{{ transport.capacity }}</td>
+                <td><a href="/transports/{{ transport.id }}">Ver Detalle</a></td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p>No se encontraron transportes.</p>
+    {% endif %}
+</body>
+</html>

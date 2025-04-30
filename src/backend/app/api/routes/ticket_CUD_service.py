@@ -22,15 +22,15 @@ app.add_middleware(
 # Endpoints GET para formularios HTML
 @app.get("/ticket/crear", response_class=HTMLResponse, tags=["ticket"])
 def show_create_form(request: Request):
-    return templates.TemplateResponse("CrearTicket.html", {"request": request})
+    return templates.TemplateResponse("CrearTicket", {"request": request})
 
 @app.get("/ticket/actualizar", response_class=HTMLResponse, tags=["ticket"])
 def show_update_form(request: Request):
-    return templates.TemplateResponse("ActualizarTicket.html", {"request": request})
+    return templates.TemplateResponse("ActualizarTicket", {"request": request})
 
 @app.get("/ticket/eliminar", response_class=HTMLResponse, tags=["ticket"])
 def show_delete_form(request: Request):
-    return templates.TemplateResponse("EliminarTicket.html", {"request": request})
+    return templates.TemplateResponse("EliminarTicket", {"request": request})
 
 # Endpoints POST para operaciones
 @app.post("/ticket/create", response_model=TicketOut, tags=["ticket"])
@@ -41,7 +41,7 @@ async def create_ticket(
     try:
         if status_code not in (1, 2, 3):
             raise ValueError("El código de estado debe ser 1, 2 o 3.")
-        
+
         new_ticket = TicketCreate(
             ID=ticket_id,
             status_code=status_code
@@ -65,7 +65,7 @@ async def update_ticket(
         existing_ticket = controller.get_by_id(TicketOut, ticket_id)
         if not existing_ticket:
             raise HTTPException(status_code=404, detail="Ticket no encontrado.")
-        
+
         updated_ticket = TicketCreate(
             ID=ticket_id,
             status_code=status_code
@@ -84,7 +84,7 @@ async def delete_ticket(ticket_id: str = Form(...)):
         existing_ticket = controller.get_by_id(TicketOut, ticket_id)
         if not existing_ticket:
             raise HTTPException(status_code=404, detail="Ticket no encontrado.")
-        
+
         controller.delete(existing_ticket)
         return {"message": f"Ticket {ticket_id} eliminado correctamente."}
     except Exception as e:

@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Consultar Detalle De Ruta {{ route.route_id }}</title>
+</head>
+<body>
+    <h1>Detalle De La Ruta</h1>
+    {% if route %}
+    <div>
+        <p><strong>Id De Ruta:</strong> {{ route.route_id }}</p>
+        <p><strong>Nombre De Ruta:</strong> {{ route.route }}</p>
+    </div>
+    <p><a href="/routes">Volver A La Lista De Rutas</a></p>
+    {% else %}
+    <p>No se encontró la ruta.</p>
+    {% endif %}
+</body>
+</html>

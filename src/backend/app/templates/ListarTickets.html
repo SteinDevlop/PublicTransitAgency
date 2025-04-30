@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista de Tickets</title>
+</head>
+<body>
+    <h1>Lista de Tickets</h1>
+    {% if tickets %}
+    <table>
+        <thead>
+            <tr>
+                <th>ID del Ticket</th>
+                <th>Código de Estado</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for ticket in tickets %}
+            <tr>
+                <td>{{ ticket.ticket_id }}</td>
+                <td>{{ ticket.status_code }}</td>
+                <td><a href="/tickets/{{ ticket.ticket_id }}">Ver Detalle</a></td>
+            </tr>
+        </tbody>
+    </table>
+    {% else %}
+    <p>No se encontraron tickets.</p>
+    {% endif %}
+    <p><a href="/tickets/consultar">Volver a la página de consulta</a></p>
+</body>
+</html>
