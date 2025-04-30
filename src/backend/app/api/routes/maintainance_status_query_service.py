@@ -1,77 +1,61 @@
-from fastapi import FastAPI, HTTPException, Request, Query  # <-- Añade Query aquí
-from fastapi.responses import HTMLResponse
-from fastapi.middleware.cors import CORSMiddleware
+from fastapi import FastAPI, HTTPException, Request, Query, APIRouter
+from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
-from backend.app.models.maintainance_status import MaintainanceStatusOut
+from backend.app.models.maintainance_status import MaintainanceStatusOut  # Modelo
 from backend.app.logic.universal_controller_sql import UniversalController
 import uvicorn
 
-app = FastAPI(
-    title="Query Service - Estados de Mantenimiento",
-    description="Microservicio para consulta de estados de mantenimiento",
-    version="1.0.0"
-)
+# Initialize the FastAPI router for the "maintainance_status" functionality
+app = APIRouter(prefix="/maintainance_status", tags=["mantenimiento"])
 
+# Initialize the controller
 controller = UniversalController()
+
 templates = Jinja2Templates(directory="src/backend/app/templates")
 
-# Configuración CORS
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["GET"],
-    allow_headers=["*"],
-)
+# Route to consult and display the list of maintainance statuses
+@app.get('/consultar', response_class=HTMLResponse)
+def consultar_mantenimientos(request: Request):
+    """
+    Renderiza el template 'consultar_mantenimientos.html' para mostrar la lista.
+    """
+    return templates.TemplateResponse("consultar_mantenimientos.html", {"request": request})
 
-@app.get("/maintainance_status/consultar", response_class=HTMLResponse)
-async def consultar_estados(request: Request):
+# Route to get all maintainance statuses (returns JSON)
+@app.get("/all")
+async def get_all_statuses():
     """
-    Endpoint principal para consultar estados de mantenimiento
+    Retorna todos los registros de estados de mantenimiento en formato JSON.
     """
-    return templates.TemplateResponse("ConsultarEstados.html", {"request": request})
+    records = controller.read_all(MaintainanceStatusOut)
+    return JSONResponse(content={"data": records})
 
-@app.get("/maintainance_status/todos", response_class=HTMLResponse)
-async def get_all_maintainance_status(request: Request):
+# Route to view a specific maintainance status by its ID (renders HTML)
+@app.get("/get", response_class=HTMLResponse)
+async def get_status_by_id_html(request: Request, id: int = Query(...)):
     """
-    Obtiene todos los estados de mantenimiento
+    Obtiene un estado de mantenimiento por su ID y renderiza los detalles en HTML.
     """
-    dummy = MaintainanceStatusOut.get_empty_instance()
-    data = controller.read_all(dummy)
+    unit_status = controller.get_by_id(MaintainanceStatusOut, id)
 
-    if "text/html" in request.headers.get("Accept", ""):
-        return templates.TemplateResponse(
-            "ListaEstados.html",
-            {"request": request, "estados": data}
-        )
-    
-    return {"data": data}
+    if unit_status:
+        return templates.TemplateResponse("detalle_mantenimiento.html", {"request": request, "data": unit_status})
+    else:
+        raise HTTPException(status_code=404, detail="Estado de mantenimiento no encontrado")
 
-@app.get("/maintainance_status/detalle", response_class=HTMLResponse)
-async def get_maintainance_status(
-    request: Request,
-    id: int = Query(..., description="ID del estado de mantenimiento")  # <-- Ahora funciona correctamente
-):
+# Route to get a specific maintainance status by its ID (returns JSON)
+@app.get("/get/json")
+async def get_status_by_id_json(id: int = Query(...)):
     """
-    Obtiene un estado de mantenimiento específico por ID
+    Obtiene un estado de mantenimiento por su ID en formato JSON.
     """
-    status = controller.get_by_id(MaintainanceStatusOut, id)
-    if not status:
-        if "text/html" in request.headers.get("Accept", ""):
-            return templates.TemplateResponse(
-                "DetalleEstado.html",
-                {"request": request, "error": "Estado no encontrado"},
-                status_code=404
-            )
-        raise HTTPException(404, detail="Estado de mantenimiento no encontrado")
-
-    if "text/html" in request.headers.get("Accept", ""):
-        return templates.TemplateResponse(
-            "DetalleEstado.html",
-            {"request": request, "estado": status}
-        )
-    
-    return {"data": status}
+    unit_status = controller.get_by_id(MaintainanceStatusOut, id)
+    if unit_status:
+        return JSONResponse(content={"data": unit_status.dict()})
+    else:
+        raise HTTPException(status_code=404, detail="Estado de mantenimiento no encontrado")
 
 if __name__ == "__main__":
-    uvicorn.run("main:app", host="0.0.0.0", port=8002, reload=True)
+    app_main = FastAPI()
+    app_main.include_router(app)
+    uvicorn.run(app_main, host="0.0.0.0", port=8003)

@@ -1,60 +1,105 @@
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import FastAPI, HTTPException, Request, Query, APIRouter
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import HTMLResponse
-from models.stops import StopOut
+from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.templating import Jinja2Templates
+from backend.app.models.stops import StopOut
 from logic.universal_controller_sql import UniversalController
 import uvicorn
 
-app = FastAPI()
+# Initialize the FastAPI router for the "stops" functionality
+app = APIRouter(prefix="/stops", tags=["paradas"])
+
 controller = UniversalController()
+templates = Jinja2Templates(directory="templates")  # Asegúrate de tener las plantillas en este directorio
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["GET"],
-    allow_headers=["*"],
-)
+# Endpoint para la página de consulta principal (HTML)
+@app.get("/consultar", response_class=HTMLResponse)
+async def consultar_paradas_html(request: Request):
+    """Renderiza la página para consultar paradas."""
+    return templates.TemplateResponse("consultar_paradas.html", {"request": request})
 
-@app.get("/stops", response_class=HTMLResponse)
-async def get_all_stops():
+# Endpoint para obtener todas las paradas (HTML)
+@app.get("", response_class=HTMLResponse)
+async def listar_paradas_html(request: Request):
+    """Lista todas las paradas en formato HTML."""
     dummy = StopOut.get_empty_instance()
-    stops = controller.read_all(dummy)
-    stop_list = "".join([f"<li>{stop['stop_data']['name']} - {stop['stop_data']['location']}</li>" for stop in stops])
-    return f"<h1>All Stops</h1><ul>{stop_list}</ul>"
+    paradas = controller.read_all(dummy)
+    return templates.TemplateResponse("listar_paradas.html", {"request": request, "paradas": paradas})
 
-@app.get("/stops/{stop_id}", response_class=HTMLResponse)
-async def get_stop(stop_id: str):
-    stop = controller.get_by_id(StopOut, stop_id)
-    if not stop:
-        raise HTTPException(404, detail="Stop not found")
-    stop_data = stop['stop_data']
-    return f"<h1>Stop Details</h1><p><strong>Name:</strong> {stop_data['name']}</p><p><strong>Location:</strong> {stop_data['location']}</p>"
-
-@app.get("/stops/search", response_class=HTMLResponse)
-async def search_stops(
-    name: str = Query(None),
-    location: str = Query(None)
-):
+# Endpoint para obtener todas las paradas (JSON)
+@app.get("/json")
+async def listar_paradas_json():
+    """Lista todas las paradas en formato JSON."""
     dummy = StopOut.get_empty_instance()
-    all_stops = controller.read_all(dummy)
-    
-    filtered = []
-    for stop in all_stops:
-        stop_data = stop['stop_data']
-        matches = True
-        if name and name.lower() not in stop_data.get('name', '').lower():
-            matches = False
-        if location and location.lower() not in stop_data.get('location', '').lower():
-            matches = False
-        if matches:
-            filtered.append(stop)
-    
-    if not filtered:
-        return "<h1>No Stops Found</h1>"
-    
-    filtered_list = "".join([f"<li>{stop['stop_data']['name']} - {stop['stop_data']['location']}</li>" for stop in filtered])
-    return f"<h1>Search Results</h1><ul>{filtered_list}</ul>"
+    paradas = controller.read_all(dummy)
+    return JSONResponse(content={"data": [parada.dict() for parada in paradas]})
+
+# Endpoint para obtener una parada por ID (HTML)
+@app.get("/{stop_id}", response_class=HTMLResponse)
+async def obtener_parada_html(request: Request, stop_id: str):
+    """Obtiene una parada por su ID y la muestra en HTML."""
+    parada = controller.get_by_id(StopOut, stop_id)
+    if not parada:
+        raise HTTPException(status_code=404, detail="Parada no encontrada")
+    return templates.TemplateResponse("detalle_parada.html", {"request": request, "parada": parada})
+
+# Endpoint para obtener una parada por ID (JSON)
+@app.get("/{stop_id}/json")
+async def obtener_parada_json(stop_id: str):
+    """Obtiene una parada por su ID en formato JSON."""
+    parada = controller.get_by_id(StopOut, stop_id)
+    if not parada:
+        raise HTTPException(status_code=404, detail="Parada no encontrada")
+    return JSONResponse(content={"data": parada.dict()})
+
+# Endpoint para buscar paradas (HTML)
+@app.get("/buscar", response_class=HTMLResponse)
+async def buscar_paradas_html(request: Request, nombre: str = Query(None), ubicacion: str = Query(None)):
+    """Busca paradas por nombre y/o ubicación y muestra los resultados en HTML."""
+    dummy = StopOut.get_empty_instance()
+    todas_las_paradas = controller.read_all(dummy)
+    filtradas = []
+    for parada in todas_las_paradas:
+        parada_data = parada.stop_data
+        coincide = True
+        if nombre and nombre.lower() not in parada_data.get('name', '').lower():
+            coincide = False
+        if ubicacion and ubicacion.lower() not in parada_data.get('location', '').lower():
+            coincide = False
+        if coincide:
+            filtradas.append(parada)
+
+    if filtradas:
+        return templates.TemplateResponse("resultados_busqueda.html", {"request": request, "paradas": filtradas})
+    else:
+        return templates.TemplateResponse("sin_resultados.html", {"request": request})
+
+# Endpoint para buscar paradas (JSON)
+@app.get("/buscar/json")
+async def buscar_paradas_json(nombre: str = Query(None), ubicacion: str = Query(None)):
+    """Busca paradas por nombre y/o ubicación y devuelve los resultados en JSON."""
+    dummy = StopOut.get_empty_instance()
+    todas_las_paradas = controller.read_all(dummy)
+    filtradas = []
+    for parada in todas_las_paradas:
+        parada_data = parada.stop_data
+        coincide = True
+        if nombre and nombre.lower() not in parada_data.get('name', '').lower():
+            coincide = False
+        if ubicacion and ubicacion.lower() not in parada_data.get('location', '').lower():
+            coincide = False
+        if coincide:
+            filtradas.append(parada.dict())
+
+    return JSONResponse(content={"data": filtradas})
 
 if __name__ == "__main__":
-    uvicorn.run("app:app", host="0.0.0.0", port=8008, reload=True)
+    app_main = FastAPI()
+    app_main.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],
+        allow_methods=["GET"],
+        allow_headers=["*"],
+    )
+    app_main.include_router(app)
+    uvicorn.run(app_main, host="0.0.0.0", port=8008)

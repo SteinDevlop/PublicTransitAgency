@@ -1,30 +1,21 @@
-from fastapi import FastAPI, Request, HTTPException
-from fastapi.responses import HTMLResponse
+from fastapi import FastAPI, Request, HTTPException, APIRouter
+from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.templating import Jinja2Templates
-from backend.app.models.payments import Payments
-from backend.app.models.card import Card
+from backend.app.models.payments import Payments, PaymentsOut  # Asegúrate de tener un PaymentsOut model
+from backend.app.models.card import Card, CardOut  # Asegúrate de tener un CardOut model
 from backend.app.logic.universal_controller_sql import UniversalController
 import uvicorn
-app = FastAPI(
-    title="Consulta de Pagos",
-    description="Microservicio para consultar pagos realizados con tarjetas",
-    version="1.0.0"
-)
+
+# Initialize the FastAPI router for the "payments" functionality
+app = APIRouter(prefix="/payments", tags=["pagos"])
 
 controller = UniversalController()
 templates = Jinja2Templates(directory="src/backend/app/templates")
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-@app.get("/schema/payments")
+@app.get("/schema", response_model=dict)
 async def get_payment_schema():
+    """Retorna el esquema de la entidad de pagos."""
     return {
         "name": "payments",
         "fields": [
@@ -33,45 +24,72 @@ async def get_payment_schema():
             {"name": "payment_quantity", "type": "number", "required": True},
             {"name": "payment_method", "type": "bool", "required": True},
             {"name": "vehicle_type", "type": "string", "required": True},
-            {"name": "card", "type": "string", "required": True}
+            {"name": "card_id", "type": "string", "required": True}  # Usar card_id para la relación
         ]
     }
 
-@app.get("/payments", response_class=HTMLResponse)
-async def get_all_payments(request: Request):
-    dummy = Payments(
-        user="",
-        payment_quantity=0,
-        payment_method=False,
-        vehicle_type="",
-        card=Card(id="", tipo="", balance=0)
-    )
-    pagos = controller.read_all(dummy)
-    return templates.TemplateResponse("ListaPagos.html", {"request": request, "pagos": pagos})
+@app.get("", response_class=HTMLResponse)
+async def listar_pagos_html(request: Request):
+    """Lista todos los pagos en formato HTML."""
+    pagos = controller.read_all(PaymentsOut)
+    return templates.TemplateResponse("listar_pagos.html", {"request": request, "pagos": pagos})
 
-@app.get("/payments/{payment_id}", response_class=HTMLResponse)
-async def get_payment_by_id(request: Request, payment_id: str):
-    payment = controller.get_by_id(Payments, payment_id)
-    if not payment:
+@app.get("/json")
+async def listar_pagos_json():
+    """Lista todos los pagos en formato JSON."""
+    pagos = controller.read_all(PaymentsOut)
+    return JSONResponse(content={"data": pagos})
+
+@app.get("/{payment_id}", response_class=HTMLResponse)
+async def obtener_pago_html(request: Request, payment_id: str):
+    """Obtiene un pago por su ID y lo muestra en HTML."""
+    pago = controller.get_by_id(PaymentsOut, payment_id)
+    if not pago:
         raise HTTPException(status_code=404, detail="Pago no encontrado")
-    return templates.TemplateResponse("DetallePago.html", {"request": request, "pago": payment})
+    return templates.TemplateResponse("detalle_pago.html", {"request": request, "pago": pago})
 
-@app.get("/payments/card/{card_id}", response_class=HTMLResponse)
-async def get_payments_by_card(request: Request, card_id: str):
-    card = controller.get_by_id(Card, card_id)
-    if not card:
+@app.get("/{payment_id}/json")
+async def obtener_pago_json(payment_id: str):
+    """Obtiene un pago por su ID en formato JSON."""
+    pago = controller.get_by_id(PaymentsOut, payment_id)
+    if not pago:
+        raise HTTPException(status_code=404, detail="Pago no encontrado")
+    return JSONResponse(content={"data": pago.dict()})
+
+@app.get("/tarjeta/{card_id}", response_class=HTMLResponse)
+async def obtener_pagos_por_tarjeta_html(request: Request, card_id: str):
+    """Obtiene los pagos asociados a una tarjeta y los muestra en HTML."""
+    tarjeta = controller.get_by_id(CardOut, card_id)
+    if not tarjeta:
         raise HTTPException(status_code=404, detail="Tarjeta no encontrada")
-    
-    dummy = Payments(
-        user="",
-        payment_quantity=0,
-        payment_method=False,
-        vehicle_type="",
-        card=Card(id="", tipo="", balance=0)
-    )
-    all_payments = controller.read_all(dummy)
-    pagos = [p for p in all_payments if p.card.id == card_id]
-    return templates.TemplateResponse("PagosPorTarjeta.html", {"request": request, "pagos": pagos, "card_id": card_id})
+
+    todos_los_pagos = controller.read_all(PaymentsOut)
+    pagos = [p for p in todos_los_pagos if p.card_id == card_id] # Asumiendo que PaymentsOut tiene card_id
+    return templates.TemplateResponse("pagos_por_tarjeta.html", {"request": request, "pagos": pagos, "card_id": card_id})
+
+@app.get("/tarjeta/{card_id}/json")
+async def obtener_pagos_por_tarjeta_json(card_id: str):
+    """Obtiene los pagos asociados a una tarjeta en formato JSON."""
+    tarjeta = controller.get_by_id(CardOut, card_id)
+    if not tarjeta:
+        raise HTTPException(status_code=404, detail="Tarjeta no encontrada")
+
+    todos_los_pagos = controller.read_all(PaymentsOut)
+    pagos = [p for p in todos_los_pagos if p.card_id == card_id] # Asumiendo que PaymentsOut tiene card_id
+    return JSONResponse(content={"data": [p.dict() for p in pagos]})
 
 if __name__ == "__main__":
-    uvicorn.run("incidence_query_service:app", host="0.0.0.0", port=8003, reload=True)
+    app_main = FastAPI(
+        title="Consulta de Pagos",
+        description="Microservicio para consultar pagos realizados con tarjetas",
+        version="1.0.0"
+    )
+    app_main.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+    app_main.include_router(app)
+    uvicorn.run(app_main, host="0.0.0.0", port=8003, reload=True)

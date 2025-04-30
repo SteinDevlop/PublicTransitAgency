@@ -1,50 +1,69 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request, Query, APIRouter
+from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
-from models.schedule import ScheduleOut
+from fastapi.templating import Jinja2Templates
+from backend.app.models.schedule import ScheduleOut
 from logic.universal_controller_sql import UniversalController
 import uvicorn
 
-app = FastAPI()
+# Initialize the FastAPI router for the "schedule" functionality
+app = APIRouter(prefix="/schedules", tags=["horarios"])
+
 controller = UniversalController()
+templates = Jinja2Templates(directory="src/backend/app/templates")
 
-# Configuración CORS
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["GET"],
-    allow_headers=["*"],
-)
+# Endpoint para la página de consulta principal (HTML)
+@app.get("/consultar", response_class=HTMLResponse)
+async def consultar_horarios_html(request: Request):
+    """Renderiza la página para consultar horarios."""
+    return templates.TemplateResponse("consultar_horarios.html", {"request": request})
 
-@app.get("/schedule", tags=["schedule"])
-async def get_all_schedules():
-    try:
-        schedules = controller.read_all(ScheduleOut)
-        return {
-            "operation": "read_all",
-            "success": True,
-            "data": schedules,
-            "message": "Schedules retrieved successfully"
-        }
-    except Exception as e:
-        raise HTTPException(500, detail="Internal server error")
+# Endpoint para obtener todos los horarios (HTML)
+@app.get("", response_class=HTMLResponse)
+async def listar_horarios_html(request: Request):
+    """Lista todos los horarios en formato HTML."""
+    dummy = ScheduleOut.get_empty_instance()
+    horarios = controller.read_all(dummy)
+    return templates.TemplateResponse("listar_horarios.html", {"request": request, "horarios": horarios})
 
-@app.get("/schedule/{schedule_id}", tags=["schedule"])
-async def get_schedule_by_id(schedule_id: str):
-    try:
-        schedule = controller.get_by_id(ScheduleOut, schedule_id)
-        if not schedule:
-            raise HTTPException(404, detail="Schedule not found")
-        return {
-            "operation": "read_by_id",
-            "success": True,
-            "data": schedule,
-            "message": f"Schedule {schedule_id} found"
-        }
-    except HTTPException as e:
-        raise e
-    except Exception as e:
-        raise HTTPException(500, detail="Internal server error")
+# Endpoint para obtener todos los horarios (JSON)
+@app.get("/json")
+async def listar_horarios_json():
+    """Lista todos los horarios en formato JSON."""
+    dummy = ScheduleOut.get_empty_instance()
+    horarios = controller.read_all(dummy)
+    return JSONResponse(content={"data": [horario.dict() for horario in horarios]})
+
+# Endpoint para obtener un horario por ID (HTML)
+@app.get("/{schedule_id}", response_class=HTMLResponse)
+async def obtener_horario_html(request: Request, schedule_id: str = Query(...)):
+    """Obtiene un horario por su ID y lo muestra en HTML."""
+    horario = controller.get_by_id(ScheduleOut, schedule_id)
+    if not horario:
+        raise HTTPException(status_code=404, detail="Horario no encontrado")
+    return templates.TemplateResponse("detalle_horario.html", {"request": request, "horario": horario})
+
+# Endpoint para obtener un horario por ID (JSON)
+@app.get("/{schedule_id}/json")
+async def obtener_horario_json(schedule_id: str = Query(...)):
+    """Obtiene un horario por su ID en formato JSON."""
+    horario = controller.get_by_id(ScheduleOut, schedule_id)
+    if not horario:
+        raise HTTPException(status_code=404, detail="Horario no encontrado")
+    return JSONResponse(content={"data": horario.dict()})
 
 if __name__ == "__main__":
-    uvicorn.run("app:app", host="0.0.0.0", port=8003, reload=True)
+    app_main = FastAPI(
+        title="Query Service - Horarios",
+        description="Microservicio para consulta de horarios de transporte",
+        version="1.0.0"
+    )
+    app_main.add_middleware(
+        CORSMiddleware,
+        allow_origins=["*"],
+        allow_credentials=True,
+        allow_methods=["GET"],
+        allow_headers=["*"],
+    )
+    app_main.include_router(app)
+    uvicorn.run(app_main, host="0.0.0.0", port=8003, reload=True)

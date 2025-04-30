@@ -2,17 +2,12 @@ from fastapi import FastAPI, Form, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse
+from backend.app.models.shift import ShiftCreate, ShiftOut
+from backend.app.logic.universal_controller_sql import UniversalController
 from datetime import datetime
-from models.shift import ShiftCreate, ShiftOut
-from logic.universal_controller_sql import UniversalController
 import uvicorn
 
-app = FastAPI(
-    title="Shift Management Service",
-    description="API para gestión de turnos laborales",
-    version="1.0.0"
-)
-
+app = FastAPI()
 controller = UniversalController()
 templates = Jinja2Templates(directory="src/backend/app/templates")
 
@@ -28,39 +23,26 @@ app.add_middleware(
 # Endpoints GET para formularios HTML
 @app.get("/shift/crear", response_class=HTMLResponse, tags=["shifts"])
 def show_create_form(request: Request):
-    """Muestra el formulario para crear nuevos turnos"""
     return templates.TemplateResponse("CrearTurno.html", {"request": request})
 
 @app.get("/shift/actualizar", response_class=HTMLResponse, tags=["shifts"])
 def show_update_form(request: Request):
-    """Muestra el formulario para actualizar turnos existentes"""
     return templates.TemplateResponse("ActualizarTurno.html", {"request": request})
 
 @app.get("/shift/eliminar", response_class=HTMLResponse, tags=["shifts"])
 def show_delete_form(request: Request):
-    """Muestra el formulario para eliminar turnos"""
     return templates.TemplateResponse("EliminarTurno.html", {"request": request})
 
 # Endpoints POST para operaciones
 @app.post("/shift/create", response_model=ShiftOut, tags=["shifts"])
 async def create_shift(
-    shift_id: str = Form(..., min_length=3, max_length=20),
-    unit: str = Form(..., min_length=2, max_length=50),
-    start_time: str = Form(..., description="Formato ISO (YYYY-MM-DD HH:MM:SS)"),
-    end_time: str = Form(..., description="Formato ISO (YYYY-MM-DD HH:MM:SS)"),
-    driver: str = Form(..., min_length=3, max_length=100),
-    schedule: str = Form(..., min_length=3, max_length=50)
+    shift_id: str = Form(...),
+    unit: str = Form(...),
+    start_time: str = Form(...),
+    end_time: str = Form(...),
+    driver: str = Form(...),
+    schedule: str = Form(...)
 ):
-    """
-    Crea un nuevo turno laboral
-    
-    - **shift_id**: ID único del turno (3-20 caracteres)
-    - **unit**: Unidad/área de trabajo (2-50 caracteres)
-    - **start_time**: Hora de inicio (formato ISO)
-    - **end_time**: Hora de fin (formato ISO)
-    - **driver**: Nombre del conductor/empleado (3-100 caracteres)
-    - **schedule**: Tipo de horario (3-50 caracteres)
-    """
     try:
         new_shift = ShiftCreate(
             shift_id=shift_id,
@@ -71,14 +53,7 @@ async def create_shift(
             schedule=schedule
         )
         result = controller.add(new_shift)
-        return ShiftOut(
-            shift_id=result.shift_id,
-            unit=result.unit,
-            start_time=result.start_time,
-            end_time=result.end_time,
-            driver=result.driver,
-            schedule=result.schedule
-        )
+        return ShiftOut(**result.__dict__)
     except ValueError as e:
         raise HTTPException(400, detail=str(e))
     except Exception as e:
@@ -93,16 +68,11 @@ async def update_shift(
     driver: str = Form(...),
     schedule: str = Form(...)
 ):
-    """
-    Actualiza un turno existente
-    
-    Requiere todos los campos para actualización completa
-    """
     try:
         existing = controller.get_by_id(ShiftOut, shift_id)
         if not existing:
             raise HTTPException(404, detail="Turno no encontrado")
-        
+
         updated_shift = ShiftCreate(
             shift_id=shift_id,
             unit=unit,
@@ -112,24 +82,14 @@ async def update_shift(
             schedule=schedule
         )
         result = controller.update(updated_shift)
-        return ShiftOut(
-            shift_id=result.shift_id,
-            unit=result.unit,
-            start_time=result.start_time,
-            end_time=result.end_time,
-            driver=result.driver,
-            schedule=result.schedule
-        )
+        return ShiftOut(**result.__dict__)
     except ValueError as e:
         raise HTTPException(400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(500, detail=str(e))
 
 @app.post("/shift/delete", tags=["shifts"])
 async def delete_shift(shift_id: str = Form(...)):
-    """
-    Elimina un turno existente
-    
-    - **shift_id**: ID del turno a eliminar
-    """
     try:
         existing = controller.get_by_id(ShiftOut, shift_id)
         if not existing:
@@ -141,4 +101,4 @@ async def delete_shift(shift_id: str = Form(...)):
         raise HTTPException(500, detail=str(e))
 
 if __name__ == "__main__":
-    uvicorn.run("main:app", host="0.0.0.0", port=8005, reload=True)
+    uvicorn.run("main:app", host="0.0.0.0", port=8003, reload=True)
