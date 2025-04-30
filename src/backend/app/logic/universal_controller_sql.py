@@ -65,10 +65,10 @@ class UniversalController:
 
     def get_by_id(self, cls: Any, id_value: Any) -> Any | None:
         """Retrieve an object by its ID."""
-        dummy = cls.from_dict({k: None for k in cls.get_fields().keys()})
+        dummy = cls.from_dict({k: None for k in cls.model_fields.keys()})
         self._ensure_table_exists(dummy)
         table = self._get_table_name(dummy)
-        id_field = list(cls.get_fields().keys())[0]
+        id_field = list(cls.model_fields().keys())[0]
 
         sql = f"SELECT * FROM {table} WHERE {id_field} = ?"
         self.cursor.execute(sql, (id_value,))

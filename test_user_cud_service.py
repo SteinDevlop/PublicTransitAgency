@@ -6,9 +6,9 @@ from fastapi import FastAPI, HTTPException, Form, Depends
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse, FileResponse, RedirectResponse
 
-from backend.app.api.routes.user_cud_service import app as user_router, get_controller
-from backend.app.models.user import UserCreate, UserOut
-from backend.app.logic.universal_controller_sql import UniversalController
+from src.backend.app.api.routes.user_cud_service import app as user_router, get_controller
+from src.backend.app.models.user import UserCreate, UserOut
+from src.backend.app.logic.universal_controller_sql import UniversalController
 
 # Montar una app para test
 test_app = FastAPI()
@@ -60,8 +60,12 @@ class MockUniversalController:
             return user
         raise HTTPException(status_code=404, detail="User not found")
 
+@pytest.fixture
+def mock_controller():
+    return MockUniversalController()
+
 @pytest.fixture(autouse=True)
-def override_controller(mock_controller: MockUniversalController):
+def override_controller(mock_controller):
     test_app.dependency_overrides[get_controller] = lambda: mock_controller
     yield
     test_app.dependency_overrides.clear()

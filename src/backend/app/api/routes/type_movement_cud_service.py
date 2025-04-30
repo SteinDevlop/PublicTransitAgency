@@ -7,8 +7,7 @@ from backend.app.logic.universal_controller_sql import UniversalController
 app = APIRouter(prefix="/typemovement", tags=["Type Movement"])
 templates = Jinja2Templates(directory="src/backend/app/templates")  # Set up the template directory
 
-def get_Controller():
-
+def get_controller():
     return UniversalController()
 
 

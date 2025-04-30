@@ -1,23 +1,20 @@
 import pytest
-from fastapi import FastAPI, HTTPException, Depends
 from fastapi.testclient import TestClient
-from unittest.mock import MagicMock
-from backend.app.models.price import PriceCreate, PriceOut
-from src.backend.app.api.routes.price_cud_service import app as price_router, get_controller  # Ajusta si el archivo se llama diferente
+from fastapi import FastAPI, HTTPException
+from src.backend.app.api.routes.price_cud_service import router as price_router, get_controller
+from src.backend.app.models.price import PriceOut
 from src.backend.app.logic.universal_controller_sql import UniversalController
 
-# Setup FastAPI app para pruebas
 app = FastAPI()
 app.include_router(price_router)
 client = TestClient(app)
 
-# Fixture que simula el controlador con funciones básicas mockeadas
 # Mock del controlador
 class MockUniversalController:
     def __init__(self):
         self.prices = {
-            1: PriceOut(id=1, unidadtransportype="Train", amount=100.0),
-            2: PriceOut(id=2, unidadtransportype="Bus", amount=50.0),
+            1: PriceOut(id=1, unidadtransportype="bus", amount=10.0),
+            2: PriceOut(id=2, unidadtransportype="train", amount=20.0),
         }
 
     def add(self, price):
@@ -39,50 +36,55 @@ class MockUniversalController:
             return price
         raise HTTPException(status_code=404, detail="Price not found")
 
-# Test de creación
+@pytest.fixture
+def mock_controller():
+    return MockUniversalController()
+
+@pytest.fixture(autouse=True)
+def override_controller(mock_controller):
+    app.dependency_overrides[get_controller] = lambda: mock_controller
+    yield
+    app.dependency_overrides.clear()
+
 def test_create_price():
-    response = client.post("/price/create", data={
-        "id": 3,
-        "unidadtransportype": "Boat",
-        "amount": 3000.0
-    })
+    response = client.post("/price/create", data={"id": 3, "unidadtransportype": "metro", "amount": 15.0})
     assert response.status_code == 200
-    result = response.json()
-    assert result["operation"] == "create"
-    assert result["success"] is True
-    assert result["data"]["unidadtransportype"] == "Boat"
+    data = response.json()
+    assert data["operation"] == "create"
+    assert data["success"] is True
+    assert data["data"]["id"] == 3
+    assert data["data"]["unidadtransportype"] == "metro"
+    assert data["data"]["amount"] == 15.0
+    assert "Price created successfully" in data["message"]
 
-# Test de actualización (cuando existe el ID)
-def test_update_price_success():
-    response = client.post("/price/update", data={
-        "id": 1,
-        "unidadtransportype": "Plane",
-        "amount": 9999.0  # Este valor se ignora en lógica actual
-    })
+def test_update_existing_price():
+    response = client.post("/price/update", data={"id": 1, "unidadtransportype": "taxi", "amount": 12.0})
     assert response.status_code == 200
-    result = response.json()
-    assert result["operation"] == "update"
-    assert result["success"] is True
-    assert result["data"]["unidadtransportype"] == "Plane"
+    data = response.json()
+    assert data["operation"] == "update"
+    assert data["success"] is True
+    assert data["data"]["id"] == 1
+    assert data["data"]["unidadtransportype"] == "taxi"
+    assert "updated successfully" in data["message"]
 
-# Test de actualización fallida (ID no encontrado)
-def test_update_price_not_found():
-    response = client.post("/price/update", data={
-        "id": 999,
-        "unidadtransportype": "Boat",
-        "amount": 4000.0
-    })
+def test_update_nonexistent_price():
+    response = client.post("/price/update", data={"id": 999, "unidadtransportype": "subway", "amount": 30.0})
+    print(response.text)
     assert response.status_code == 404
-    assert response.json()["detail"] == "price not found"
+    data = response.json()
+    assert data["detail"] == "Price not found"
 
-# Test de eliminación (cuando existe)
-def test_delete_price_success():
+def test_delete_existing_price():
     response = client.post("/price/delete", data={"id": 1})
     assert response.status_code == 200
-    assert response.json()["operation"] == "delete"
+    data = response.json()
+    assert data["operation"] == "delete"
+    assert data["success"] is True
+    assert "deleted successfully" in data["message"]
 
-# Test de eliminación fallida (ID no encontrado)
-def test_delete_price_not_found():
+def test_delete_nonexistent_price():
     response = client.post("/price/delete", data={"id": 999})
+    print(response.text)
     assert response.status_code == 404
-    assert response.json()["detail"] == "Price not found"
+    data = response.json()
+    assert data["detail"] == "Price not found"

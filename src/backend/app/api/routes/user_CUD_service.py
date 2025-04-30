@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Form, HTTPException,APIRouter,Request, Depends
+from fastapi import FastAPI, APIRouter, Form, HTTPException,APIRouter,Request, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse, FileResponse, RedirectResponse
@@ -6,22 +6,22 @@ from backend.app.models.user import UserCreate, UserOut  # Asegúrate de que tus
 from  backend.app.logic.universal_controller_sql import UniversalController 
 import uvicorn
 
-app = APIRouter(prefix="/user", tags=["User"])
+router = APIRouter(prefix="/user", tags=["user"])
 templates = Jinja2Templates(directory="src/backend/app/templates")
 
 def get_controller():
     return UniversalController()
 
-@app.get("/crear", response_class=HTMLResponse)
+@router.get("/crear", response_class=HTMLResponse)
 def index(request: Request):
     return templates.TemplateResponse("CrearUsuario.html", {"request": request})
-@app.get("/actualizar", response_class=HTMLResponse)
+@router.get("/actualizar", response_class=HTMLResponse)
 def index(request: Request):
     return templates.TemplateResponse("ActualizarUsuario.html", {"request": request})
-@app.get("/eliminar", response_class=HTMLResponse)
+@router.get("/eliminar", response_class=HTMLResponse)
 def index(request: Request):
     return templates.TemplateResponse("EliminarUsuario.html", {"request": request})
-@app.post("/create")
+@router.post("/create")
 async def create_user(
     id: int = Form(...),
     identification: int = Form(...),
@@ -60,7 +60,7 @@ async def create_user(
     except Exception as e:
         raise HTTPException(500, detail=f"Error interno del servidor: {str(e)}")
 
-@app.post("/update")
+@router.post("/update")
 async def update_user(
     id: int = Form(...),
     identification: int = Form(...),
@@ -104,7 +104,7 @@ async def update_user(
     except ValueError as e:
         raise HTTPException(400, detail=str(e))
 
-@app.post("/delete")
+@router.post("/delete")
 async def delete_user(id: int = Form(...), controller: UniversalController = Depends(get_controller)):
     try:
         # Buscar la usuario para eliminar
@@ -122,11 +122,3 @@ async def delete_user(id: int = Form(...), controller: UniversalController = Dep
         }
     except Exception as e:
         raise HTTPException(500, detail=str(e))
-
-if __name__ == "__main__":
-    uvicorn.run(
-        "app:app",  # Asegúrate de que tu archivo se llame app.py
-        host="0.0.0.0",
-        port=8001,  # Cambia el puerto si es necesario
-        reload=True
-    )

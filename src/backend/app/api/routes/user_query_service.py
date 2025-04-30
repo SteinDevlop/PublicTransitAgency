@@ -21,10 +21,6 @@ controller = UniversalController()
 # Plantillas HTML
 templates = Jinja2Templates(directory="src/backend/app/templates")
 
-@app.get('/consultar', response_class=HTMLResponse)
-def consultar(request: Request):
-    return templates.TemplateResponse("ConsultarUsuario.html", {"request": request})
-
 @app.get("/usuarios")
 async def get_usuarios():
     return controller.read_all(UserOut)
