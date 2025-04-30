@@ -21,7 +21,7 @@ def index_update(request: Request):
 @app.get("/borrar", response_class=HTMLResponse)
 def index_delete(request: Request):
     """Displays the form to delete an existing incidence."""
-    return templates.TemplateResponse("BorrarIncidencia.html", {"request": request})
+    return templates.TemplateResponse("EliminarIncidencia.html", {"request": request})
 
 @app.post("/create")
 async def create_incidence(
