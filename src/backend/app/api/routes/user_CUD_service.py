@@ -52,13 +52,13 @@ async def create_user(
             "success": True,
             "data": UserOut(id=new_user.id, identification=new_user.identification, name=new_user.name,
                             lastname=new_user.lastname, email=new_user.email,password=new_user.password,
-                            idtype_user=new_user.idtype_user, idturn=new_user.idturn).dict(),
-            "message": "Usario creado correctamente"
+                            idtype_user=new_user.idtype_user, idturn=new_user.idturn).model_dump(),
+            "message": "User created successfully"
         }
     except ValueError as e:
         raise HTTPException(400, detail=str(e))
     except Exception as e:
-        raise HTTPException(500, detail=f"Error interno del servidor: {str(e)}")
+        raise HTTPException(500, detail=f"An error occurred: {str(e)}")
 
 @router.post("/update")
 async def update_user(
@@ -75,8 +75,8 @@ async def update_user(
     try:
         # Buscar el usuario existente para actualización
         existing = controller.get_by_id(UserOut, id)  # Aquí usamos UserOut para buscar la usuario
-        if not existing:
-            raise HTTPException(404, detail="Usuario no encontrada")
+        if existing is None:
+            raise HTTPException(404, detail="User not found")
         
         # Crear una instancia del modelo UserCreate para validar los datos de actualización
         updated_user = UserCreate(
@@ -96,10 +96,10 @@ async def update_user(
         return {
             "operation": "update",
             "success": True,
-            "data": UserOut(id=update_user.id, identification=update_user.identification, name=update_user.name,
-                            lastname=update_user.lastname, email=update_user.email,password=update_user.password,
-                            idtype_user=update_user.idtype_user, idturn=update_user.idturn).dict(),
-            "message": f"Usuario {id} actualizado correctamente"
+            "data": UserOut(id=updated_user.id, identification=updated_user.identification, name=updated_user.name,
+                            lastname=updated_user.lastname, email=updated_user.email,password=updated_user.password,
+                            idtype_user=updated_user.idtype_user, idturn=updated_user.idturn).model_dump(),
+            "message": f"User updated successfully"
         }
     except ValueError as e:
         raise HTTPException(400, detail=str(e))
@@ -109,8 +109,8 @@ async def delete_user(id: int = Form(...), controller: UniversalController = Dep
     try:
         # Buscar la usuario para eliminar
         existing = controller.get_by_id(UserOut, id)  # Usamos UserOut para buscar la usuario
-        if not existing:
-            raise HTTPException(404, detail="Usuario no encontrado")
+        if existing is None:
+            raise HTTPException(404, detail="User not found")
         
         # Usamos el controlador para eliminar la usuario
         controller.delete(existing)
@@ -118,7 +118,9 @@ async def delete_user(id: int = Form(...), controller: UniversalController = Dep
         return {
             "operation": "delete",
             "success": True,
-            "message": f"Usuario {id} eliminado correctamente"
+            "message": f"User deleted successfully"
         }
+    except HTTPException:
+        raise
     except Exception as e:
-        raise HTTPException(500, detail=str(e))
+        raise HTTPException(500, detail=str(e))  # General server error
