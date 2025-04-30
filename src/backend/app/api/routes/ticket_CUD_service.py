@@ -2,7 +2,7 @@ from fastapi import FastAPI, Form, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse
-from models import TicketCreate, TicketOut
+from backend.app.models.ticket import TicketCreate, TicketOut
 from logic.universal_controller_sql import UniversalController
 import uvicorn
 
