@@ -1,92 +1,110 @@
-from fastapi import FastAPI, Form, HTTPException, Request
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.templating import Jinja2Templates
+from fastapi import FastAPI, Form, HTTPException, APIRouter, Request
 from fastapi.responses import HTMLResponse
+from fastapi.templating import Jinja2Templates
 from backend.app.models.incidence import IncidenceCreate, IncidenceOut
-from logic.universal_controller_sql import UniversalController
-import uvicorn
+from backend.app.logic.universal_controller_sql import UniversalController
 
-app = FastAPI(
-    title="CUD Service - Incidencias",
-    description="Microservicio para creación, actualización y eliminación de incidencias",
-    version="1.0.0"
-)
-
+app = APIRouter(prefix="/incidence", tags=["incidence"])
 controller = UniversalController()
 templates = Jinja2Templates(directory="src/backend/app/templates")
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["POST"],
-    allow_headers=["*"],
-)
-
-# Formularios HTML
-@app.get("/incidence/crear", response_class=HTMLResponse, tags=["incidence"])
-def show_create_form(request: Request):
+@app.get("/crear", response_class=HTMLResponse)
+def index_create(request: Request):
+    """Displays the form to create a new incidence."""
     return templates.TemplateResponse("CrearIncidencia.html", {"request": request})
 
-@app.get("/incidence/actualizar", response_class=HTMLResponse, tags=["incidence"])
-def show_update_form(request: Request):
+@app.get("/actualizar", response_class=HTMLResponse)
+def index_update(request: Request):
+    """Displays the form to update an existing incidence."""
     return templates.TemplateResponse("ActualizarIncidencia.html", {"request": request})
 
-@app.get("/incidence/eliminar", response_class=HTMLResponse, tags=["incidence"])
-def show_delete_form(request: Request):
-    return templates.TemplateResponse("EliminarIncidencia.html", {"request": request})
+@app.get("/borrar", response_class=HTMLResponse)
+def index_delete(request: Request):
+    """Displays the form to delete an existing incidence."""
+    return templates.TemplateResponse("BorrarIncidencia.html", {"request": request})
 
-# Operaciones POST
-@app.post("/incidence/create", response_model=IncidenceOut, tags=["incidence"])
+@app.post("/create")
 async def create_incidence(
-    description: str = Form(...),
-    type: str = Form(...),
-    status: str = Form(...),
-    incidence_id: int = Form(None)
+    Descripcion: str = Form(...),
+    Tipo: str = Form(None),
+    TicketID: int = Form(...)
 ):
+    """Creates a new incidence."""
     try:
-        incidence = IncidenceCreate(
-            description=description,
-            type=type,
-            status=status,
-            incidence_id=incidence_id
+        new_incidence = IncidenceCreate(
+            Descripcion=Descripcion,
+            Tipo=Tipo,
+            TicketID=TicketID
         )
-        result = controller.add(incidence)
-        return result
+        result = controller.add(new_incidence)
+        return {
+            "operation": "create",
+            "success": True,
+            "data": IncidenceOut(
+                IncidenciaID=result.IncidenciaID,
+                Descripcion=result.Descripcion,
+                Tipo=result.Tipo,
+                TicketID=result.TicketID
+            ).dict(),
+            "message": "Incidence created successfully"
+        }
     except ValueError as e:
         raise HTTPException(400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(500, detail=f"Internal server error: {str(e)}")
 
-@app.post("/incidence/update", response_model=IncidenceOut, tags=["incidence"])
+@app.post("/update")
 async def update_incidence(
-    incidence_id: int = Form(...),
-    description: str = Form(...),
-    type: str = Form(...),
-    status: str = Form(...)
+    IncidenciaID: int = Form(...),
+    Descripcion: str = Form(...),
+    Tipo: str = Form(None),
+    TicketID: int = Form(...)
 ):
+    """Updates an existing incidence."""
     try:
-        existing = controller.get_by_id(IncidenceOut, incidence_id)
-        if not existing:
-            raise HTTPException(404, detail="Incidencia no encontrada")
-        
-        updated = IncidenceCreate(
-            incidence_id=incidence_id,
-            description=description,
-            type=type,
-            status=status
+        existing_incidence = controller.get_by_id(IncidenceOut, IncidenciaID)
+        if not existing_incidence:
+            raise HTTPException(404, detail="Incidence not found")
+
+        updated_incidence = IncidenceCreate(
+            IncidenciaID=IncidenciaID,
+            Descripcion=Descripcion,
+            Tipo=Tipo,
+            TicketID=TicketID
         )
-        result = controller.update(updated)
-        return result
+        result = controller.update(updated_incidence)
+        return {
+            "operation": "update",
+            "success": True,
+            "data": IncidenceOut(
+                IncidenciaID=result.IncidenciaID,
+                Descripcion=result.Descripcion,
+                Tipo=result.Tipo,
+                TicketID=result.TicketID
+            ).dict(),
+            "message": f"Incidence {IncidenciaID} updated successfully"
+        }
     except ValueError as e:
         raise HTTPException(400, detail=str(e))
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        raise HTTPException(500, detail=f"Internal server error: {str(e)}")
 
-@app.post("/incidence/delete", tags=["incidence"])
-async def delete_incidence(incidence_id: int = Form(...)):
-    existing = controller.get_by_id(IncidenceOut, incidence_id)
-    if not existing:
-        raise HTTPException(404, detail="Incidencia no encontrada")
-    
-    controller.delete(existing)
-    return {"message": f"Incidencia {incidence_id} eliminada correctamente"}
-
-if __name__ == "__main__":
-    uvicorn.run("app:app", host="0.0.0.0", port=8001, reload=True)
+@app.post("/delete")
+async def delete_incidence(IncidenciaID: int = Form(...)):
+    """Deletes an existing incidence."""
+    try:
+        existing_incidence = controller.get_by_id(IncidenceOut, IncidenciaID)
+        if not existing_incidence:
+            raise HTTPException(404, detail="Incidence not found")
+        controller.delete(existing_incidence)
+        return {
+            "operation": "delete",
+            "success": True,
+            "message": f"Incidence {IncidenciaID} deleted successfully"
+        }
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        raise HTTPException(500, detail=str(e))

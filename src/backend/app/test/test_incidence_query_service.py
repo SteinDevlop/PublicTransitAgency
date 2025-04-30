@@ -1,78 +1,54 @@
-"""from fastapi import FastAPI
+from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from backend.app.api.routes.incidence_query_service import app as incidence_router
 
 app_for_test = FastAPI()
 app_for_test.include_router(incidence_router)
-
 client = TestClient(app_for_test)
 
-def test_consultar_incidencias_page():
-    response = client.get("/incidences/consultar")
+def test_consultar_page():
+    """Prueba que la ruta '/consultar' devuelve la plantilla 'ConsultarIncidencia.html' correctamente."""
+    response = client.get("/incidence/consultar")
     assert response.status_code == 200
-    assert "ConsultarIncidencia" in response.text
+    assert "Consultar Incidencia" in response.text
 
-def test_get_incidencias_json():
-    response = client.get("/incidences/json")
+def test_get_all_incidences():
+    """Prueba que la ruta '/incidencias' devuelve correctamente todas las incidencias."""
+    # Primero, crear algunas incidencias para probar
+    client.post(
+        "/incidence/create",
+        data={"Descripcion": "Incidencia1", "Tipo": "Tipo1", "TicketID": 5}
+    )
+    client.post(
+        "/incidence/create",
+        data={"Descripcion": "Incidencia2", "Tipo": "Tipo2", "TicketID": 6}
+    )
+    response = client.get("/incidence/incidencias")
     assert response.status_code == 200
-    data = response.json()["data"]
-    assert len(data) >= 0 # Puede haber 0 incidencias en la DB de prueba
+    data = response.json()
+    assert len(data) >= 2
+    assert data[0]["Descripcion"] in ["Incidencia1", "Incidencia2"]
+    assert data[0]["Tipo"] in ["Tipo1", "Tipo2"]
 
-def test_get_incidencia_html_existing():
-    existing_incidence_id = 1
-    response = client.get(f"/incidences/{existing_incidence_id}")
+def test_get_incidence_by_id_existing():
+    """Prueba que la ruta '/incidencia/{IncidenciaID}' devuelve la incidencia correcta cuando existe."""
+    # Primero, crear una incidencia para probar
+    create_response = client.post(
+        "/incidence/create",
+        data={"Descripcion": "FindByIDE", "Tipo": "TipoIDE", "TicketID": 7}
+    )
+    assert create_response.status_code == 200
+    created_data = create_response.json()["data"]
+    incidence_id = created_data["IncidenciaID"]
+
+    response = client.get(f"/incidence/incidencia/{incidence_id}")
     assert response.status_code == 200
-    assert "Detalle de Incidencia" in response.text # Asumiendo este título en el template
+    assert "FindByIDE" in response.text
+    assert "TipoIDE" in response.text
+    assert str(incidence_id) in response.text
 
-def test_get_incidencia_html_not_found():
-    non_existent_incidence_id = 9999
-    response = client.get(f"/incidences/{non_existent_incidence_id}")
-    assert response.status_code == 404
-    assert "Incidencia no encontrada" in response.text
-
-def test_get_incidencia_json_existing():
-    existing_incidence_id = 1
-    response = client.get(f"/incidences/{existing_incidence_id}/json")
+def test_get_incidence_by_id_not_found():
+    """Prueba que la ruta '/incidencia/{IncidenciaID}' devuelve 'None' cuando no encuentra la incidencia."""
+    response = client.get("/incidence/incidencia/9999")
     assert response.status_code == 200
-    data = response.json()["data"]
-    assert data["incidence_id"] == existing_incidence_id
-
-def test_get_incidencia_json_not_found():
-    non_existent_incidence_id = 9999
-    response = client.get(f"/incidences/{non_existent_incidence_id}/json")
-    assert response.status_code == 404
-    assert response.json()["detail"] == "Incidencia no encontrada"
-
-def test_listar_incidencias_html_sin_filtros():
-    response = client.get("/incidences")
-    assert response.status_code == 200
-    assert "Lista de Incidencias" in response.text # Asumiendo este título en el template
-
-def test_listar_incidencias_json_sin_filtros():
-    response = client.get("/incidences/json")
-    assert response.status_code == 200
-    data = response.json()["data"]
-    assert isinstance(data, list)
-
-def test_listar_incidencias_html_con_filtro():
-    response = client.get("/incidences?status=activo")
-    assert response.status_code == 200
-    assert "Lista de Incidencias" in response.text
-
-def test_listar_incidencias_json_con_filtro():
-    response = client.get("/incidences/json?status=activo")
-    assert response.status_code == 200
-    data = response.json()["data"]
-    assert isinstance(data, list)
-
-def test_listar_incidencias_html_con_paginacion():
-    response = client.get("/incidences?limit=2&skip=0")
-    assert response.status_code == 200
-    assert "Lista de Incidencias" in response.text
-
-def test_listar_incidencias_json_con_paginacion():
-    response = client.get("/incidences/json?limit=2&skip=0")
-    assert response.status_code == 200
-    data = response.json()["data"]
-    assert isinstance(data, list)
-    assert len(data) <= 2 """
+    assert "None" in response.text

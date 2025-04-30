@@ -1,31 +1,31 @@
+from typing import Optional
 from pydantic import BaseModel
-from typing import Dict, Any
-from src.backend.app.logic.ticket import Ticket
 
-class IncidenceBase(BaseModel):
+class IncidenceCreate(BaseModel):
+    __entity_name__ = "Incidencia"
+    IncidenciaID: Optional[int] = None
+    Descripcion: str
+    Tipo: Optional[str] = None
+    TicketID: int  # Clave foránea a la tabla Ticket
+
+    def to_dict(self):
+        return self.dict(by_alias=False)
+
     @classmethod
-    def get_fields(cls) -> Dict[str, str]:
+    def get_fields(cls):
         return {
-            "incidence_id": "INTEGER PRIMARY KEY",
-            "description": "TEXT NOT NULL",
-            "type": "TEXT NOT NULL",
-            "status": "TEXT NOT NULL"
+            "IncidenciaID": "INTEGER PRIMARY KEY",
+            "Descripcion": "TEXT NOT NULL",
+            "Tipo": "TEXT",
+            "TicketID": "INTEGER NOT NULL"  # Clave foránea
         }
 
-class IncidenceCreate(IncidenceBase):
-    description: str
-    type: str
-    status: str
-    incidence_id: int | None = None
+class IncidenceOut(BaseModel):
+    IncidenciaID: int
+    Descripcion: str
+    Tipo: Optional[str] = None
+    TicketID: int
 
-    def to_dict(self) -> Dict[str, Any]:
-        return self.dict()
-
-class IncidenceOut(IncidenceCreate):
     @classmethod
     def from_dict(cls, data: dict):
         return cls(**data)
-    
-    @classmethod
-    def get_empty_instance(cls):
-        return cls(description="", type="", status="", incidence_id=0)
