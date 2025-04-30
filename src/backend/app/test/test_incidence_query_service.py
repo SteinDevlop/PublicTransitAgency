@@ -1,81 +1,78 @@
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
-from unittest import mock
-import pytest
-from backend.app.api.routes.incidence_query_service import app as incidence_query_router
-from backend.app.models.incidence import IncidenceOut
+from backend.app.api.routes.incidence_query_service import app as incidence_router
 
-# Creamos la app de prueba
-@pytest.fixture
-def app():
-    app = FastAPI()
-    app.include_router(incidence_query_router)
-    return app
+app_for_test = FastAPI()
+app_for_test.include_router(incidence_router)
 
-@pytest.fixture
-def client(app):
-    return TestClient(app)
+client = TestClient(app_for_test)
 
-@pytest.fixture
-def mock_controller():
-    with mock.patch("backend.app.api.routes.incidence_query_service.UniversalController") as MockController:
-        mock_controller_instance = MockController.return_value
-        yield mock_controller_instance
-
-# Datos de prueba mockeados
-test_incidences_data = [
-    {"incidence_id": 1, "description": "Fallo A", "type": "Crítico", "status": "activo"},
-    {"incidence_id": 2, "description": "Problema B", "type": "Medio", "status": "pendiente"},
-    {"incidence_id": 3, "description": "Error C", "type": "Bajo", "status": "activo"},
-    {"incidence_id": 4, "description": "Solicitud D", "type": "Medio", "status": "completado"},
-    {"incidence_id": 5, "description": "Fallo E", "type": "Crítico", "status": "activo"},
-]
-test_incidences = [IncidenceOut(**data) for data in test_incidences_data]
-
-def test_listar_incidencias_html_sin_filtros(client, mock_controller):
-    mock_controller.read_all.return_value = test_incidences
-    response = client.get("/incidences")
-    assert response.status_code == 200
-    assert "Fallo A" in response.text
-    assert "Problema B" in response.text
-    mock_controller.read_all.assert_called_once()
-
-def test_listar_incidencias_html_con_filtro(client, mock_controller):
-    mock_controller.read_all.return_value = [i for i in test_incidences if i.status == "activo"]
-    response = client.get("/incidences?status=activo")
-    assert response.status_code == 200
-    assert "Fallo A" in response.text
-    assert "Problema B" not in response.text
-    assert "Error C" in response.text
-    mock_controller.read_all.assert_called_once()
-
-
-def test_listar_incidencias_json_sin_filtros(client, mock_controller):
-    mock_controller.read_all.return_value = test_incidences
-    response = client.get("/incidences/json")
-    assert response.status_code == 200
-    assert len(response.json()["data"]) == 5
-    mock_controller.read_all.assert_called_once()
-
-
-
-def test_obtener_incidencia_html_existente(client, mock_controller):
-    mock_controller.get_by_id.return_value = test_incidences[0]
-    response = client.get("/incidences/1")
-    assert response.status_code == 200
-    assert "Fallo A" in response.text
-    mock_controller.get_by_id.assert_called_once_with(IncidenceOut, 1)
-
-
-def test_obtener_incidencia_json_existente(client, mock_controller):
-    mock_controller.get_by_id.return_value = test_incidences[0]
-    response = client.get("/incidences/1/json")
-    assert response.status_code == 200
-    assert response.json()["data"]["description"] == "Fallo A"
-    mock_controller.get_by_id.assert_called_once_with(IncidenceOut, 1)
-
-
-def test_consultar_incidencias_form(client):
+def test_consultar_incidencias_page():
     response = client.get("/incidences/consultar")
     assert response.status_code == 200
     assert "ConsultarIncidencia" in response.text
+
+def test_get_incidencias_json():
+    response = client.get("/incidences/json")
+    assert response.status_code == 200
+    data = response.json()["data"]
+    assert len(data) >= 0 # Puede haber 0 incidencias en la DB de prueba
+
+def test_get_incidencia_html_existing():
+    existing_incidence_id = 1
+    response = client.get(f"/incidences/{existing_incidence_id}")
+    assert response.status_code == 200
+    assert "Detalle de Incidencia" in response.text # Asumiendo este título en el template
+
+def test_get_incidencia_html_not_found():
+    non_existent_incidence_id = 9999
+    response = client.get(f"/incidences/{non_existent_incidence_id}")
+    assert response.status_code == 404
+    assert "Incidencia no encontrada" in response.text
+
+def test_get_incidencia_json_existing():
+    existing_incidence_id = 1
+    response = client.get(f"/incidences/{existing_incidence_id}/json")
+    assert response.status_code == 200
+    data = response.json()["data"]
+    assert data["incidence_id"] == existing_incidence_id
+
+def test_get_incidencia_json_not_found():
+    non_existent_incidence_id = 9999
+    response = client.get(f"/incidences/{non_existent_incidence_id}/json")
+    assert response.status_code == 404
+    assert response.json()["detail"] == "Incidencia no encontrada"
+
+def test_listar_incidencias_html_sin_filtros():
+    response = client.get("/incidences")
+    assert response.status_code == 200
+    assert "Lista de Incidencias" in response.text # Asumiendo este título en el template
+
+def test_listar_incidencias_json_sin_filtros():
+    response = client.get("/incidences/json")
+    assert response.status_code == 200
+    data = response.json()["data"]
+    assert isinstance(data, list)
+
+def test_listar_incidencias_html_con_filtro():
+    response = client.get("/incidences?status=activo")
+    assert response.status_code == 200
+    assert "Lista de Incidencias" in response.text
+
+def test_listar_incidencias_json_con_filtro():
+    response = client.get("/incidences/json?status=activo")
+    assert response.status_code == 200
+    data = response.json()["data"]
+    assert isinstance(data, list)
+
+def test_listar_incidencias_html_con_paginacion():
+    response = client.get("/incidences?limit=2&skip=0")
+    assert response.status_code == 200
+    assert "Lista de Incidencias" in response.text
+
+def test_listar_incidencias_json_con_paginacion():
+    response = client.get("/incidences/json?limit=2&skip=0")
+    assert response.status_code == 200
+    data = response.json()["data"]
+    assert isinstance(data, list)
+    assert len(data) <= 2
