@@ -2,9 +2,9 @@ import pytest
 from fastapi.testclient import TestClient
 from fastapi import FastAPI, HTTPException
 
-from src.backend.app.api.routes.type_transport_cud_service import app as type_transport_router, get_controller
-from src.backend.app.models.type_transport import TypeTransportCreate, TypeTransportOut
-from src.backend.app.logic.universal_controller_sql import UniversalController
+from backend.app.api.routes.type_transport_cud_service import app as type_transport_router, get_controller
+from backend.app.models.type_transport import TypeTransportCreate, TypeTransportOut
+from backend.app.logic.universal_controller_sql import UniversalController
 
 app = FastAPI()
 app.include_router(type_transport_router)
