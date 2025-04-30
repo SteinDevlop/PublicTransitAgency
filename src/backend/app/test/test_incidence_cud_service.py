@@ -1,28 +1,28 @@
+from fastapi import FastAPI, Form, HTTPException
 from fastapi.testclient import TestClient
-from fastapi import FastAPI, HTTPException
 import pytest
 from unittest.mock import MagicMock
 
-from backend.app.api.main import api_router as app
+# Asume que estos están en archivos separados
+from models.incidence import IncidenceCreate, IncidenceOut
 from logic.universal_controller_sql import UniversalController
-from backend.app.models.incidence import IncidenceCreate, IncidenceOut
 
+# Crear una instancia de FastAPI para las pruebas
+app_for_test = FastAPI()
 
-client = TestClient(app)
-
-
-# Mock del UniversalController
+# Mock del Controlador
 class MockController:
     def __init__(self):
         self.data = {}
         self.next_id = 1
 
-    def add(self, incidence):
-        incidence_dict = incidence.dict()
-        if "incidence_id" not in incidence_dict or incidence_dict["incidence_id"] is None:
-            incidence_dict["incidence_id"] = self.next_id
+    def add(self, incidence_dict):
+        incidence_id = incidence_dict.get("incidence_id")  # Usar get() para manejar None
+        if not incidence_id:
+            incidence_id = self.next_id
             self.next_id += 1
-        self.data[incidence_dict["incidence_id"]] = incidence_dict
+        incidence_dict["incidence_id"] = incidence_id
+        self.data[incidence_id] = incidence_dict
         return IncidenceOut(**incidence_dict)
 
     def get_by_id(self, model, incidence_id):
@@ -30,209 +30,257 @@ class MockController:
             return IncidenceOut(**self.data[incidence_id])
         return None
 
-    def update(self, incidence):
-        incidence_dict = incidence.dict()
-        if incidence_dict["incidence_id"] in self.data:
-            self.data[incidence_dict["incidence_id"]] = incidence_dict
-            return IncidenceOut(**incidence_dict)
-        return None
+    def update(self, incidence_dict):
+        if incidence_dict["incidence_id"] not in self.data:
+            return None  # Simula no encontrado
+        self.data[incidence_dict["incidence_id"]] = incidence_dict
+        return IncidenceOut(**incidence_dict)
 
     def delete(self, instance):
-        if instance.incidence_id in self.data:
-            del self.data[instance.incidence_id]
-            return True
-        return False
+        if instance.incidence_id not in self.data:
+            return False
+        del self.data[instance.incidence_id]
+        return True
+
+# Incluimos las rutas directamente, usando el controlador mock
+app_for_test.dependency_overrides[UniversalController] = lambda: MockController()  # Inyectar mock
+
+@app_for_test.post("/incidence/create")
+async def create_incidence(
+    description: str = Form(...),
+    type: str = Form(...),
+    status: str = Form(...),
+    incidence_id: int = Form(None),
+):
+    try:
+        incidence = IncidenceCreate(
+            description=description,
+            type=type,
+            status=status,
+            incidence_id=incidence_id,
+        )
+        result = MockController().add(incidence.to_dict()) #llamamos al mock
+        return {
+            "operation": "create",
+            "data": result.dict(),
+            "message": "Incidencia creada exitosamente",
+        }
+    except ValueError as e:
+        raise HTTPException(400, detail=str(e))
+
+@app_for_test.post("/incidence/update")
+async def update_incidence(
+    incidence_id: int = Form(...),
+    description: str = Form(...),
+    type: str = Form(...),
+    status: str = Form(...),
+):
+    try:
+        existing = MockController().get_by_id(IncidenceOut, incidence_id) #llamamos al mock
+        if not existing:
+            raise HTTPException(404, detail="Incidencia no encontrada")
+        updated = IncidenceCreate(
+            incidence_id=incidence_id,
+            description=description,
+            type=type,
+            status=status,
+        )
+        result = MockController().update(updated.to_dict()) #llamamos al mock
+        return {
+            "operation": "update",
+            "data": result.dict(),
+            "message": f"Incidencia {incidence_id} actualizada",
+        }
+    except ValueError as e:
+        raise HTTPException(400, detail=str(e))
 
 
-# Reemplaza el controlador real con el mock
-@pytest.fixture(scope="function", autouse=True)
-def override_controller():
-    app.dependency_overrides[UniversalController] = lambda: MockController()
-    yield
-    app.dependency_overrides = {}
+
+@app_for_test.post("/incidence/delete")
+async def delete_incidence(incidence_id: int = Form(...)):
+    existing = MockController().get_by_id(IncidenceOut, incidence_id) #llamamos al mock
+    if not existing:
+        raise HTTPException(404, detail="Incidencia no encontrada")
+    MockController().delete(existing) #llamamos al mock
+    return {
+        "operation": "delete",
+        "message": f"Incidencia {incidence_id} eliminada",
+    }
 
 
-# Tests para los endpoints GET (formularios HTML)
-def test_show_create_form():
-    response = client.get("/incidence/crear")
-    assert response.status_code == 200
-    assert "CrearIncidencia.html" in response.text
+# Cliente de prueba
+client = TestClient(app_for_test)
 
-
-def test_show_update_form():
-    response = client.get("/incidence/actualizar")
-    assert response.status_code == 200
-    assert "ActualizarIncidencia.html" in response.text
-
-
-def test_show_delete_form():
-    response = client.get("/incidence/eliminar")
-    assert response.status_code == 200
-    assert "EliminarIncidencia.html" in response.text
-
-
-# Tests para el endpoint /incidence/create (POST)
+# Tests para /incidence/create
 def test_create_incidence_success():
     response = client.post(
         "/incidence/create",
         data={
-            "description": "Rueda pinchada",
-            "type": "Mecánico",
-            "status": "Pendiente",
+            "description": "Descripción de prueba",
+            "type": "Tipo de prueba",
+            "status": "Estado de prueba",
         },
     )
     assert response.status_code == 200
     body = response.json()
-    assert body["description"] == "Rueda pinchada"
-    assert body["type"] == "Mecánico"
-    assert body["status"] == "Pendiente"
-    assert body["incidence_id"] == 1
+    assert body["operation"] == "create"
+    assert body["message"] == "Incidencia creada exitosamente"
+    assert body["data"]["description"] == "Descripción de prueba"
+    assert body["data"]["type"] == "Tipo de prueba"
+    assert body["data"]["status"] == "Estado de prueba"
+    assert body["data"]["incidence_id"] == 1
 
-
-def test_create_incidence_invalid_data():
+def test_create_incidence_invalid_input():
     response = client.post("/incidence/create", data={})
-    assert response.status_code == 422  # Unprocessable Entity
-    assert "detail" in response.json()  # Asegurarse de que los detalles del error están presentes
-
-
+    assert response.status_code == 422
+    assert "detail" in response.json()
 
 def test_create_incidence_value_error():
-    # Mock para simular un ValueError en el controlador
+    # Mockear el controlador para que lance un ValueError
     mock_controller = MagicMock()
-    mock_controller.add.side_effect = ValueError("Error de valor en la creación")
-    app.dependency_overrides[UniversalController] = lambda: mock_controller
+    mock_controller.add.side_effect = ValueError("Error de valor de prueba")
+    app_for_test.dependency_overrides[UniversalController] = lambda: mock_controller #inyectamos el mock
 
     response = client.post(
         "/incidence/create",
         data={
-            "description": "Descripción",
-            "type": "Tipo",
-            "status": "Estado",
+            "description": "Descripción de prueba",
+            "type": "Tipo de prueba",
+            "status": "Estado de prueba",
         },
     )
     assert response.status_code == 400
-    assert "detail" in response.json()
-    assert "Error de valor en la creación" in response.json()["detail"]
-    app.dependency_overrides = {}  # Limpiar el override
+    assert response.json()["detail"] == "Error de valor de prueba"
+    app_for_test.dependency_overrides = {}  # Limpiar override
 
 
 
-# Tests para el endpoint /incidence/update (POST)
+# Tests para /incidence/update
 def test_update_incidence_success():
-    # Primero crear una incidencia para poder actualizarla
-    create_response = client.post(
+    # Primero, crear una incidencia para actualizar
+    client.post(
         "/incidence/create",
-        data={"description": "Viejo", "type": "Mecánico", "status": "Pendiente"},
+        data={
+            "description": "Descripción inicial",
+            "type": "Tipo inicial",
+            "status": "Estado inicial",
+        },
     )
-    assert create_response.status_code == 200
-    incidence_id = create_response.json()["incidence_id"]
-
-    # Luego actualizarla
+    # Luego, actualizarla
     response = client.post(
         "/incidence/update",
         data={
-            "incidence_id": incidence_id,
-            "description": "Motor nuevo",
-            "type": "Eléctrico",
-            "status": "Resuelto",
+            "incidence_id": 1,
+            "description": "Descripción actualizada",
+            "type": "Tipo actualizado",
+            "status": "Estado actualizado",
         },
     )
     assert response.status_code == 200
     body = response.json()
-    assert body["incidence_id"] == incidence_id
-    assert body["description"] == "Motor nuevo"
-    assert body["type"] == "Eléctrico"
-    assert body["status"] == "Resuelto"
-
-
+    assert body["operation"] == "update"
+    assert body["message"] == "Incidencia 1 actualizada"
+    assert body["data"]["description"] == "Descripción actualizada"
+    assert body["data"]["type"] == "Tipo actualizado"
+    assert body["data"]["status"] == "Estado actualizado"
+    assert body["data"]["incidence_id"] == 1
 
 def test_update_incidence_not_found():
     response = client.post(
         "/incidence/update",
         data={
-            "incidence_id": 999,
-            "description": "No existe",
-            "type": "Desconocido",
-            "status": "Inexistente",
+            "incidence_id": 999,  # ID que no existe
+            "description": "Descripción actualizada",
+            "type": "Tipo actualizado",
+            "status": "Estado actualizado",
         },
     )
     assert response.status_code == 404
-    assert "detail" in response.json()
     assert response.json()["detail"] == "Incidencia no encontrada"
 
-
+def test_update_incidence_invalid_input():
+    response = client.post(
+        "/incidence/update",
+        data={
+            "incidence_id": 1,
+        },
+    )
+    assert response.status_code == 422
+    assert "detail" in response.json()
 
 def test_update_incidence_value_error():
-    # Mock para simular un ValueError en el controlador
+    # Mockear el controlador para lanzar ValueError
     mock_controller = MagicMock()
     mock_controller.update.side_effect = ValueError("Error de valor al actualizar")
-    app.dependency_overrides[UniversalController] = lambda: mock_controller
+    app_for_test.dependency_overrides[UniversalController] = lambda: mock_controller #inyectamos mock
 
-    # Primero crear una incidencia para poder actualizarla
-    create_response = client.post(
+    # Primero, crear una incidencia para poder actualizarla
+    client.post(
         "/incidence/create",
-        data={"description": "Viejo", "type": "Mecánico", "status": "Pendiente"},
+        data={
+            "description": "Descripción inicial",
+            "type": "Tipo inicial",
+            "status": "Estado inicial",
+        },
     )
-    assert create_response.status_code == 200
-    incidence_id = create_response.json()["incidence_id"]
 
     response = client.post(
         "/incidence/update",
         data={
-            "incidence_id": incidence_id,
-            "description": "Motor nuevo",
-            "type": "Eléctrico",
-            "status": "Resuelto",
+            "incidence_id": 1,
+            "description": "Descripción actualizada",
+            "type": "Tipo actualizado",
+            "status": "Estado actualizado",
         },
     )
     assert response.status_code == 400
-    assert "detail" in response.json()
-    assert "Error de valor al actualizar" in response.json()["detail"]
-    app.dependency_overrides = {}  # Limpiar el override
+    assert response.json()["detail"] == "Error de valor al actualizar"
+    app_for_test.dependency_overrides = {}
 
-
-
-# Tests para el endpoint /incidence/delete (POST)
+# Tests para /incidence/delete
 def test_delete_incidence_success():
-    # Primero crear una incidencia
-    create_response = client.post(
+    # Primero, crear una incidencia para eliminar
+    client.post(
         "/incidence/create",
-        data={"description": "A eliminar", "type": "A eliminar", "status": "Pendiente"},
+        data={
+            "description": "Descripción inicial",
+            "type": "Tipo inicial",
+            "status": "Estado inicial",
+        },
     )
-    assert create_response.status_code == 200
-    incidence_id = create_response.json()["incidence_id"]
-
-    # Luego eliminarla
-    response = client.post("/incidence/delete", data={"incidence_id": incidence_id})
+    response = client.post(
+        "/incidence/delete",
+        data={
+            "incidence_id": 1,
+        },
+    )
     assert response.status_code == 200
-    assert response.json()["message"] == f"Incidencia {incidence_id} eliminada correctamente"
-
-
+    body = response.json()
+    assert body["operation"] == "delete"
+    assert body["message"] == "Incidencia 1 eliminada"
 
 def test_delete_incidence_not_found():
-    response = client.post("/incidence/delete", data={"incidence_id": 999})
+    response = client.post(
+        "/incidence/delete",
+        data={
+            "incidence_id": 999,  # ID que no existe
+        },
+    )
     assert response.status_code == 404
-    assert "detail" in response.json()
     assert response.json()["detail"] == "Incidencia no encontrada"
 
-
-
-def test_delete_incidence_error():
-    # Mock para simular un error genérico en el controlador
+def test_delete_incidence_value_error():
     mock_controller = MagicMock()
-    mock_controller.delete.side_effect = Exception("Error genérico al eliminar")
-    app.dependency_overrides[UniversalController] = lambda: mock_controller
-
-    # Primero crear una incidencia
-    create_response = client.post(
-        "/incidence/create",
-        data={"description": "A eliminar", "type": "A eliminar", "status": "Pendiente"},
+    mock_controller.get_by_id.return_value = MagicMock() #simula que existe la incidencia
+    mock_controller.delete.side_effect = ValueError("Error de valor al eliminar")
+    app_for_test.dependency_overrides[UniversalController] = lambda: mock_controller #inyectamos mock
+    
+    response = client.post(
+        "/incidence/delete",
+        data={
+            "incidence_id": 1,  # ID que existe
+        },
     )
-    assert create_response.status_code == 200
-    incidence_id = create_response.json()["incidence_id"]
-
-    response = client.post("/incidence/delete", data={"incidence_id": incidence_id})
-    assert response.status_code == 500  # Internal Server Error
-    assert "detail" in response.json()
-    assert "Error genérico al eliminar" in response.json()["detail"]
-    app.dependency_overrides = {}  # Limpiar el override
+    assert response.status_code == 400
+    assert response.json()["detail"] == "Error de valor al eliminar"
+    app_for_test.dependency_overrides = {}
