@@ -1,7 +1,7 @@
-"""from fastapi import FastAPI
+from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from backend.app.logic.universal_controller_sql import UniversalController
-from src.backend.app.api.routes.payment_cud_service import app as payment_router
+from src.backend.app.api.routes.payment_query_service import app as payment_router
 
 def setup_function():
     UniversalController().clear_tables()
@@ -101,4 +101,4 @@ def test_index_update_form():
 
 def test_index_delete_form():
     response = client.get("/payments/eliminar")
-    assert response.status_code == 200 """
+    assert response.status_code == 200 

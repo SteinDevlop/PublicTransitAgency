@@ -1,7 +1,7 @@
-"""from fastapi import FastAPI
+from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from fastapi.templating import Jinja2Templates
-from backend.app.api.routes.incidence_cud_service import app as incidence_router
+from backend.app.api.routes.incidence_query_service import app as incidence_router
 
 app_for_test = FastAPI()
 app_for_test.include_router(incidence_router)
@@ -10,26 +10,22 @@ templates = Jinja2Templates(directory="src/backend/app/templates")
 
 
 def test_create_incidence_form():
-    Prueba que la ruta '/incidence/crear' devuelve el formulario 'CrearIncidencia.html' correctamente.
     response = client.get("/incidence/crear")
     assert response.status_code == 200
     assert "Crear Incidencia" in response.text
 
 def test_update_incidence_form():
-    Prueba que la ruta '/incidence/actualizar' devuelve el formulario 'ActualizarIncidencia.html' correctamente.
     response = client.get("/incidence/actualizar")
     assert response.status_code == 200
     assert "Actualizar Incidencia" in response.text
 
 def test_delete_incidence_form():
-    Prueba que la ruta '/incidence/borrar' devuelve el formulario 'BorrarIncidencia.html' correctamente.
     response = client.get("/incidence/borrar")
     assert response.status_code == 200
     assert "Borrar Incidencia" in response.text
 
 
 def test_create_incidence():
-    Prueba la creación de una incidencia a través de la ruta '/incidence/create'.
     response = client.post(
         "/incidence/create",
         data={"Descripcion": "Incidencia de prueba", "Tipo": "Tipo prueba", "TicketID": 1}
@@ -44,7 +40,6 @@ def test_create_incidence():
 
 
 def test_update_incidence_existing():
-    Prueba la actualización de una incidencia existente a través de la ruta '/incidence/update'.
     # Primero, crear una incidencia para actualizar
     create_response = client.post(
         "/incidence/create",
@@ -73,7 +68,6 @@ def test_update_incidence_existing():
 
 
 def test_update_incidence_not_found():
-    Prueba que la ruta '/incidence/update' devuelve un error 404 si la incidencia no existe.
     response = client.post(
         "/incidence/update",
         data={"IncidenciaID": 9999, "Descripcion": "NonExistent", "Tipo": "None", "TicketID": 0}
@@ -84,7 +78,6 @@ def test_update_incidence_not_found():
 
 
 def test_delete_incidence_existing():
-    Prueba la eliminación de una incidencia existente a través de la ruta '/incidence/delete'.
     # Primero, crear una incidencia para eliminar
     create_response = client.post(
         "/incidence/create",
@@ -101,8 +94,7 @@ def test_delete_incidence_existing():
 
 
 def test_delete_incidence_not_found():
-    Prueba que la ruta '/incidence/delete' devuelve un error 404 si la incidencia no existe.
+
     response = client.post("/incidence/delete", data={"IncidenciaID": 9999})
     assert response.status_code == 404
     assert response.json()["detail"] == "Incidence not found"
-"""

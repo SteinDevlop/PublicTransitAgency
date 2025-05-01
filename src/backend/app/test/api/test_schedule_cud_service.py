@@ -1,6 +1,6 @@
 """from fastapi.testclient import TestClient
 from datetime import datetime, timedelta
-from backend.app.api.routes.schedule_cud_service import app
+from backend.app.api.routes.schedule_qu_service import app
 
 client = TestClient(app)
 

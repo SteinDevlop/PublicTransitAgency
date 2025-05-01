@@ -1,6 +1,6 @@
 """from fastapi.testclient import TestClient
 from datetime import datetime
-from backend.app.api.routes.shifts_cud_service import app
+from backend.app.api.routes.shifts_query_service import app
 client = TestClient(app)
 
 def test_create_shift():
