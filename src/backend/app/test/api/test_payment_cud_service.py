@@ -1,48 +1,104 @@
-"""from fastapi.testclient import TestClient
-from backend.app.api.routes.payment_cud_service import app
-from models.card import Card
+from fastapi import FastAPI
+from fastapi.testclient import TestClient
+from backend.app.logic.universal_controller_sql import UniversalController
+from backend.app.api.routes.payment_cud_service import app as payment_router
 
-client = TestClient(app)
+def setup_function():
+    UniversalController().clear_tables()
 
-def test_get_schema_payment():
-    response = client.get("/schema/payment")
+def teardown_function():
+    UniversalController().clear_tables()
+
+app_for_test = FastAPI()
+app_for_test.include_router(payment_router)
+client = TestClient(app_for_test)
+
+def test_create_payment():
+    response = client.post(
+        "/payments/create",
+        data={
+            "user": "test_user",
+            "payment_quantity": 10.50,
+            "payment_method": True,
+            "vehicle_type": 1,
+            "card_id": 123
+        }
+    )
     assert response.status_code == 200
-    assert "fields" in response.json()
-    assert any(f["name"] == "id" for f in response.json()["fields"])
-    assert any(f["name"] == "valor" for f in response.json()["fields"])
+    assert response.json()["success"] is True
+    assert response.json()["data"]["user"] == "test_user"
 
-def test_recharge_invalid_value_low(monkeypatch):
-    monkeypatch.setattr("src.backend.app.api.routes.payment_cud_service.controller.get_by_id", lambda cls, id: Card(id=id, balance=1000))
-    
-    response = client.post("/payment/tarjeta/test-id/recarga", params={"valor": 500, "tipo_transporte": "virtual"})
-    assert response.status_code == 400
-    assert "El valor debe estar entre" in response.text
+def test_update_payment_existing():
+    # Crear un pago primero
+    client.post(
+        "/payments/create",
+        data={
+            "user": "old_user",
+            "payment_quantity": 5.00,
+            "payment_method": False,
+            "vehicle_type": 2,
+            "card_id": 456
+        }
+    )
+    # Luego actualizarlo
+    response = client.post(
+        "/payments/update/1", # Assuming ID 1 was created
+        data={
+            "user": "new_user",
+            "payment_quantity": 7.50,
+            "payment_method": True,
+            "vehicle_type": 3,
+            "card_id": 789
+        }
+    )
+    assert response.status_code == 200
+    assert response.json()["success"] is True
+    assert response.json()["data"]["user"] == "new_user"
 
-def test_recharge_invalid_value_high(monkeypatch):
-    monkeypatch.setattr("src.backend.app.api.routes.payment_cud_service.controller.get_by_id", lambda cls, id: Card(id=id, balance=1000))
-    
-    response = client.post("/payment/tarjeta/test-id/recarga", params={"valor": 200000, "tipo_transporte": "virtual"})
-    assert response.status_code == 400
-    assert "El valor debe estar entre" in response.text
-
-def test_recharge_card_not_found(monkeypatch):
-    monkeypatch.setattr("src.backend.app.api.routes.payment_cud_service.controller.get_by_id", lambda cls, id: None)
-    
-    response = client.post("/payment/tarjeta/test-id/recarga", params={"valor": 5000, "tipo_transporte": "virtual"})
+def test_update_payment_not_found():
+    response = client.post(
+        "/payments/update/999",
+        data={
+            "user": "nonexistent_user",
+            "payment_quantity": 1.00,
+            "payment_method": False,
+            "vehicle_type": 4,
+            "card_id": 101
+        }
+    )
     assert response.status_code == 404
-    assert "Tarjeta no encontrada" in response.text
+    assert response.json()["detail"] == "Payment not found"
 
-def test_use_card_not_found(monkeypatch):
-    monkeypatch.setattr("src.backend.app.api.routes.payment_cud_service.controller.get_by_id", lambda cls, id: None)
-    
-    response = client.post("/tarjeta/test-id/uso", params={"valor": 5000, "tipo_transporte": "metro"})
+def test_delete_payment_existing():
+    # Crear un pago primero
+    client.post(
+        "/payments/create",
+        data={
+            "user": "to_delete",
+            "payment_quantity": 2.00,
+            "payment_method": True,
+            "vehicle_type": 5,
+            "card_id": 202
+        }
+    )
+    # Luego eliminarlo
+    response = client.post("/payments/delete/1") # Assuming ID 1 was created
+    assert response.status_code == 200
+    assert response.json()["success"] is True
+
+def test_delete_payment_not_found():
+    response = client.post("/payments/delete/999")
     assert response.status_code == 404
-    assert "Tarjeta no encontrada" in response.text
+    assert response.json()["detail"] == "Payment not found"
 
-def test_use_insufficient_balance(monkeypatch):
-    monkeypatch.setattr("src.backend.app.api.routes.payment_cud_service.controller.get_by_id", lambda cls, id: Card(id=id, balance=1000))
-    
-    response = client.post("/tarjeta/test-id/uso", params={"valor": 5000, "tipo_transporte": "metro"})
-    assert response.status_code == 400
-    assert "Saldo insuficiente" in response.text
-"""
+def test_index_create_form():
+    response = client.get("/payments/crear")
+    assert response.status_code == 200
+
+def test_index_update_form():
+    response = client.get("/payments/actualizar")
+    assert response.status_code == 200
+
+def test_index_delete_form():
+    response = client.get("/payments/eliminar")
+    assert response.status_code == 200

@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Confirmar Eliminación de Pago</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', path='/styles.css') }}">
+</head>
+<body>
+    <h1>Confirmar Eliminación de Pago</h1>
+    <p>¿Estás seguro de que deseas eliminar el pago con ID: {{ payment.id }}?</p>
+    <form action="/payments/delete/{{ payment.id }}" method="post">
+        <button type="submit">Eliminar Pago</button>
+    </form>
+    <a href="/payments/listar">Cancelar</a>
+</body>
+</html>
