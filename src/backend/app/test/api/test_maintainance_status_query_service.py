@@ -51,7 +51,7 @@ def test_get_status_by_id_existing():
     assert data["Status"] == "Activo"
 
 def test_get_status_by_id_not_found():
-    """Prueba que la ruta '/status/{ID}' devuelve 'None' cuando no encuentra el estado."""
+    """Prueba que la ruta '/status/{ID}' devuelve un error 404 cuando no encuentra el estado."""
     response = client.get("/maintainance_status/status/9999")
-    assert response.status_code == 404 # Cambiado a 404 ya que la ruta debería devolver un error si no existe
-    assert response.json()["detail"] == "Maintainance Status not found" # Añadido el mensaje de error esperado
+    assert response.status_code == 404
+    assert response.json()["detail"] == "Maintainance Status not found"
