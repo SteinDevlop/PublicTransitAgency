@@ -1,12 +1,13 @@
 from typing import Optional
 from pydantic import BaseModel
 
-class IncidenceCreate(BaseModel):
-    __entity_name__ = "Incidencia"
-    IncidenciaID: Optional[int] = None
+class IncidenceBase(BaseModel):
     Descripcion: str
     Tipo: Optional[str] = None
-    TicketID: int  # Clave foránea a la tabla Ticket
+    TicketID: int
+
+class IncidenceCreate(IncidenceBase):
+    __entity_name__ = "Incidencia"  # Añadido el atributo __entity_name__
 
     def to_dict(self):
         return self.dict(by_alias=False)
@@ -20,12 +21,9 @@ class IncidenceCreate(BaseModel):
             "TicketID": "INTEGER NOT NULL"  # Clave foránea
         }
 
-class IncidenceOut(BaseModel):
-    IncidenciaID: int
-    Descripcion: str
-    Tipo: Optional[str] = None
-    TicketID: int
 
-    @classmethod
-    def from_dict(cls, data: dict):
-        return cls(**data)
+class IncidenceOut(IncidenceBase):
+    IncidenciaID: int
+
+    class Config:
+        from_attributes = True 

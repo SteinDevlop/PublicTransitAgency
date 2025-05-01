@@ -25,7 +25,6 @@ def test_consultar_page_incidence():
 
 def test_get_all_incidences():
     """Prueba que la ruta '/incidencias' devuelve correctamente todas las incidencias."""
-    # Primero, crear algunas incidencias para probar
     uc = UniversalController()
     uc.add(IncidenceCreate(Descripcion="Incidencia1", Tipo="Tipo1", TicketID=5))
     uc.add(IncidenceCreate(Descripcion="Incidencia2", Tipo="Tipo2", TicketID=6))
@@ -39,7 +38,6 @@ def test_get_all_incidences():
 
 def test_get_incidence_by_id_existing():
     """Prueba que la ruta '/incidencia/{IncidenciaID}' devuelve la incidencia correcta cuando existe."""
-    # Primero, crear una incidencia para probar
     uc = UniversalController()
     created = uc.add(IncidenceCreate(Descripcion="FindByIDE", Tipo="TipoIDE", TicketID=7))
     incidence_id = created.IncidenciaID
