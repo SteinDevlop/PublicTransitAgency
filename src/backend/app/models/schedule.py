@@ -3,6 +3,7 @@ from typing import Optional, Dict, Any
 from pydantic import BaseModel
 
 class ScheduleBase(BaseModel):
+    __entity_name__ = "Horario"  # Agrega el atributo __entity_name__
     schedule_id: Optional[str] = None
     arrival_date: Optional[datetime.datetime] = None
     departure_date: Optional[datetime.datetime] = None
@@ -22,11 +23,13 @@ class ScheduleBase(BaseModel):
         }
 
 class ScheduleCreate(ScheduleBase):
+    __entity_name__ = "Horario" #Agrega el atributo
     arrival_date: datetime.datetime
     departure_date: datetime.datetime
     route_id: str
 
 class ScheduleOut(ScheduleBase):
+    __entity_name__ = "Horario" #Agrega el atributo
     class Config:
         from_attributes = True
 
