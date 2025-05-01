@@ -13,6 +13,10 @@ class Incidence(BaseModel):
         return self.model_dump()
 
     @classmethod
+    def from_dict(cls, data: dict):
+        return cls(**data)
+
+    @classmethod
     def get_fields(cls):
         return {
             "incidence_id": "INTEGER PRIMARY KEY",

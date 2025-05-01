@@ -13,14 +13,19 @@ templates = Jinja2Templates(directory="src/backend/app/templates")  # Asegúrate
 @app.get("/", response_class=HTMLResponse)
 def listar_incidencias(request: Request):
     """Renders the 'ListarIncidencia.html' template with all incidences."""
+<<<<<<< HEAD
     incidencias = controller.read_all(Incidence(description="", status="", type=""))
     return templates.TemplateResponse("ListarIncidencia.html", {"request": request, "incidencias": incidencias})
+=======
+    incidences = controller.read_all(Incidence())
+    return templates.TemplateResponse("ListarIncidencia.html", {"request": request, "incidences": incidences})
+>>>>>>> 93460d8 (incidence fix)
 
 
 @app.get("/{incidence_id}", response_class=HTMLResponse)
 def detalle_incidencia(incidence_id: int, request: Request):
     """Renders the 'DetalleIncidencia.html' template for a specific incidence."""
-    incidencia = controller.get_by_id(Incidence, incidence_id)
-    if not incidencia:
-        raise HTTPException(status_code=404, detail="Incidencia no encontrada")
-    return templates.TemplateResponse("DetalleIncidencia.html", {"request": request, "incidencia": incidencia})
+    incidence = controller.get_by_id(Incidence, incidence_id)
+    if not incidence:
+        raise HTTPException(status_code=404, detail="Incidence not found")
+    return templates.TemplateResponse("DetalleIncidencia.html", {"request": request, "incidence": incidence})
