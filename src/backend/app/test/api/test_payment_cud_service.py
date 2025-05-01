@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
-from backend.app.api.routes.payment_cud_service import router as payment_router  # Importa el router
+from backend.app.api.routes.payment_query_service import router as payment_router  
 from backend.app.logic.universal_controller_sql import UniversalController
 from backend.app.models.payments import PaymentCreate, PaymentOut
 import pytest
