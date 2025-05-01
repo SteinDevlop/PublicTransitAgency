@@ -1,6 +1,6 @@
 import pytest
 from fastapi.testclient import TestClient
-from backend.app.api.routes.transport_unit_cud_service import app as transports_router
+from backend.app.api.routes.transport_unit_CUD_service import app as transports_router
 from backend.app.models.transport import TransportUnitCreate
 from backend.app.logic.universal_controller_sql import UniversalController
 
