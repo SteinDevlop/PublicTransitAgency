@@ -1,8 +1,8 @@
 from typing import Optional
 from pydantic import BaseModel
 
-class TransportUnitCreate(BaseModel):
-    __entity_name__ = "unit_transport"
+class Transport(BaseModel):
+    __entity_name__ = "transport_unit"
     id: str
     type: str
     status: str
@@ -21,9 +21,3 @@ class TransportUnitCreate(BaseModel):
             "ubication": "TEXT",
             "capacity": "INTEGER"
         }
-
-class TransportUnitOut(TransportUnitCreate):
-    __entity_name__ = "unit_transport"
-    @classmethod
-    def from_dict(cls, data: dict):
-        return cls(**data)

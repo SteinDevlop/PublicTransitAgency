@@ -2,7 +2,7 @@ from fastapi import APIRouter, Form, HTTPException
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from backend.app.logic.universal_controller_sql import UniversalController
-from backend.app.models.transport import TransportUnitCreate
+from backend.app.models.transport import Transport
 
 app = APIRouter(prefix="/transports", tags=["transports"])
 controller = UniversalController()
@@ -14,7 +14,7 @@ def crear_unidad_form(request):
 
 @app.post("/create")
 def crear_unidad(id: str = Form(...), type: str = Form(...), status: str = Form(...), ubication: str = Form(...), capacity: int = Form(...)):
-    unidad = TransportUnitCreate(id=id, type=type, status=status, ubication=ubication, capacity=capacity)
+    unidad = Transport(id=id, type=type, status=status, ubication=ubication, capacity=capacity)
     try:
         controller.add(unidad)
         return RedirectResponse("/transports", status_code=303)
@@ -27,7 +27,7 @@ def actualizar_unidad_form(request):
 
 @app.post("/update")
 def actualizar_unidad(id: str = Form(...), type: str = Form(...), status: str = Form(...), ubication: str = Form(...), capacity: int = Form(...)):
-    unidad = TransportUnitCreate(id=id, type=type, status=status, ubication=ubication, capacity=capacity)
+    unidad = Transport(id=id, type=type, status=status, ubication=ubication, capacity=capacity)
     try:
         controller.update(unidad)
         return RedirectResponse("/transports", status_code=303)
@@ -40,7 +40,7 @@ def eliminar_unidad_form(request):
 
 @app.post("/delete")
 def eliminar_unidad(id: str = Form(...)):
-    unidad = TransportUnitCreate(id=id, type="", status="", ubication="", capacity=0)
+    unidad = Transport(id=id, type="", status="", ubication="", capacity=0)
     try:
         controller.delete(unidad)
         return RedirectResponse("/transports", status_code=303)

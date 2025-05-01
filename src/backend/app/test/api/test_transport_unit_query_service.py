@@ -2,7 +2,7 @@ import pytest
 from fastapi.testclient import TestClient
 from backend.app.api.routes.transport_unit_query_service import app as transports_router
 from backend.app.logic.universal_controller_sql import UniversalController
-from backend.app.models.transport import TransportUnitCreate
+from backend.app.models.transport import Transport
 
 client = TestClient(transports_router)
 
@@ -15,7 +15,7 @@ def test_listar_unidades():
 
 def test_detalle_unidad_existente():
     controller = UniversalController()
-    controller.add(TransportUnitCreate(id="1", type="Bus", status="bien", ubication="Garage", capacity=50))
+    controller.add(Transport(id="1", type="Bus", status="bien", ubication="Garage", capacity=50))
     response = client.get("/transports/1")
     assert response.status_code == 200
 
