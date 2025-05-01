@@ -1,6 +1,6 @@
 import pytest
 from fastapi.testclient import TestClient
-from backend.app.api.routes.stops_cud_service import stop_router
+from backend.app.api.routes.stops_CUD_service import stop_router
 from backend.app.logic.universal_controller_sql import UniversalController
 from backend.app.models.stops import StopCreate
 

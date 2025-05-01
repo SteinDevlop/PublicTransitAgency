@@ -19,14 +19,17 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Router para las operaciones CRUD de paradas
 stop_router = APIRouter(prefix="/stop", tags=["stop"])
 
 @stop_router.get("/crear", response_class=HTMLResponse)
 def crear_parada_form(request: Request):
+    """Renderiza el formulario para crear una nueva parada."""
     return templates.TemplateResponse("CrearParada.html", {"request": request})
 
 @stop_router.post("/create")
 def crear_parada(stop_id: int = Form(...), name: str = Form(...), location: str = Form(...)):
+    """Crea una nueva parada en la base de datos."""
     stop_data = {"name": name, "location": location}
     parada = StopCreate(stop_id=stop_id, stop_data=stop_data)
     try:
@@ -37,10 +40,12 @@ def crear_parada(stop_id: int = Form(...), name: str = Form(...), location: str 
 
 @stop_router.get("/actualizar", response_class=HTMLResponse)
 def actualizar_parada_form(request: Request):
+    """Renderiza el formulario para actualizar una parada existente."""
     return templates.TemplateResponse("ActualizarParada.html", {"request": request})
 
 @stop_router.post("/update")
 def actualizar_parada(stop_id: int = Form(...), name: str = Form(...), location: str = Form(...)):
+    """Actualiza una parada existente en la base de datos."""
     stop_data = {"name": name, "location": location}
     parada = StopCreate(stop_id=stop_id, stop_data=stop_data)
     try:
@@ -51,10 +56,12 @@ def actualizar_parada(stop_id: int = Form(...), name: str = Form(...), location:
 
 @stop_router.get("/eliminar", response_class=HTMLResponse)
 def eliminar_parada_form(request: Request):
+    """Renderiza el formulario para eliminar una parada existente."""
     return templates.TemplateResponse("EliminarParada.html", {"request": request})
 
 @stop_router.post("/delete")
 def eliminar_parada(stop_id: int = Form(...)):
+    """Elimina una parada existente de la base de datos."""
     parada = StopCreate(stop_id=stop_id, stop_data={})
     try:
         controller.delete(parada)
