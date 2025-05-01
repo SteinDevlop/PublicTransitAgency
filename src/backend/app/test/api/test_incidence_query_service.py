@@ -16,7 +16,7 @@ app_for_test = FastAPI()
 app_for_test.include_router(incidence_router)
 client = TestClient(app_for_test)
 
-def test_consultar_page():
+def test_consultar_page_incidence():
     """Prueba que la ruta '/consultar' devuelve la plantilla 'ConsultarIncidencia.html' correctamente."""
     response = client.get("/incidence/consultar")
     assert response.status_code == 200
@@ -50,7 +50,7 @@ def test_get_incidence_by_id_existing():
     assert data["TicketID"] == 7
 
 def test_get_incidence_by_id_not_found():
-    """Prueba que la ruta '/incidencia/{IncidenciaID}' devuelve 'None' cuando no encuentra la incidencia."""
+    """Prueba que la ruta '/incidencia/{IncidenciaID}' devuelve un error 404 cuando no encuentra la incidencia."""
     response = client.get("/incidence/incidencia/9999")
-    assert response.status_code == 404 # Cambiado a 404
+    assert response.status_code == 404
     assert response.json()["detail"] == "Incidence not found"
