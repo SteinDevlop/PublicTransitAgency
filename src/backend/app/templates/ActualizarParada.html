@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Actualizar Parada Existente</title>
+</head>
+<body>
+    <h1>Actualizar Parada</h1>
+    <form action="/stop/update" method="post">
+        <div>
+            <label for="stop_id">ID de la Parada a Actualizar:</label>
+            <input type="text" id="stop_id" name="stop_id" required>
+        </div>
+        <div>
+            <label for="name">Nuevo Nombre de la Parada:</label>
+            <input type="text" id="name" name="name" required>
+        </div>
+        <div>
+            <label for="location">Nueva Ubicación de la Parada:</label>
+            <input type="text" id="location" name="location" required>
+        </div>
+        <button type="submit">Actualizar Parada</button>
+    </form>
+    <p><a href="/stops">Volver a la lista de paradas</a></p>
+</body>
+</html>
