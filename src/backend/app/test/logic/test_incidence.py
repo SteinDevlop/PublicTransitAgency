@@ -1,60 +1,46 @@
 import unittest
-from src.backend.app.logic.incidence import Incidence
-from src.backend.app.logic.ticket import Ticket
+from backend.app.models.incidence import IncidenceCreate
 
 class TestIncidence(unittest.TestCase):
 
     def setUp(self):
-        self.ticket = Ticket(status_code=1, ID="TICKET001")
-        self.incidence = Incidence(
-            description="Descripción inicial",
-            type="Tipo inicial",
-            status=self.ticket,
-            incidence_id=1
-        )
+        self.incidence_data = {
+            "Descripcion": "Descripción de la incidencia",
+            "Tipo": "Tipo de incidencia",
+            "TicketID": 10
+        }
+        self.incidence = IncidenceCreate(**self.incidence_data)
 
     def test_initial_values(self):
-        self.assertEqual(self.incidence.description, "Descripción inicial")
-        self.assertEqual(self.incidence.type, "Tipo inicial")
-        self.assertEqual(self.incidence.status, self.ticket)
-        self.assertEqual(self.incidence.incidence_id, 1)
+        self.assertEqual(self.incidence.Descripcion, "Descripción de la incidencia")
+        self.assertEqual(self.incidence.Tipo, "Tipo de incidencia")
+        self.assertEqual(self.incidence.TicketID, 10)
 
     def test_setters(self):
-        new_ticket = Ticket(status_code=2, ID="TICKET002")
-        self.incidence.description = "Nueva descripción"
-        self.incidence.type = "Nuevo tipo"
-        self.incidence.status = new_ticket
-        self.incidence.incidence_id = 2
+        self.incidence.Descripcion = "Nueva descripción"
+        self.incidence.Tipo = "Nuevo tipo"
+        self.incidence.TicketID = 20
 
-        self.assertEqual(self.incidence.description, "Nueva descripción")
-        self.assertEqual(self.incidence.type, "Nuevo tipo")
-        self.assertEqual(self.incidence.status, new_ticket)
-        self.assertEqual(self.incidence.incidence_id, 2)
+        self.assertEqual(self.incidence.Descripcion, "Nueva descripción")
+        self.assertEqual(self.incidence.Tipo, "Nuevo tipo")
+        self.assertEqual(self.incidence.TicketID, 20)
 
-    def test_update_incidence(self):
-        new_ticket = Ticket(status_code=3, ID="TICKET003")
-        self.incidence.update_incidence(
-            description="Descripción actualizada",
-            type="Tipo actualizado",
-            status=new_ticket,
-            incidence_id=3
-        )
+    def test_to_dict(self):
+        expected_dict = {
+            "Descripcion": "Descripción de la incidencia",
+            "Tipo": "Tipo de incidencia",
+            "TicketID": 10
+        }
+        self.assertEqual(self.incidence.to_dict(), expected_dict)
 
-        self.assertEqual(self.incidence.description, "Descripción actualizada")
-        self.assertEqual(self.incidence.type, "Tipo actualizado")
-        self.assertEqual(self.incidence.status, new_ticket)
-        self.assertEqual(self.incidence.incidence_id, 3)
-
-    def test_update_incidence_without_id(self):
-        new_ticket = Ticket(status_code=3, ID="TICKET003")
-        with self.assertRaises(ValueError) as context:
-            self.incidence.update_incidence(
-                description="Descripción fallida",
-                type="Tipo fallido",
-                status=new_ticket,
-                incidence_id=None
-            )
-        self.assertEqual(str(context.exception), "Incidence ID is required.")
+    def test_get_fields(self):
+        expected_fields = {
+            "IncidenciaID": "INTEGER PRIMARY KEY",
+            "Descripcion": "TEXT NOT NULL",
+            "Tipo": "TEXT",
+            "TicketID": "INTEGER NOT NULL"
+        }
+        self.assertEqual(IncidenceCreate.get_fields(), expected_fields)
 
 if __name__ == "__main__":
     unittest.main()
