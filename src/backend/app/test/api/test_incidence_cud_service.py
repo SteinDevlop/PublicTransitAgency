@@ -1,26 +1,100 @@
-import pytest
+from fastapi import FastAPI
 from fastapi.testclient import TestClient
-from backend.app.api.routes.incidence_CUD_service import app as incidences_router
-from backend.app.logic.universal_controller_sql import UniversalController
-from backend.app.models.incidence import Incidence
+from fastapi.templating import Jinja2Templates
+from backend.app.api.routes.incidence_query_service import app as incidence_router
 
-client = TestClient(incidences_router)
+app_for_test = FastAPI()
+app_for_test.include_router(incidence_router)
+client = TestClient(app_for_test)
+templates = Jinja2Templates(directory="src/backend/app/templates")
 
-def setup_function():
-    UniversalController().clear_tables()
 
-def test_crear_incidencia():
-    response = client.post("/incidence/create", data={"description": "Accidente", "type": "Choque", "status": "Abierto"})
-    assert response.status_code == 303
+def test_create_incidence_form():
+    response = client.get("/incidence/crear")
+    assert response.status_code == 200
+    assert "Crear Incidencia" in response.text
 
-def test_actualizar_incidencia():
-    controller = UniversalController()
-    controller.add(Incidence(incidence_id=1, description="Accidente", type="Choque", status="Abierto"))
-    response = client.post("/incidence/update", data={"incidence_id": 1, "description": "Actualizado", "type": "Choque", "status": "Cerrado"})
-    assert response.status_code == 303
+def test_update_incidence_form():
+    response = client.get("/incidence/actualizar")
+    assert response.status_code == 200
+    assert "Actualizar Incidencia" in response.text
 
-def test_eliminar_incidencia():
-    controller = UniversalController()
-    controller.add(Incidence(incidence_id=1, description="Accidente", type="Choque", status="Abierto"))
-    response = client.post("/incidence/delete", data={"incidence_id": 1})
-    assert response.status_code == 303
+def test_delete_incidence_form():
+    response = client.get("/incidence/borrar")
+    assert response.status_code == 200
+    assert "Borrar Incidencia" in response.text
+
+
+def test_create_incidence():
+    response = client.post(
+        "/incidence/create",
+        data={"Descripcion": "Incidencia de prueba", "Tipo": "Tipo prueba", "TicketID": 1}
+    )
+    assert response.status_code == 200
+    data = response.json()
+    assert data["success"] == True
+    assert data["operation"] == "create"
+    assert data["data"]["Descripcion"] == "Incidencia de prueba"
+    assert data["data"]["Tipo"] == "Tipo prueba"
+    assert data["data"]["TicketID"] == 1
+
+
+def test_update_incidence_existing():
+    # Primero, crear una incidencia para actualizar
+    create_response = client.post(
+        "/incidence/create",
+        data={"Descripcion": "Original", "Tipo": "TipoOriginal", "TicketID": 2}
+    )
+    assert create_response.status_code == 200
+    created_data = create_response.json()["data"]
+    created_id = created_data["IncidenciaID"]
+
+    response = client.post(
+        "/incidence/update",
+        data={
+            "IncidenciaID": created_id,
+            "Descripcion": "Actualizada",
+            "Tipo": "TipoActualizado",
+            "TicketID": 3
+        }
+    )
+    assert response.status_code == 200
+    data = response.json()
+    assert data["success"] == True
+    assert data["operation"] == "update"
+    assert data["data"]["Descripcion"] == "Actualizada"
+    assert data["data"]["Tipo"] == "TipoActualizado"
+    assert data["data"]["TicketID"] == 3
+
+
+def test_update_incidence_not_found():
+    response = client.post(
+        "/incidence/update",
+        data={"IncidenciaID": 9999, "Descripcion": "NonExistent", "Tipo": "None", "TicketID": 0}
+    )
+    assert response.status_code == 404
+    assert response.json()["detail"] == "Incidence not found"
+
+
+
+def test_delete_incidence_existing():
+    # Primero, crear una incidencia para eliminar
+    create_response = client.post(
+        "/incidence/create",
+        data={"Descripcion": "ToDelete", "Tipo": "TipoDelete", "TicketID": 4}
+    )
+    assert create_response.status_code == 200
+    created_data = create_response.json()["data"]
+    deleted_id = created_data["IncidenciaID"]
+    response = client.post("/incidence/delete", data={"IncidenciaID": deleted_id})
+    assert response.status_code == 200
+    data = response.json()
+    assert data["success"] == True
+    assert data["operation"] == "delete"
+
+
+def test_delete_incidence_not_found():
+
+    response = client.post("/incidence/delete", data={"IncidenciaID": 9999})
+    assert response.status_code == 404
+    assert response.json()["detail"] == "Incidence not found"
