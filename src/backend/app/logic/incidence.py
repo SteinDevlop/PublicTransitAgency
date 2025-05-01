@@ -3,7 +3,6 @@ class Incidence:
     def __init__(self, description: str, type: str, status: Ticket, incidence_id: int = None):
         self._description = description
         self._type = type
-        self._status = status
         self._incidence_id = incidence_id
 
     @property
