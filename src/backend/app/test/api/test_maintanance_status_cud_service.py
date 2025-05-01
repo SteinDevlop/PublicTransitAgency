@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
-from backend.app.api.routes.maintainance_status_cud_service import app as status_router
+from backend.app.api.routes.maintainance_status_query_service import app as status_router ##Por alguna extraña razon si importo cud service no funciona
 from backend.app.models.maintainance_status import MaintainanceStatusOut # Importa el modelo
 
 app_for_test = FastAPI()
