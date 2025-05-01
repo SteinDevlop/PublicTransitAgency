@@ -2,7 +2,8 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from backend.app.api.routes.maintainance_status_query_service import app as status_router
 from backend.app.logic.universal_controller_sql import UniversalController
-from backend.app.models.maintainance_status import MaintainanceStatusCreate
+from backend.app.models.maintainance_status import MaintainanceStatusCreate, MaintainanceStatusOut # Importar el modelo de salida
+from typing import List, Dict, Any
 
 # Limpieza de base de datos antes y después de cada test
 def setup_function():
@@ -31,10 +32,11 @@ def test_get_all_status():
 
     response = client.get("/maintainance_status/status")
     assert response.status_code == 200
-    data = response.json()
+    data: List[Dict[str, Any]] = response.json()  # Anotación de tipo
     assert len(data) >= 2  # Verifica que al menos se devuelvan los estados creados
     assert data[0]["TipoEstado"] in ["Estado1", "Estado2"]
     assert data[0]["Status"] in ["Activo", "Inactivo"]
+    assert data[0]["UnidadTransporte"] in ["Unidad-A", "Unidad-B"] # Verificamos tambien la unidad de transporte
 
 def test_get_status_by_id_existing():
     """Prueba que la ruta '/status/{ID}' devuelve el estado correcto cuando existe."""
@@ -54,4 +56,4 @@ def test_get_status_by_id_not_found():
     """Prueba que la ruta '/status/{ID}' devuelve un error 404 cuando no encuentra el estado."""
     response = client.get("/maintainance_status/status/9999")
     assert response.status_code == 404
-    assert response.json()["detail"] == "Maintainance Status not found" 
+    assert response.json()["detail"] == "Maintainance Status not found"
