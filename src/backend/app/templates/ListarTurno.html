@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Listado de Turnos</title>
+</head>
+<body>
+    <h1>Listado de Turnos</h1>
+    <table>
+        <thead>
+            <tr>
+                <th>ID del Turno</th>
+                <th>Unidad</th>
+                <th>Hora de Inicio</th>
+                <th>Hora de Fin</th>
+                <th>Conductor</th>
+                <th>Horario</th>
+                <th>Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for shift in shifts %}
+            <tr>
+                <td>{{ shift.shift_id }}</td>
+                <td>{{ shift.unit_id }}</td>
+                <td>{{ shift.start_time }}</td>
+                <td>{{ shift.end_time }}</td>
+                <td>{{ shift.driver_id }}</td>
+                <td>{{ shift.schedule_id }}</td>
+                <td><a href="/shifts/detalles/{{ shift.shift_id }}">Detalles</a></td>
+            </tr>
+            {% else %}
+            <tr><td colspan="7">No hay turnos registrados.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    <p><a href="/">Volver</a></p>
+</body>
+</html>
