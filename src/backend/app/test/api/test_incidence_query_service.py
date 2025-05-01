@@ -1,4 +1,3 @@
-import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from backend.app.api.routes.incidence_query_service import app as incidence_router
@@ -41,7 +40,7 @@ def test_get_incidence_by_id_existing():
     """Prueba que la ruta '/incidencia/{IncidenciaID}' devuelve la incidencia correcta cuando existe."""
     uc = UniversalController()
     created = uc.add(IncidenceCreate(Descripcion="FindByIDE", Tipo="TipoIDE", TicketID=7))
-    incidence_id = created.IncidenciaID  # Obtener el ID del objeto creado
+    incidence_id = created.IncidenciaID
 
     response = client.get(f"/incidence/incidencia/{incidence_id}")
     assert response.status_code == 200
@@ -54,4 +53,4 @@ def test_get_incidence_by_id_not_found():
     """Prueba que la ruta '/incidencia/{IncidenciaID}' devuelve un error 404 cuando no encuentra la incidencia."""
     response = client.get("/incidence/incidencia/9999")
     assert response.status_code == 404
-    assert response.json()["detail"] == "Incidencia not found"
+    assert response.json()["detail"] == "Incidence not found"
