@@ -1,6 +1,6 @@
 import pytest
 from fastapi.testclient import TestClient
-from backend.app.api.routes.incidence_cud_service import app as incidences_router
+from backend.app.api.routes.incidence_CUD_service import app as incidences_router
 from backend.app.logic.universal_controller_sql import UniversalController
 from backend.app.models.incidence import Incidence
 
