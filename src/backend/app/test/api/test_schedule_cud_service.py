@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
-from backend.app.api.routes.schedule_cud_service import app as schedule_cud_router
+from backend.app.api.routes.schedule_query_service import app as schedule_cud_router
 
 # Creamos la app de prueba
 app_for_test = FastAPI()
