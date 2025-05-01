@@ -6,7 +6,7 @@ class TypeTransportCreate(BaseModel):
     type: str
 
     def to_dict(self):
-        return self.dict()
+        return self.model_dump()
 
 class TypeTransportOut(TypeTransportCreate):
     __entity_name__ = "typetransportunit"

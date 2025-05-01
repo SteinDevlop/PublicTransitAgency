@@ -5,7 +5,7 @@ from backend.app.logic.universal_controller_sql import UniversalController
 controller = UniversalController()
 app = APIRouter(prefix="/roluser", tags=["Rol User"])
 
-@app.get("/roluser/")
+@app.get("/rolusers/")
 def read_all():
     """
     Returns all records of RolUser.

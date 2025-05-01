@@ -6,7 +6,7 @@ class TypeMovementCreate(BaseModel):
     type: str
 
     def to_dict(self):
-        return self.dict()
+        return self.model_dump()
 
 class TypeMovementOut(TypeMovementCreate):
     __entity_name__ = "typemovement"
