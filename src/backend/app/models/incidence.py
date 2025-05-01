@@ -2,38 +2,25 @@ from typing import Optional
 from pydantic import BaseModel
 from backend.app.logic.universal_controller_sql import UniversalController
 
-class IncidenceBase(BaseModel):
-    Descripcion: str
-    Tipo: Optional[str] = None
-    TicketID: int
-
-class IncidenceCreate(IncidenceBase):
-    __entity_name__ = "Incidencia"  # Añadido el atributo __entity_name__
+class Incidence(BaseModel):
+    __entity_name__ = "incidence"
+    incidence_id: Optional[int] = None
+    description: str
+    status: str  # Relacionado con Ticket
+    type: str
 
     def to_dict(self):
-        return self.dict(by_alias=False)
-
-    @classmethod
-    def from_dict(cls, data: dict):
-        return cls(**data)
+        return self.model_dump()
 
     @classmethod
     def get_fields(cls):
         return {
-            "IncidenciaID": "INTEGER PRIMARY KEY",
-            "Descripcion": "TEXT NOT NULL",
-            "Tipo": "TEXT",
-            "TicketID": "INTEGER NOT NULL"  # Clave foránea
+            "incidence_id": "INTEGER PRIMARY KEY",
+            "description": "TEXT NOT NULL",
+            "status": "TEXT NOT NULL",
+            "type": "TEXT"
         }
 
-<<<<<<< HEAD
-
-class IncidenceOut(IncidenceBase):
-    IncidenciaID: int
-
-    class Config:
-        from_attributes = True 
-=======
 def inspect_tables():
     uc = UniversalController()
     uc.cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")
@@ -49,4 +36,3 @@ def setup_function():
         type="Choque",
         status="Abierto"
     ))
->>>>>>> 93460d8 (incidence fix)
