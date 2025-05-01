@@ -1,5 +1,3 @@
-<<<<<<< HEAD
-=======
 import unittest
 from backend.app.models.incidence import IncidenceCreate
 
@@ -46,4 +44,3 @@ class TestIncidence(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
->>>>>>> d9ce6cb (Rewind)

@@ -1,5 +1,3 @@
-<<<<<<< HEAD
-=======
 """from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from fastapi.templating import Jinja2Templates
@@ -101,4 +99,3 @@ def test_delete_incidence_not_found():
     assert response.status_code == 404
     assert response.json()["detail"] == "Incidence not found"
 """
->>>>>>> d9ce6cb (Rewind)

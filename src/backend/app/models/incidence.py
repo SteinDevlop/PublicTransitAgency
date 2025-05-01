@@ -1,5 +1,3 @@
-<<<<<<< HEAD
-=======
 from typing import Optional
 from pydantic import BaseModel
 
@@ -29,4 +27,3 @@ class IncidenceOut(IncidenceBase):
 
     class Config:
         from_attributes = True 
->>>>>>> d9ce6cb (Rewind)

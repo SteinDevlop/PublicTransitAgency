@@ -1,6 +1,3 @@
-<<<<<<< HEAD
- 
-=======
 from fastapi import FastAPI, Form, HTTPException, APIRouter, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
@@ -111,4 +108,3 @@ async def delete_incidence(IncidenciaID: int = Form(...)):
         raise e
     except Exception as e:
         raise HTTPException(500, detail=str(e))
->>>>>>> d9ce6cb (Rewind)
