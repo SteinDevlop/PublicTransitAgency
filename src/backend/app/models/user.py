@@ -11,7 +11,7 @@ class UserCreate(BaseModel):
     idturn: int
 
     def to_dict(self):
-        return self.dict()
+        return self.model_dump()
 
 class UserOut(UserCreate):
     __entity_name__ = "user"  # <- También aquí, porque se usa para lectura
