@@ -1,29 +1,29 @@
+from typing import Optional
 from pydantic import BaseModel
-from typing import Dict, Any
 
 class RouteBase(BaseModel):
+    __entity_name__ = "routes"
+    route_id: str
+    name: Optional[str] = None
+    origin: Optional[str] = None
+    destination: Optional[str] = None
+
+    def to_dict(self):
+        return self.dict()
+
     @classmethod
-    def get_fields(cls) -> Dict[str, str]:
+    def get_fields(cls):
         return {
             "route_id": "TEXT PRIMARY KEY",
-            "route": "JSON NOT NULL"
+            "name": "TEXT",
+            "origin": "TEXT",
+            "destination": "TEXT"
         }
 
 class RouteCreate(RouteBase):
-    route: Dict[str, Any]
-    route_id: str
+    pass
 
-    def to_dict(self) -> Dict[str, Any]:
-        return {
-            "route_id": self.route_id,
-            "route": self.route
-        }
-
-class RouteOut(RouteCreate):
+class RouteOut(RouteBase):
     @classmethod
     def from_dict(cls, data: dict):
-        return cls(route=data["route"], route_id=data["route_id"])
-    
-    @classmethod
-    def get_empty_instance(cls):
-        return cls(route={}, route_id="")
+        return cls(**data)

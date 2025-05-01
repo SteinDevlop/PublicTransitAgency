@@ -1,94 +1,84 @@
-from fastapi import FastAPI, Form, HTTPException, Request
-from fastapi.middleware.cors import CORSMiddleware
+from fastapi import FastAPI, Form, HTTPException, APIRouter, Request, Depends
 from fastapi.templating import Jinja2Templates
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, RedirectResponse
 from backend.app.models.routes import RouteCreate, RouteOut
 from backend.app.logic.universal_controller_sql import UniversalController
-import uvicorn
 
-app = FastAPI()
+app = APIRouter(prefix="/routes", tags=["routes"])
 controller = UniversalController()
 templates = Jinja2Templates(directory="src/backend/app/templates")
 
-# Configuración CORS
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+@app.get("/crear", response_class=HTMLResponse)
+def index_create(request: Request):
+    return templates.TemplateResponse("CrearRuta.html", {"request": request}) # Asegúrate de tener este HTML
 
-# Formulario para crear una nueva ruta
-@app.get("/routes/crear", response_class=HTMLResponse, tags=["cud_routes"])
-def show_create_form(request: Request):
-    return templates.TemplateResponse("CrearRuta.html", {"request": request})
+@app.get("/actualizar", response_class=HTMLResponse)
+def index_update(request: Request):
+    return templates.TemplateResponse("ActualizarRuta.html", {"request": request}) # Asegúrate de tener este HTML
 
-# Formulario para actualizar una ruta existente
-@app.get("/routes/actualizar", response_class=HTMLResponse, tags=["cud_routes"])
-def show_update_form(request: Request):
-    return templates.TemplateResponse("ActualizarRuta.html", {"request": request})
+@app.get("/eliminar", response_class=HTMLResponse)
+def index_delete(request: Request):
+    return templates.TemplateResponse("EliminarRuta.html", {"request": request}) # Asegúrate de tener este HTML
 
-# Formulario para eliminar una ruta existente
-@app.get("/routes/eliminar", response_class=HTMLResponse, tags=["cud_routes"])
-def show_delete_form(request: Request):
-    return templates.TemplateResponse("EliminarRuta.html", {"request": request})
-
-# Crear una nueva ruta
-@app.post("/routes/crear", response_model=RouteOut, tags=["cud_routes"])
+@app.post("/create")
 async def create_route(
-    request: Request,
     route_id: str = Form(...),
-    route_data: str = Form(...),  # Recibimos la ruta como string JSON
+    name: str = Form(None),
+    origin: str = Form(None),
+    destination: str = Form(None),
+    # user = Depends(get_current_user) # Si tienes autenticación
 ):
     try:
-        import json
-        route_dict = json.loads(route_data)
-        new_route = RouteCreate(route_id=route_id, route=route_dict)
+        new_route = RouteCreate(
+            route_id=route_id,
+            name=name,
+            origin=origin,
+            destination=destination
+        )
         result = controller.add(new_route)
-        return RouteOut(route_id=result.route_id, route=result.route)
-    except json.JSONDecodeError:
-        raise HTTPException(400, detail="Formato JSON inválido para la ruta")
+        return {"operation": "create", "success": True, "data": RouteOut(**result.to_dict()).dict(), "message": "Route created successfully"}
     except ValueError as e:
         raise HTTPException(400, detail=str(e))
     except Exception as e:
-        raise HTTPException(500, detail=f"Error interno del servidor: {str(e)}")
+        raise HTTPException(500, detail=f"Internal server error: {str(e)}")
 
-# Actualizar una ruta existente
-@app.post("/routes/actualizar", response_model=RouteOut, tags=["cud_routes"])
+@app.post("/update/{route_id}")
 async def update_route(
-    request: Request,
-    route_id: str = Form(...),
-    route_data: str = Form(...),  # Recibimos la ruta como string JSON
+    route_id: str,
+    name: str = Form(None),
+    origin: str = Form(None),
+    destination: str = Form(None),
+    # user = Depends(get_current_user) # Si tienes autenticación
 ):
     try:
         existing_route = controller.get_by_id(RouteOut, route_id)
         if not existing_route:
-            raise HTTPException(404, detail="Ruta no encontrada")
+            raise HTTPException(404, detail="Route not found")
 
-        import json
-        route_dict = json.loads(route_data)
-        updated_route = RouteCreate(route_id=route_id, route=route_dict) # Usamos RouteCreate para la validación
-        result = controller.update(updated_route)
-        return RouteOut(route_id=result.route_id, route=result.route)
-    except json.JSONDecodeError:
-        raise HTTPException(400, detail="Formato JSON inválido para la ruta")
+        update_data = RouteCreate(
+            route_id=route_id, # ID is part of the path, ensure it's consistent
+            name=name if name is not None else existing_route.name,
+            origin=origin if origin is not None else existing_route.origin,
+            destination=destination if destination is not None else existing_route.destination
+        )
+        result = controller.update(update_data)
+        return {"operation": "update", "success": True, "data": RouteOut(**result.to_dict()).dict(), "message": f"Route {route_id} updated successfully"}
     except ValueError as e:
         raise HTTPException(400, detail=str(e))
-    except Exception as e:
-        raise HTTPException(500, detail=f"Error interno del servidor: {str(e)}")
-
-# Eliminar una ruta existente
-@app.post("/routes/eliminar", tags=["cud_routes"])
-async def delete_route(request: Request, route_id: str = Form(...)):
-    try:
-        existing_route = controller.get_by_id(RouteOut, route_id)
-        if not existing_route:
-            raise HTTPException(404, detail="Ruta no encontrada")
-        controller.delete(existing_route)
-        return {"message": f"Ruta con ID {route_id} eliminada correctamente"}
+    except HTTPException as e:
+        raise e
     except Exception as e:
         raise HTTPException(500, detail=str(e))
 
-if __name__ == "__main__":
-    uvicorn.run("app_cud_routes:app", host="0.0.0.0", port=8004, reload=True)
+@app.post("/delete/{route_id}")
+async def delete_route(route_id: str):
+    try:
+        existing_route = controller.get_by_id(RouteOut, route_id)
+        if not existing_route:
+            raise HTTPException(404, detail="Route not found")
+        controller.delete(existing_route)
+        return {"operation": "delete", "success": True, "message": f"Route {route_id} deleted successfully"}
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        raise HTTPException(500, detail=str(e))

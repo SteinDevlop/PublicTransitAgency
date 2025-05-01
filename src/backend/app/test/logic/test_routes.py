@@ -2,32 +2,50 @@ import unittest
 from src.backend.app.logic.routes import Routes
 
 class TestRoutes(unittest.TestCase):
-    def setUp(self):
-        self.sample_route = {
-            "route_id": "R1",
-            "name": "Ruta Centro",
-            "stops": ["Stop1", "Stop2", "Stop3"]
-        }
-        self.route = Routes(self.sample_route, "R1")
 
-    def test_initial_route(self):
-        self.assertEqual(self.route.route, self.sample_route)
-        self.assertEqual(self.route.route_id, "R1")
+    def test_initialization_with_route_dict_and_id(self):
+        route_data = {"route_id": "RUT001", "name": "Ruta A"}
+        route_instance = Routes(route=route_data, route_id="EXTERNAL_ID")
+        self.assertEqual(route_instance.route, route_data)
+        self.assertEqual(route_instance.route_id, "EXTERNAL_ID")
 
-    def test_set_route(self):
-        new_route = {
-            "route_id": "R2",
-            "name": "Ruta Norte",
-            "stops": ["StopA", "StopB"]
-        }
-        self.route.route = new_route
-        self.assertEqual(self.route.route, new_route)
-        self.assertEqual(self.route.route_id, "R2")
+    def test_initialization_with_route_dict_only(self):
+        route_data = {"route_id": "RUT002", "origin": "Inicio", "destination": "Fin"}
+        route_instance = Routes(route=route_data)
+        self.assertEqual(route_instance.route, route_data)
+        self.assertEqual(route_instance.route_id, "RUT002")
 
-    def test_set_route_id(self):
-        self.route.route_id = "R3"
-        self.assertEqual(self.route.route_id, "R3")
-        self.assertEqual(self.route.route['route_id'], "R3")
+    def test_initialization_with_route_dict_without_id(self):
+        route_data = {"name": "Ruta B", "stops": ["S1", "S2"]}
+        route_instance = Routes(route=route_data)
+        self.assertEqual(route_instance.route, route_data)
+        self.assertIsNone(route_instance.route_id)
 
-if __name__ == "__main__":
+    def test_set_route_updates_route_id_if_present(self):
+        route_instance = Routes(route={"route_id": "OLD_ID", "name": "Vieja"})
+        new_route_data = {"route_id": "NEW_ID", "description": "Nueva"}
+        route_instance.route = new_route_data
+        self.assertEqual(route_instance.route, new_route_data)
+        self.assertEqual(route_instance.route_id, "NEW_ID")
+
+    def test_set_route_does_not_update_route_id_if_absent(self):
+        route_instance = Routes(route={"route_id": "OLD_ID", "name": "Vieja"})
+        new_route_data = {"description": "Nueva parada", "location": "Centro"}
+        route_instance.route = new_route_data
+        self.assertEqual(route_instance.route, new_route_data)
+        self.assertEqual(route_instance.route_id, "OLD_ID")
+
+    def test_set_route_id_updates_route_dict(self):
+        route_instance = Routes(route={"name": "Sin ID"})
+        route_instance.route_id = "ASSIGNED_ID"
+        self.assertEqual(route_instance.route['route_id'], "ASSIGNED_ID")
+        self.assertEqual(route_instance.route_id, "ASSIGNED_ID")
+
+    def test_set_route_id_overwrites_existing_id_in_route_dict(self):
+        route_instance = Routes(route={"route_id": "INITIAL_ID", "name": "Con ID"})
+        route_instance.route_id = "OVERWRITTEN_ID"
+        self.assertEqual(route_instance.route['route_id'], "OVERWRITTEN_ID")
+        self.assertEqual(route_instance.route_id, "OVERWRITTEN_ID")
+
+if __name__ == '__main__':
     unittest.main()
