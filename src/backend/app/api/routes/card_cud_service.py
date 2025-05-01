@@ -40,7 +40,6 @@ def index_delete(request: Request):
 async def create_card(
     id: int = Form(...),
     tipo: str = Form(...),
-    #user = Depends(get_current_user)
 ):
     """
     Creates a new card with the provided ID and type. The balance is initialized to 0.
@@ -52,7 +51,7 @@ async def create_card(
             balance=0
         )
         # Do not call to_dict() here
-        result = controller.add(new_card)
+        controller.add(new_card)
         
         return {
             "operation": "create",
@@ -70,8 +69,7 @@ async def create_card(
 async def update_card(
     id: int = Form(...),
     tipo: str = Form(...),
-    #user = Depends(get_current_user)
-):
+): 
     """
     Updates an existing card by its ID and new type.
     If the card does not exist, it returns a 404 error.
@@ -89,7 +87,7 @@ async def update_card(
             saldo=existing.balance
         )
         # Use the controller to update the card (convert model to dict)
-        result = controller.update(updated_card)
+        controller.update(updated_card)
         
         # Return the updated card response using CardOut
         return {

@@ -45,7 +45,7 @@ async def add_typecard(
         new_typecard = TypeCardCreate(id=id, type=type)
         
         # Add the new type of card using the controller
-        result = controller.add(new_typecard)
+        controller.add(new_typecard)
         
         return {
             "operation": "create",
@@ -78,7 +78,7 @@ async def update_typecard(
         updated_typecard = TypeCardCreate(id=id, type=type)
         
         # Update the type of card using the controller
-        result = controller.update(updated_typecard)
+        controller.update(updated_typecard)
         
         return {
             "operation": "update",
