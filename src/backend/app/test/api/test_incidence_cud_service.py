@@ -5,7 +5,7 @@ from backend.app.models.incidence import Incidence
 
 client = TestClient(incidences_router)
 
-def setup_function():
+def setup_function(): 
     UniversalController().clear_tables()
 
 def test_crear_incidencia():
