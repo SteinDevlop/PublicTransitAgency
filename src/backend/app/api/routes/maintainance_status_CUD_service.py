@@ -98,7 +98,7 @@ async def delete_maintainance_status(ID: int = Form(...)): # Usar "ID"
         existing_status = controller.get_by_id(MaintainanceStatusOut, ID) # Usar MaintainanceStatusOut
         if not existing_status:
             raise HTTPException(404, detail="Maintainance status not found")
-        controller.delete(existing_status)
+        controller.delete(existing_status) 
         return {
             "operation": "delete",
             "success": True,
