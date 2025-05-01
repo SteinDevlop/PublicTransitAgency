@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+"""from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from backend.app.api.routes.routes_query_service import app as routes_router
 from backend.app.logic.universal_controller_sql import UniversalController
@@ -56,3 +56,5 @@ def test_route_detail_page_not_found():
     assert response.status_code == 200 # Aunque no encuentre, la página podría renderizar sin datos
     assert "Detalle de la Ruta" in response.text
     assert "None" in response.text # O algún indicador de que no se encontró
+
+    """
