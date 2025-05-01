@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from backend.app.logic.universal_controller_sql import UniversalController
-from backend.app.api.routes.payment_cud_service import app as payment_router
+from src.backend.app.api.routes.payment_cud_service import app as payment_router
 
 def setup_function():
     UniversalController().clear_tables()
