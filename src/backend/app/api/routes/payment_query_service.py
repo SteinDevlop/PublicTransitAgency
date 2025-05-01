@@ -1,7 +1,6 @@
-from fastapi import FastAPI, APIRouter, Request, Query
-from fastapi.responses import HTMLResponse
-from fastapi import HTTPException
+from fastapi import FastAPI, Form, Request, HTTPException, APIRouter, Query
 from fastapi.templating import Jinja2Templates
+from fastapi.responses import HTMLResponse
 from backend.app.models.payments import PaymentOut
 from backend.app.logic.universal_controller_sql import UniversalController
 
@@ -9,23 +8,18 @@ app = APIRouter(prefix="/payments", tags=["payments"])
 controller = UniversalController()
 templates = Jinja2Templates(directory="src/backend/app/templates")
 
-@app.get("/listar", response_class=HTMLResponse)
-def list_payments_page(request: Request):
-    payments = controller.read_all(PaymentOut)
-    return templates.TemplateResponse("ListarPagos.html", {"request": request, "payments": payments})
+@app.get('/consultar', response_class=HTMLResponse)
+def consultar(request: Request):
+    """Renders the 'ConsultarPagos.html' template."""
+    return templates.TemplateResponse("ConsultarPagos.html", {"request": request})
 
-@app.get("/detalles/{id}", response_class=HTMLResponse)
-def payment_detail_page(request: Request, id: int):
-    payment = controller.get_by_id(PaymentOut, id)
-    return templates.TemplateResponse("DetallePago.html", {"request": request, "payment": payment})
-
-@app.get("/all")
-async def get_all_payments():
-    return controller.read_all(PaymentOut)
-
-@app.get("/{id}")
-async def get_payment_by_id(id: int):
-    payment = controller.get_by_id(PaymentOut, id)
+@app.get("/{payment_id}", response_class=HTMLResponse)
+async def get_payment_by_id(request: Request, payment_id: int):
+    """Retrieves a payment by its ID and renders it using a template."""
+    payment = controller.get_by_id(PaymentOut, payment_id)
     if payment:
-        return payment
-    raise HTTPException(404, detail="Payment not found")
+        return templates.TemplateResponse("pago.html", {
+            "request": request,
+            "payment": payment
+        })
+    raise HTTPException(status_code=404, detail="Payment not found") # Devolver 404 si no se encuentra

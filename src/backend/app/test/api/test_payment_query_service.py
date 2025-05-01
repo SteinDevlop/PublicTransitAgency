@@ -34,7 +34,8 @@ def test_get_payment_by_id_existing():
     assert data["vehicle_type"] == 1
 
 def test_get_payment_by_id_not_found():
-    response = client.get("/payments/999")
+    """Prueba que la ruta '/payments/{payment_id}' devuelve un error 404 si el pago no existe."""
+    response = client.get("/payments/9999")
     assert response.status_code == 404
     assert response.json()["detail"] == "Payment not found"
 

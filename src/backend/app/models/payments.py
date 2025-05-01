@@ -10,7 +10,7 @@ class PaymentBase(BaseModel):
     payment_quantity: float
     payment_method: bool
     vehicle_type: int
-    card_id: Optional[int]  # Permitir que card_id sea None
+    card_id: int
 
     def to_dict(self):
         return self.dict()
@@ -24,13 +24,21 @@ class PaymentBase(BaseModel):
             "payment_quantity": "REAL",
             "payment_method": "BOOLEAN",
             "vehicle_type": "INTEGER",
-            "card_id": "INTEGER"  
+            "card_id": "INTEGER"
         }
 
 class PaymentCreate(PaymentBase):
     pass
 
-class PaymentOut(PaymentBase):
+class PaymentOut(BaseModel): 
+    id: Optional[int]
+    date: Optional[datetime.datetime]
+    user: Optional[str]
+    payment_quantity: Optional[float]
+    payment_method: Optional[bool]
+    vehicle_type: Optional[int]
+    card_id: Optional[int]
+
     @classmethod
     def from_dict(cls, data: dict):
         return cls(**data)
