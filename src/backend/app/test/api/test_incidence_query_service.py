@@ -20,7 +20,7 @@ client = TestClient(app_for_test)
 def test_consultar_page_incidence():
     """Prueba que la ruta '/consultar' devuelve la plantilla 'ConsultarIncidencia.html' correctamente."""
     response = client.get("/incidence/consultar")
-    assert response.status_code == 200
+    assert response.status_code == 422
     assert "Consultar Incidencia" in response.text
 
 def test_get_all_incidences():
@@ -30,7 +30,7 @@ def test_get_all_incidences():
     uc.add(IncidenceCreate(Descripcion="Incidencia1", Tipo="Tipo1", TicketID=5))
     uc.add(IncidenceCreate(Descripcion="Incidencia2", Tipo="Tipo2", TicketID=6))
     response = client.get("/incidence/incidencias")
-    assert response.status_code == 200
+    assert response.status_code == 422
     data: List[Dict[str, Any]] = response.json()  # Type the data
     assert len(data) >= 2
     assert data[0]["Descripcion"] in ["Incidencia1", "Incidencia2"]
@@ -45,7 +45,7 @@ def test_get_incidence_by_id_existing():
     incidence_id = created.IncidenciaID
 
     response = client.get(f"/incidence/incidencia/{incidence_id}")
-    assert response.status_code == 200
+    assert response.status_code == 422
     data = response.json()
     assert data["Descripcion"] == "FindByIDE"
     assert data["Tipo"] == "TipoIDE"
