@@ -15,7 +15,7 @@ class Incidence(BaseModel):
     def get_fields(cls):
         return {
             "incidence_id": "INTEGER PRIMARY KEY",
-            "description": "TEXT",
+            "description": "TEXT NOT NULL",
             "type": "TEXT",
-            "status": "TEXT"
+            "status": "TEXT NOT NULL"
         }
