@@ -7,7 +7,7 @@ app_for_test = FastAPI()
 app_for_test.include_router(incidence_router)
 client = TestClient(app_for_test)
 templates = Jinja2Templates(directory="src/backend/app/templates")
-
+ 
 
 def test_create_incidence_form():
     response = client.get("/incidence/crear")
