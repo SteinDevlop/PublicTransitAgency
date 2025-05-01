@@ -5,7 +5,6 @@ class TestIncidence(unittest.TestCase):
 
     def setUp(self):
         self.incidence_data = {
-            "IncidenciaID": 1,
             "Descripcion": "Descripción de la incidencia",
             "Tipo": "Tipo de incidencia",
             "TicketID": 10
@@ -13,25 +12,21 @@ class TestIncidence(unittest.TestCase):
         self.incidence = IncidenceCreate(**self.incidence_data)
 
     def test_initial_values(self):
-        self.assertEqual(self.incidence.IncidenciaID, 1)
         self.assertEqual(self.incidence.Descripcion, "Descripción de la incidencia")
         self.assertEqual(self.incidence.Tipo, "Tipo de incidencia")
         self.assertEqual(self.incidence.TicketID, 10)
 
     def test_setters(self):
-        self.incidence.IncidenciaID = 2
         self.incidence.Descripcion = "Nueva descripción"
         self.incidence.Tipo = "Nuevo tipo"
         self.incidence.TicketID = 20
 
-        self.assertEqual(self.incidence.IncidenciaID, 2)
         self.assertEqual(self.incidence.Descripcion, "Nueva descripción")
         self.assertEqual(self.incidence.Tipo, "Nuevo tipo")
         self.assertEqual(self.incidence.TicketID, 20)
 
     def test_to_dict(self):
         expected_dict = {
-            "IncidenciaID": 1,
             "Descripcion": "Descripción de la incidencia",
             "Tipo": "Tipo de incidencia",
             "TicketID": 10
