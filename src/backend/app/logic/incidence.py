@@ -3,7 +3,10 @@ from src.backend.app.logic.ticket import Ticket
 class Incidence:
     def __init__(self, description: str, status: Ticket, type: str, incidence_id: int = None):
         self._description = description
+<<<<<<< HEAD
         self._status = status
+=======
+>>>>>>> e4587d1 (changes to incidence logic)
         self._type = type
         self._incidence_id = incidence_id
 
