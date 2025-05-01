@@ -1,8 +1,8 @@
 import pytest
 from fastapi.testclient import TestClient
-#from backend.app.api.routes.ticket_query_service import app as ticket_query_router
+from backend.app.api.routes.ticket_query_service import app as ticket_router
 from backend.app.models.ticket import TicketCreate
-from backend.app.api.routes.ticket_cud_service import app as ticket_router
+#from backend.app.api.routes.ticket_cud_service import app as ticket_router
 from backend.app.logic.universal_controller_sql import UniversalController
 
 client = TestClient(ticket_router)
