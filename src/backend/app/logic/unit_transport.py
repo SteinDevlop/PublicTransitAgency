@@ -5,7 +5,6 @@ class Transport:
         self._type = type
         self._status = status
         self._ubication = ubication
-        self._capacity = capacity
 
     @property
     def id(self):
