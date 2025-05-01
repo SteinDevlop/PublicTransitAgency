@@ -1,4 +1,4 @@
-from typing import Optional
+"""from typing import Optional
 from pydantic import BaseModel
 
 class Incidence(BaseModel):
@@ -18,4 +18,4 @@ class Incidence(BaseModel):
             "description": "TEXT NOT NULL",
             "status": "TEXT NOT NULL",
             "type": "TEXT"
-        }
+        }"""

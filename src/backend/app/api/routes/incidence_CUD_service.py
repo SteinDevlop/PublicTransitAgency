@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Form, HTTPException
+"""from fastapi import APIRouter, Form, HTTPException
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
 from backend.app.logic.universal_controller_sql import UniversalController
@@ -45,4 +45,5 @@ def eliminar_incidencia(incidence_id: int = Form(...)):
         controller.delete(incidencia)
         return RedirectResponse("/incidences", status_code=303)
     except ValueError as e:
-        raise HTTPException(status_code=404, detail=str(e))
+        raise HTTPException(status_code=404, detail=str(e)
+        """
