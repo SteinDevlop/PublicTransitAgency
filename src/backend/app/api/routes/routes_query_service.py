@@ -12,12 +12,12 @@ templates = Jinja2Templates(directory="src/backend/app/templates")
 @app.get("/listar", response_class=HTMLResponse)
 def list_routes_page(request: Request):
     routes = controller.read_all(RouteOut)
-    return templates.TemplateResponse("ListarRutas.html", {"request": request, "routes": routes}) # Asegúrate de tener este HTML
+    return templates.TemplateResponse("ListarRutas.html", {"request": request, "routes": routes}) 
 
 @app.get("/detalles/{route_id}", response_class=HTMLResponse)
 def route_detail_page(request: Request, route_id: str):
     route = controller.get_by_id(RouteOut, route_id)
-    return templates.TemplateResponse("DetalleRuta.html", {"request": request, "route": route}) # Asegúrate de tener este HTML
+    return templates.TemplateResponse("DetalleRuta.html", {"request": request, "route": route}) 
 
 @app.get("/all")
 async def get_all_routes():

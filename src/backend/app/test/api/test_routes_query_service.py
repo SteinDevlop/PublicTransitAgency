@@ -53,7 +53,7 @@ def test_route_detail_page_existing():
 
 def test_route_detail_page_not_found():
     response = client.get("/routes/detalles/RUT999")
-    assert response.status_code == 200 # Aunque no encuentre, la página podría renderizar sin datos
+    assert response.status_code == 404
     assert "Detalle de la Ruta" in response.text
     assert "None" in response.text # O algún indicador de que no se encontró
 
