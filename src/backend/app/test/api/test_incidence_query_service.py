@@ -4,7 +4,7 @@ from backend.app.api.routes.incidence_query_service import app as incidences_rou
 from backend.app.logic.universal_controller_sql import UniversalController
 from backend.app.models.incidence import Incidence
 
-client = TestClient(incidences_router)
+client = TestClient(incidences_router) 
 
 def setup_function():
     |||Limpia las tablas antes de cada prueba.|||
