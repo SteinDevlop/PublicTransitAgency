@@ -5,6 +5,7 @@ class Incidence:
         self._description = description
         self._status = status
         self._type = type
+        self._status = status
         self._incidence_id = incidence_id
 
     @property
