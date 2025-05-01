@@ -11,11 +11,11 @@ templates = Jinja2Templates(directory="src/backend/app/templates")
 
 @app.get("/crear", response_class=HTMLResponse)
 def index_create(request: Request):
-    return templates.TemplateResponse("CrearPago.html", {"request": request}) # Asegúrate de tener este HTML
+    return templates.TemplateResponse("CrearPago.html", {"request": request}) 
 
 @app.get("/actualizar", response_class=HTMLResponse)
 def index_update(request: Request):
-    return templates.TemplateResponse("ActualizarPago.html", {"request": request}) # Asegúrate de tener este HTML
+    return templates.TemplateResponse("ActualizarPago.html", {"request": request}) 
 
 @app.get("/eliminar", response_class=HTMLResponse)
 def index_delete(request: Request):
