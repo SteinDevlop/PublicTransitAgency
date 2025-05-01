@@ -1,7 +1,7 @@
-"""from fastapi import FastAPI
+from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from fastapi.templating import Jinja2Templates
-from backend.app.api.routes.incidence_query_service import app as incidence_router
+from backend.app.api.routes.incidence_CUD_service import app as incidence_router
 
 app_for_test = FastAPI()
 app_for_test.include_router(incidence_router)
@@ -98,4 +98,3 @@ def test_delete_incidence_not_found():
     response = client.post("/incidence/delete", data={"IncidenciaID": 9999})
     assert response.status_code == 404
     assert response.json()["detail"] == "Incidence not found"
-"""
