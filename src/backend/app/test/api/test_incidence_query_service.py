@@ -2,64 +2,46 @@ import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from backend.app.api.routes.incidence_query_service import app as incidence_router
-from backend.app.logic.universal_controller_sql import UniversalController  # Importa el controlador proporcionado
-from backend.app.models.incidence import IncidenceCreate, IncidenceOut
+from backend.app.logic.universal_controller_sql import UniversalController
+from backend.app.models.incidence import IncidenceCreate, IncidenceOut  # Importar IncidenceOut
 from typing import List, Dict, Any
 
+# Limpieza de base de datos antes y después de cada test
+def setup_function():
+    UniversalController().clear_tables()
 
-app = FastAPI()
-app.include_router(incidence_router)
-client = TestClient(app)
+def teardown_function():
+    UniversalController().clear_tables()
 
+# Creamos la app de prueba
+app_for_test = FastAPI()
+app_for_test.include_router(incidence_router)
+client = TestClient(app_for_test)
 
-# # Fixture para la sesión de la base de datos de prueba
-# @pytest.fixture(scope="function")
-# def db():
-#     create_tables()
-#     yield TestingSessionLocal()
-#     clear_tables()
-
-# Fixture para el controlador universal
-@pytest.fixture
-def controller():
-    return UniversalController()  # Utiliza el controlador proporcionado
-
-
-
-def test_consultar_incidence_page():
-    """Prueba que la ruta '/incidence/consultar' devuelve la plantilla 'ConsultarIncidencia.html' correctamente."""
+def test_consultar_page_incidence():
+    """Prueba que la ruta '/consultar' devuelve la plantilla 'ConsultarIncidencia.html' correctamente."""
     response = client.get("/incidence/consultar")
     assert response.status_code == 200
     assert "Consultar Incidencia" in response.text
 
-
-
-def test_get_all_incidences(controller: UniversalController):
-    """Prueba que la ruta '/incidence/incidencias' devuelve todas las incidencias."""
-    # Crear algunas incidencias de prueba usando el controlador
-    controller.clear_tables()  # Limpiar la base de datos antes de la prueba
-    incidence1 = IncidenceCreate(Descripcion="Incidencia1", Tipo="Tipo1", TicketID=5)
-    incidence2 = IncidenceCreate(Descripcion="Incidencia2", Tipo="Tipo2", TicketID=6)
-    controller.add(incidence1)
-    controller.add(incidence2)
-
+def test_get_all_incidences():
+    """Prueba que la ruta '/incidencias' devuelve correctamente todas las incidencias."""
+    uc = UniversalController()
+    uc.add(IncidenceCreate(Descripcion="Incidencia1", Tipo="Tipo1", TicketID=5))
+    uc.add(IncidenceCreate(Descripcion="Incidencia2", Tipo="Tipo2", TicketID=6))
     response = client.get("/incidence/incidencias")
     assert response.status_code == 200
-    data: List[Dict[str, Any]] = response.json()
+    data: List[Dict[str, Any]] = response.json()  # Type the data
     assert len(data) >= 2
     assert data[0]["Descripcion"] in ["Incidencia1", "Incidencia2"]
     assert data[0]["Tipo"] in ["Tipo1", "Tipo2"]
     assert data[0]["TicketID"] in [5, 6]
 
-
-
-def test_get_incidence_by_id_existing(controller: UniversalController):
-    """Prueba que la ruta '/incidence/incidencia/{IncidenciaID}' devuelve la incidencia correcta cuando existe."""
-    controller.clear_tables() # Clear table
-    # Crear una incidencia de prueba usando el controlador
-    incidence_create = IncidenceCreate(Descripcion="FindByIDE", Tipo="TipoIDE", TicketID=7)
-    created_incidence = controller.add(incidence_create)
-    incidence_id = created_incidence.IncidenciaID
+def test_get_incidence_by_id_existing():
+    """Prueba que la ruta '/incidencia/{IncidenciaID}' devuelve la incidencia correcta cuando existe."""
+    uc = UniversalController()
+    created = uc.add(IncidenceCreate(Descripcion="FindByIDE", Tipo="TipoIDE", TicketID=7))
+    incidence_id = created.IncidenciaID  # Obtener el ID del objeto creado
 
     response = client.get(f"/incidence/incidencia/{incidence_id}")
     assert response.status_code == 200
@@ -68,10 +50,8 @@ def test_get_incidence_by_id_existing(controller: UniversalController):
     assert data["Tipo"] == "TipoIDE"
     assert data["TicketID"] == 7
 
-
-
 def test_get_incidence_by_id_not_found():
-    """Prueba que la ruta '/incidence/incidencia/{IncidenciaID}' devuelve un error 404 cuando no encuentra la incidencia."""
+    """Prueba que la ruta '/incidencia/{IncidenciaID}' devuelve un error 404 cuando no encuentra la incidencia."""
     response = client.get("/incidence/incidencia/9999")
     assert response.status_code == 404
     assert response.json()["detail"] == "Incidencia not found"
