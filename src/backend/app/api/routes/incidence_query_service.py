@@ -1,57 +1,45 @@
-from fastapi import FastAPI
-from fastapi.testclient import TestClient
-from backend.app.api.routes.incidence_query_service import app as incidence_router
+from fastapi import FastAPI, Form, Request, HTTPException, APIRouter, Query
+from fastapi.templating import Jinja2Templates
+from fastapi.responses import HTMLResponse
+from backend.app.models.incidence import IncidenceOut
 from backend.app.logic.universal_controller_sql import UniversalController
-from backend.app.models.incidence import IncidenceCreate, IncidenceOut
-import pytest  # Importa pytest
+from typing import List, Optional
 
-# Limpieza de base de datos antes y después de cada test
-@pytest.fixture(scope="module")  # Usa un fixture de pytest para la limpieza
-def test_db():
-    UniversalController().clear_tables()
-    yield  # Permite que el test se ejecute
-    UniversalController().clear_tables()
+app = APIRouter(prefix="/incidence", tags=["incidence"])
+controller = UniversalController()
+templates = Jinja2Templates(directory="src/backend/app/templates")  # Asegúrate de que la ruta sea correcta
 
-# Creamos la app de prueba
-app_for_test = FastAPI()
-app_for_test.include_router(incidence_router)
-client = TestClient(app_for_test)
 
-def test_consultar_page():
-    """Prueba que la ruta '/consultar' devuelve la plantilla 'ConsultarIncidencia.html' correctamente."""
-    response = client.get("/incidence/consultar")
-    assert response.status_code == 200
-    assert "Consultar Incidencia" in response.text
+@app.get('/consultar', response_class=HTMLResponse)
+def consultar(request: Request):
+    """Renders the 'ConsultarIncidencia.html' template."""
+    return templates.TemplateResponse("ConsultarIncidencia.html", {"request": request})
 
-def test_get_all_incidences(test_db):  # Inyecta el fixture
-    """Prueba que la ruta '/incidencias' devuelve correctamente todas las incidencias."""
-    # Primero, crear algunas incidencias para probar
-    uc = UniversalController()
-    uc.add(IncidenceCreate(Descripcion="Incidencia1", Tipo="Tipo1", TicketID=5))
-    uc.add(IncidenceCreate(Descripcion="Incidencia2", Tipo="Tipo2", TicketID=6))
-    response = client.get("/incidence/incidencias")
-    assert response.status_code == 200
-    data = response.json()
-    assert len(data) >= 2
-    assert data[0]["Descripcion"] in ["Incidencia1", "Incidencia2"]
-    assert data[0]["Tipo"] in ["Tipo1", "Tipo2"]
 
-def test_get_incidence_by_id_existing(test_db):  # Inyecta el fixture
-    """Prueba que la ruta '/incidencia/{IncidenciaID}' devuelve la incidencia correcta cuando existe."""
-    # Primero, crear una incidencia para probar
-    uc = UniversalController()
-    created = uc.add(IncidenceCreate(Descripcion="FindByIDE", Tipo="TipoIDE", TicketID=7))
-    incidence_id = created.IncidenciaID # Usa el atributo IncidenciaID
 
-    response = client.get(f"/incidence/incidencia/{incidence_id}")
-    assert response.status_code == 200
-    data = response.json()
-    assert data["Descripcion"] == "FindByIDE"
-    assert data["Tipo"] == "TipoIDE"
-    assert data["TicketID"] == 7
+@app.get("/incidencias", response_model=List[IncidenceOut])
+async def get_all_incidences(
+        status: Optional[str] = Query(None),
+        skip: int = Query(0, ge=0),
+        limit: int = Query(10, ge=1)
+):
+    """Retrieves all incidences from the database."""
+    filters = {"status": status} if status else {}
+    incidences = controller.read_all(IncidenceOut, filters=filters, skip=skip, limit=limit)
+    return incidences #changed to return incidences
 
-def test_get_incidence_by_id_not_found():
-    """Prueba que la ruta '/incidencia/{IncidenciaID}' devuelve un error 404 cuando no encuentra la incidencia."""
-    response = client.get("/incidence/incidencia/9999")
-    assert response.status_code == 404 # Comprueba el código de estado 404
-    assert response.json()["detail"] == "Incidence not found"  # Y el mensaje de error
+
+
+@app.get("/incidencia/{IncidenciaID}", response_class=HTMLResponse)
+async def get_incidence_by_id(request: Request, IncidenciaID: int):
+    """Retrieves an incidence by its ID and renders it using a template."""
+    incidence = controller.get_by_id(IncidenceOut, IncidenciaID)
+    if not incidence:
+        raise HTTPException(status_code=404, detail="Incidencia not found")  # Devuelve 404 si no se encuentra
+    return templates.TemplateResponse("incidencia.html", {
+        "request": request,
+        "IncidenciaID": incidence.IncidenciaID,
+        "Descripcion": incidence.Descripcion,
+        "Tipo": incidence.Tipo,
+        "TicketID": incidence.TicketID
+    })
