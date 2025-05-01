@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 """import pytest
+=======
+import pytest
+>>>>>>> 84f3392 (updating tests)
 from fastapi.testclient import TestClient
 from backend.app.models.type_movement import TypeMovementOut
 from fastapi import FastAPI
@@ -19,16 +23,28 @@ class MockUniversalController:
         }
 
     def read_all(self, model):
+<<<<<<< HEAD
         ///Simula obtener todos los tipos de movimiento///
         return list(self.typemovements.values())
 
     def get_by_id(self, model, id_: int):
         ///Simula obtener un tipo de movimiento por ID///
+=======
+        """Simula obtener todos los tipos de movimiento"""
+        return list(self.typemovements.values())
+
+    def get_by_id(self, model, id_: int):
+        """Simula obtener un tipo de movimiento por ID"""
+>>>>>>> 84f3392 (updating tests)
         return self.typemovements.get(id_)
 
 @pytest.fixture(autouse=True)
 def override_controller(monkeypatch):
+<<<<<<< HEAD
     ///Fixture para reemplazar el controlador real por el mock///
+=======
+    """Fixture para reemplazar el controlador real por el mock"""
+>>>>>>> 84f3392 (updating tests)
     from backend.app.api.routes.type_movement_query_service import controller
     monkeypatch.setattr(controller, "read_all", MockUniversalController().read_all)
     monkeypatch.setattr(controller, "get_by_id", MockUniversalController().get_by_id)
@@ -40,7 +56,11 @@ app_for_test.include_router(typemovement_router)
 client = TestClient(app_for_test)
 
 def test_read_all():
+<<<<<<< HEAD
     ///Prueba que la ruta '/typemovements/' devuelve todos los tipos de movimiento.///
+=======
+    """Prueba que la ruta '/typemovements/' devuelve todos los tipos de movimiento."""
+>>>>>>> 84f3392 (updating tests)
     response = client.get("/typemovement/typemovements/")
     assert response.status_code == 200
     data = response.json()
@@ -51,7 +71,11 @@ def test_read_all():
     assert data[1]["type"] == "expense"
 
 def test_get_by_id():
+<<<<<<< HEAD
     ///Prueba que la ruta '/typemovement/{id}' devuelve el tipo de movimiento correcto.///
+=======
+    """Prueba que la ruta '/typemovement/{id}' devuelve el tipo de movimiento correcto."""
+>>>>>>> 84f3392 (updating tests)
     response = client.get("/typemovement/4")
     assert response.status_code == 200
     data = response.json()
@@ -59,8 +83,15 @@ def test_get_by_id():
     assert data["type"] == "expense"
 
 def test_get_by_id_not_found():
+<<<<<<< HEAD
     ///Prueba que la ruta '/typemovement/{id}' devuelve un error 404 si no se encuentra el tipo de movimiento.///
     response = client.get("/typemovement/999")
     assert response.status_code == 404
     assert response.json() == {"detail": "Not found"}
 """
+=======
+    """Prueba que la ruta '/typemovement/{id}' devuelve un error 404 si no se encuentra el tipo de movimiento."""
+    response = client.get("/typemovement/999")
+    assert response.status_code == 404
+    assert response.json() == {"detail": "Not found"}
+>>>>>>> 84f3392 (updating tests)

@@ -1,7 +1,7 @@
-"""from fastapi import FastAPI
+from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from backend.app.logic.universal_controller_sql import UniversalController
-from backend.app.api.routes.routes_cud_service import app as routes_router
+from backend.app.api.routes.routes_CUD_service import app as routes_router
 
 def setup_function():
     UniversalController().clear_tables()
@@ -94,4 +94,4 @@ def test_index_update_form():
 
 def test_index_delete_form():
     response = client.get("/routes/eliminar")
-    assert response.status_code == 200"""
+    assert response.status_code == 200

@@ -1,4 +1,8 @@
+<<<<<<< HEAD
 """import pytest
+=======
+import pytest
+>>>>>>> 84f3392 (updating tests)
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
@@ -31,17 +35,29 @@ class MockUniversalController:
         }
 
     def read_all(self, model):
+<<<<<<< HEAD
         ///Simula obtener todos los usuarios///
         return list(self.users.values())
 
     def get_by_id(self, model, id_: int):
         ///Simula obtener un usuario por ID///
+=======
+        """Simula obtener todos los usuarios"""
+        return list(self.users.values())
+
+    def get_by_id(self, model, id_: int):
+        """Simula obtener un usuario por ID"""
+>>>>>>> 84f3392 (updating tests)
         return self.users.get(id_)
 
 # Patching el controller en tests
 @pytest.fixture(autouse=True)
 def override_controller(monkeypatch):
+<<<<<<< HEAD
     ///Fixture para reemplazar el controlador real por el mock///
+=======
+    """Fixture para reemplazar el controlador real por el mock"""
+>>>>>>> 84f3392 (updating tests)
     from backend.app.api.routes.user_query_service import controller
     monkeypatch.setattr(controller, "read_all", MockUniversalController().read_all)
     monkeypatch.setattr(controller, "get_by_id", MockUniversalController().get_by_id)
@@ -53,7 +69,11 @@ client = TestClient(test_app)
 # Test GET /consultar (vista HTML)
 
 def test_read_all():
+<<<<<<< HEAD
     ///Prueba que la ruta '/user/' devuelve todos los tipos de transporte.///
+=======
+    """Prueba que la ruta '/user/' devuelve todos los tipos de transporte."""
+>>>>>>> 84f3392 (updating tests)
     response = client.get("/user/users/")
     assert response.status_code == 200
     data = response.json()
@@ -68,7 +88,11 @@ def test_read_all():
     assert data[0]["idturn"] == 1
 
 def test_get_by_id():
+<<<<<<< HEAD
     ///Prueba que la ruta '/typetransport/{id}' devuelve el tipo de transporte correcto.///
+=======
+    """Prueba que la ruta '/typetransport/{id}' devuelve el tipo de transporte correcto."""
+>>>>>>> 84f3392 (updating tests)
     response = client.get("/user/3")
     assert response.status_code == 200
     data = response.json()
@@ -82,9 +106,16 @@ def test_get_by_id():
     assert data["idturn"] == 1
 
 def test_get_by_id_not_found():
+<<<<<<< HEAD
     ///Prueba que la ruta '/typetransport/{id}' devuelve un error 404 si no se encuentra el tipo de transporte.///
+=======
+    """Prueba que la ruta '/typetransport/{id}' devuelve un error 404 si no se encuentra el tipo de transporte."""
+>>>>>>> 84f3392 (updating tests)
     response = client.get("/typetransport/999")
     assert response.status_code == 404
     assert response.json() == {"detail": "Not Found"}
 
+<<<<<<< HEAD
 """
+=======
+>>>>>>> 84f3392 (updating tests)
