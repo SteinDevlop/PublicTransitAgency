@@ -2,11 +2,19 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from backend.app.api.routes.incidence_query_service import app as incidence_router
 from backend.app.logic.universal_controller_sql import UniversalController
+<<<<<<< HEAD
 from backend.app.models.incidence import IncidenceCreate, IncidenceOut  # Importar IncidenceOut
 from typing import List, Dict, Any
+=======
+from backend.app.models.incidence import Incidence
+
+client = TestClient(incidences_router)
+
+>>>>>>> 93460d8 (incidence fix)
 
 # Limpieza de base de datos antes y después de cada test
 def setup_function():
+<<<<<<< HEAD
     UniversalController().clear_tables()
 
 def teardown_function():
@@ -16,6 +24,26 @@ def teardown_function():
 app_for_test = FastAPI()
 app_for_test.include_router(incidence_router)
 client = TestClient(app_for_test)
+=======
+    uc = UniversalController()
+    uc.clear_tables()
+    uc.add(Incidence(incidence_id=1, description="Accidente", type="Choque", status="Abierto"))
+
+
+def test_listar_incidencias():
+    response = client.get("/incidences/")
+    assert response.status_code == 200
+    assert "Accidente" in response.text
+    assert "Choque" in response.text
+
+
+def test_detalle_incidencia_existente():
+    response = client.get("/incidences/1")
+    assert response.status_code == 200
+    assert "Accidente" in response.text
+    assert "Choque" in response.text
+
+>>>>>>> 93460d8 (incidence fix)
 
 def test_consultar_page_incidence():
     """Prueba que la ruta '/consultar' devuelve la plantilla 'ConsultarIncidencia.html' correctamente."""
