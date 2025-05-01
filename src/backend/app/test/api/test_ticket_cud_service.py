@@ -1,73 +1,27 @@
-"""import pytest
+import pytest
 from fastapi.testclient import TestClient
-from backend.app.api.routes.ticket_cud_service import app  
+#from backend.app.api.routes.ticket_query_service import app as ticket_query_router
+from backend.app.models.ticket import TicketCreate
+from backend.app.api.routes.ticket_cud_service import app as ticket_router
+from backend.app.logic.universal_controller_sql import UniversalController
 
-client = TestClient(app)
+client = TestClient(ticket_router)
 
-@pytest.fixture
-def setup_ticket():
-    return {"ticket_id": "123", "status_code": 1}
+def setup_function():
+    UniversalController().clear_tables()
 
-def test_create_ticket(setup_ticket):
-    response = client.post(
-        "/ticket/create",
-        data={
-            "status_code": setup_ticket["status_code"],
-            "ticket_id": setup_ticket["ticket_id"]
-        }
-    )
-    assert response.status_code == 200
-    assert response.json()["operation"] == "create"
-    assert response.json()["message"] == f"Ticket {setup_ticket['ticket_id']} creado"
+def test_crear_ticket():
+    response = client.post("/ticket/create", data={"ticket_id": 1, "status_code": 1})
+    assert response.status_code == 303
 
-def test_create_ticket_invalid_status():
-    response = client.post(
-        "/ticket/create",
-        data={
-            "status_code": 4,  
-            "ticket_id": "124"
-        }
-    )
-    assert response.status_code == 400
-    assert "Código de estado debe ser 1, 2 o 3" in response.json()["detail"]
+def test_actualizar_ticket():
+    controller = UniversalController()
+    controller.add(TicketCreate(ticket_id=1, status_code=1))
+    response = client.post("/ticket/update", data={"ticket_id": 1, "status_code": 2})
+    assert response.status_code == 303
 
-def test_update_ticket(setup_ticket):
-    response = client.post(
-        "/ticket/update",
-        data={
-            "ticket_id": setup_ticket["ticket_id"],
-            "status_code": 2  
-        }
-    )
-    assert response.status_code == 200
-    assert response.json()["operation"] == "update"
-    assert response.json()["message"] == f"Ticket {setup_ticket['ticket_id']} actualizado"
-
-def test_update_ticket_not_found():
-    response = client.post(
-        "/ticket/update",
-        data={
-            "ticket_id": "999",  
-            "status_code": 2
-        }
-    )
-    assert response.status_code == 404
-    assert "Ticket no encontrado" in response.json()["detail"]
-
-def test_delete_ticket(setup_ticket):
-    response = client.post(
-        "/ticket/delete",
-        data={"ticket_id": setup_ticket["ticket_id"]}
-    )
-    assert response.status_code == 200
-    assert response.json()["operation"] == "delete"
-    assert response.json()["message"] == f"Ticket {setup_ticket['ticket_id']} eliminado"
-
-def test_delete_ticket_not_found():
-    response = client.post(
-        "/ticket/delete",
-        data={"ticket_id": "999"} 
-    )
-    assert response.status_code == 404
-    assert "Ticket no encontrado" in response.json()["detail"]
-"""
+def test_eliminar_ticket():
+    controller = UniversalController()
+    controller.add(TicketCreate(ticket_id=1, status_code=1))
+    response = client.post("/ticket/delete", data={"ticket_id": 1})
+    assert response.status_code == 303
