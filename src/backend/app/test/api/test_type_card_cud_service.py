@@ -1,9 +1,11 @@
 import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
+from fastapi.staticfiles import StaticFiles
 from backend.app.models.type_card import TypeCardOut
 from backend.app.api.routes.type_card_cud_service import app as typecard_router
 from backend.app.logic.universal_controller_sql import UniversalController
+from backend.app.test.conf import headers
 def setup_function():
     UniversalController().clear_tables()
 
@@ -14,7 +16,7 @@ app_for_test = FastAPI()
 app_for_test.include_router(typecard_router)
 
 client = TestClient(app_for_test)
-
+app_for_test.mount("/static", StaticFiles(directory="src/frontend/static"), name="static")
 # Mock de UniversalController
 class MockUniversalController:
     def __init__(self):
@@ -58,7 +60,7 @@ def override_controller(monkeypatch):
 # Ahora los tests:
 
 def test_create_typecard_success():
-    response = client.post("/typecard/create", data={"id": 3, "type": "type_3"})
+    response = client.post("/typecard/create", data={"id": 3, "type": "type_3"},headers=headers)
     assert response.status_code == 200
     json_data = response.json()
     assert json_data["operation"] == "create"
@@ -67,12 +69,12 @@ def test_create_typecard_success():
     assert json_data["data"]["type"] == "type_3"
 
 def test_create_typecard_already_exists():
-    response = client.post("/typecard/create", data={"id": 1, "type": "type_1"})
+    response = client.post("/typecard/create", data={"id": 1, "type": "type_1"},headers=headers)
     assert response.status_code == 400
     assert "Type card ID already exists." in response.json()["detail"]
 
 def test_update_typecard_success():
-    response = client.post("/typecard/update", data={"id": 1, "type": "updated_type_1"})
+    response = client.post("/typecard/update", data={"id": 1, "type": "updated_type_1"},headers=headers)
     assert response.status_code == 200
     json_data = response.json()
     assert json_data["operation"] == "update"
@@ -81,12 +83,12 @@ def test_update_typecard_success():
     assert json_data["data"]["type"] == "updated_type_1"
 
 def test_update_typecard_not_found():
-    response = client.post("/typecard/update", data={"id": 999, "type": "nonexistent"})
+    response = client.post("/typecard/update", data={"id": 999, "type": "nonexistent"},headers=headers)
     assert response.status_code == 404
     assert "Card type not found" in response.json()["detail"]
 
 def test_delete_typecard_success():
-    response = client.post("/typecard/delete", data={"id": 2})
+    response = client.post("/typecard/delete", data={"id": 2},headers=headers)
     assert response.status_code == 200
     json_data = response.json()
     assert json_data["operation"] == "delete"
@@ -94,6 +96,6 @@ def test_delete_typecard_success():
     assert "deleted successfully" in json_data["message"]
 
 def test_delete_typecard_not_found():
-    response = client.post("/typecard/delete", data={"id": 999})
+    response = client.post("/typecard/delete", data={"id": 999},headers=headers)
     assert response.status_code == 404
     assert "Card type not found" in response.json()["detail"]

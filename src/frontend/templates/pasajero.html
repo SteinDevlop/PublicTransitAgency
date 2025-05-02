@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Pasajero - Panel</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='css/dashboard.css') }}">
+</head>
+<body>
+    <div class="dashboard">
+        <!-- Panel Izquierdo -->
+        <aside class="sidebar">
+            <h2>Pasajero</h2>
+            <button class="menu-btn" onclick="location.href='/planificador'">Planificador de viaje</button>
+            <button class="menu-btn" onclick="location.href='/schedules/consultar'">Líneas, horarios y medios</button>
+            <button class="menu-btn" onclick="location.href='/price/consultar'">Tarifas y peajes</button>
+            <button class="menu-btn" onclick="location.href='/incidence/consultar'">Noticias y Alertas</button>
+            <button class="menu-btn" onclick="location.href='/movement/consultar'">Movimientos</button>
+            <button class="menu-btn" onclick="location.href='/suggestions/consultar'">Sugerencias y Quejas</button>
+        </aside>
+
+        <!-- Panel Derecho -->
+        <main class="main-content">
+            <section class="info-box">
+                <h2>Información general del pasajero</h2>
+                <div class="user-info">
+                    <p><strong>Nombre:</strong> {{ user.username }}</p>
+                    <p><strong>ID:</strong> {{ user.username }}</p>
+                    <p><strong>Correo:</strong> {{ user.email }}</p>
+                    <p><strong>Teléfono:</strong> {{ user.tel }}</p>
+                    <p><strong>Tipo de tarjeta:</strong> {{ user.type_card }}</p>
+                    <p><strong>Saldo disponible:</strong> ${{ user.saldo }}</p>
+                    <p><strong>Último viaje:</strong> {{ day }} - {{ route }} - {{ time }}</p>
+                </div>
+            </section>
+        </main>
+    </div>
+</body>
+</html>

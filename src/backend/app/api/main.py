@@ -1,4 +1,5 @@
 from fastapi import APIRouter, FastAPI
+from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.cors import CORSMiddleware
 from backend.app.core.config import settings
@@ -27,6 +28,7 @@ from backend.app.api.routes import (
     #ticket_query_service,
     #type_card_cud_service,
     type_card_query_service,
+    type_card_cud_service,
     #transport_unit_cud_service,
     #transport_unit_query_service,
     user_CUD_service,
@@ -40,10 +42,11 @@ from backend.app.api.routes import (
     price_cud_service,
     #price_query_service,
     movement_cud_service,
-    movement_query_service
+    movement_query_service,
+    login_service
 )
 
-api_router = FastAPI(title=settings.PROJECT_NAME)
+api_router = FastAPI(title=settings.PROJECT_NAME,debug=True)
 
 # Middlewares Globales
 add_middlewares(api_router)
@@ -56,7 +59,10 @@ api_router.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+api_router.mount("/static", StaticFiles(directory="src/frontend/static"), name="static")
 # Include the routes for different services.
+api_router.include_router(type_card_cud_service.app)
+api_router.include_router(login_service.app)
 api_router.include_router(card_cud_service.app)
 api_router.include_router(card_query_service.app)
 api_router.include_router(maintance_cud_service.app)

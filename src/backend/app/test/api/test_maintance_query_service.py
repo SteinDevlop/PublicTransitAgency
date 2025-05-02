@@ -1,8 +1,10 @@
 import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
+from fastapi.staticfiles import StaticFiles
 from backend.app.api.routes.maintance_query_service import app as maintainance_query_router
 from backend.app.logic.universal_controller_sql import UniversalController
+from backend.app.test.conf import headers
 def setup_function():
     UniversalController().clear_tables()
 
@@ -11,7 +13,7 @@ def teardown_function():
 # Creamos una app de prueba e incluimos el router
 app_for_test = FastAPI()
 app_for_test.include_router(maintainance_query_router)
-
+app_for_test.mount("/static", StaticFiles(directory="src/frontend/static"), name="static")
 client = TestClient(app_for_test)
 
 # Mock para el Controller
@@ -47,7 +49,7 @@ def override_controller(monkeypatch):
 
 # Test GET /maintainancements
 def test_get_all_maintainments():
-    response = client.get("/maintainance/maintainancements")
+    response = client.get("/maintainance/maintainancements",headers=headers)
     assert response.status_code == 200
     data = response.json()
     assert isinstance(data, list)
@@ -56,7 +58,7 @@ def test_get_all_maintainments():
 
 # Test GET /{id} para mantenimiento existente
 def test_get_maintainment_by_id_success():
-    response = client.get("/maintainance/1")
+    response = client.get("/maintainance/1",headers=headers)
     assert response.status_code == 200
     data = response.json()
     assert data["id"] == 1
@@ -64,13 +66,13 @@ def test_get_maintainment_by_id_success():
 
 # Test GET /{id} para mantenimiento no existente
 def test_get_maintainment_by_id_not_found():
-    response = client.get("/maintainance/9999")
+    response = client.get("/maintainance/9999",headers=headers)
     assert response.status_code == 404
     assert response.json() == {"detail": "Not found"}
 
 # Test GET /unit/{unit_id} con resultados
 def test_get_maintainments_by_unit_success():
-    response = client.get("/maintainance/unit/1")
+    response = client.get("/maintainance/unit/1",headers=headers)
     assert response.status_code == 200
     data = response.json()
     assert isinstance(data, list)
@@ -79,7 +81,7 @@ def test_get_maintainments_by_unit_success():
 
 # Test GET /unit/{unit_id} sin resultados
 def test_get_maintainments_by_unit_no_results():
-    response = client.get("/maintainance/unit/9999")
+    response = client.get("/maintainance/unit/9999",headers=headers)
     assert response.status_code == 200
     data = response.json()
     assert isinstance(data, list)

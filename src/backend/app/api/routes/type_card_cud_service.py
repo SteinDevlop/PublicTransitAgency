@@ -3,13 +3,14 @@ from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from backend.app.models.type_card import TypeCardOut, TypeCardCreate
 from backend.app.logic.universal_controller_sql import UniversalController
-
+from backend.app.core.auth import get_current_user, verify_role
+from fastapi import Security
 app = APIRouter(prefix="/typecard", tags=["Type Card"])
 controller = UniversalController()  # Ensure the controller is correctly instantiated
 templates = Jinja2Templates(directory="src/backend/app/templates")  # Set up the template directory
 
 @app.get("/crear", response_class=HTMLResponse)
-def crear_tipo_tarjeta(request: Request):
+def crear_tipo_tarjeta(request: Request,current_user: dict = Security(get_current_user, scopes=["system","administrador"])):
     """
     Displays the form to create a new type of card.
     """
@@ -17,7 +18,7 @@ def crear_tipo_tarjeta(request: Request):
 
 # Route to delete a type of card
 @app.get("/eliminar", response_class=HTMLResponse)
-def eliminar_tipo_tarjeta(request: Request):
+def eliminar_tipo_tarjeta(request: Request,current_user: dict = Security(get_current_user, scopes=["system","administrador"])):
     """
     Displays the form to delete a type of card.
     """
@@ -25,7 +26,7 @@ def eliminar_tipo_tarjeta(request: Request):
 
 # Route to update a type of card
 @app.get("/actualizar", response_class=HTMLResponse)
-def actualizar_tipo_tarjeta(request: Request):
+def actualizar_tipo_tarjeta(request: Request,current_user: dict = Security(get_current_user, scopes=["system","administrador"])):
     """
     Displays the form to update an existing type of card.
     """
@@ -35,7 +36,7 @@ def actualizar_tipo_tarjeta(request: Request):
 @app.post("/create")
 async def add_typecard(
     id: int = Form(...),
-    type: str = Form(...),
+    type: str = Form(...),current_user: dict = Security(get_current_user, scopes=["system","administrador"])
 ):
     """
     Creates a new type of card with the provided ID and type.
@@ -62,7 +63,7 @@ async def add_typecard(
 @app.post("/update")
 async def update_typecard(
     id: int = Form(...),
-    type: str = Form(...),
+    type: str = Form(...),current_user: dict = Security(get_current_user, scopes=["system","administrador"])
 ):
     """
     Updates an existing type of card by its ID and new type.
@@ -91,7 +92,7 @@ async def update_typecard(
 
 # Route to delete a type of card
 @app.post("/delete")
-async def delete_typecard(id: int = Form(...)):
+async def delete_typecard(id: int = Form(...),current_user: dict = Security(get_current_user, scopes=["system","administrador"])):
     """
     Deletes an existing type of card by its ID.
     If the type of card does not exist, a 404 error is raised.

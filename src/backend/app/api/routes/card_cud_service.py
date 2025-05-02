@@ -4,8 +4,8 @@ from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse, FileResponse, RedirectResponse
 from backend.app.models.card import CardCreate, CardOut  # Make sure your models are in this file
 from backend.app.logic.universal_controller_sql import UniversalController 
-from backend.app.core.auth import get_current_user
-import uvicorn
+from backend.app.core.auth import get_current_user, verify_role
+from fastapi import Security
 
 app = APIRouter(prefix="/card", tags=["card"])  # Initialize the API router with the given prefix and tags
 controller = UniversalController()  # Ensure the controller is correctly instantiated
@@ -13,15 +13,15 @@ templates = Jinja2Templates(directory="src/backend/app/templates")  # Set up the
 
 # Route to display the "Create Card" form
 @app.get("/crear", response_class=HTMLResponse)
-def index_create(request: Request):
-    """
+def index_create(request: Request,current_user: dict = Security(get_current_user, scopes=["system","administrador","pasajero","supervisor","mantenimiento"])):
+    """ 
     Displays the form to create a new card.
     """
     return templates.TemplateResponse(request, "CrearTarjeta.html", {"request": request})
 
 # Route to display the "Update Card" form
 @app.get("/actualizar", response_class=HTMLResponse)
-def index_update(request: Request):
+def index_update(request: Request,current_user: dict = Security(get_current_user, scopes=["system","administrador"])):
     """
     Displays the form to update an existing card.
     """
@@ -29,7 +29,7 @@ def index_update(request: Request):
 
 # Route to display the "Delete Card" form
 @app.get("/eliminar", response_class=HTMLResponse)
-def index_delete(request: Request):
+def index_delete(request: Request,current_user: dict = Security(get_current_user, scopes=["system","administrador"])):
     """
     Displays the form to delete an existing card.
     """
@@ -39,7 +39,7 @@ def index_delete(request: Request):
 @app.post("/create")
 async def create_card(
     id: int = Form(...),
-    tipo: str = Form(...),
+    tipo: str = Form(...),current_user: dict = Security(get_current_user, scopes=["system","administrador","pasajero"])
 ):
     """
     Creates a new card with the provided ID and type. The balance is initialized to 0.
@@ -68,7 +68,7 @@ async def create_card(
 @app.post("/update")
 async def update_card(
     id: int = Form(...),
-    tipo: str = Form(...),
+    tipo: str = Form(...),current_user: dict = Security(get_current_user, scopes=["system","administrador"])
 ): 
     """
     Updates an existing card by its ID and new type.
@@ -101,7 +101,7 @@ async def update_card(
 
 # Route to delete a card by its ID
 @app.post("/delete")
-async def delete_card(id: int = Form(...)):
+async def delete_card(id: int = Form(...),current_user: dict = Security(get_current_user, scopes=["system","administrador"])):
     """
     Deletes an existing card by its ID.
     If the card does not exist, it returns a 404 error.

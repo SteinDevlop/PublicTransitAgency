@@ -2,8 +2,10 @@ import pytest
 from fastapi.testclient import TestClient
 from backend.app.models.type_card import TypeCardOut
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
 from backend.app.api.routes.type_card_query_service import app as typecard_router
 from backend.app.logic.universal_controller_sql import UniversalController
+from backend.app.test.conf import headers
 def setup_function():
     UniversalController().clear_tables()
 
@@ -35,12 +37,12 @@ def override_controller(monkeypatch):
 # Crear la aplicación de prueba
 app_for_test = FastAPI()
 app_for_test.include_router(typecard_router)
-
+app_for_test.mount("/static", StaticFiles(directory="src/frontend/static"), name="static")
 client = TestClient(app_for_test)
 
 def test_read_all():
     """Prueba que la ruta '/typecards/' devuelve todos los tipos de tarjeta."""
-    response = client.get("/typecard/typecards/")
+    response = client.get("/typecard/typecards/",headers=headers)
     assert response.status_code == 200
     data = response.json()
     assert len(data) == 1
@@ -49,7 +51,7 @@ def test_read_all():
 
 def test_get_by_id():
     """Prueba que la ruta '/typecard/{id}' devuelve el tipo de tarjeta correcto."""
-    response = client.get("/typecard/3")
+    response = client.get("/typecard/3",headers=headers)
     assert response.status_code == 200
     data = response.json()
     assert data["id"] == 3
@@ -57,6 +59,6 @@ def test_get_by_id():
 
 def test_get_by_id_not_found():
     """Prueba que la ruta '/typecard/{id}' devuelve un error 404 si no se encuentra el tipo de tarjeta."""
-    response = client.get("/typecard/999")
+    response = client.get("/typecard/999",headers=headers)
     assert response.status_code == 404
     assert response.json() == {"detail": "Not found"}
