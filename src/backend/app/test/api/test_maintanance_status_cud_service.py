@@ -1,12 +1,7 @@
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
-<<<<<<< HEAD
-from backend.app.api.routes.maintainance_status_CUD_service import app as status_router ##Por alguna extraña razon no se importa bien el router
+from backend.app.api.routes.maintainance_status_query_service import app as status_router ##Por alguna extraña razon no se importa bien el router
 from backend.app.models.maintainance_status import MaintainanceStatusOut # Importa el modelo
-=======
-from backend.app.api.routes.maintainance_status_cud_service import app as status_router
-from backend.app.models.maintainance_status import MaintainanceStatus
->>>>>>> 0f2c522 (maintainance_status changes)
 
 app_for_test = FastAPI()
 app_for_test.include_router(status_router)
