@@ -1,4 +1,4 @@
-name: SonarQube Analysis
+name: SonarCloud Analysis
 
 on:
   push:
@@ -16,39 +16,36 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Obtiene el historial completo para SonarQube
+          fetch-depth: 0
 
       - name: Set up Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v5
         with:
-          python-version: '3.10'
+          python-version: "3.10"
 
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install pytest pytest-cov
-          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+          pip install -r requirements.txt
       - name: Run tests with coverage
         run: |
-          pytest --cov=. --cov-report=xml --cov-report=term
+          export PYTHONPATH=.
+          pytest src/backend/app/test --cov=src/backend/app --cov-report=xml --cov-report=term --cov-config .coveragerc
       - name: Upload coverage report
         uses: actions/upload-artifact@v4
         with:
           name: coverage-report
-          path: coverage.xml  # Guarda el reporte de cobertura como artefacto
+          path: coverage.xml
 
-      - name: SonarQube Scan
-        uses: SonarSource/sonarqube-scan-action@v4
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@v2
         env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: https://sonarcloud.io
+          SONAR_TOKEN: ${{secrets.SONAR_TOKEN }}
         with:
           args: >
             -Dsonar.projectKey=ISCODEVUTB_PublicTransitAgency
             -Dsonar.organization=deviscoutb
-            -Dsonar.sources=src/backend/app
-            -Dsonar.tests=src/backend/app/test
-            -Dsonar.coverageReportPaths=coverage.xml
             -Dsonar.host.url=https://sonarcloud.io
             -Dsonar.python.coverage.reportPaths=coverage.xml
-            -X
+            -Dsonar.exclusions=src/frontend/**
+            -Dsonar.python.version=3.10
