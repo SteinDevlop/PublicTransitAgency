@@ -8,7 +8,7 @@ class PriceCreate(BaseModel):
     amount: float
 
     def to_dict(self):
-        return self.dict()
+        return self.model_dump()
 
 class PriceOut(PriceCreate):
     __entity_name__ = "price"  # <- También aquí, porque se usa para lectura

@@ -68,7 +68,7 @@ def test_read_all():
     assert data[0]["idturn"] == 1
 
 def test_get_by_id():
-    """Prueba que la ruta '/typetransport/{id}' devuelve el tipo de transporte correcto."""
+    """Prueba que la ruta '/user/{id}' devuelve el usuario correcto."""
     response = client.get("/user/3")
     assert response.status_code == 200
     data = response.json()
@@ -82,8 +82,8 @@ def test_get_by_id():
     assert data["idturn"] == 1
 
 def test_get_by_id_not_found():
-    """Prueba que la ruta '/typetransport/{id}' devuelve un error 404 si no se encuentra el tipo de transporte."""
-    response = client.get("/typetransport/999")
+    """Prueba que la ruta '/user/{id}' devuelve un error 404 si no se encuentra el usuario."""
+    response = client.get("/user/999")
     assert response.status_code == 404
-    assert response.json() == {"detail": "Not Found"}
+    assert response.json() == {"detail": "Not found"}
 

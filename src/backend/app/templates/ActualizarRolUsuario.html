@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles.css">
+    <title>Actualizar Tipo de Usuario</title>
+</head>
+<body>
+    <h1 style="text-align: center;">Actualizar Tipo de Usuario</h1>
+    <form action="/roluser/update" method="post">
+        <div>
+            <label for="id">ID</label>
+            <input type="number" id="id" name="id" required>
+        </div>
+        <div>
+            <label for="type">Tipo de Usuario:</label>
+            <input type="text" id="type" name="type" required>
+        </div>
+        <button type="submit">Actualizar Tipo de Usuario</button>
+    </form>
+    <p><a href="/roluser/consultar">Volver a la página de consulta</a></p>
+</body>
+</html>
