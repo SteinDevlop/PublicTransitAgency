@@ -5,7 +5,7 @@ from backend.app.core.config import settings
 from typing import Dict, List
 
 oauth2_scheme = OAuth2PasswordBearer(
-    tokenUrl="/login",  # must match your actual token generation endpoint
+    tokenUrl="/login/token",  # must match your actual token generation endpoint
     scopes={
         "system": "Full system access",
         "administrador": "Permission to manage users",

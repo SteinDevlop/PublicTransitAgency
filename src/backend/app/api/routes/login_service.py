@@ -1,108 +1,105 @@
-from fastapi import FastAPI, Request, Depends, HTTPException, Form,Path,APIRouter
-from fastapi.responses import HTMLResponse, RedirectResponse
-from fastapi.templating import Jinja2Templates
+from fastapi import APIRouter, Request, Form, status, HTTPException
+from fastapi.responses import RedirectResponse
+from jose import jwt
+from backend.app.core.config import settings
+from backend.app.core.auth import encode_token
+from starlette.templating import Jinja2Templates
+from starlette.responses import HTMLResponse
+from jose import jwt, JWTError
 from fastapi.security import OAuth2PasswordRequestForm
-from typing import Annotated
-from backend.app.core.auth import encode_token, get_current_user, verify_role
-from starlette.status import HTTP_302_FOUND
-from fastapi.staticfiles import StaticFiles
-app = APIRouter(prefix="/login", tags=["Login"])
-templates = Jinja2Templates(directory="src/frontend/templates")
-# Simulación de base de datos
-users = {
-    "122": {
-        "username": "pasajero_1",
-        "email": "pasajero@gmail.com",
-        "password": "1234",
-        "tel": "+32 123456",
-        "type_card": "standard",
-        "saldo": 1200,
-        "scope": "pasajero"
-    },
-    "123": {
-        "username": "admin_1",
-        "email": "admin@gmail.com",
-        "password": "admin1234",
-        "tel": "+32 987654",
-        "type_card": "none",
-        "saldo": 0,
-        "scope": "administrador"
-    },
-    "124": {
-        "username": "operador_1",
-        "email": "operador@gmail.com",
-        "password": "op1234",
-        "tel": "+32 112233",
-        "type_card": "none",
-        "saldo": 0,
-        "scope": "operador"
-    },
-    "125": {
-        "username": "supervisor_1",
-        "email": "supervisor@gmail.com",
-        "password": "sup1234",
-        "tel": "+32 223344",
-        "type_card": "none",
-        "saldo": 0,
-        "scope": "supervisor"
-    },
-    "126": {
-        "username": "tecnico_1",
-        "email": "tecnico@gmail.com",
-        "password": "tec1234",
-        "tel": "+32 334455",
-        "type_card": "none",
-        "saldo": 0,
-        "scope": "tecnico"
-    }
+from fastapi import Depends
+import os
+
+# Simulate user store with hardcoded credentials (replace with real user DB/service)
+fake_users_db = {
+    "admin": {"username": "admin", "password": "adminpass", "scope": "administrador"},
+    "john": {"username": "john", "password": "johnpass", "scope": "pasajero"},
+    "jane": {"username": "jane", "password": "janepass", "scope": "supervisor"},
 }
-@app.post("/", response_model=dict)
-def login_for_token(form_data: OAuth2PasswordRequestForm = Depends()):
-    for user_id, user in users.items():
-        if user["username"] == form_data.username and user["password"] == form_data.password:
-            token = encode_token({
-                "sub": user_id,
-                "scope": user["scope"],
-                "username": user["username"]
-            })
-            return {
-                "access_token": token,
-                "token_type": "bearer"
-            }
-    raise HTTPException(status_code=400, detail="Invalid credentials")
-# Mostrar el formulario de inicio de sesión
+
+app = APIRouter(prefix="/login", tags=["login"])
+templates = Jinja2Templates(directory="src/frontend/templates")
+
+
 @app.get("/", response_class=HTMLResponse)
-def login_form(request: Request):
+async def login_form(request: Request):
+    print("[LOGIN GET] Rendering login form")
     return templates.TemplateResponse("login.html", {"request": request})
+@app.post("/token")
+async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
+    user = fake_users_db.get(form_data.username)
 
-# Procesar el formulario de inicio de sesión
-@app.post("/log")
-def login_submit(
-    request: Request,
-    form_data: Annotated[OAuth2PasswordRequestForm, Depends()]
-):
-    for user_id, user in users.items():
-        if user["username"] == form_data.username and user["password"] == form_data.password:
-            token = encode_token({"sub": user_id, "scope": user["scope"]})
-            response = RedirectResponse(
-                url=f"/login/user/{user['scope']}", status_code=HTTP_302_FOUND
-            )
-            # Puedes guardar el token en una cookie si estás usando sesiones (solo como ejemplo)
-            response.set_cookie(key="access_token", value=f"Bearer {token}", httponly=True)
-            return response
+    if not user or user["password"] != form_data.password:
+        raise HTTPException(status_code=401, detail="Incorrect username or password")
 
-    raise HTTPException(status_code=400, detail="Invalid credentials")
+    payload = {
+        "sub": user["username"],
+        "scope": user["scope"]
+    }
 
-# Mostrar el perfil del usuario (ejemplo para pasajero)
-@app.get("/user/{scope}", response_class=HTMLResponse, name="user_page")
-def user_page(
-    request: Request,
-    scope: str = Path(..., pattern="^(pasajero|administrador|operador|supervisor|tecnico)$"),
-    current_user: dict = Depends(get_current_user)
-):
-    # Verificar que el scope del token coincida con el de la URL
-    if current_user["scope"] != scope:
-        raise HTTPException(status_code=403, detail="Access forbidden")
+    token = encode_token(payload)
 
-    user = users.get(current_user["user_id"])
-    return templates.TemplateResponse(f"{scope}.html", {"request": request, "user": user})
+    return {
+        "access_token": token,
+        "token_type": "bearer"
+    }
+
+@app.post("/", response_class=HTMLResponse)
+async def login_user(request: Request, username: str = Form(...), password: str = Form(...)):
+    print(f"[LOGIN POST] Attempting login for user: {username}")
+
+    user = fake_users_db.get(username)
+
+    if not user or user["password"] != password:
+        print("[LOGIN POST] Invalid credentials")
+        raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials")
+
+    scope = user["scope"]
+    print(f"[LOGIN POST] Authenticated. Scope: {scope}")
+
+    payload = {
+        "sub": username,
+        "scope": scope
+    }
+
+    token = encode_token(payload)
+    print(f"[LOGIN POST] Token generated: {token}")
+
+    response = RedirectResponse(url=request.url_for("get_scope_page", scope=scope),status_code=status.HTTP_303_SEE_OTHER)
+    response.set_cookie(key="access_token", value=f"Bearer {token}", httponly=True)
+
+    return response
+
+
+@app.get("/user/{scope}", name="get_scope_page", response_class=HTMLResponse)
+async def get_scope_page(request: Request, scope: str):
+    try:
+        token_cookie = request.cookies.get("access_token", "").replace("Bearer ", "")
+        user_data = {"username": "Unknown", "scope": scope}
+
+        if token_cookie:
+            try:
+                payload = jwt.decode(token_cookie, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+                user_data["username"] = payload.get("sub", "Unknown")
+                user_data["scope"] = payload.get("scope", "Unknown")
+            except JWTError as e:
+                print(f"[SCOPE GET] Token decode error: {e}")
+
+        template_path = f"{scope}.html"
+        full_path = os.path.join("src/frontend/templates", template_path)
+
+        print(f"[SCOPE GET] Requested scope: {scope}")
+        print(f"[SCOPE GET] Full template path: {full_path}")
+        print(f"[SCOPE GET] Exists: {os.path.exists(full_path)}")
+
+        if not os.path.exists(full_path):
+            raise HTTPException(status_code=404, detail=f"Template '{template_path}' not found.")
+
+        return templates.TemplateResponse(template_path, {
+            "request": request,
+            "user": user_data
+        })
+
+    except Exception as e:
+        print(f"[SCOPE GET] ERROR: {e}")
+        return HTMLResponse(f"<h1>Template error: {e}</h1>", status_code=500)
