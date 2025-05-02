@@ -1,62 +1,74 @@
-from fastapi import APIRouter, Form, Request, HTTPException
+from fastapi import APIRouter, Form, Request, HTTPException, Security
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
-from fastapi.middleware.cors import CORSMiddleware
+from datetime import datetime
 from backend.app.models.maintainance import MaintenanceCreate, MaintenanceOut
 from backend.app.logic.universal_controller_sql import UniversalController
-from datetime import datetime
+from backend.app.core.auth import get_current_user
 
-app = APIRouter(prefix="/maintainance", tags=["maintainance"]) 
-controller = UniversalController() 
+# Initialize the controller and templates
+controller = UniversalController()
 templates = Jinja2Templates(directory="src/backend/app/templates")
 
-# Route to create a maintenance record
+# Define the APIRouter with a prefix and tags
+app = APIRouter(prefix="/maintainance", tags=["maintainance"])
+
+
 @app.get("/crear", response_class=HTMLResponse)
-def crear_mantenimiento(request: Request):
+def crear_mantenimiento(
+    request: Request,
+    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "supervisor", "mantenimiento", "operador"])
+):
     """
-    Define the GET route to display the maintenance creation form.
+    Route to display the maintenance creation form.
     """
-    return templates.TemplateResponse(request,"CrearMantenimiento.html", {"request": request})
+    return templates.TemplateResponse("CrearMantenimiento.html", {"request": request})
 
-# Route to delete a maintenance record
+
 @app.get("/eliminar", response_class=HTMLResponse)
-def eliminar_mantenimiento(request: Request):
+def eliminar_mantenimiento(
+    request: Request,
+    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "mantenimiento"])
+):
     """
-    Define the GET route to display the maintenance deletion form.
+    Route to display the maintenance deletion form.
     """
-    return templates.TemplateResponse(request,"EliminarMantenimiento.html", {"request": request})
+    return templates.TemplateResponse("EliminarMantenimiento.html", {"request": request})
 
-# Route to update a maintenance record
+
 @app.get("/actualizar", response_class=HTMLResponse)
-def actualizar_mantenimiento(request: Request):
+def actualizar_mantenimiento(
+    request: Request,
+    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "mantenimiento"])
+):
     """
-    Define the GET route to display the maintenance update form.
+    Route to display the maintenance update form.
     """
-    return templates.TemplateResponse(request,"ActualizarMantenimiento.html", {"request": request})
+    return templates.TemplateResponse("ActualizarMantenimiento.html", {"request": request})
 
-# Route to add a new maintenance record
+
 @app.post("/create")
 async def add(
     id_unit: int = Form(...),
     id_status: int = Form(...),
     type: str = Form(...),
     date: datetime = Form(...),
+    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "mantenimiento"])
 ):
     """
-    Define the POST route to add a new maintenance record.
-    It receives maintenance information and creates a MaintenanceCreate object.
+    Route to add a new maintenance record.
+    Receives maintenance information and creates a MaintenanceCreate object.
     """
-    mantainment_temp = MaintenanceCreate(
+    maintenance_temp = MaintenanceCreate(
         id_unit=id_unit, id_status=id_status, type=type, date=date
     )
     try:
-        # Attempt to add the maintenance record using the controller
-        controller.add(mantainment_temp)
+        controller.add(maintenance_temp)
         return {"message": "Maintenance added successfully"}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))  # Handle any exceptions.
+        raise HTTPException(status_code=500, detail=str(e))  # Handle any exceptions
 
-# Route to update an existing maintenance record
+
 @app.post("/update")
 async def update(
     id: int = Form(...),
@@ -64,16 +76,17 @@ async def update(
     id_status: int = Form(...),
     type: str = Form(...),
     date: datetime = Form(...),
+    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "mantenimiento"])
 ):
     """
-    Define the POST route to update an existing maintenance record.
-    It checks if the maintenance record exists, and if so, updates it with the new data.
+    Route to update an existing maintenance record.
+    Checks if the maintenance record exists and updates it with new data.
     """
-    existing_mantainment = controller.get_by_id(MaintenanceOut, id)
-    if not existing_mantainment:
+    existing_maintenance = controller.get_by_id(MaintenanceOut, id)
+    if not existing_maintenance:
         raise HTTPException(status_code=404, detail="Maintenance not found")
     
-    mantainment_temp = MaintenanceCreate(
+    maintenance_temp = MaintenanceCreate(
         id=id,  # The ID must remain the same to update the object
         id_unit=id_unit,
         id_status=id_status,
@@ -82,23 +95,28 @@ async def update(
     )
     
     try:
-        # Attempt to update the maintenance record using the controller
-        controller.update(mantainment_temp)
+        controller.update(maintenance_temp)
         return {"message": f"Maintenance {id} updated successfully"}
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))  # Handle any exceptions.
+        raise HTTPException(status_code=500, detail=str(e))  # Handle any exceptions
 
-# Route to delete an existing maintenance record
+
 @app.post("/delete")
-async def delete_mantainment(id: int = Form(...)):
+async def delete_maintenance(
+    id: int = Form(...),
+    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "mantenimiento"])
+):
+    """
+    Route to delete an existing maintenance record by its ID.
+    """
     try:
-        existing_mantainment = controller.get_by_id(MaintenanceOut, id)
-        if not existing_mantainment:
+        existing_maintenance = controller.get_by_id(MaintenanceOut, id)
+        if not existing_maintenance:
             raise HTTPException(status_code=404, detail="Maintenance not found")
         
-        controller.delete(existing_mantainment)
+        controller.delete(existing_maintenance)
         return {"message": f"Maintenance {id} deleted successfully"}
     except HTTPException:
-        raise  # Re-lanza las HTTPException tal cual
+        raise  # Re-raises HTTPException as is
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e))  # Internal server error for other exceptions

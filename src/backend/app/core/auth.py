@@ -4,29 +4,51 @@ from jose import jwt, JWTError
 from backend.app.core.config import settings
 from typing import Dict, List
 
-# OAuth2 con scopes definidos
 oauth2_scheme = OAuth2PasswordBearer(
-    tokenUrl="/login",  # debe coincidir con tu endpoint real de generación de token
+    tokenUrl="/login",  # must match your actual token generation endpoint
     scopes={
-        "system": "Acceso completo al sistema",
-        "administrador": "Permiso para gestionar usuarios",
-        "pasajero": "Permiso de pasajero",
-        "supervisor": "Permiso de supervisor",
-        "mantenimiento": "Permiso de mantenimiento",
-        "operador": "Permiso de operador",
+        "system": "Full system access",
+        "administrador": "Permission to manage users",
+        "pasajero": "Passenger permission",
+        "supervisor": "Supervisor permission",
+        "mantenimiento": "Maintenance permission",
+        "operador": "Operator permission",
     }
 )
 
-# Función para codificar el token
+
 def encode_token(payload: dict) -> str:
+    """
+    Encodes a JWT token using the given payload.
+
+    Args:
+        payload (dict): Data to encode in the token.
+
+    Returns:
+        str: Encoded JWT token.
+    """
     return jwt.encode(payload, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
 
-# Función para obtener al usuario actual autenticado
+
 def get_current_user(
     security_scopes: SecurityScopes,
     request: Request,
     token: str = Depends(oauth2_scheme)
 ) -> Dict[str, str]:
+    """
+    Extracts and verifies the current authenticated user from a JWT token.
+
+    Args:
+        security_scopes (SecurityScopes): Required scopes for the route.
+        request (Request): The current request.
+        token (str): The Bearer token from the header or cookie.
+
+    Returns:
+        dict: A dictionary containing the user_id and associated scopes.
+
+    Raises:
+        HTTPException: If authentication fails or token is invalid.
+    """
     token_cookie = request.cookies.get("access_token")
     if token_cookie:
         token = token_cookie.replace("Bearer ", "")
@@ -34,7 +56,7 @@ def get_current_user(
     if not token:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="No authenticated",
+            detail="Not authenticated",
         )
 
     try:
@@ -50,13 +72,28 @@ def get_current_user(
 
     except JWTError:
         raise HTTPException(status_code=401, detail="Invalid token")
-# Verificación adicional por roles (scopes)
+
+
 def verify_role(allowed_roles: List[str]):
+    """
+    Dependency to verify if the current user has the required role(s).
+
+    Args:
+        allowed_roles (List[str]): List of roles allowed to access the route.
+
+    Returns:
+        Callable: A dependency function that returns the current user if authorized.
+
+    Raises:
+        HTTPException: If the user does not have the required role.
+    """
+
     def _verify(current_user: dict = Depends(get_current_user)):
         if not any(scope in allowed_roles for scope in current_user["scopes"]):
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail="No tienes permiso para acceder a esta ruta",
+                detail="You do not have permission to access this route",
             )
         return current_user
+
     return _verify

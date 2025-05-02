@@ -3,51 +3,58 @@ from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from backend.app.models.type_card import TypeCardOut, TypeCardCreate
 from backend.app.logic.universal_controller_sql import UniversalController
-from backend.app.core.auth import get_current_user, verify_role
+from backend.app.core.auth import get_current_user
 from fastapi import Security
+
+# Create a router for type card-related endpoints
 app = APIRouter(prefix="/typecard", tags=["Type Card"])
-controller = UniversalController()  # Ensure the controller is correctly instantiated
-templates = Jinja2Templates(directory="src/backend/app/templates")  # Set up the template directory
+
+# Initialize the controller for type card
+controller = UniversalController()
+
+# Set up the template directory for rendering HTML
+templates = Jinja2Templates(directory="src/backend/app/templates")
+
 
 @app.get("/crear", response_class=HTMLResponse)
-def crear_tipo_tarjeta(request: Request,current_user: dict = Security(get_current_user, scopes=["system","administrador"])):
+def create_typecard_form(request: Request, current_user: dict = Security(get_current_user, scopes=["system", "administrador"])):
     """
     Displays the form to create a new type of card.
     """
     return templates.TemplateResponse("CrearTipoTarjeta.html", {"request": request})
 
-# Route to delete a type of card
+
 @app.get("/eliminar", response_class=HTMLResponse)
-def eliminar_tipo_tarjeta(request: Request,current_user: dict = Security(get_current_user, scopes=["system","administrador"])):
+def delete_typecard_form(request: Request, current_user: dict = Security(get_current_user, scopes=["system", "administrador"])):
     """
     Displays the form to delete a type of card.
     """
     return templates.TemplateResponse("EliminarTipoTarjeta.html", {"request": request})
 
-# Route to update a type of card
+
 @app.get("/actualizar", response_class=HTMLResponse)
-def actualizar_tipo_tarjeta(request: Request,current_user: dict = Security(get_current_user, scopes=["system","administrador"])):
+def update_typecard_form(request: Request, current_user: dict = Security(get_current_user, scopes=["system", "administrador"])):
     """
     Displays the form to update an existing type of card.
     """
     return templates.TemplateResponse("ActualizarTipoTarjeta.html", {"request": request})
 
-# Route to add a new type of card
+
 @app.post("/create")
-async def add_typecard(
+async def create_typecard(
     id: int = Form(...),
-    type: str = Form(...),current_user: dict = Security(get_current_user, scopes=["system","administrador"])
+    type: str = Form(...),
+    current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
 ):
     """
     Creates a new type of card with the provided ID and type.
-    The controller is used to add the type of card to the database.
     """
     try:
         new_typecard = TypeCardCreate(id=id, type=type)
-        
+
         # Add the new type of card using the controller
         controller.add(new_typecard)
-        
+
         return {
             "operation": "create",
             "success": True,
@@ -59,28 +66,29 @@ async def add_typecard(
     except Exception as e:
         raise HTTPException(500, detail=f"Internal server error: {str(e)}")  # General server error
 
-# Route to update an existing type of card
+
 @app.post("/update")
 async def update_typecard(
     id: int = Form(...),
-    type: str = Form(...),current_user: dict = Security(get_current_user, scopes=["system","administrador"])
+    type: str = Form(...),
+    current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
 ):
     """
     Updates an existing type of card by its ID and new type.
     If the type of card does not exist, a 404 error is raised.
     """
     try:
-        # Look for the existing type of card to update
+        # Check if the type of card exists
         existing = controller.get_by_id(TypeCardOut, id)
         if not existing:
             raise HTTPException(404, detail="Card type not found")
-        
+
         # Create a new instance with the updated data
         updated_typecard = TypeCardCreate(id=id, type=type)
-        
+
         # Update the type of card using the controller
         controller.update(updated_typecard)
-        
+
         return {
             "operation": "update",
             "success": True,
@@ -88,20 +96,27 @@ async def update_typecard(
             "message": f"Card type {id} updated successfully"
         }
     except ValueError as e:
-        raise HTTPException(400, detail=str(e))  # Bad request if validation fails
+        raise HTTPException(400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(500, detail=f"Internal server error: {str(e)}")
 
-# Route to delete a type of card
+
 @app.post("/delete")
-async def delete_typecard(id: int = Form(...),current_user: dict = Security(get_current_user, scopes=["system","administrador"])):
+async def delete_typecard(
+    id: int = Form(...),
+    current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
+):
     """
     Deletes an existing type of card by its ID.
     If the type of card does not exist, a 404 error is raised.
     """
     try:
+        # Check if the type of card exists
         existing = controller.get_by_id(TypeCardOut, id)
         if not existing:
             raise HTTPException(404, detail="Card type not found")
 
+        # Delete the type of card using the controller
         controller.delete(existing)
 
         return {
@@ -110,7 +125,6 @@ async def delete_typecard(id: int = Form(...),current_user: dict = Security(get_
             "message": f"Card type {id} deleted successfully"
         }
     except HTTPException:
-        raise  # ⚡ Deja pasar HTTPException tal como está
+        raise  # Re-raise HTTPException as it is
     except Exception as e:
-        raise HTTPException(500, detail=str(e))  # Solo otros errores son 500
-
+        raise HTTPException(500, detail=str(e))
