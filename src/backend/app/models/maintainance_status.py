@@ -1,24 +1,38 @@
 from typing import Optional
-from pydantic import BaseModel, validator
+from pydantic import BaseModel
 
-class MaintainanceStatus(BaseModel):
-    __entity_name__ = "maintainance_status"
-    id: Optional[int] = None
-    status: str
-
-    @validator("status")
-    def validate_status(cls, value):
-        allowed_statuses = ["No hecho", "En progreso", "Hecho"]
-        if value not in allowed_statuses:
-            raise ValueError(f"El estado '{value}' no es válido. Los estados permitidos son: {allowed_statuses}")
-        return value
+class MaintainanceStatusCreate(BaseModel):
+    __entity_name__ = "estatusmantenimiento"  # Importante para el UniversalController
+    ID: Optional[int] = None  # Clave primaria, debe ser "ID"
+    TipoEstado: str  # Renombrado para coincidir con la tabla
+    UnidadTransporte: Optional[str] = None # Ahora es opcional
+    Status: str # Nuevo atributo
 
     def to_dict(self):
-        return self.model_dump()
+        """
+        Convierte el modelo a un diccionario para la interacción con la base de datos.
+        """
+        return self.dict(by_alias=False) # Aseguramos que los nombres de los campos coincidan
 
     @classmethod
     def get_fields(cls):
+        """
+        Define la estructura de la tabla en la base de datos.
+        """
         return {
-            "id": "INTEGER PRIMARY KEY",
-            "status": "TEXT NOT NULL"
+            "ID": "INTEGER PRIMARY KEY",  # Clave primaria
+            "TipoEstado": "TEXT NOT NULL",
+            "UnidadTransporte": "TEXT",  # Corregido: TEXT, era "REAL" incorrectamente
+            "Status": "TEXT NOT NULL"
         }
+
+class MaintainanceStatusOut(MaintainanceStatusCreate):
+    """
+    Modelo para la salida de datos, extiende MaintainanceStatusCreate.
+    """
+    @classmethod
+    def from_dict(cls, data: dict):
+        """
+        Crea una instancia del modelo desde un diccionario.
+        """
+        return cls(**data)
