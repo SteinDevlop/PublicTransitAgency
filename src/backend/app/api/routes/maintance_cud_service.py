@@ -5,15 +5,14 @@ from fastapi.middleware.cors import CORSMiddleware
 from backend.app.models.maintainance import MaintenanceCreate, MaintenanceOut
 from backend.app.logic.universal_controller_sql import UniversalController
 from datetime import datetime
-from backend.app.core.auth import get_current_user, verify_role
-from fastapi import Security
+
 app = APIRouter(prefix="/maintainance", tags=["maintainance"]) 
 controller = UniversalController() 
 templates = Jinja2Templates(directory="src/backend/app/templates")
 
 # Route to create a maintenance record
 @app.get("/crear", response_class=HTMLResponse)
-def crear_mantenimiento(request: Request,current_user: dict = Security(get_current_user, scopes=["system","administrador","supervisor","mantenimiento","operador"])):
+def crear_mantenimiento(request: Request):
     """
     Define the GET route to display the maintenance creation form.
     """
@@ -21,7 +20,7 @@ def crear_mantenimiento(request: Request,current_user: dict = Security(get_curre
 
 # Route to delete a maintenance record
 @app.get("/eliminar", response_class=HTMLResponse)
-def eliminar_mantenimiento(request: Request,current_user: dict = Security(get_current_user, scopes=["system","administrador","mantenimiento"])):
+def eliminar_mantenimiento(request: Request):
     """
     Define the GET route to display the maintenance deletion form.
     """
@@ -29,7 +28,7 @@ def eliminar_mantenimiento(request: Request,current_user: dict = Security(get_cu
 
 # Route to update a maintenance record
 @app.get("/actualizar", response_class=HTMLResponse)
-def actualizar_mantenimiento(request: Request,current_user: dict = Security(get_current_user, scopes=["system","administrador","mantenimiento"])):
+def actualizar_mantenimiento(request: Request):
     """
     Define the GET route to display the maintenance update form.
     """
@@ -41,7 +40,7 @@ async def add(
     id_unit: int = Form(...),
     id_status: int = Form(...),
     type: str = Form(...),
-    date: datetime = Form(...),current_user: dict = Security(get_current_user, scopes=["system","administrador","mantenimiento"])
+    date: datetime = Form(...),
 ):
     """
     Define the POST route to add a new maintenance record.
@@ -64,7 +63,7 @@ async def update(
     id_unit: int = Form(...),
     id_status: int = Form(...),
     type: str = Form(...),
-    date: datetime = Form(...),current_user: dict = Security(get_current_user, scopes=["system","administrador","mantenimiento"])
+    date: datetime = Form(...),
 ):
     """
     Define the POST route to update an existing maintenance record.
@@ -91,7 +90,7 @@ async def update(
 
 # Route to delete an existing maintenance record
 @app.post("/delete")
-async def delete_mantainment(id: int = Form(...),current_user: dict = Security(get_current_user, scopes=["system","administrador","mantenimiento"])):
+async def delete_mantainment(id: int = Form(...)):
     try:
         existing_mantainment = controller.get_by_id(MaintenanceOut, id)
         if not existing_mantainment:
