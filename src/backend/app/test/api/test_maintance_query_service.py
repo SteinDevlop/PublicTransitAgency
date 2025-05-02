@@ -1,4 +1,4 @@
-"""import pytest
+import pytest
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from backend.app.api.routes.maintance_query_service import app as maintainance_query_router
@@ -84,4 +84,3 @@ def test_get_maintainments_by_unit_no_results():
     data = response.json()
     assert isinstance(data, list)
     assert len(data) == 0
-"""
