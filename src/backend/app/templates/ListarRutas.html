@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Listar Rutas</title>
+</head>
+<body>
+    <h1>Listado de Rutas</h1>
+    <p>Esta página muestra todas las rutas disponibles en el sistema.</p>
+
+    {% for route in routes %}
+        <div>
+            <h2>{{ route.route_name }}</h2>
+            <p>ID de Ruta: {{ route.route_id }}</p>
+            <p>Destino: {{ route.destination }}</p>
+            <a href="/routes/detalles/{{ route.route_id }}">Ver Detalles</a>
+        </div>
+    {% endfor %}
+
+    <a href="/">Volver al Inicio</a>
+    <footer>
+        <p>© {{ year }} Sistema de Gestión de Rutas. Todos los derechos reservados.</p>
+    </footer>
+</body>
+</html>

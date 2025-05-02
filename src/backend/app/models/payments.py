@@ -30,7 +30,15 @@ class PaymentBase(BaseModel):
 class PaymentCreate(PaymentBase):
     pass
 
-class PaymentOut(PaymentBase):
+class PaymentOut(BaseModel): 
+    id: Optional[int]
+    date: Optional[datetime.datetime]
+    user: Optional[str]
+    payment_quantity: Optional[float]
+    payment_method: Optional[bool]
+    vehicle_type: Optional[int]
+    card_id: Optional[int]
+
     @classmethod
     def from_dict(cls, data: dict):
         return cls(**data)

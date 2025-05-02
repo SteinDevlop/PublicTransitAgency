@@ -1,7 +1,9 @@
 from src.backend.app.logic.ticket import Ticket
+
 class Incidence:
-    def __init__(self, description: str, type: str, status: Ticket, incidence_id: int = None):
+    def __init__(self, description: str, status: Ticket, type: str, incidence_id: int = None):
         self._description = description
+        self._status = status
         self._type = type
         self._status = status
         self._incidence_id = incidence_id
@@ -15,20 +17,20 @@ class Incidence:
         self._description = value
 
     @property
+    def status(self) -> Ticket:
+        return self._status
+
+    @status.setter
+    def status(self, value: Ticket):
+        self._status = value
+
+    @property
     def type(self) -> str:
         return self._type
 
     @type.setter
     def type(self, value: str):
         self._type = value
-
-    @property
-    def status(self) -> str:
-        return self._status
-
-    @status.setter
-    def status(self, value: str):
-        self._status = value
 
     @property
     def incidence_id(self) -> int:
@@ -38,9 +40,10 @@ class Incidence:
     def incidence_id(self, value: int):
         self._incidence_id = value
 
-    def update_incidence(self, description: str, type: str, status: Ticket, incidence_id: int):
+    def update_incidence(self, description: str, status: Ticket, type: str, incidence_id: int):
         if incidence_id is None:
             raise ValueError("Incidence ID is required.")
         self.description = description
-        self.type = type
         self.status = status
+        self.type = type
+        self.incidence_id = incidence_id

@@ -1,38 +1,40 @@
 from typing import Optional
-from pydantic import BaseModel
+from pydantic import BaseModel, validator
 
-class MaintainanceStatusCreate(BaseModel):
-    __entity_name__ = "estatusmantenimiento"  # Importante para el UniversalController
-    ID: Optional[int] = None  # Clave primaria, debe ser "ID"
-    TipoEstado: str  # Renombrado para coincidir con la tabla
-    UnidadTransporte: Optional[str] = None # Ahora es opcional
-    Status: str # Nuevo atributo
+class MaintainanceStatusBase(BaseModel):
+    """Clase base para los estados de mantenimiento."""
+    Status: str
+
+    @validator("Status")
+    def validate_status(cls, value):
+        allowed_statuses = ["No hecho", "En progreso", "Hecho"]
+        if value not in allowed_statuses:
+            raise ValueError(f"El estado '{value}' no es válido. Los estados permitidos son: {allowed_statuses}")
+        return value
+
+class MaintainanceStatusCreate(MaintainanceStatusBase):
+    """Modelo para la creación de un estado de mantenimiento."""
+    __entity_name__ = "MaintainanceStatus"
+    TipoEstado: str
+    UnidadTransporte: str
 
     def to_dict(self):
-        """
-        Convierte el modelo a un diccionario para la interacción con la base de datos.
-        """
-        return self.dict(by_alias=False) # Aseguramos que los nombres de los campos coincidan
+        return self.dict(by_alias=False)
 
     @classmethod
     def get_fields(cls):
-        """
-        Define la estructura de la tabla en la base de datos.
-        """
         return {
-            "ID": "INTEGER PRIMARY KEY",  # Clave primaria
+            "ID": "INTEGER PRIMARY KEY",
             "TipoEstado": "TEXT NOT NULL",
-            "UnidadTransporte": "TEXT",  # Corregido: TEXT, era "REAL" incorrectamente
+            "UnidadTransporte": "TEXT NOT NULL",
             "Status": "TEXT NOT NULL"
         }
 
-class MaintainanceStatusOut(MaintainanceStatusCreate):
-    """
-    Modelo para la salida de datos, extiende MaintainanceStatusCreate.
-    """
-    @classmethod
-    def from_dict(cls, data: dict):
-        """
-        Crea una instancia del modelo desde un diccionario.
-        """
-        return cls(**data)
+class MaintainanceStatusOut(MaintainanceStatusBase):
+    """Modelo para la salida de datos de un estado de mantenimiento."""
+    ID: int
+    TipoEstado: str
+    UnidadTransporte: str
+
+    class Config:
+        from_attributes = True

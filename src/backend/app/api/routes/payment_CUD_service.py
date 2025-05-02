@@ -11,15 +11,15 @@ templates = Jinja2Templates(directory="src/backend/app/templates")
 
 @app.get("/crear", response_class=HTMLResponse)
 def index_create(request: Request):
-    return templates.TemplateResponse("CrearPago.html", {"request": request}) # Asegúrate de tener este HTML
+    return templates.TemplateResponse("CrearPago.html", {"request": request}) 
 
 @app.get("/actualizar", response_class=HTMLResponse)
 def index_update(request: Request):
-    return templates.TemplateResponse("ActualizarPago.html", {"request": request}) # Asegúrate de tener este HTML
+    return templates.TemplateResponse("ActualizarPago.html", {"request": request}) 
 
 @app.get("/eliminar", response_class=HTMLResponse)
 def index_delete(request: Request):
-    return templates.TemplateResponse("EliminarPago.html", {"request": request}) # Asegúrate de tener este HTML
+    return templates.TemplateResponse("EliminarPago.html", {"request": request}) 
 
 @app.post("/create")
 async def create_payment(
@@ -28,7 +28,6 @@ async def create_payment(
     payment_method: bool = Form(...),
     vehicle_type: int = Form(...),
     card_id: int = Form(...),
-    # user_auth = Depends(get_current_user) # Si tienes autenticación
 ):
     try:
         new_payment = PaymentCreate(

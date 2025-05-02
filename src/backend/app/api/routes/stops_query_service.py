@@ -3,54 +3,28 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
 from backend.app.models.stops import StopOut
-from logic.universal_controller_sql import UniversalController
+from backend.app.logic.universal_controller_sql import UniversalController
 import uvicorn
 
 # Initialize the FastAPI router for the "stops" functionality
-app = APIRouter(prefix="/stops", tags=["paradas"])
+app = APIRouter(prefix="/stops", tags=["stops"])
 
 controller = UniversalController()
-templates = Jinja2Templates(directory="templates")  # Asegúrate de tener las plantillas en este directorio
+templates = Jinja2Templates(directory="src/backend/app/templates")
 
-# Endpoint para la página de consulta principal (HTML)
-@app.get("/consultar", response_class=HTMLResponse)
-async def consultar_paradas_html(request: Request):
-    """Renderiza la página para consultar paradas."""
-    return templates.TemplateResponse("ConsultarParadas", {"request": request})
-
-# Endpoint para obtener todas las paradas (HTML)
-@app.get("", response_class=HTMLResponse)
-async def listar_paradas_html(request: Request):
+@app.get("/", response_class=HTMLResponse)
+def listar_paradas(request):
     """Lista todas las paradas en formato HTML."""
-    dummy = StopOut.get_empty_instance()
-    paradas = controller.read_all(dummy)
-    return templates.TemplateResponse("ListarParadas", {"request": request, "paradas": paradas})
+    paradas = controller.read_all(StopOut(stop_id=0, stop_data={}))
+    return templates.TemplateResponse("ListarParadas.html", {"request": request, "paradas": paradas})
 
-# Endpoint para obtener todas las paradas (JSON)
-@app.get("/json")
-async def listar_paradas_json():
-    """Lista todas las paradas en formato JSON."""
-    dummy = StopOut.get_empty_instance()
-    paradas = controller.read_all(dummy)
-    return JSONResponse(content={"data": [parada.dict() for parada in paradas]})
-
-# Endpoint para obtener una parada por ID (HTML)
 @app.get("/{stop_id}", response_class=HTMLResponse)
-async def obtener_parada_html(request: Request, stop_id: str):
+def detalle_parada(stop_id: int, request):
     """Obtiene una parada por su ID y la muestra en HTML."""
     parada = controller.get_by_id(StopOut, stop_id)
     if not parada:
         raise HTTPException(status_code=404, detail="Parada no encontrada")
-    return templates.TemplateResponse("DetalleParada", {"request": request, "parada": parada})
-
-# Endpoint para obtener una parada por ID (JSON)
-@app.get("/{stop_id}/json")
-async def obtener_parada_json(stop_id: str):
-    """Obtiene una parada por su ID en formato JSON."""
-    parada = controller.get_by_id(StopOut, stop_id)
-    if not parada:
-        raise HTTPException(status_code=404, detail="Parada no encontrada")
-    return JSONResponse(content={"data": parada.dict()})
+    return templates.TemplateResponse("DetalleParada.html", {"request": request, "parada": parada})
 
 
 if __name__ == "__main__":

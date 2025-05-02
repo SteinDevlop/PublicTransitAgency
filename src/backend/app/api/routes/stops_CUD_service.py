@@ -1,14 +1,14 @@
-from fastapi import FastAPI, Form, HTTPException, Request
+from fastapi import FastAPI, APIRouter, Form, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.templating import Jinja2Templates
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, RedirectResponse
 from backend.app.models.stops import StopCreate, StopOut
-from logic.universal_controller_sql import UniversalController
+from backend.app.logic.universal_controller_sql import UniversalController
 import uvicorn
 
 app = FastAPI()
 controller = UniversalController()
-templates = Jinja2Templates(directory="templates")
+templates = Jinja2Templates(directory="src/backend/app/templates")
 
 # Configuración CORS
 app.add_middleware(
@@ -19,73 +19,57 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Endpoints GET para formularios HTML
-@app.get("/stops/crear", response_class=HTMLResponse)
-def show_create_form(request: Request):
-    return templates.TemplateResponse("CrearStop.html", {"request": request})
+# Router para las operaciones CRUD de paradas
+stop_router = APIRouter(prefix="/stop", tags=["stop"])
 
-@app.get("/stops/actualizar", response_class=HTMLResponse)
-def show_update_form(request: Request):
-    return templates.TemplateResponse("ActualizarStop.html", {"request": request})
+@stop_router.get("/crear", response_class=HTMLResponse)
+def crear_parada_form(request: Request):
+    """Renderiza el formulario para crear una nueva parada."""
+    return templates.TemplateResponse("CrearParada.html", {"request": request})
 
-@app.get("/stops/eliminar", response_class=HTMLResponse)
-def show_delete_form(request: Request):
-    return templates.TemplateResponse("EliminarStop.html", {"request": request})
-
-# Endpoints POST para operaciones
-@app.post("/stops/create", response_model=StopOut)
-async def create_stop(
-    stop_id: int = Form(...),
-    stop_data: dict = Form(...),
-):
+@stop_router.post("/create")
+def crear_parada(stop_id: int = Form(...), name: str = Form(...), location: str = Form(...)):
+    """Crea una nueva parada en la base de datos."""
+    stop_data = {"name": name, "location": location}
+    parada = StopCreate(stop_id=stop_id, stop_data=stop_data)
     try:
-        new_stop = StopCreate(
-            stop_id=stop_id,
-            stop_data=stop_data
-        )
-        result = controller.add(new_stop.to_dict())
-        return StopOut(
-            stop_id=result["stop_id"],
-            stop_data=result["stop_data"]
-        )
+        controller.add(parada)
+        return RedirectResponse("/stops", status_code=303)
     except ValueError as e:
-        raise HTTPException(400, detail=str(e))
-    except Exception as e:
-        raise HTTPException(500, detail=f"Internal server error: {str(e)}")
+        raise HTTPException(status_code=400, detail=str(e))
 
-@app.post("/stops/update", response_model=StopOut)
-async def update_stop(
-    stop_id: int = Form(...),
-    stop_data: dict = Form(...),
-):
+@stop_router.get("/actualizar", response_class=HTMLResponse)
+def actualizar_parada_form(request: Request):
+    """Renderiza el formulario para actualizar una parada existente."""
+    return templates.TemplateResponse("ActualizarParada.html", {"request": request})
+
+@stop_router.post("/update")
+def actualizar_parada(stop_id: int = Form(...), name: str = Form(...), location: str = Form(...)):
+    """Actualiza una parada existente en la base de datos."""
+    stop_data = {"name": name, "location": location}
+    parada = StopCreate(stop_id=stop_id, stop_data=stop_data)
     try:
-        existing = controller.get_by_id(StopOut, stop_id)
-        if not existing:
-            raise HTTPException(404, detail="Stop not found")
-        
-        updated_stop = StopCreate(
-            stop_id=stop_id,
-            stop_data=stop_data
-        )
-        result = controller.update(updated_stop.to_dict())
-        return StopOut(
-            stop_id=result["stop_id"],
-            stop_data=result["stop_data"]
-        )
+        controller.update(parada)
+        return RedirectResponse("/stops", status_code=303)
     except ValueError as e:
-        raise HTTPException(400, detail=str(e))
+        raise HTTPException(status_code=404, detail=str(e))
 
-@app.post("/stops/delete")
-async def delete_stop(stop_id: int = Form(...)):
+@stop_router.get("/eliminar", response_class=HTMLResponse)
+def eliminar_parada_form(request: Request):
+    """Renderiza el formulario para eliminar una parada existente."""
+    return templates.TemplateResponse("EliminarParada.html", {"request": request})
+
+@stop_router.post("/delete")
+def eliminar_parada(stop_id: int = Form(...)):
+    """Elimina una parada existente de la base de datos."""
+    parada = StopCreate(stop_id=stop_id, stop_data={})
     try:
-        existing = controller.get_by_id(StopOut, stop_id)
-        if not existing:
-            raise HTTPException(404, detail="Stop not found")
-        
-        controller.delete(existing)
-        return {"message": f"Stop {stop_id} deleted successfully"}
-    except Exception as e:
-        raise HTTPException(500, detail=str(e))
+        controller.delete(parada)
+        return RedirectResponse("/stops", status_code=303)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+app.include_router(stop_router)
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8007, reload=True)

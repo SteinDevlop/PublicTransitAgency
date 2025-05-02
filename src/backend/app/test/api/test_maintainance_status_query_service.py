@@ -1,11 +1,10 @@
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
-from backend.app.api.routes.maintainance_status_query_service import app as status_router
+from backend.app.api.routes.maintainance_status_query_service import app as maintainance_router
 from backend.app.logic.universal_controller_sql import UniversalController
-from backend.app.models.maintainance_status import MaintainanceStatusCreate, MaintainanceStatusOut # Importar el modelo de salida
+from backend.app.models.maintainance_status import MaintainanceStatusCreate, MaintainanceStatusOut, MaintainanceStatus
 from typing import List, Dict, Any
 
-# Limpieza de base de datos antes y después de cada test
 def setup_function():
     UniversalController().clear_tables()
 
@@ -14,8 +13,8 @@ def teardown_function():
 
 # Creamos la app de prueba
 app_for_test = FastAPI()
-app_for_test.include_router(status_router)
-client = TestClient(app_for_test)
+app_for_test.include_router(maintainance_router)
+client = TestClient(maintainance_router) 
 
 def test_consultar_page():
     """Prueba que la ruta '/consultar' devuelve la plantilla 'ConsultarEstatusMantenimiento.html' correctamente."""
@@ -57,3 +56,10 @@ def test_get_status_by_id_not_found():
     response = client.get("/maintainance_status/status/9999")
     assert response.status_code == 404
     assert response.json()["detail"] == "Maintainance Status not found"
+
+def test_listar_estados():
+    controller = UniversalController()
+    controller.add(MaintainanceStatus(status="No hecho"))
+    response = client.get("/maintainance-status/")
+    assert response.status_code == 200
+    assert "No hecho" in response.text

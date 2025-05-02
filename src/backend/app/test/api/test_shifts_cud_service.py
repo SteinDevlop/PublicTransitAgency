@@ -1,39 +1,51 @@
-"""from fastapi.testclient import TestClient
-from datetime import datetime
-from backend.app.api.routes.shifts_cud_service import app
+import pytest
+from fastapi.testclient import TestClient
+from backend.app.api.routes.shifts_query_service import app
+
 client = TestClient(app)
 
+def test_index_create():
+    response = client.get("/shifts/crear")
+    assert response.status_code == 200
+    assert "CrearTurno.html" in response.text
+
+def test_index_update():
+    response = client.get("/shifts/actualizar")
+    assert response.status_code == 200
+    assert "ActualizarTurno.html" in response.text
+
+def test_index_delete():
+    response = client.get("/shifts/eliminar")
+    assert response.status_code == 200
+    assert "EliminarTurno.html" in response.text
+
 def test_create_shift():
-    response = client.post("/shift/create", data={
-        "shift_id": "SHIFT001",
-        "unit": "BUS123",
+    data = {
+        "shift_id": "1",
+        "unit": "Bus123",
         "start_time": "2025-05-01T08:00:00",
-        "end_time": "2025-05-01T12:00:00",
-        "driver": "DRIVER001",
-        "schedule": "SCHED001"
-    })
+        "end_time": "2025-05-01T16:00:00",
+        "driver": "Driver1",
+        "schedule": "Schedule1"
+    }
+    response = client.post("/shifts/create", data=data)
     assert response.status_code == 200
     assert response.json()["operation"] == "create"
     assert response.json()["success"] is True
 
 def test_update_shift():
-    response = client.post("/shift/update", data={
-        "shift_id": "SHIFT001",
-        "unit": "BUS124",
-        "start_time": "2025-05-01T08:30:00",
-        "end_time": "2025-05-01T12:30:00",
-        "driver": "DRIVER002",
-        "schedule": "SCHED002"
-    })
+    data = {
+        "unit": "Bus456",
+        "start_time": "2025-05-01T09:00:00",
+        "end_time": "2025-05-01T17:00:00"
+    }
+    response = client.post("/shifts/update/1", data=data)
     assert response.status_code == 200
     assert response.json()["operation"] == "update"
     assert response.json()["success"] is True
 
 def test_delete_shift():
-    response = client.post("/shift/delete", data={
-        "shift_id": "SHIFT001"
-    })
+    response = client.post("/shifts/delete/1")
     assert response.status_code == 200
     assert response.json()["operation"] == "delete"
     assert response.json()["success"] is True
-"""

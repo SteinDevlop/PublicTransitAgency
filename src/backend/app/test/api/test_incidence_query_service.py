@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
-from backend.app.api.routes.incidence_query_service import app as incidence_router
+from backend.app.api.routes.incidence_CUD_service import app as incidence_router
 from backend.app.logic.universal_controller_sql import UniversalController
 from backend.app.models.incidence import IncidenceCreate, IncidenceOut  # Importar IncidenceOut
 from typing import List, Dict, Any

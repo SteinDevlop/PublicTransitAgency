@@ -3,7 +3,7 @@ from pydantic import BaseModel
 
 class RouteBase(BaseModel):
     __entity_name__ = "routes"
-    route_id: str
+    route_id: Optional[str] = None
     name: Optional[str] = None
     origin: Optional[str] = None
     destination: Optional[str] = None

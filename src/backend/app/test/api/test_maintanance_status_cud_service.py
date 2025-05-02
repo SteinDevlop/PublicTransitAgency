@@ -1,109 +1,117 @@
 from fastapi import FastAPI
 from fastapi.testclient import TestClient
-from backend.app.api.routes.maintainance_status_CUD_service import app as status_router
+from backend.app.api.routes.maintainance_status_CUD_service import app as status_router ##Por alguna extraña razon no se importa bien el router
+from backend.app.models.maintainance_status import MaintainanceStatusOut # Importa el modelo
 from backend.app.logic.universal_controller_sql import UniversalController
-from backend.app.models.maintainance_status import MaintainanceStatusCreate
-
-# Limpieza de base de datos antes y después de cada test
 def setup_function():
     UniversalController().clear_tables()
 
 def teardown_function():
     UniversalController().clear_tables()
 
-# Creamos la app de prueba
 app_for_test = FastAPI()
 app_for_test.include_router(status_router)
 client = TestClient(app_for_test)
 
 def test_create_status():
-    """Prueba la creación de un estado de mantenimiento a través de la ruta '/maintainance_status/create'."""
+    """Prueba la creación de un nuevo estado de mantenimiento."""
     response = client.post(
-        "/maintainance_status/create",
-        data={"TipoEstado": "Nuevo", "UnidadTransporte": "Unidad-X", "Status": "Activo"}
+        "/maintainance-status/create",
+        data={"status": "No hecho"}
     )
-    assert response.status_code == 200
-    data = response.json()
-    assert data["success"] == True
-    assert data["operation"] == "create"
-    assert data["data"]["TipoEstado"] == "Nuevo"
-    assert data["data"]["UnidadTransporte"] == "Unidad-X"
-    assert data["data"]["Status"] == "Activo"
+    assert response.status_code == 303  # Redirección exitosa
 
-def test_update_status_existing():
-    """Prueba la actualización de un estado de mantenimiento existente a través de la ruta '/maintainance_status/update'."""
-    # Primero, crear un estado para actualizar
+def test_create_status_invalid():
+    """Prueba la creación de un estado de mantenimiento con un valor inválido."""
+    response = client.post(
+        "/maintainance-status/create",
+        data={"status": "Estado inválido"}
+    )
+    assert response.status_code == 400  # Error de validación
+    assert "El estado 'Estado inválido' no es válido" in response.json()["detail"]
+
+def test_update_status():
+    """Prueba la actualización de un estado de mantenimiento existente."""
+    # Crear un estado de mantenimiento para actualizar
     create_response = client.post(
-        "/maintainance_status/create",
-        data={"TipoEstado": "Original", "UnidadTransporte": "Unidad-Y", "Status": "Inactivo"}
+        "/maintainance-status/create",
+        data={"status": "No hecho"}
     )
-    assert create_response.status_code == 200
-    created_data = create_response.json()["data"]
-    created_id = created_data["ID"]
+    assert create_response.status_code == 303
 
-    response = client.post(
-        "/maintainance_status/update",
-        data={
-            "ID": created_id,
-            "TipoEstado": "Actualizado",
-            "UnidadTransporte": "Unidad-Z",
-            "Status": "Activo"
-        }
-    )
+    # Obtener el ID del estado creado
+    response = client.get("/maintainance-status/")
     assert response.status_code == 200
     data = response.json()
-    assert data["success"] == True
-    assert data["operation"] == "update"
-    assert data["data"]["TipoEstado"] == "Actualizado"
-    assert data["data"]["UnidadTransporte"] == "Unidad-Z"
-    assert data["data"]["Status"] == "Activo"
+    status_id = data[0]["id"]
 
-def test_update_status_not_found():
-    """Prueba que la ruta '/maintainance_status/update' devuelve un error 404 si el estado no existe."""
-    response = client.post(
-        "/maintainance_status/update",
-        data={"ID": 9999, "TipoEstado": "NonExistent", "UnidadTransporte": "None", "Status": "None"}
+    # Actualizar el estado
+    update_response = client.post(
+        "/maintainance-status/update",
+        data={"id": status_id, "status": "En progreso"}
     )
-    assert response.status_code == 404
-    assert response.json()["detail"] == "Maintainance status not found"
+    assert update_response.status_code == 303  # Redirección exitosa
 
-def test_delete_status_existing():
-    """Prueba la eliminación de un estado de mantenimiento existente a través de la ruta '/maintainance_status/delete'."""
-    # Primero, crear un estado para eliminar
+    # Verificar que el estado se actualizó correctamente
+    response = client.get(f"/maintainance-status/{status_id}")
+    assert response.status_code == 200
+    updated_data = response.json()
+    assert updated_data["status"] == "En progreso"
+
+def test_update_status_invalid():
+    """Prueba la actualización de un estado de mantenimiento con un valor inválido."""
+    # Crear un estado de mantenimiento para actualizar
     create_response = client.post(
-        "/maintainance_status/create",
-        data={"TipoEstado": "ToDelete", "UnidadTransporte": "Unidad-W", "Status": "Activo"}
+        "/maintainance-status/create",
+        data={"status": "No hecho"}
     )
-    assert create_response.status_code == 200
-    created_data = create_response.json()["data"]
-    deleted_id = created_data["ID"]
-    response = client.post("/maintainance_status/delete", data={"ID": deleted_id})
+    assert create_response.status_code == 303
+
+    # Obtener el ID del estado creado
+    response = client.get("/maintainance-status/")
     assert response.status_code == 200
     data = response.json()
-    assert data["success"] == True
-    assert data["operation"] == "delete"
+    status_id = data[0]["id"]
+
+    # Intentar actualizar con un estado inválido
+    update_response = client.post(
+        "/maintainance-status/update",
+        data={"id": status_id, "status": "Estado inválido"}
+    )
+    assert update_response.status_code == 400  # Error de validación
+    assert "El estado 'Estado inválido' no es válido" in update_response.json()["detail"]
+
+def test_delete_status():
+    """Prueba la eliminación de un estado de mantenimiento existente."""
+    # Crear un estado de mantenimiento para eliminar
+    create_response = client.post(
+        "/maintainance-status/create",
+        data={"status": "No hecho"}
+    )
+    assert create_response.status_code == 303
+
+    # Obtener el ID del estado creado
+    response = client.get("/maintainance-status/")
+    assert response.status_code == 200
+    data = response.json()
+    status_id = data[0]["id"]
+
+    # Eliminar el estado
+    delete_response = client.post(
+        "/maintainance-status/delete",
+        data={"id": status_id}
+    )
+    assert delete_response.status_code == 303  # Redirección exitosa
+
+    # Verificar que el estado fue eliminado
+    response = client.get(f"/maintainance-status/{status_id}")
+    assert response.status_code == 404  # Estado no encontrado
 
 def test_delete_status_not_found():
-    """Prueba que la ruta '/maintainance_status/delete' devuelve un error 404 si el estado no existe."""
-    response = client.post("/maintainance_status/delete", data={"ID": 9999})
-    assert response.status_code == 404
+    """Prueba la eliminación de un estado de mantenimiento inexistente."""
+    response = client.post(
+        "/maintainance-status/delete",
+        data={"id": 9999}
+    )
+    assert response.status_code == 404  # Estado no encontrado
     assert response.json()["detail"] == "Maintainance status not found"
-
-def test_index_create_form():
-    """Prueba que la ruta '/maintainance_status/crear' devuelve el formulario 'CrearEstatusMantenimiento.html' correctamente."""
-    response = client.get("/maintainance_status/crear")
-    assert response.status_code == 200
-    assert "Crear Estatus de Mantenimiento" in response.text
-
-
-def test_index_update_form():
-    """Prueba que la ruta '/maintainance_status/actualizar' devuelve el formulario 'ActualizarEstatusMantenimiento.html' correctamente."""
-    response = client.get("/maintainance_status/actualizar")
-    assert response.status_code == 200
-    assert "Actualizar Estatus de Mantenimiento" in response.text
-
-def test_index_delete_form():
-    """Prueba que la ruta '/maintainance_status/eliminar' devuelve el formulario 'BorrarEstatusMantenimiento.html' correctamente."""
-    response = client.get("/maintainance_status/eliminar")
-    assert response.status_code == 200
-    assert "Borrar Estatus de Mantenimiento" in response.text

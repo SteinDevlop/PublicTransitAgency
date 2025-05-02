@@ -1,46 +1,73 @@
-"""import pytest
+import pytest
+from fastapi import FastAPI
 from fastapi.testclient import TestClient
-from unittest.mock import patch, MagicMock
-from src.backend.app.api.routes.movement_query_service import app  # Ajusta si el módulo tiene otro nombre
+
+from backend.app.api.routes.movement_query_service import app as movement_router
+from backend.app.logic.universal_controller_sql import UniversalController
 from backend.app.models.movement import MovementOut
 
-# Montamos la app de test
-client = TestClient(app)
 
-# Mock data de prueba
-movement_example = MovementOut(id=1, type="Ingreso", amount=1000.0)
+def setup_function():
+    UniversalController().clear_tables()
 
-# Test para consultar la página HTML
-def test_consultar_page():
-    response = client.get("/consultar")
+def teardown_function():
+    UniversalController().clear_tables()
+
+# Mock para UniversalController
+class MockUniversalController:
+    def __init__(self):
+        # Datos simulados de precios
+        self.movements = {
+            3: MovementOut(
+                id=3,
+                type="income",
+                amount=100.0,
+                ),
+        }
+
+    def read_all(self, model):
+        """Simula obtener todos los movimientos"""
+        return list(self.movements.values())
+
+    def get_by_id(self, model, id_: int):
+        """Simula obtener un movimiento por ID"""
+        return self.movements.get(id_)
+
+# Patching el controller en tests
+@pytest.fixture(autouse=True)
+def override_controller(monkeypatch):
+    """Fixture para reemplazar el controlador real por el mock"""
+    from backend.app.api.routes.movement_query_service import controller
+    monkeypatch.setattr(controller, "read_all", MockUniversalController().read_all)
+    monkeypatch.setattr(controller, "get_by_id", MockUniversalController().get_by_id)
+
+test_app = FastAPI()
+test_app.include_router(movement_router)
+client = TestClient(test_app)
+
+# Test GET /consultar (vista HTML)
+
+def test_read_all():
+    """Prueba que la ruta '/movement/' devuelve todos los movimientos."""
+    response = client.get("/movement/movements/")
     assert response.status_code == 200
-    assert "html" in response.headers["content-type"]
+    data = response.json()
+    assert len(data) == 1
+    assert data[0]["id"] == 3
+    assert data[0]["type"] == "income"
+    assert data[0]["amount"] == 100.0
 
-# Test para obtener todos los movimientos
-@patch("backend.app.services.movement_service.controller.read_all")
-def test_get_movimientos(mock_read_all):
-    mock_read_all.return_value = [movement_example]
-    
-    response = client.get("/movimientos")
+def test_get_by_id():
+    """Prueba que la ruta '/movement/{id}' devuelve el movimiento correcto."""
+    response = client.get("/movement/3")
     assert response.status_code == 200
-    assert response.json() == [movement_example.dict()]
+    data = response.json()
+    assert data["id"] == 3
+    assert data["type"] == "income"
+    assert data["amount"] == 100.0
 
-# Test para ver un movimiento por id - cuando existe
-@patch("backend.app.services.movement_service.controller.get_by_id")
-def test_movimiento_found(mock_get_by_id):
-    mock_get_by_id.return_value = movement_example
-
-    response = client.get("/movimiento?id=1")
-    assert response.status_code == 200
-    assert "Ingreso" in response.text
-    assert "1000.0" in response.text
-
-# Test para ver un movimiento por id - cuando NO existe
-@patch("backend.app.services.movement_service.controller.get_by_id")
-def test_movimiento_not_found(mock_get_by_id):
-    mock_get_by_id.return_value = None
-
-    response = client.get("/movimiento?id=999")
-    assert response.status_code == 200
-    assert "None" in response.text
-"""
+def test_get_by_id_not_found():
+    """Prueba que la ruta '/movement/{id}' devuelve un error 404 si no se encuentra el movimiento."""
+    response = client.get("/movement/999")
+    assert response.status_code == 404
+    assert response.json() == {"detail": "Not found"}

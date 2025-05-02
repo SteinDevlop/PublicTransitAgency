@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eliminar Parada Existente</title>
+</head>
+<body>
+    <h1>Eliminar Parada</h1>
+    <form action="/stop/delete" method="post">
+        <div>
+            <label for="stop_id">ID de la Parada a Eliminar:</label>
+            <input type="text" id="stop_id" name="stop_id" required>
+        </div>
+        <button type="submit">Eliminar Parada</button>
+    </form>
+    <p><a href="/stops">Volver a la lista de paradas</a></p>
+</body>
+</html>

@@ -1,104 +1,92 @@
-from fastapi import FastAPI, Form, HTTPException, Request
-from fastapi.middleware.cors import CORSMiddleware
+from fastapi import FastAPI, Form, HTTPException, APIRouter, Request
 from fastapi.templating import Jinja2Templates
+import datetime
 from fastapi.responses import HTMLResponse
+
 from backend.app.models.shift import ShiftCreate, ShiftOut
 from backend.app.logic.universal_controller_sql import UniversalController
-from datetime import datetime
-import uvicorn
 
-app = FastAPI()
+app = APIRouter(prefix="/shifts", tags=["shifts"])
 controller = UniversalController()
 templates = Jinja2Templates(directory="src/backend/app/templates")
 
-# Configuración CORS
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-# Endpoints GET para formularios HTML
-@app.get("/shift/crear", response_class=HTMLResponse, tags=["shifts"])
-def show_create_form(request: Request):
+@app.get("/crear", response_class=HTMLResponse)
+def index_create(request: Request):
     return templates.TemplateResponse("CrearTurno.html", {"request": request})
 
-@app.get("/shift/actualizar", response_class=HTMLResponse, tags=["shifts"])
-def show_update_form(request: Request):
+@app.get("/actualizar", response_class=HTMLResponse)
+def index_update(request: Request):
     return templates.TemplateResponse("ActualizarTurno.html", {"request": request})
 
-@app.get("/shift/eliminar", response_class=HTMLResponse, tags=["shifts"])
-def show_delete_form(request: Request):
+@app.get("/eliminar", response_class=HTMLResponse)
+def index_delete(request: Request):
     return templates.TemplateResponse("EliminarTurno.html", {"request": request})
 
-# Endpoints POST para operaciones
-@app.post("/shift/create", response_model=ShiftOut, tags=["shifts"])
+@app.post("/create")
 async def create_shift(
     shift_id: str = Form(...),
     unit: str = Form(...),
-    start_time: str = Form(...),
-    end_time: str = Form(...),
+    start_time: datetime.datetime = Form(...),
+    end_time: datetime.datetime = Form(...),
     driver: str = Form(...),
     schedule: str = Form(...)
 ):
     try:
         new_shift = ShiftCreate(
             shift_id=shift_id,
-            unit=unit,
-            start_time=datetime.fromisoformat(start_time),
-            end_time=datetime.fromisoformat(end_time),
-            driver=driver,
-            schedule=schedule
+            unit_id=unit,
+            start_time=start_time,
+            end_time=end_time,
+            driver_id=driver,
+            schedule_id=schedule
         )
         result = controller.add(new_shift)
-        return ShiftOut(**result.__dict__)
+        return {"operation": "create", "success": True, "data": ShiftOut(**result.to_dict()).dict(), "message": "Shift created successfully"}
     except ValueError as e:
         raise HTTPException(400, detail=str(e))
     except Exception as e:
-        raise HTTPException(500, detail=f"Error interno del servidor: {str(e)}")
+        raise HTTPException(500, detail=f"Internal server error: {str(e)}")
 
-@app.post("/shift/update", response_model=ShiftOut, tags=["shifts"])
+@app.post("/update/{shift_id}")
 async def update_shift(
-    shift_id: str = Form(...),
-    unit: str = Form(...),
-    start_time: str = Form(...),
-    end_time: str = Form(...),
-    driver: str = Form(...),
-    schedule: str = Form(...)
+    shift_id: str,
+    unit: str = Form(None),
+    start_time: datetime.datetime = Form(None),
+    end_time: datetime.datetime = Form(None),
+    driver: str = Form(None),
+    schedule: str = Form(None)
 ):
     try:
-        existing = controller.get_by_id(ShiftOut, shift_id)
-        if not existing:
-            raise HTTPException(404, detail="Turno no encontrado")
+        existing_shift = controller.get_by_id(ShiftOut, shift_id)
+        if not existing_shift:
+            raise HTTPException(404, detail="Shift not found")
 
-        updated_shift = ShiftCreate(
-            shift_id=shift_id,
-            unit=unit,
-            start_time=datetime.fromisoformat(start_time),
-            end_time=datetime.fromisoformat(end_time),
-            driver=driver,
-            schedule=schedule
+        update_data = ShiftCreate(
+            shift_id=shift_id,  # ID from path, ensure consistency
+            unit_id=unit if unit is not None else existing_shift.unit_id,
+            start_time=start_time if start_time is not None else existing_shift.start_time,
+            end_time=end_time if end_time is not None else existing_shift.end_time,
+            driver_id=driver if driver is not None else existing_shift.driver_id,
+            schedule_id=schedule if schedule is not None else existing_shift.schedule_id
         )
-        result = controller.update(updated_shift)
-        return ShiftOut(**result.__dict__)
+        result = controller.update(update_data)
+        return {"operation": "update", "success": True, "data": ShiftOut(**result.to_dict()).dict(), "message": f"Shift {shift_id} updated successfully"}
     except ValueError as e:
         raise HTTPException(400, detail=str(e))
+    except HTTPException as e:
+        raise e
     except Exception as e:
         raise HTTPException(500, detail=str(e))
 
-@app.post("/shift/delete", tags=["shifts"])
-async def delete_shift(shift_id: str = Form(...)):
+@app.post("/delete/{shift_id}")
+async def delete_shift(shift_id: str):
     try:
-        existing = controller.get_by_id(ShiftOut, shift_id)
-        if not existing:
-            raise HTTPException(404, detail="Turno no encontrado")
-        
-        controller.delete(existing)
-        return {"message": f"Turno {shift_id} eliminado correctamente"}
+        existing_shift = controller.get_by_id(ShiftOut, shift_id)
+        if not existing_shift:
+            raise HTTPException(404, detail="Shift not found")
+        controller.delete(existing_shift)
+        return {"operation": "delete", "success": True, "message": f"Shift {shift_id} deleted successfully"}
+    except HTTPException as e:
+        raise e
     except Exception as e:
         raise HTTPException(500, detail=str(e))
-
-if __name__ == "__main__":
-    uvicorn.run("main:app", host="0.0.0.0", port=8003, reload=True)

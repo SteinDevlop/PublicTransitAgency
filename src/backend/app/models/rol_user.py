@@ -6,7 +6,7 @@ class RolUserCreate(BaseModel):
     type: str
 
     def to_dict(self):
-        return self.dict()
+        return self.model_dump()
 
 class RolUserOut(RolUserCreate):
     __entity_name__ = "roluser"

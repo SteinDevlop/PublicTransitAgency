@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalle de Ruta</title>
+</head>
+<body>
+    <h1>Detalle de la Ruta</h1>
+
+    <div>
+        <h2>Información de la Ruta</h2>
+        <p>ID de Ruta: {{ route.route_id }}</p>
+        <p>Nombre de la Ruta: {{ route.route_name }}</p>
+        <p>Destino: {{ route.destination }}</p>
+    </div>
+    <div>
+        <h2>Descripción</h2>
+        <p>
+            Esta ruta es una de las más populares y eficientes de nuestra red,
+            ofreciendo un viaje seguro y confortable a nuestro destino principal.
+            Descubre por qué tantos viajeros eligen esta ruta cada día.
+        </p>
+    </div>
+
+    <div>
+        <h3>Servicios Adicionales</h3>
+        <ul>
+            <li>Wifi gratuito a bordo</li>
+            <li>Asientos reclinables</li>
+            <li>Aire acondicionado</li>
+            <li>Entretenimiento a bordo</li>
+            <li>Paradas en puntos de interés</li>
+        </ul>
+    </div>
+
+    <a href="/routes/rutas">Volver a Rutas</a>
+
+    <footer>
+        <p>© {{ year }} Sistema de Gestión de Rutas. Todos los derechos reservados.</p>
+    </footer>
+</body>
+</html>

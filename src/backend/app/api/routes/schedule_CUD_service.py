@@ -1,103 +1,84 @@
-from fastapi import FastAPI, Form, HTTPException, Request
-from fastapi.middleware.cors import CORSMiddleware
+from fastapi import FastAPI, Form, HTTPException, APIRouter, Request
+import datetime
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse
+
 from backend.app.models.schedule import ScheduleCreate, ScheduleOut
-from datetime import datetime
 from backend.app.logic.universal_controller_sql import UniversalController
-import uvicorn
-app = FastAPI()
+
+app = APIRouter(prefix="/schedules", tags=["schedules"])
 controller = UniversalController()
 templates = Jinja2Templates(directory="src/backend/app/templates")
 
-# CORS Middleware
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-# Endpoints GET para formularios HTML
-@app.get("/schedule/crear", response_class=HTMLResponse, tags=["schedule"])
-def show_create_form(request: Request):
+@app.get("/crear", response_class=HTMLResponse)
+def index_create(request: Request):
     return templates.TemplateResponse("CrearHorario.html", {"request": request})
 
-@app.get("/schedule/actualizar", response_class=HTMLResponse, tags=["schedule"])
-def show_update_form(request: Request):
+@app.get("/actualizar", response_class=HTMLResponse)
+def index_update(request: Request):
     return templates.TemplateResponse("ActualizarHorario.html", {"request": request})
 
-@app.get("/schedule/eliminar", response_class=HTMLResponse, tags=["schedule"])
-def show_delete_form(request: Request):
+@app.get("/eliminar", response_class=HTMLResponse)
+def index_delete(request: Request):
     return templates.TemplateResponse("EliminarHorario.html", {"request": request})
 
-# Endpoints POST para operaciones
-@app.post("/schedule/create", response_model=ScheduleOut, tags=["schedule"])
+@app.post("/create")
 async def create_schedule(
     schedule_id: str = Form(...),
-    arrival_date: str = Form(...),
-    departure_date: str = Form(...),
-    route: str = Form(...),
+    arrival_date: datetime.datetime = Form(...),
+    departure_date: datetime.datetime = Form(...),
+    route_id: str = Form(...)
 ):
     try:
-        schedule = ScheduleCreate(
+        new_schedule = ScheduleCreate(
             schedule_id=schedule_id,
-            arrival_date=datetime.fromisoformat(arrival_date),
-            departure_date=datetime.fromisoformat(departure_date),
-            route=route,
+            arrival_date=arrival_date,
+            departure_date=departure_date,
+            route_id=route_id
         )
-        result = controller.add(schedule.to_dict())
-        return ScheduleOut(
-            schedule_id=result.schedule_id,
-            arrival_date=result.arrival_date,
-            departure_date=result.departure_date,
-            route=result.route,
-        )
+        result = controller.add(new_schedule)
+        return {"operation": "create", "success": True, "data": ScheduleOut(**result.to_dict()).dict(), "message": "Schedule created successfully"}
     except ValueError as e:
         raise HTTPException(400, detail=str(e))
     except Exception as e:
-        raise HTTPException(500, detail=f"Error interno del servidor: {str(e)}")
+        raise HTTPException(500, detail=f"Internal server error: {str(e)}")
 
-@app.post("/schedule/update", response_model=ScheduleOut, tags=["schedule"])
+@app.post("/update/{schedule_id}")
 async def update_schedule(
-    schedule_id: str = Form(...),
-    arrival_date: str = Form(...),
-    departure_date: str = Form(...),
-    route: str = Form(...),
+    schedule_id: str,
+    arrival_date: datetime.datetime = Form(None),
+    departure_date: datetime.datetime = Form(None),
+    route_id: str = Form(None)
 ):
     try:
-        existing = controller.get_by_id(ScheduleOut, schedule_id)
-        if not existing:
-            raise HTTPException(404, detail="Horario no encontrado")
-        
-        updated_schedule = ScheduleCreate(
-            schedule_id=schedule_id,
-            arrival_date=datetime.fromisoformat(arrival_date),
-            departure_date=datetime.fromisoformat(departure_date),
-            route=route,
+        existing_schedule = controller.get_by_id(ScheduleOut, schedule_id)
+        if not existing_schedule:
+            raise HTTPException(404, detail="Schedule not found")
+
+        update_data = ScheduleCreate(
+            schedule_id=schedule_id,  # ID from path, ensure consistency
+            arrival_date=arrival_date if arrival_date is not None else existing_schedule.arrival_date,
+            departure_date=departure_date if departure_date is not None else existing_schedule.departure_date,
+            route_id=route_id if route_id is not None else existing_schedule.route_id
         )
-        result = controller.update(updated_schedule.to_dict())
-        return ScheduleOut(
-            schedule_id=result.schedule_id,
-            arrival_date=result.arrival_date,
-            departure_date=result.departure_date,
-            route=result.route,
-        )
+        result = controller.update(update_data)
+        return {"operation": "update", "success": True, "data": ScheduleOut(**result.to_dict()).dict(), "message": f"Schedule {schedule_id} updated successfully"}
     except ValueError as e:
         raise HTTPException(400, detail=str(e))
-
-@app.post("/schedule/delete", tags=["schedule"])
-async def delete_schedule(schedule_id: str = Form(...)):
-    try:
-        existing = controller.get_by_id(ScheduleOut, schedule_id)
-        if not existing:
-            raise HTTPException(404, detail="Horario no encontrado")
-        
-        controller.delete(existing)
-        return {"message": f"Horario {schedule_id} eliminado correctamente"}
+    except HTTPException as e:
+        raise e
     except Exception as e:
         raise HTTPException(500, detail=str(e))
 
-if __name__ == "__main__":
-    uvicorn.run("app:app", host="0.0.0.0", port=8003, reload=True)
+@app.post("/delete/{schedule_id}")
+async def delete_schedule(schedule_id: str):
+    try:
+        existing_schedule = controller.get_by_id(ScheduleOut, schedule_id)
+        if not existing_schedule:
+            raise HTTPException(404, detail="Schedule not found")
+        controller.delete(existing_schedule)
+        return {"operation": "delete", "success": True, "message": f"Schedule {schedule_id} deleted successfully"}
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        raise HTTPException(500, detail=str(e))

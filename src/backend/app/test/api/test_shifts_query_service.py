@@ -1,37 +1,64 @@
-"""from fastapi.testclient import TestClient
+import pytest
+from fastapi.testclient import TestClient
+from unittest.mock import MagicMock
 from backend.app.api.routes.shifts_query_service import app
+from backend.app.logic.universal_controller_sql import UniversalController
+from backend.app.models.shift import ShiftCreate
+
 client = TestClient(app)
 
-def test_get_all_shifts():
-    response = client.get("/shift")
+def setup_function():
+    uc = UniversalController()
+    uc.clear_tables()
+    # Insertar un turno de prueba
+    uc.add(ShiftCreate(
+        shift_id="1",
+        unit_id="Bus001",
+        start_time="2025-05-01T08:00:00",
+        end_time="2025-05-01T16:00:00",
+        driver_id="Driver001",
+        schedule_id="Schedule001"
+    ))
+
+def test_list_shifts_page():
+    response = client.get("/shifts/listar")
     assert response.status_code == 200
-    assert "data" in response.json()
-    assert isinstance(response.json()["data"], list)
+    assert "ListarTurno.html" in response.text
+
+def test_shift_detail_page():
+    response = client.get("/shifts/detalles/1")
+    assert response.status_code == 200
+    assert "DetalleTurno.html" in response.text
+    assert "Bus001" in response.text  # Verifica que los datos del turno estén presentes
+
+def test_shift_detail_page_mock():
+    mock_controller = MagicMock()
+    mock_controller.get_by_id.return_value = {
+        "shift_id": "1",
+        "unit_id": "Bus001",
+        "start_time": "2025-05-01T08:00:00",
+        "end_time": "2025-05-01T16:00:00",
+        "driver_id": "Driver001",
+        "schedule_id": "Schedule001"
+    }
+    response = client.get("/shifts/detalles/1")
+    assert response.status_code == 200
+    assert "DetalleTurno.html" in response.text
+
+def test_get_all_shifts():
+    response = client.get("/shifts/all")
+    assert response.status_code == 200
+    assert isinstance(response.json(), list)
 
 def test_get_shift_by_id():
-    shift_id = "SHIFT001"
-    response = client.get(f"/shift/{shift_id}")
-    if response.status_code == 200:
-        assert "data" in response.json()
-        assert response.json()["data"]["shift_id"] == shift_id
-    elif response.status_code == 404:
-        assert response.json()["detail"] == "Shift not found"
+    response = client.get("/shifts/1")
+    assert response.status_code == 200
+    data = response.json()
+    assert data["shift_id"] == "1"
+    assert data["unit_id"] == "Bus001"
+    assert data["driver_id"] == "Driver001"
 
-def test_get_shifts_by_driver():
-    driver_id = "DRIVER001"
-    response = client.get(f"/shift/driver/{driver_id}")
-    if response.status_code == 200:
-        assert "data" in response.json()
-        assert all(s["driver_id"] == driver_id for s in response.json()["data"])
-    elif response.status_code == 404:
-        assert response.json()["detail"] == "No shifts found for this driver"
-
-def test_get_shifts_by_unit():
-    unit_id = "UNIT001"
-    response = client.get(f"/shift/unit/{unit_id}")
-    if response.status_code == 200:
-        assert "data" in response.json()
-        assert all(s["unit_id"] == unit_id for s in response.json()["data"])
-    elif response.status_code == 404:
-        assert response.json()["detail"] == "No shifts found for this unit"
-"""
+def test_get_shift_by_id_not_found():
+    response = client.get("/shifts/999")
+    assert response.status_code == 404
+    assert response.json()["detail"] == "Shift not found"

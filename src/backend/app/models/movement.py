@@ -7,7 +7,7 @@ class MovementCreate(BaseModel):
     amount: float
 
     def to_dict(self):
-        return self.dict()
+        return self.model_dump()
 
 class MovementOut(MovementCreate):
     __entity_name__ = "movement"

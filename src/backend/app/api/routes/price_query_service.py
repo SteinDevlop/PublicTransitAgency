@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Form, Request, status, Query, APIRouter
+from fastapi import FastAPI, HTTPException, APIRouter, Form, Request, status, Query
 from fastapi.responses import HTMLResponse, FileResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -8,52 +8,26 @@ import uvicorn
 from backend.app.models.price import PriceCreate, PriceOut
 from backend.app.logic.universal_controller_sql import UniversalController
 
-# Initialize the FastAPI router for the "price" functionality
-app = APIRouter(prefix="/price", tags=["price"])
-
 # Initialize the controller to handle database operations
 controller = UniversalController()
+app = APIRouter(prefix="/price", tags=["price"])
 
-templates = Jinja2Templates(directory="src/backend/app/templates")
-
-# Route to consult and display the 'ConsultarPrecio' HTML page
-@app.get('/consultar', response_class=HTMLResponse)
-def consultar(request: Request):
+# Route to get all the users from the database
+@app.get("/prices")
+async def get_all():
     """
-    Renders the 'ConsultarPrecio.html' template to show the price consultation page.
-    """
-    return templates.TemplateResponse("ConsultarPrecio.html", {"request": request})
-
-# Route to get all the prices from the database
-@app.get("/precios")
-async def get_precios():
-    """
-    Returns all the prices records from the database.
+    Returns all the price records from the database.
     """
     return controller.read_all(PriceOut)
 
-# Route to view a specific prices by its ID and render the 'precio.html' template
-@app.get("/precio", response_class=HTMLResponse)
-def precio(request: Request, id: int = Query(...)):
+# Route to view a specific user by its ID and render the 'precio.html' template
+@app.get("/{id}")
+def get_by_id(id: int):
     """
     Fetches a price by its ID and renders its details on 'precio.html'.
     If no price is found, returns 'None' for the details.
     """
-    unit_price = controller.get_by_id(PriceOut, id)
-    
-    if unit_price:
-        # If the price is found, display its details
-        return templates.TemplateResponse("precio.html", {
-            "request": request,
-            "id": unit_price.id,
-            "tipounidadtransporte": unit_price.unidadtransportype,
-            "monto": unit_price.amount
-        })
-    
-    # If no price is found, display placeholders for the price details
-    return templates.TemplateResponse("precio.html", {
-        "request": request,
-        "id": "None",
-        "tipounidadtransporte": "None",
-        "monto": "None"
-    })
+    result = controller.get_by_id(PriceOut, id)
+    if not result:
+        raise HTTPException(status_code=404, detail="Not found")
+    return result.to_dict()

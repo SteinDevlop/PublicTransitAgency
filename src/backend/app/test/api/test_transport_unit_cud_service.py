@@ -1,59 +1,26 @@
-"""import pytest
+import pytest
 from fastapi.testclient import TestClient
-from backend.app.api.routes.transport_unit_CUD_service import app
-#Mario, esto es una correccion rapida, si tiene error te toca corregirlo
-client = TestClient(app)
+from backend.app.api.routes.transport_unit_CUD_service import app as transports_router
+from backend.app.logic.universal_controller_sql import UniversalController
+from backend.app.models.transport import Transport
 
-def test_create_unit():
-    response = client.post(
-        "/transport/unit/create",
-        data={
-            "id": "unit123",
-            "type": "bus",
-            "status": "active",
-            "ubication": "warehouse_1",
-            "capacity": 50
-        }
-    )
-    assert response.status_code == 200
-    assert response.json()["operation"] == "create"
-    assert "data" in response.json()
+client = TestClient(transports_router)
 
-def test_update_unit():
-    response = client.post(
-        "/transport/unit/update",
-        data={
-            "id": "unit123",
-            "type": "bus",
-            "status": "inactive",
-            "ubication": "warehouse_2",
-            "capacity": 40
-        }
-    )
-    assert response.status_code == 200
-    assert response.json()["operation"] == "update"
-    assert response.json()["id"] == "unit123"
+def setup_function():
+    UniversalController().clear_tables()
 
-def test_delete_unit():
-    response = client.post(
-        "/transport/unit/delete",
-        data={
-            "id": "unit123"
-        }
-    )
-    assert response.status_code == 200
-    assert response.json()["operation"] == "delete"
-    assert response.json()["id"] == "unit123"
+def test_crear_unidad():
+    response = client.post("/transports/create", data={"id": "1", "type": "Bus", "status": "bien", "ubication": "Garage", "capacity": 50})
+    assert response.status_code == 303
 
-def test_create_unit_missing_field():
-    response = client.post(
-        "/transport/unit/create",
-        data={
-            "id": "unit123",
-            "type": "bus",
-            "status": "active",
-            "ubication": "warehouse_1"
-        }
-    )
-    assert response.status_code == 422  
-"""
+def test_actualizar_unidad():
+    controller = UniversalController()
+    controller.add(Transport(id="1", type="Bus", status="bien", ubication="Garage", capacity=50))
+    response = client.post("/transports/update", data={"id": "1", "type": "Bus", "status": "mantenimiento", "ubication": "Garage", "capacity": 50})
+    assert response.status_code == 303
+
+def test_eliminar_unidad():
+    controller = UniversalController()
+    controller.add(Transport(id="1", type="Bus", status="bien", ubication="Garage", capacity=50))
+    response = client.post("/transports/delete", data={"id": "1"})
+    assert response.status_code == 303
