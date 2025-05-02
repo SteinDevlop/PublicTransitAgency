@@ -1,8 +1,8 @@
 import pytest
 from fastapi.testclient import TestClient
 from fastapi import FastAPI, HTTPException
-from backend.app.api.routes.user_cud_service import app as user_router, get_controller
-from backend.app.models.user import UserCreate
+from src.backend.app.api.routes.user_cud_service import app as user_router, get_controller
+from src.backend.app.models.user import UserCreate
 
 # Montar una app para test
 test_app = FastAPI()
