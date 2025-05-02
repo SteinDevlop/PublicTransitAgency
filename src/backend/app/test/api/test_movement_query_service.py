@@ -1,4 +1,4 @@
-"""import pytest
+import pytest
 from fastapi.testclient import TestClient
 from unittest.mock import patch, MagicMock
 from src.backend.app.api.routes.movement_query_service import app  # Ajusta si el módulo tiene otro nombre
@@ -43,4 +43,3 @@ def test_movimiento_not_found(mock_get_by_id):
     response = client.get("/movimiento?id=999")
     assert response.status_code == 200
     assert "None" in response.text
-"""
