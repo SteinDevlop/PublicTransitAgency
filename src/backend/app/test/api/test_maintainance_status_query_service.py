@@ -5,7 +5,6 @@ from backend.app.logic.universal_controller_sql import UniversalController
 from backend.app.models.maintainance_status import MaintainanceStatusCreate, MaintainanceStatusOut, MaintainanceStatus
 from typing import List, Dict, Any
 
-# Limpieza de base de datos antes y después de cada test
 def setup_function():
     UniversalController().clear_tables()
 
