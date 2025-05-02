@@ -14,7 +14,7 @@ def teardown_function():
 # Creamos la app de prueba
 app_for_test = FastAPI()
 app_for_test.include_router(maintainance_router)
-client = TestClient(maintainance_router)
+client = TestClient(maintainance_router) 
 
 def test_consultar_page():
     |||Prueba que la ruta '/consultar' devuelve la plantilla 'ConsultarEstatusMantenimiento.html' correctamente.|||
