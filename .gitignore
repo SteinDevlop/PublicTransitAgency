@@ -1,5 +1,7 @@
 .venv/
 .env/
+venv/
+.venv/
 data.db
 storage.json
 __pycache__
