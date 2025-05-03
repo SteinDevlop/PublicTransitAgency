@@ -1,64 +1,71 @@
-import pytest
 from fastapi.testclient import TestClient
-from unittest.mock import MagicMock
-from backend.app.api.routes.shifts_query_service import app
+from backend.app.api.routes.shifts_query_service import app as shifts_router
 from backend.app.logic.universal_controller_sql import UniversalController
-from backend.app.models.shift import ShiftCreate
+from backend.app.models.shift import Shift
+from fastapi import FastAPI
 
-client = TestClient(app)
+app_for_test = FastAPI()
+app_for_test.include_router(shifts_router)
+client = TestClient(app_for_test)
+controller = UniversalController()
 
 def setup_function():
-    uc = UniversalController()
-    uc.clear_tables()
-    # Insertar un turno de prueba
-    uc.add(ShiftCreate(
-        shift_id="1",
-        unit_id="Bus001",
-        start_time="2025-05-01T08:00:00",
-        end_time="2025-05-01T16:00:00",
-        driver_id="Driver001",
-        schedule_id="Schedule001"
-    ))
+    controller.clear_tables()
 
-def test_list_shifts_page():
-    response = client.get("/shifts/listar")
+def teardown_function():
+    controller.clear_tables()
+
+def test_listar_turnos():
+    controller.add(Shift(ID=1, TipoTurno="Diurno"))
+    response = client.get("/shifts/")
     assert response.status_code == 200
-    assert "ListarTurno.html" in response.text
+    assert "Diurno" in response.text
 
-def test_shift_detail_page():
-    response = client.get("/shifts/detalles/1")
-    assert response.status_code == 200
-    assert "DetalleTurno.html" in response.text
-    assert "Bus001" in response.text  # Verifica que los datos del turno estén presentes
-
-def test_shift_detail_page_mock():
-    mock_controller = MagicMock()
-    mock_controller.get_by_id.return_value = {
-        "shift_id": "1",
-        "unit_id": "Bus001",
-        "start_time": "2025-05-01T08:00:00",
-        "end_time": "2025-05-01T16:00:00",
-        "driver_id": "Driver001",
-        "schedule_id": "Schedule001"
-    }
-    response = client.get("/shifts/detalles/1")
-    assert response.status_code == 200
-    assert "DetalleTurno.html" in response.text
-
-def test_get_all_shifts():
-    response = client.get("/shifts/all")
-    assert response.status_code == 200
-    assert isinstance(response.json(), list)
-
-def test_get_shift_by_id():
+def test_detalle_turno_existente():
+    controller.add(Shift(ID=1, TipoTurno="Diurno"))
     response = client.get("/shifts/1")
     assert response.status_code == 200
-    data = response.json()
-    assert data["shift_id"] == "1"
-    assert data["unit_id"] == "Bus001"
-    assert data["driver_id"] == "Driver001"
+    assert "Diurno" in response.text
 
-def test_get_shift_by_id_not_found():
+def test_detalle_turno_no_existente():
     response = client.get("/shifts/999")
     assert response.status_code == 404
-    assert response.json()["detail"] == "Shift not found"
+    assert response.json()["detail"] == "Turno no encontrado"
+
+
+
+"""
+from fastapi.testclient import TestClient
+from backend.app.api.routes.shifts_query_service import app as shifts_router
+from backend.app.logic.universal_controller_sql import UniversalController
+from backend.app.models.shift import ShiftOut
+from fastapi import FastAPI
+
+app_for_test = FastAPI()
+app_for_test.include_router(shifts_router)
+client = TestClient(app_for_test)
+controller = UniversalController()
+
+def setup_function():
+    controller.clear_tables()
+
+def teardown_function():
+    controller.clear_tables()
+
+def test_listar_turnos():
+    controller.add(ShiftOut(shift_id="1", unit_id="U1", start_time="2023-05-01T08:00:00", end_time="2023-05-01T16:00:00", driver_id="D1", schedule_id="S1"))
+    response = client.get("/shifts/")
+    assert response.status_code == 200
+    assert "U1" in response.text
+
+def test_detalle_turno_existente():
+    controller.add(ShiftOut(shift_id="1", unit_id="U1", start_time="2023-05-01T08:00:00", end_time="2023-05-01T16:00:00", driver_id="D1", schedule_id="S1"))
+    response = client.get("/shifts/1")
+    assert response.status_code == 200
+    assert "U1" in response.text
+
+def test_detalle_turno_no_existente():
+    response = client.get("/shifts/999")
+    assert response.status_code == 404
+    assert response.json()["detail"] == "Turno no encontrado"
+    """

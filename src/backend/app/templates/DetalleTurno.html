@@ -9,17 +9,13 @@
     <h1>Detalle del Turno</h1>
     {% if shift %}
     <div>
-        <p><strong>ID del Turno:</strong> {{ shift.shift_id }}</p>
-        <p><strong>Unidad:</strong> {{ shift.unit_id }}</p>
-        <p><strong>Hora de Inicio:</strong> {{ shift.start_time }}</p>
-        <p><strong>Hora de Fin:</strong> {{ shift.end_time }}</p>
-        <p><strong>Conductor:</strong> {{ shift.driver_id }}</p>
-        <p><strong>Horario:</strong> {{ shift.schedule_id }}</p>
+        <p><strong>ID del Turno:</strong> {{ shift.ID }}</p>
+        <p><strong>Tipo de Turno:</strong> {{ shift.TipoTurno }}</p>
     </div>
     {% else %}
     <p>No se encontró el turno.</p>
     {% endif %}
-    <p><a href="/shifts/listar">Volver al Listado</a></p>
+    <p><a href="/shifts">Volver al Listado</a></p>
     <p><a href="/">Volver a la Principal</a></p>
 </body>
 </html>

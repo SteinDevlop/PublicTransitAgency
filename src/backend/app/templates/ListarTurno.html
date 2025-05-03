@@ -7,31 +7,23 @@
 </head>
 <body>
     <h1>Listado de Turnos</h1>
-    <table>
+    <table border="1">
         <thead>
             <tr>
                 <th>ID del Turno</th>
-                <th>Unidad</th>
-                <th>Hora de Inicio</th>
-                <th>Hora de Fin</th>
-                <th>Conductor</th>
-                <th>Horario</th>
+                <th>Tipo de Turno</th>
                 <th>Acciones</th>
             </tr>
         </thead>
         <tbody>
             {% for shift in shifts %}
             <tr>
-                <td>{{ shift.shift_id }}</td>
-                <td>{{ shift.unit_id }}</td>
-                <td>{{ shift.start_time }}</td>
-                <td>{{ shift.end_time }}</td>
-                <td>{{ shift.driver_id }}</td>
-                <td>{{ shift.schedule_id }}</td>
-                <td><a href="/shifts/detalles/{{ shift.shift_id }}">Detalles</a></td>
+                <td>{{ shift.ID }}</td>
+                <td>{{ shift.TipoTurno }}</td>
+                <td><a href="/shifts/{{ shift.ID }}">Detalles</a></td>
             </tr>
             {% else %}
-            <tr><td colspan="7">No hay turnos registrados.</td></tr>
+            <tr><td colspan="3">No hay turnos registrados.</td></tr>
             {% endfor %}
         </tbody>
     </table>

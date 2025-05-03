@@ -1,92 +1,140 @@
-from fastapi import FastAPI, Form, HTTPException, APIRouter, Request
-from fastapi.templating import Jinja2Templates
-import datetime
+from fastapi import APIRouter, Form, HTTPException, Request
 from fastapi.responses import HTMLResponse
-
-from backend.app.models.shift import ShiftCreate, ShiftOut
+from fastapi.templating import Jinja2Templates
 from backend.app.logic.universal_controller_sql import UniversalController
+from backend.app.models.shift import Shift
 
 app = APIRouter(prefix="/shifts", tags=["shifts"])
 controller = UniversalController()
 templates = Jinja2Templates(directory="src/backend/app/templates")
 
-@app.get("/crear", response_class=HTMLResponse)
-def index_create(request: Request):
+@app.get("/create", response_class=HTMLResponse)
+def crear_turno_form(request: Request):
     return templates.TemplateResponse("CrearTurno.html", {"request": request})
 
-@app.get("/actualizar", response_class=HTMLResponse)
-def index_update(request: Request):
+@app.post("/create")
+def crear_turno(ID: int = Form(...), TipoTurno: str = Form(...)):
+    turno = Shift(ID=ID, TipoTurno=TipoTurno)
+    try:
+        controller.add(turno)
+        return {
+            "operation": "create",
+            "success": True,
+            "data": turno,
+            "message": "Turno creado exitosamente."
+        }
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+@app.get("/update", response_class=HTMLResponse)
+def actualizar_turno_form(request: Request):
     return templates.TemplateResponse("ActualizarTurno.html", {"request": request})
 
-@app.get("/eliminar", response_class=HTMLResponse)
-def index_delete(request: Request):
+@app.post("/update")
+def actualizar_turno(ID: int = Form(...), TipoTurno: str = Form(...)):
+    turno = Shift(ID=ID, TipoTurno=TipoTurno)
+    try:
+        controller.update(turno)
+        return {
+            "operation": "update",
+            "success": True,
+            "data": turno,
+            "message": "Turno actualizado exitosamente."
+        }
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+@app.get("/delete", response_class=HTMLResponse)
+def eliminar_turno_form(request: Request):
     return templates.TemplateResponse("EliminarTurno.html", {"request": request})
 
+@app.post("/delete")
+def eliminar_turno(ID: int = Form(...)):
+    turno = Shift(ID=ID)
+    try:
+        controller.delete(turno)
+        return {
+            "operation": "delete",
+            "success": True,
+            "message": "Turno eliminado exitosamente."
+        }
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+
+"""
+from fastapi import APIRouter, Form, HTTPException
+from backend.app.logic.universal_controller_sql import UniversalController
+from backend.app.models.shift import ShiftCreate
+
+app = APIRouter(prefix="/shifts", tags=["shifts"])
+controller = UniversalController()
+
 @app.post("/create")
-async def create_shift(
+def crear_turno(
     shift_id: str = Form(...),
-    unit: str = Form(...),
-    start_time: datetime.datetime = Form(...),
-    end_time: datetime.datetime = Form(...),
-    driver: str = Form(...),
-    schedule: str = Form(...)
+    unit_id: str = Form(...),
+    start_time: str = Form(...),
+    end_time: str = Form(...),
+    driver_id: str = Form(...),
+    schedule_id: str = Form(...)
 ):
+    turno = ShiftCreate(
+        shift_id=shift_id,
+        unit_id=unit_id,
+        start_time=start_time,
+        end_time=end_time,
+        driver_id=driver_id,
+        schedule_id=schedule_id
+    )
     try:
-        new_shift = ShiftCreate(
-            shift_id=shift_id,
-            unit_id=unit,
-            start_time=start_time,
-            end_time=end_time,
-            driver_id=driver,
-            schedule_id=schedule
-        )
-        result = controller.add(new_shift)
-        return {"operation": "create", "success": True, "data": ShiftOut(**result.to_dict()).dict(), "message": "Shift created successfully"}
+        controller.add(turno)
+        return {
+            "operation": "create",
+            "success": True,
+            "data": turno.to_dict(),
+            "message": "Turno creado exitosamente."
+        }
     except ValueError as e:
-        raise HTTPException(400, detail=str(e))
-    except Exception as e:
-        raise HTTPException(500, detail=f"Internal server error: {str(e)}")
+        raise HTTPException(status_code=400, detail=str(e))
 
-@app.post("/update/{shift_id}")
-async def update_shift(
-    shift_id: str,
-    unit: str = Form(None),
-    start_time: datetime.datetime = Form(None),
-    end_time: datetime.datetime = Form(None),
-    driver: str = Form(None),
-    schedule: str = Form(None)
+@app.post("/update")
+def actualizar_turno(
+    shift_id: str = Form(...),
+    unit_id: str = Form(...),
+    start_time: str = Form(...),
+    end_time: str = Form(...),
+    driver_id: str = Form(...),
+    schedule_id: str = Form(...)
 ):
+    turno = ShiftCreate(
+        shift_id=shift_id,
+        unit_id=unit_id,
+        start_time=start_time,
+        end_time=end_time,
+        driver_id=driver_id,
+        schedule_id=schedule_id
+    )
     try:
-        existing_shift = controller.get_by_id(ShiftOut, shift_id)
-        if not existing_shift:
-            raise HTTPException(404, detail="Shift not found")
-
-        update_data = ShiftCreate(
-            shift_id=shift_id,  # ID from path, ensure consistency
-            unit_id=unit if unit is not None else existing_shift.unit_id,
-            start_time=start_time if start_time is not None else existing_shift.start_time,
-            end_time=end_time if end_time is not None else existing_shift.end_time,
-            driver_id=driver if driver is not None else existing_shift.driver_id,
-            schedule_id=schedule if schedule is not None else existing_shift.schedule_id
-        )
-        result = controller.update(update_data)
-        return {"operation": "update", "success": True, "data": ShiftOut(**result.to_dict()).dict(), "message": f"Shift {shift_id} updated successfully"}
+        controller.update(turno)
+        return {
+            "operation": "update",
+            "success": True,
+            "data": turno.to_dict(),
+            "message": "Turno actualizado exitosamente."
+        }
     except ValueError as e:
-        raise HTTPException(400, detail=str(e))
-    except HTTPException as e:
-        raise e
-    except Exception as e:
-        raise HTTPException(500, detail=str(e))
+        raise HTTPException(status_code=404, detail=str(e))
 
-@app.post("/delete/{shift_id}")
-async def delete_shift(shift_id: str):
+@app.post("/delete")
+def eliminar_turno(shift_id: str = Form(...)):
+    turno = ShiftCreate(shift_id=shift_id)
     try:
-        existing_shift = controller.get_by_id(ShiftOut, shift_id)
-        if not existing_shift:
-            raise HTTPException(404, detail="Shift not found")
-        controller.delete(existing_shift)
-        return {"operation": "delete", "success": True, "message": f"Shift {shift_id} deleted successfully"}
-    except HTTPException as e:
-        raise e
-    except Exception as e:
-        raise HTTPException(500, detail=str(e))
+        controller.delete(turno)
+        return {
+            "operation": "delete",
+            "success": True,
+            "message": "Turno eliminado exitosamente."
+        }
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+"""

@@ -3,17 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Eliminar Turno Existente</title>
+    <title>Eliminar Turno</title>
 </head>
 <body>
     <h1>Eliminar Turno</h1>
-    <form action="/shift/delete" method="post">
+    <form action="/shifts/delete" method="post">
         <div>
-            <label for="shift_id">ID del Turno a Eliminar:</label>
-            <input type="text" id="shift_id" name="shift_id" required>
+            <label for="ID">ID del Turno a Eliminar:</label>
+            <input type="text" id="ID" name="ID" required>
         </div>
         <button type="submit">Eliminar Turno</button>
     </form>
-    <p><a href="/">Volver</a></p>
+    <p><a href="/shifts">Volver al Listado</a></p>
 </body>
 </html>

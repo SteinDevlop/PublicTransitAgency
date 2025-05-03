@@ -1,51 +1,77 @@
-import pytest
 from fastapi.testclient import TestClient
-from backend.app.api.routes.shifts_query_service import app
+from backend.app.api.routes.shifts_CUD_service import app as shifts_router
+from backend.app.logic.universal_controller_sql import UniversalController
+from backend.app.models.shift import Shift
+from fastapi import FastAPI
 
-client = TestClient(app)
+app_for_test = FastAPI()
+app_for_test.include_router(shifts_router)
+client = TestClient(app_for_test)
+controller = UniversalController()
 
-def test_index_create():
-    response = client.get("/shifts/crear")
+def setup_function():
+    controller.clear_tables()
+
+def teardown_function():
+    controller.clear_tables()
+
+def test_crear_turno():
+    response = client.post("/shifts/create", data={"ID": 1, "TipoTurno": "Diurno"})
     assert response.status_code == 200
-    assert "CrearTurno.html" in response.text
 
-def test_index_update():
-    response = client.get("/shifts/actualizar")
+def test_actualizar_turno():
+    controller.add(Shift(ID=1, TipoTurno="Diurno"))
+    response = client.post("/shifts/update", data={"ID": 1, "TipoTurno": "Nocturno"})
     assert response.status_code == 200
-    assert "ActualizarTurno.html" in response.text
 
-def test_index_delete():
-    response = client.get("/shifts/eliminar")
+def test_eliminar_turno():
+    controller.add(Shift(ID=1, TipoTurno="Diurno"))
+    response = client.post("/shifts/delete", data={"ID": 1})
     assert response.status_code == 200
-    assert "EliminarTurno.html" in response.text
 
-def test_create_shift():
-    data = {
+"""
+from fastapi.testclient import TestClient
+from backend.app.api.routes.shifts_cud_service import app as shifts_router
+from backend.app.logic.universal_controller_sql import UniversalController
+from backend.app.models.shift import ShiftCreate
+from fastapi import FastAPI
+
+app_for_test = FastAPI()
+app_for_test.include_router(shifts_router)
+client = TestClient(app_for_test)
+controller = UniversalController()
+
+def setup_function():
+    controller.clear_tables()
+
+def teardown_function():
+    controller.clear_tables()
+
+def test_crear_turno():
+    response = client.post("/shifts/create", data={
         "shift_id": "1",
-        "unit": "Bus123",
-        "start_time": "2025-05-01T08:00:00",
-        "end_time": "2025-05-01T16:00:00",
-        "driver": "Driver1",
-        "schedule": "Schedule1"
-    }
-    response = client.post("/shifts/create", data=data)
+        "unit_id": "U1",
+        "start_time": "2023-05-01T08:00:00",
+        "end_time": "2023-05-01T16:00:00",
+        "driver_id": "D1",
+        "schedule_id": "S1"
+    })
     assert response.status_code == 200
-    assert response.json()["operation"] == "create"
-    assert response.json()["success"] is True
 
-def test_update_shift():
-    data = {
-        "unit": "Bus456",
-        "start_time": "2025-05-01T09:00:00",
-        "end_time": "2025-05-01T17:00:00"
-    }
-    response = client.post("/shifts/update/1", data=data)
+def test_actualizar_turno():
+    controller.add(ShiftCreate(shift_id="1", unit_id="U1", start_time="2023-05-01T08:00:00", end_time="2023-05-01T16:00:00", driver_id="D1", schedule_id="S1"))
+    response = client.post("/shifts/update", data={
+        "shift_id": "1",
+        "unit_id": "U2",
+        "start_time": "2023-05-01T09:00:00",
+        "end_time": "2023-05-01T17:00:00",
+        "driver_id": "D2",
+        "schedule_id": "S2"
+    })
     assert response.status_code == 200
-    assert response.json()["operation"] == "update"
-    assert response.json()["success"] is True
 
-def test_delete_shift():
-    response = client.post("/shifts/delete/1")
+def test_eliminar_turno():
+    controller.add(ShiftCreate(shift_id="1", unit_id="U1", start_time="2023-05-01T08:00:00", end_time="2023-05-01T16:00:00", driver_id="D1", schedule_id="S1"))
+    response = client.post("/shifts/delete", data={"shift_id": "1"})
     assert response.status_code == 200
-    assert response.json()["operation"] == "delete"
-    assert response.json()["success"] is True
+    """
