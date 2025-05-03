@@ -25,13 +25,18 @@ def test_crear_incidencia():
     })
     assert response.status_code == 200
 
-def test_listar_incidencias():
+def test_actualizar_incidencia():
     controller.add(Incidence(ID=1, IDTicket=101, Descripcion="Falla técnica", Tipo="Técnica", IDUnidad=10))
-    response = client.get("/incidence/")
+    response = client.post("/incidence/update", data={
+        "ID": 1,
+        "IDTicket": 102,
+        "Descripcion": "Falla corregida",
+        "Tipo": "Operativa",
+        "IDUnidad": 20
+    })
     assert response.status_code == 200
-    assert "Falla técnica" in response.text
 
 def test_eliminar_incidencia():
-    controller.add(Incidence(id=1, description="Falla técnica", type="Técnica", status="Pendiente", ticket_id=101))
-    response = client.post("/incidence/delete", data={"id": 1})
+    controller.add(Incidence(ID=1, IDTicket=101, Descripcion="Falla técnica", Tipo="Técnica", IDUnidad=10))
+    response = client.post("/incidence/delete", data={"ID": 1})
     assert response.status_code == 200

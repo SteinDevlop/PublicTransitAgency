@@ -22,11 +22,10 @@
             <tbody>
                 {% for horario in horarios %}
                 <tr>
-                    <td>{{ horario.schedule_id }}</td>
-                    <td>{{ horario.arrival_date }}</td>
-                    <td>{{ horario.departure_date }}</td>
-                    <td>{{ horario.route }}</td>
-                    <td><a href="/schedules/{{ horario.schedule_id }}">Ver Detalle</a></td>
+                    <td>{{ horario.ID }}</td>
+                    <td>{{ horario.Llegada }}</td>
+                    <td>{{ horario.Salida }}</td>
+                    <td><a href="/schedules/{{ horario.ID }}">Ver Detalle</a></td>
                 </tr>
                 {% endfor %}
             </tbody>

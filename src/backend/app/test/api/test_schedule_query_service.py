@@ -1,43 +1,33 @@
-from fastapi import FastAPI
 from fastapi.testclient import TestClient
-from backend.app.api.routes.schedule_query_service import app as schedule_query_router
-import datetime
+from backend.app.api.routes.schedule_query_service import app as schedules_router
+from backend.app.logic.universal_controller_sql import UniversalController
+from backend.app.models.schedule import Schedule
+from fastapi import FastAPI
 
-# Creamos la app de prueba
 app_for_test = FastAPI()
-app_for_test.include_router(schedule_query_router)
-
-# Cliente de prueba
+app_for_test.include_router(schedules_router)
 client = TestClient(app_for_test)
+controller = UniversalController()
 
-def test_list_schedules_page():
-    response = client.get("/schedules/listar")
+def setup_function():
+    controller.clear_tables()
+
+def teardown_function():
+    controller.clear_tables()
+
+def test_listar_horarios():
+    controller.add(Schedule(ID=1, Llegada="08:00:00", Salida="10:00:00"))
+    response = client.get("/schedules/")
     assert response.status_code == 200
-    assert "ListarHorario" in response.text # Verifica el título o contenido específico de la tabla
+    assert "08:00:00" in response.text
 
-def test_schedule_detail_page_existing():
-    # Asumimos que existe un horario con ID 'SCH001' en la base de datos de prueba
-    response = client.get("/schedules/detalles/SCH001")
+def test_detalle_horario_existente():
+    controller.add(Schedule(ID=1, Llegada="08:00:00", Salida="10:00:00"))
+    response = client.get("/schedules/1")
     assert response.status_code == 200
-    assert "DetalleHorario" in response.text # Verifica el título o contenido específico de la página de detalles
+    assert "08:00:00" in response.text
 
-def test_schedule_detail_page_not_found():
-    response = client.get("/schedules/detalles/NONEXISTENT")
+def test_detalle_horario_no_existente():
+    response = client.get("/schedules/999")
     assert response.status_code == 404
-    assert "Horario no encontrado" in response.text
-
-def test_get_all_schedules():
-    response = client.get("/schedules/all")
-    assert response.status_code == 200
-    assert isinstance(response.json(), list) # Verifica que la respuesta sea una lista
-
-def test_get_schedule_by_id_existing():
-    # Asumimos que existe un horario con ID 'SCH002' en la base de datos de prueba
-    response = client.get("/schedules/SCH002")
-    assert response.status_code == 200
-    assert response.json()["schedule_id"] == "SCH002"
-
-def test_get_schedule_by_id_not_found():
-    response = client.get("/schedules/NONEXISTENT")
-    assert response.status_code == 404
-    assert response.json()["detail"] == "Schedule not found"
+    assert response.json()["detail"] == "Horario no encontrado"

@@ -16,13 +16,13 @@ def teardown_function():
     controller.clear_tables()
 
 def test_listar_incidencias():
-    controller.add(Incidence(id=1, description="Falla técnica", type="Técnica", status="Pendiente", ticket_id=101))
+    controller.add(Incidence(ID=1, IDTicket=101, Descripcion="Falla técnica", Tipo="Técnica", IDUnidad=10))
     response = client.get("/incidence/")
     assert response.status_code == 200
     assert "Falla técnica" in response.text
 
 def test_detalle_incidencia_existente():
-    controller.add(Incidence(id=1, description="Falla técnica", type="Técnica", status="Pendiente", ticket_id=101))
+    controller.add(Incidence(ID=1, IDTicket=101, Descripcion="Falla técnica", Tipo="Técnica", IDUnidad=10))
     response = client.get("/incidence/1")
     assert response.status_code == 200
     assert "Falla técnica" in response.text

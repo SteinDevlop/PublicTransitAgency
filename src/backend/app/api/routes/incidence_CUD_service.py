@@ -44,18 +44,18 @@ def actualizar_incidencia_form(request: Request):
 
 @app.post("/update")
 def actualizar_incidencia(
-    id: int = Form(...),
-    description: str = Form(...),
-    type: str = Form(...),
-    status: str = Form(...),
-    ticket_id: int = Form(...)
+    ID: int = Form(...),
+    IDTicket: int = Form(...),
+    Descripcion: str = Form(...),
+    Tipo: str = Form(...),
+    IDUnidad: int = Form(...)
 ):
     incidencia = Incidence(
-        id=id,
-        description=description,
-        type=type,
-        status=status,
-        ticket_id=ticket_id
+        ID=ID,
+        IDTicket=IDTicket,
+        Descripcion=Descripcion,
+        Tipo=Tipo,
+        IDUnidad=IDUnidad
     )
     try:
         controller.update(incidencia)
@@ -73,8 +73,8 @@ def eliminar_incidencia_form(request: Request):
     return templates.TemplateResponse("EliminarIncidencia.html", {"request": request})
 
 @app.post("/delete")
-def eliminar_incidencia(id: int = Form(...)):
-    incidencia = Incidence(id=id)
+def eliminar_incidencia(ID: int = Form(...)):
+    incidencia = Incidence(ID=ID)
     try:
         controller.delete(incidencia)
         return {
@@ -84,47 +84,3 @@ def eliminar_incidencia(id: int = Form(...)):
         }
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
-        existing_incidence = controller.get_by_id(IncidenceOut, IncidenciaID)
-        if not existing_incidence:
-            raise HTTPException(404, detail="Incidence not found")
-
-        updated_incidence = IncidenceCreate(
-            IncidenciaID=IncidenciaID,
-            Descripcion=Descripcion,
-            Tipo=Tipo,
-            TicketID=TicketID
-        )
-        result = controller.update(updated_incidence)
-        return {
-            "operation": "update",
-            "success": True,
-            "data": IncidenceOut(
-                IncidenciaID=result.IncidenciaID,
-                Descripcion=result.Descripcion,
-                Tipo=result.Tipo,
-                TicketID=result.TicketID
-            ).dict(),
-            "message": f"Incidence {IncidenciaID} updated successfully"
-        }
-    except ValueError as e:
-        raise HTTPException(400, detail=str(e))
-    except HTTPException as e:
-        raise e
-    
-
-@app.post("/delete")
-async def delete_incidence(IncidenciaID: int = Form(...)):
-    """Deletes an existing incidence."""
-    try:
-        existing_incidence = controller.get_by_id(IncidenceOut, IncidenciaID)
-        if not existing_incidence:
-            raise HTTPException(404, detail="Incidence not found")
-        controller.delete(existing_incidence)
-        return {
-            "operation": "delete",
-            "success": True,
-            "message": f"Incidence {IncidenciaID} deleted successfully"
-        }
-    except HTTPException as e:
-        raise e
-    
