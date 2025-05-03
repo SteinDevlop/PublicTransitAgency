@@ -1,66 +1,62 @@
-from fastapi import FastAPI, APIRouter, Form, HTTPException, Request
-from fastapi.middleware.cors import CORSMiddleware
+from fastapi import APIRouter, Form, HTTPException, Request
+from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
-from fastapi.responses import HTMLResponse, RedirectResponse
-from backend.app.models.ticket import TicketCreate, TicketOut
 from backend.app.logic.universal_controller_sql import UniversalController
-import uvicorn
+from backend.app.models.ticket import Ticket
 
-app = FastAPI()
+app = APIRouter(prefix="/tickets", tags=["tickets"])
 controller = UniversalController()
 templates = Jinja2Templates(directory="src/backend/app/templates")
 
-# Configuración CORS
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-ticket_router = APIRouter(prefix="/ticket", tags=["ticket"])
-
-@ticket_router.get("/crear", response_class=HTMLResponse)
+@app.get("/create", response_class=HTMLResponse)
 def crear_ticket_form(request: Request):
     return templates.TemplateResponse("CrearTicket.html", {"request": request})
 
-@ticket_router.post("/create")
-def crear_ticket(ticket_id: int = Form(...), status_code: int = Form(...)):
-    ticket = TicketCreate(ticket_id=ticket_id, status_code=status_code)
+@app.post("/create")
+def crear_ticket(ID: int = Form(...), EstadoIncidencia: str = Form(...)):
+    ticket = Ticket(ID=ID, EstadoIncidencia=EstadoIncidencia)
     try:
         controller.add(ticket)
-        return RedirectResponse("/tickets", status_code=303)
+        return {
+            "operation": "create",
+            "success": True,
+            "data": ticket,
+            "message": "Ticket creado exitosamente."
+        }
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
-@ticket_router.get("/actualizar", response_class=HTMLResponse)
+@app.get("/update", response_class=HTMLResponse)
 def actualizar_ticket_form(request: Request):
     return templates.TemplateResponse("ActualizarTicket.html", {"request": request})
 
-@ticket_router.post("/update")
-def actualizar_ticket(ticket_id: int = Form(...), status_code: int = Form(...)):
-    ticket = TicketCreate(ticket_id=ticket_id, status_code=status_code)
+@app.post("/update")
+def actualizar_ticket(ID: int = Form(...), EstadoIncidencia: str = Form(...)):
+    ticket = Ticket(ID=ID, EstadoIncidencia=EstadoIncidencia)
     try:
         controller.update(ticket)
-        return RedirectResponse("/tickets", status_code=303)
+        return {
+            "operation": "update",
+            "success": True,
+            "data": ticket,
+            "message": "Ticket actualizado exitosamente."
+        }
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
 
-@ticket_router.get("/eliminar", response_class=HTMLResponse)
+@app.get("/delete", response_class=HTMLResponse)
 def eliminar_ticket_form(request: Request):
     return templates.TemplateResponse("EliminarTicket.html", {"request": request})
 
-@ticket_router.post("/delete")
-def eliminar_ticket(ticket_id: int = Form(...)):
-    ticket = TicketCreate(ticket_id=ticket_id, status_code=0)
+@app.post("/delete")
+def eliminar_ticket(ID: int = Form(...)):
+    ticket = Ticket(ID=ID, EstadoIncidencia="")
     try:
         controller.delete(ticket)
-        return RedirectResponse("/tickets", status_code=303)
+        return {
+            "operation": "delete",
+            "success": True,
+            "message": "Ticket eliminado exitosamente."
+        }
     except ValueError as e:
         raise HTTPException(status_code=404, detail=str(e))
-
-app.include_router(ticket_router)
-
-if __name__ == "__main__":
-    uvicorn.run("main:app", host="0.0.0.0", port=8001, reload=True)

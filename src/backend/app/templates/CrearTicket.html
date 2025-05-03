@@ -9,12 +9,12 @@
     <h1>Crear Nuevo Ticket</h1>
     <form action="/ticket/create" method="post">
         <div>
-            <label for="ticket_id">ID del Ticket:</label>
-            <input type="text" id="ticket_id" name="ticket_id" required>
+            <label for="ID">ID del Ticket:</label>
+            <input type="text" id="ID" name="ID" required>
         </div>
         <div>
-            <label for="status_code">Código de Estado (1, 2 o 3):</label>
-            <input type="number" id="status_code" name="status_code" min="1" max="3" required>
+            <label for="EstadoIncidencia">Estado de Incidencia:</label>
+            <input type="text" id="EstadoIncidencia" name="EstadoIncidencia" required>
         </div>
         <button type="submit">Crear Ticket</button>
     </form>

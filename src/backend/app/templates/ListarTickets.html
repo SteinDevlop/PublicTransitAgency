@@ -12,17 +12,18 @@
         <thead>
             <tr>
                 <th>ID del Ticket</th>
-                <th>Código de Estado</th>
+                <th>Estado de Incidencia</th>
                 <th>Acciones</th>
             </tr>
         </thead>
         <tbody>
             {% for ticket in tickets %}
             <tr>
-                <td>{{ ticket.ticket_id }}</td>
-                <td>{{ ticket.status_code }}</td>
-                <td><a href="/tickets/{{ ticket.ticket_id }}">Ver Detalle</a></td>
+                <td>{{ ticket.ID }}</td>
+                <td>{{ ticket.EstadoIncidencia }}</td>
+                <td><a href="/tickets/{{ ticket.ID }}">Ver Detalle</a></td>
             </tr>
+            {% endfor %}
         </tbody>
     </table>
     {% else %}
