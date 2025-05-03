@@ -1,32 +1,23 @@
 from typing import Optional
 from pydantic import BaseModel
 
-class IncidenceBase(BaseModel):
-    __entity_name__ = "Incidencia"  # Añadido el atributo __entity_name__
+class Incidence(BaseModel):
+    __entity_name__ = "Incidencia"  # Nombre de la tabla en la base de datos
+    ID: Optional[int] = None  # Clave primaria
+    IDTicket: int  # Clave foránea a Ticket(ID)
     Descripcion: str
-    Tipo: Optional[str] = None
-    TicketID: int
-
-class IncidenceCreate(IncidenceBase):
-    IncidenciaID: int
-    __entity_name__ = "Incidencia"  # Añadido el atributo __entity_name__
+    Tipo: str
+    IDUnidad: int  # Columna adicional en la tabla
 
     def to_dict(self):
-        return self.dict(by_alias=False)
+        return self.model_dump()
 
     @classmethod
     def get_fields(cls):
         return {
-            "IncidenciaID": "INTEGER PRIMARY KEY",
-            "Descripcion": "TEXT NOT NULL",
-            "Tipo": "TEXT",
-            "TicketID": "INTEGER NOT NULL"  # Clave foránea
+            "ID": "INTEGER PRIMARY KEY",
+            "IDTicket": "INTEGER NOT NULL",
+            "Descripcion": "VARCHAR(100) NOT NULL",
+            "Tipo": "VARCHAR(20) NOT NULL",
+            "IDUnidad": "INTEGER NOT NULL"
         }
-
-
-class IncidenceOut(IncidenceBase):
-    IncidenciaID: int
-    __entity_name__ = "Incidencia"  # Añadido el atributo __entity_name__
-
-    class Config:
-        from_attributes = True 

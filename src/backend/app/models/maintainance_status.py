@@ -1,32 +1,12 @@
 from typing import Optional
-from pydantic import BaseModel, validator
+from pydantic import BaseModel
 
-class MaintainanceStatusBase(BaseModel):
-    status: str
-
-    @validator("status")
-    def validate_status(cls, value):
-        allowed_statuses = ["No hecho", "En progreso", "Hecho"]
-        if value not in allowed_statuses:
-            raise ValueError(f"El estado '{value}' no es válido. Los estados permitidos son: {allowed_statuses}")
-        return value
-
-class MaintainanceStatusCreate(MaintainanceStatusBase):
-    """Modelo para la creación de un estado de mantenimiento."""
-    tipo_estado: str
-    unidad_transporte: str
-
-class MaintainanceStatusOut(MaintainanceStatusBase):
-    """Modelo para la salida de datos de un estado de mantenimiento."""
-    id: int
-    tipo_estado: str
-    unidad_transporte: str
-
-class MaintainanceStatus(MaintainanceStatusBase):
-    """Modelo principal para la lógica de negocio."""
+class MaintainanceStatus(BaseModel):
+    __entity_name__ = "maintainance_status"
     id: Optional[int] = None
-    tipo_estado: str
-    unidad_transporte: str
+    unit: Optional[str] = None
+    type: Optional[str] = None
+    status: Optional[str] = None
 
     def to_dict(self):
         return self.model_dump()
@@ -35,7 +15,7 @@ class MaintainanceStatus(MaintainanceStatusBase):
     def get_fields(cls):
         return {
             "id": "INTEGER PRIMARY KEY",
-            "tipo_estado": "TEXT NOT NULL",
-            "unidad_transporte": "TEXT NOT NULL",
-            "status": "TEXT NOT NULL"
+            "unit": "TEXT",
+            "type": "TEXT",
+            "status": "TEXT"
         }
