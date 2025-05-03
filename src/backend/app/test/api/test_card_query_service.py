@@ -5,7 +5,7 @@ import pytest
 from fastapi.staticfiles import StaticFiles
 from backend.app.logic.universal_controller_sql import UniversalController
 from backend.app.models.card import CardCreate, CardOut
-from backend.app.test.conf import headers
+from backend.app.core.conf import headers
 def setup_function():
     UniversalController().clear_tables()
 

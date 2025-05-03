@@ -5,7 +5,7 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from backend.app.api.routes.type_card_query_service import app as typecard_router
 from backend.app.logic.universal_controller_sql import UniversalController
-from backend.app.test.conf import headers
+from backend.app.core.conf import headers
 def setup_function():
     UniversalController().clear_tables()
 

@@ -4,7 +4,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.testclient import TestClient
 from backend.app.api.routes.maintance_cud_service import app as maintainance_router  # importa tu router correctamente
 from backend.app.logic.universal_controller_sql import UniversalController
-from backend.app.test.conf import headers
+from backend.app.core.conf import headers
 def setup_function():
     UniversalController().clear_tables()
 

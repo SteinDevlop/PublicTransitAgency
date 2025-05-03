@@ -3,7 +3,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.testclient import TestClient
 from backend.app.logic.universal_controller_sql import UniversalController
 from backend.app.api.routes.card_cud_service import app as card_router  # Importa bien
-from backend.app.test.conf import headers
+from backend.app.core.conf import headers
 # Limpieza de base de datos antes y después de cada test
 def setup_function():
     UniversalController().clear_tables()
