@@ -1,29 +1,19 @@
 from typing import Optional
 from pydantic import BaseModel
 
-class RouteBase(BaseModel):
-    __entity_name__ = "routes"
-    route_id: Optional[str] = None
-    name: Optional[str] = None
-    origin: Optional[str] = None
-    destination: Optional[str] = None
+class Route(BaseModel):
+    __entity_name__ = "Ruta"  # Nombre de la tabla en la base de datos
+    ID: Optional[int] = None  # Clave primaria
+    IDHorario: Optional[int] = None  # Clave foránea a la tabla Horario (opcional)
+    Nombre: Optional[str] = None  # Nombre de la ruta (opcional)
 
     def to_dict(self):
-        return self.dict()
+        return self.model_dump()
 
     @classmethod
     def get_fields(cls):
         return {
-            "route_id": "TEXT PRIMARY KEY",
-            "name": "TEXT",
-            "origin": "TEXT",
-            "destination": "TEXT"
+            "ID": "INTEGER PRIMARY KEY",
+            "IDHorario": "INTEGER NOT NULL",
+            "Nombre": "VARCHAR(100) NOT NULL"
         }
-
-class RouteCreate(RouteBase):
-    pass
-
-class RouteOut(RouteBase):
-    @classmethod
-    def from_dict(cls, data: dict):
-        return cls(**data)

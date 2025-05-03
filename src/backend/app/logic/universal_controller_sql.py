@@ -114,7 +114,6 @@ class UniversalController:
 
         if self.cursor.rowcount == 0:
             raise ValueError(f"No se encontró un registro con {id_field} = {data[id_field]} en la tabla '{table}'.")
-            ##por mario
         return True
 
     def clear_tables(self):

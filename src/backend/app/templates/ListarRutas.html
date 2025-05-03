@@ -11,10 +11,10 @@
 
     {% for route in routes %}
         <div>
-            <h2>{{ route.route_name }}</h2>
-            <p>ID de Ruta: {{ route.route_id }}</p>
-            <p>Destino: {{ route.destination }}</p>
-            <a href="/routes/detalles/{{ route.route_id }}">Ver Detalles</a>
+            <h2>{{ route.Nombre }}</h2>
+            <p>ID de Ruta: {{ route.ID }}</p>
+            <p>Destino: {{ route.IDHorario }}</p>
+            <a href="/routes/{{ route.ID }}">Ver Detalles</a>
         </div>
     {% endfor %}
 
