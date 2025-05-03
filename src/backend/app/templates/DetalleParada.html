@@ -3,21 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Detalle De La Parada {{ parada.stop_id }}</title>
+    <title>Detalle de la Parada</title>
 </head>
 <body>
-    <h1>Detalle De La Parada</h1>
-    {% if parada %}
-    <div>
-        <p><strong>Id De Parada:</strong> {{ parada.stop_id }}</p>
-        <p><strong>Nombre:</strong> {{ parada.stop_data.get('name', 'Sin nombre') }}</p>
-        <p><strong>Ubicación:</strong> {{ parada.stop_data.get('location', 'Sin ubicación') }}</p>
-        {# Puedes agregar más detalles de parada si existen en stop_data #}
-    </div>
-    <p><a href="/stops">Volver A La Lista De Paradas</a></p>
-    <p><a href="/stops/consultar">Volver A La Página De Consulta</a></p>
-    {% else %}
-    <p>Parada No Encontrada.</p>
-    {% endif %}
+    <h1>Detalle de la Parada</h1>
+    <p><strong>ID:</strong> {{ parada.ID }}</p>
+    <p><strong>Nombre:</strong> {{ parada.Nombre }}</p>
+    <p><strong>Ubicación:</strong> {{ parada.Ubicacion }}</p>
+    <p><a href="/stops">Volver al Listado</a></p>
 </body>
 </html>
