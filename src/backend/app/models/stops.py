@@ -1,10 +1,11 @@
-from typing import Optional, Dict
+from typing import Optional
 from pydantic import BaseModel
 
-class StopCreate(BaseModel):
-    __entity_name__ = "stops"
-    stop_id: int
-    stop_data: Dict[str, str]
+class Stop(BaseModel):
+    __entity_name__ = "Parada"  # Nombre de la tabla en la base de datos
+    ID: Optional[int] = None  # Clave primaria
+    Nombre: Optional[str] = None  # Nombre de la parada
+    Ubicacion: Optional[str] = None  # Ubicación de la parada
 
     def to_dict(self):
         return self.model_dump()
@@ -12,11 +13,7 @@ class StopCreate(BaseModel):
     @classmethod
     def get_fields(cls):
         return {
-            "stop_id": "INTEGER PRIMARY KEY",
-            "stop_data": "TEXT"  # Guardaremos stop_data como JSON serializado
+            "ID": "INTEGER PRIMARY KEY",
+            "Nombre": "VARCHAR(100) NOT NULL",
+            "Ubicacion": "VARCHAR(150) NOT NULL"
         }
-
-class StopOut(StopCreate):
-    @classmethod
-    def from_dict(cls, data: dict):
-        return cls(**data)
