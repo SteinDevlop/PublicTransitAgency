@@ -2,7 +2,7 @@
 
 import pytest
 from unittest.mock import MagicMock
-from src.backend.app.logic.user_driver import Worker
+from backend.app.logic.user_driver import Worker
 
 @pytest.fixture
 def mock_card():

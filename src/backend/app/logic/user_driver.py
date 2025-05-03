@@ -1,5 +1,5 @@
-from src.backend.app.logic.user import User
-from src.backend.app.logic.card_operative import CardOperative
+from backend.app.logic.user import User
+from backend.app.logic.card_operative import CardOperative
 import re
 
 class Worker(User):

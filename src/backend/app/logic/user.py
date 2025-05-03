@@ -1,5 +1,5 @@
 import re
-from src.backend.app.logic.card import Card
+from backend.app.logic.card import Card
 class User:
     def __init__(self, id_user: int, type_identification: str, identification: int ,name: str, email: str, password: str, role: str, card: Card):
         self.id_user = id_user

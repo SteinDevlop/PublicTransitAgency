@@ -1,5 +1,5 @@
 import unittest
-from src.backend.app.logic.routes import Routes
+from backend.app.logic.routes import Routes
 
 class TestRoutes(unittest.TestCase):
 

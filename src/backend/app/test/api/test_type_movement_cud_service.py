@@ -1,10 +1,10 @@
-"""import pytest
+import pytest
 from fastapi.testclient import TestClient
 from fastapi import FastAPI, HTTPException
 
-from src.backend.app.api.routes.type_movement_cud_service import app as type_movement_router, get_controller
-from src.backend.app.models.type_movement import TypeMovementOut
-from src.backend.app.logic.universal_controller_sql import UniversalController
+from backend.app.api.routes.type_movement_cud_service import app as type_movement_router, get_controller
+from backend.app.models.type_movement import TypeMovementOut
+from backend.app.logic.universal_controller_sql import UniversalController
 
 app = FastAPI()
 app.include_router(type_movement_router)
@@ -91,4 +91,3 @@ def test_delete_nonexistent_movement():
     assert response.status_code == 404
     data = response.json()
     assert data["detail"] == "Movement type not found"
-    """

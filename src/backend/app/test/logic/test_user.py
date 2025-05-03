@@ -1,7 +1,7 @@
 # test_user.py
 import pytest
-from src.backend.app.logic.user import User
-from src.backend.app.logic.card import Card  # Esto es porque tu User recibe un Card
+from backend.app.logic.user import User
+from backend.app.logic.card import Card  # Esto es porque tu User recibe un Card
 
 # Mock mínimo para el Card si no lo necesitas en las pruebas
 class MockCard:

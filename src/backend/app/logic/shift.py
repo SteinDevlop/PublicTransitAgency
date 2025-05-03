@@ -1,7 +1,7 @@
 import datetime
-from src.backend.app.logic.unit_transport import Transport 
-from src.backend.app.logic.schedule import Schedule 
-from src.backend.app.logic.user_driver import Worker
+from backend.app.logic.unit_transport import Transport 
+from backend.app.logic.schedule import Schedule 
+from backend.app.logic.user_driver import Worker
 
 class Shift:
     def __init__(

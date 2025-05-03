@@ -1,5 +1,5 @@
 import unittest
-from src.backend.app.logic.card import Card
+from backend.app.logic.card import Card
 
 class TestCard(Card):
     """

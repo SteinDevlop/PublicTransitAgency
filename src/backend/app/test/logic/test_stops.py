@@ -1,5 +1,5 @@
 import unittest
-from src.backend.app.logic.stops import Stops
+from backend.app.logic.stops import Stops
 
 class TestStopsClass(unittest.TestCase):
     def setUp(self):

@@ -16,7 +16,7 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(
 
 @app.get("/maintainancements", response_model=list[dict])
 def get_all(
-    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "mantenimiento"])
+    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "tecnico"])
 ):
     """
     Returns all maintenance records.
@@ -41,7 +41,7 @@ def get_all(
 @app.get("/{id}")
 def get_by_id(
     id: int,
-    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "mantenimiento"])
+    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "tecnico"])
 ):
     """
     Returns a maintenance record by its ID.
@@ -62,7 +62,7 @@ def get_by_id(
     result = controller_maintenance.get_by_id(id)
     if not result:
         logger.warning(f"[GET /{id}] Mantenimiento con ID {id} no encontrado.")
-        raise HTTPException(status_code=404, detail="Maintenance record not found")
+        raise HTTPException(status_code=404, detail="Not found")
     
     logger.info(f"[GET /{id}] Se ha encontrado el mantenimiento con ID {id}.")
     return result.to_dict()
@@ -71,7 +71,7 @@ def get_by_id(
 @app.get("/unit/{unit_id}")
 def get_by_unit(
     unit_id: int,
-    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "mantenimiento"])
+    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "tecnico"])
 ):
     """
     Returns all maintenance records associated with a specific unit.

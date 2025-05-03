@@ -1,10 +1,10 @@
 import pytest
 from unittest.mock import MagicMock, patch
-from src.backend.app.logic.user_passenger import Passenger
-from src.backend.app.logic.card_user import CardUser
-from src.backend.app.logic.payments import Payments
-from src.backend.app.logic.routes import Routes
-from src.backend.app.logic.stops import Stops
+from backend.app.logic.user_passenger import Passenger
+from backend.app.logic.card_user import CardUser
+from backend.app.logic.payments import Payments
+from backend.app.logic.routes import Routes
+from backend.app.logic.stops import Stops
 
 
 # Datos simulados

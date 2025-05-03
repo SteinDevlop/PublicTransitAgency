@@ -1,11 +1,11 @@
 import pytest
-from src.backend.app.logic.user_administrator import Administrator
-from src.backend.app.logic.card_operative import CardOperative
-from src.backend.app.logic.routes import Routes
-from src.backend.app.logic.stops import Stops
-from src.backend.app.logic.unit_transport import Transport
-from src.backend.app.logic.user_driver import Worker
-from src.backend.app.logic.ticket import Ticket
+from backend.app.logic.user_administrator import Administrator
+from backend.app.logic.card_operative import CardOperative
+from backend.app.logic.routes import Routes
+from backend.app.logic.stops import Stops
+from backend.app.logic.unit_transport import Transport
+from backend.app.logic.user_driver import Worker
+from backend.app.logic.ticket import Ticket
 from unittest.mock import MagicMock
 
 @pytest.fixture

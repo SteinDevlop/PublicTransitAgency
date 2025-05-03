@@ -65,7 +65,7 @@ class UniversalController:
 
     def get_by_id(self, cls: Any, id_value: Any) -> Any | None:
         """Retrieve an object by its ID."""
-        dummy = cls.from_dict({k: None for k in cls.model_fields.keys()})
+        dummy = cls(**{k: None for k in cls.model_fields.keys()})
         self._ensure_table_exists(dummy)
         table = self._get_table_name(dummy)
         id_field = list(cls.model_fields.keys())[0]
@@ -75,7 +75,7 @@ class UniversalController:
         row = self.cursor.fetchone()
 
         if row:
-            return cls.from_dict(dict(row))
+            return cls(**dict(row))
 
         return None
 

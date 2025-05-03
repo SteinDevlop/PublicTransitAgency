@@ -2,9 +2,9 @@ import pytest
 from fastapi.testclient import TestClient
 from fastapi import FastAPI, HTTPException
 
-from src.backend.app.api.routes.rol_user_cud_service import app as rol_user_router, get_controller
-from src.backend.app.models.rol_user import RolUserCreate, RolUserOut
-from src.backend.app.logic.universal_controller_sql import UniversalController
+from backend.app.api.routes.rol_user_cud_service import app as rol_user_router, get_controller
+from backend.app.models.rol_user import RolUserCreate, RolUserOut
+from backend.app.logic.universal_controller_sql import UniversalController
 
 app = FastAPI()
 app.include_router(rol_user_router)

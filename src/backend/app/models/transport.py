@@ -3,11 +3,11 @@ from pydantic import BaseModel
 
 class Transport(BaseModel):
     __entity_name__ = "transport_unit"
-    id: str
-    type: str
-    status: str
-    ubication: str
-    capacity: int
+    id: Optional[int] = None
+    type: Optional[str] = None
+    status: Optional[str] = None
+    ubication: Optional[str] = None
+    capacity: Optional[int] = None
 
     def to_dict(self):
         return self.model_dump()
@@ -15,7 +15,7 @@ class Transport(BaseModel):
     @classmethod
     def get_fields(cls):
         return {
-            "id": "TEXT PRIMARY KEY",
+            "id": "INTEGER PRIMARY KEY",
             "type": "TEXT",
             "status": "TEXT",
             "ubication": "TEXT",

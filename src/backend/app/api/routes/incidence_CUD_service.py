@@ -50,8 +50,7 @@ async def create_incidence(
         }
     except ValueError as e:
         raise HTTPException(400, detail=str(e))
-    except Exception as e:
-        raise HTTPException(500, detail=f"Internal server error: {str(e)}")
+    
 
 @app.post("/update")
 async def update_incidence(
@@ -88,8 +87,7 @@ async def update_incidence(
         raise HTTPException(400, detail=str(e))
     except HTTPException as e:
         raise e
-    except Exception as e:
-        raise HTTPException(500, detail=f"Internal server error: {str(e)}")
+    
 
 @app.post("/delete")
 async def delete_incidence(IncidenciaID: int = Form(...)):
@@ -106,5 +104,4 @@ async def delete_incidence(IncidenciaID: int = Form(...)):
         }
     except HTTPException as e:
         raise e
-    except Exception as e:
-        raise HTTPException(500, detail=str(e))
+    

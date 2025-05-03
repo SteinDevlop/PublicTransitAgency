@@ -1,7 +1,7 @@
-from src.backend.app.logic.user import User
-from src.backend.app.logic.card_operative import CardOperative
-from src.backend.app.logic.reports import Reports
-from src.backend.app.logic.unit_transport import Transport
+from backend.app.logic.user import User
+from backend.app.logic.card_operative import CardOperative
+from backend.app.logic.reports import Reports
+from backend.app.logic.unit_transport import Transport
 import json
 import os
 

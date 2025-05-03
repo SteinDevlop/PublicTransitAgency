@@ -1,8 +1,8 @@
 import pytest
-from src.backend.app.logic.user_supervisor import Supervisor
-from src.backend.app.logic.card_operative import CardOperative
-from src.backend.app.logic.user_driver import Worker
-from src.backend.app.logic.reports import Reports
+from backend.app.logic.user_supervisor import Supervisor
+from backend.app.logic.card_operative import CardOperative
+from backend.app.logic.user_driver import Worker
+from backend.app.logic.reports import Reports
 from unittest.mock import MagicMock
 
 # Mocks o fakes
@@ -38,7 +38,7 @@ def test_create_driver_assignment_report(monkeypatch, capsys):
     driver.assignments.append({"route": "B2", "shift": "Evening"})
 
     # Parchar la clase Reports para usar FakeReport
-    monkeypatch.setattr("src.backend.app.logic.user_supervisor.Reports", FakeReport)
+    monkeypatch.setattr("backend.app.logic.user_supervisor.Reports", FakeReport)
 
     # Exercise
     supervisor.create_driver_assignment_report(driver)

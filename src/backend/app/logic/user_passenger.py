@@ -1,8 +1,8 @@
-from src.backend.app.logic.user import User
-from src.backend.app.logic.payments import Payments
-from src.backend.app.logic.routes import Routes
-from src.backend.app.logic.stops import Stops
-from src.backend.app.logic.card_user import CardUser
+from backend.app.logic.user import User
+from backend.app.logic.payments import Payments
+from backend.app.logic.routes import Routes
+from backend.app.logic.stops import Stops
+from backend.app.logic.card_user import CardUser
 
 class Passenger(User):
     def __init__(self, id_user: int, type_identification: str, identification: int, name: str, email: str, password: str, role: str, card: CardUser):

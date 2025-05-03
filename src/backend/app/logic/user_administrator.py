@@ -1,10 +1,10 @@
-from src.backend.app.logic.user import User
-from src.backend.app.logic.card_operative import CardOperative
-from src.backend.app.logic.routes import Routes
-from src.backend.app.logic.stops import Stops
-from src.backend.app.logic.unit_transport import Transport
-from src.backend.app.logic.user_driver import Worker
-from src.backend.app.logic.ticket import Ticket
+from backend.app.logic.user import User
+from backend.app.logic.card_operative import CardOperative
+from backend.app.logic.routes import Routes
+from backend.app.logic.stops import Stops
+from backend.app.logic.unit_transport import Transport
+from backend.app.logic.user_driver import Worker
+from backend.app.logic.ticket import Ticket
 
 class Administrator(User):
     def __init__(self, id_user:int, type_identification:str, identification:int, name:str, email:str, password:str, 

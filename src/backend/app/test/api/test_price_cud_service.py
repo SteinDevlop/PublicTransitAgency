@@ -1,9 +1,9 @@
 import pytest
 from fastapi.testclient import TestClient
 from fastapi import FastAPI, HTTPException
-from src.backend.app.api.routes.price_cud_service import router as price_router, get_controller
-from src.backend.app.models.price import PriceOut
-from src.backend.app.logic.universal_controller_sql import UniversalController
+from backend.app.api.routes.price_cud_service import router as price_router, get_controller
+from backend.app.models.price import PriceOut
+from backend.app.logic.universal_controller_sql import UniversalController
 
 app = FastAPI()
 app.include_router(price_router)

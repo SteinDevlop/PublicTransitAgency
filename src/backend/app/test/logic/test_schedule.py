@@ -1,7 +1,7 @@
 import unittest
 import datetime
-from src.backend.app.logic.schedule import Schedule
-from src.backend.app.logic.transport_route import Route  # Clase dummy o real
+from backend.app.logic.schedule import Schedule
+from backend.app.logic.transport_route import Route  # Clase dummy o real
 
 class DummyRoute:
     def __init__(self, name="Route A"):

@@ -1,6 +1,6 @@
 import unittest
 from datetime import datetime
-from src.backend.app.logic.mantainment import Maintenance
+from backend.app.logic.mantainment import Maintenance
 
 class TestMaintenance(unittest.TestCase):
 

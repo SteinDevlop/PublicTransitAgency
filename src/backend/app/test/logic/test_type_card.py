@@ -1,5 +1,5 @@
 import unittest
-from src.backend.app.logic.type_card import TypeCard
+from backend.app.logic.type_card import TypeCard
 
 class TestTypeCard(unittest.TestCase):
 

@@ -1,8 +1,8 @@
 import unittest
-from src.backend.app.logic.user_technician import Technician
-from src.backend.app.logic.card_operative import CardOperative
-from src.backend.app.logic.unit_transport import Transport
-from src.backend.app.logic.reports import Reports
+from backend.app.logic.user_technician import Technician
+from backend.app.logic.card_operative import CardOperative
+from backend.app.logic.unit_transport import Transport
+from backend.app.logic.reports import Reports
 from unittest.mock import MagicMock
 
 def mock_card():

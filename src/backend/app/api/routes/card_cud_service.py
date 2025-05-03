@@ -83,7 +83,7 @@ async def update_card(
     logger.info(f"[POST /update] Usuario: {current_user['user_id']} - Actualizando tarjeta id={id}, nuevo tipo={tipo}")
     try:
         existing = controller.get_by_id(CardOut, id)
-        if not existing:
+        if existing is None:
             logger.warning(f"[POST /update] Tarjeta no encontrada: id={id}")
             raise HTTPException(404, detail="Card not found")
 
@@ -100,9 +100,7 @@ async def update_card(
     except ValueError as e:
         logger.warning(f"[POST /update] Error de validación: {str(e)}")
         raise HTTPException(400, detail=str(e))
-    except Exception as e:
-        logger.error(f"[POST /update] Error interno: {str(e)}")
-        raise HTTPException(500, detail=f"Internal server error: {str(e)}")
+
 
 
 @app.post("/delete")

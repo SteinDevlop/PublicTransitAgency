@@ -1,9 +1,9 @@
 import pytest
 from fastapi.testclient import TestClient
 from fastapi import FastAPI, HTTPException
-from src.backend.app.api.routes.movement_cud_service import app as movement_router, get_controller
-from src.backend.app.models.movement import MovementOut
-from src.backend.app.logic.universal_controller_sql import UniversalController
+from backend.app.api.routes.movement_cud_service import app as movement_router, get_controller
+from backend.app.models.movement import MovementOut
+from backend.app.logic.universal_controller_sql import UniversalController
 
 app = FastAPI()
 app.include_router(movement_router)

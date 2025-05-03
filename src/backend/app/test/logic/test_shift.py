@@ -1,7 +1,7 @@
 import unittest
 import datetime
-from src.backend.app.logic.user_driver import Worker
-from src.backend.app.logic.shift import Shift
+from backend.app.logic.user_driver import Worker
+from backend.app.logic.shift import Shift
 class DummyTransport:
     def __init__(self, id="T001"):
         self.id = id

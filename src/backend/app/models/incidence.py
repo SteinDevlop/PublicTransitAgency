@@ -7,6 +7,7 @@ class IncidenceBase(BaseModel):
     TicketID: int
 
 class IncidenceCreate(IncidenceBase):
+    IncidenciaID: int
     __entity_name__ = "Incidencia"  # Añadido el atributo __entity_name__
 
     def to_dict(self):

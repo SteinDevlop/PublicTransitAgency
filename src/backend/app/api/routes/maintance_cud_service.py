@@ -18,11 +18,14 @@ app = APIRouter(prefix="/maintainance", tags=["maintainance"])
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 
+@app.get("/maintenance/token_info", response_model=dict[str, str])
+async def maintenance_token_info(request: Request, token_info= get_current_user):
+    return {"token_info": token_info}
 
 @app.get("/crear", response_class=HTMLResponse)
 def crear_mantenimiento(
     request: Request,
-    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "supervisor", "mantenimiento", "operador"])
+    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "supervisor", "tecnico", "operador"])
 ):
     """
     Route to display the maintenance creation form.
@@ -34,7 +37,7 @@ def crear_mantenimiento(
 @app.get("/eliminar", response_class=HTMLResponse)
 def eliminar_mantenimiento(
     request: Request,
-    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "mantenimiento"])
+    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "tecnico"])
 ):
     """
     Route to display the maintenance deletion form.
@@ -46,7 +49,7 @@ def eliminar_mantenimiento(
 @app.get("/actualizar", response_class=HTMLResponse)
 def actualizar_mantenimiento(
     request: Request,
-    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "mantenimiento"])
+    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "tecnico"])
 ):
     """
     Route to display the maintenance update form.
@@ -61,7 +64,7 @@ async def add(
     id_status: int = Form(...),
     type: str = Form(...),
     date: datetime = Form(...),
-    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "mantenimiento"])
+    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "tecnico"])
 ):
     """
     Route to add a new maintenance record.
@@ -89,7 +92,7 @@ async def update(
     id_status: int = Form(...),
     type: str = Form(...),
     date: datetime = Form(...),
-    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "mantenimiento"])
+    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "tecnico"])
 ):
     """
     Route to update an existing maintenance record.
@@ -123,7 +126,7 @@ async def update(
 @app.post("/delete")
 async def delete_maintenance(
     id: int = Form(...),
-    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "mantenimiento"])
+    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "tecnico"])
 ):
     """
     Route to delete an existing maintenance record by its ID.

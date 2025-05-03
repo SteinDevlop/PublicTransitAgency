@@ -117,9 +117,6 @@ async def update_typecard(
     except ValueError as e:
         logger.error(f"[POST /update] Error updating card type: {str(e)}")
         raise HTTPException(400, detail=str(e))
-    except Exception as e:
-        logger.error(f"[POST /update] Internal server error: {str(e)}")
-        raise HTTPException(500, detail=f"Internal server error: {str(e)}")
 
 
 # Route to delete an existing type of card via POST

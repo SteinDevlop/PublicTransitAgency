@@ -1,7 +1,7 @@
 import unittest
 import datetime
-from src.backend.app.logic.card import Card
-from src.backend.app.logic.payments import Payments
+from backend.app.logic.card import Card
+from backend.app.logic.payments import Payments
 
 class TestPayments(unittest.TestCase):
     def setUp(self):
