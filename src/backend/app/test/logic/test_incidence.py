@@ -1,46 +1,46 @@
-import unittest
-from backend.app.models.incidence import IncidenceCreate
+import pytest
+from backend.app.logic.incidence import Incidence
+from backend.app.logic.ticket import Ticket
 
-class TestIncidence(unittest.TestCase):
+def test_incidence_initialization():
+    ticket = Ticket(id=1, description="Test Ticket")  # Simula un objeto Ticket
+    incidence = Incidence(description="Test Incidence", status=ticket, type="Technical", incidence_id=1)
 
-    def setUp(self):
-        self.incidence_data = {
-            "Descripcion": "Descripción de la incidencia",
-            "Tipo": "Tipo de incidencia",
-            "TicketID": 10
-        }
-        self.incidence = IncidenceCreate(**self.incidence_data)
+    assert incidence.description == "Test Incidence"
+    assert incidence.status == ticket
+    assert incidence.type == "Technical"
+    assert incidence.incidence_id == 1
 
-    def test_initial_values(self):
-        self.assertEqual(self.incidence.Descripcion, "Descripción de la incidencia")
-        self.assertEqual(self.incidence.Tipo, "Tipo de incidencia")
-        self.assertEqual(self.incidence.TicketID, 10)
+def test_incidence_setters():
+    ticket = Ticket(id=1, description="Test Ticket")  # Simula un objeto Ticket
+    new_ticket = Ticket(id=2, description="Updated Ticket")
+    incidence = Incidence(description="Test Incidence", status=ticket, type="Technical", incidence_id=1)
 
-    def test_setters(self):
-        self.incidence.Descripcion = "Nueva descripción"
-        self.incidence.Tipo = "Nuevo tipo"
-        self.incidence.TicketID = 20
+    incidence.description = "Updated Incidence"
+    incidence.status = new_ticket
+    incidence.type = "Operational"
+    incidence.incidence_id = 2
 
-        self.assertEqual(self.incidence.Descripcion, "Nueva descripción")
-        self.assertEqual(self.incidence.Tipo, "Nuevo tipo")
-        self.assertEqual(self.incidence.TicketID, 20)
+    assert incidence.description == "Updated Incidence"
+    assert incidence.status == new_ticket
+    assert incidence.type == "Operational"
+    assert incidence.incidence_id == 2
 
-    def test_to_dict(self):
-        expected_dict = {
-            "Descripcion": "Descripción de la incidencia",
-            "Tipo": "Tipo de incidencia",
-            "TicketID": 10
-        }
-        self.assertEqual(self.incidence.to_dict(), expected_dict)
+def test_update_incidence():
+    ticket = Ticket(id=1, description="Test Ticket")  # Simula un objeto Ticket
+    new_ticket = Ticket(id=2, description="Updated Ticket")
+    incidence = Incidence(description="Test Incidence", status=ticket, type="Technical", incidence_id=1)
 
-    def test_get_fields(self):
-        expected_fields = {
-            "IncidenciaID": "INTEGER PRIMARY KEY",
-            "Descripcion": "TEXT NOT NULL",
-            "Tipo": "TEXT",
-            "TicketID": "INTEGER NOT NULL"
-        }
-        self.assertEqual(IncidenceCreate.get_fields(), expected_fields)
+    incidence.update_incidence(description="Updated Incidence", status=new_ticket, type="Operational", incidence_id=2)
 
-if __name__ == "__main__":
-    unittest.main()
+    assert incidence.description == "Updated Incidence"
+    assert incidence.status == new_ticket
+    assert incidence.type == "Operational"
+    assert incidence.incidence_id == 2
+
+def test_update_incidence_without_id():
+    ticket = Ticket(id=1, description="Test Ticket")  # Simula un objeto Ticket
+    incidence = Incidence(description="Test Incidence", status=ticket, type="Technical", incidence_id=1)
+
+    with pytest.raises(ValueError, match="Incidence ID is required."):
+        incidence.update_incidence(description="Updated Incidence", status=ticket, type="Operational", incidence_id=None)
