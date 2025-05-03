@@ -63,21 +63,21 @@ class UniversalController:
         rows = self.cursor.fetchall()
         return [dict(row) for row in rows]
 
-    def get_by_id(self, cls: Any, id_value: Any) -> Any | None:
-        """Retrieve an object by its ID."""
-        dummy = cls(**{k: None for k in cls.model_fields.keys()})
-        self._ensure_table_exists(dummy)
-        table = self._get_table_name(dummy)
-        id_field = list(cls.model_fields.keys())[0]
-
-        sql = f"SELECT * FROM {table} WHERE {id_field} = ?"
-        self.cursor.execute(sql, (id_value,))
+    def get_by_id(self, model, id):
+        """Retrieve a single record by ID."""
+        table = model.__entity_name__
+        sql = f"SELECT * FROM {table} WHERE id = ?"
+        self.cursor.execute(sql, (id,))
         row = self.cursor.fetchone()
 
-        if row:
-            return cls(**dict(row))
+        if not row:
+            return None  # Devolver None si no se encuentra el registro
 
-        return None
+        # Convertir los datos en un diccionario compatible con el modelo
+        fields = model.get_fields()
+        data = {key: row[idx] for idx, key in enumerate(fields.keys())}
+
+        return model(**data)
 
     def update(self, obj: Any) -> Any:
         """Update an existing object."""

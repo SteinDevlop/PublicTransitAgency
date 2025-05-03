@@ -1,44 +1,26 @@
 from typing import Optional
 from pydantic import BaseModel
-import datetime
 
-class PaymentBase(BaseModel):
+class Payment(BaseModel):
     __entity_name__ = "payments"
-    id: Optional[int] = None
-    date: datetime.datetime
-    user: str
-    payment_quantity: float
-    payment_method: bool
-    vehicle_type: int
-    card_id: int
+    id: int  # Clave primaria, obligatorio
+    user: Optional[str] = None  # Opcional
+    payment_quantity: Optional[float] = None  # Opcional
+    payment_method: Optional[bool] = None  # Opcional
+    vehicle_type: Optional[int] = None  # Opcional
+    card_id: Optional[int] = None  # Opcional
 
     def to_dict(self):
-        return self.dict()
+        return self.model_dump()
 
     @classmethod
     def get_fields(cls):
         return {
             "id": "INTEGER PRIMARY KEY",
-            "date": "DATETIME",
             "user": "TEXT",
             "payment_quantity": "REAL",
             "payment_method": "BOOLEAN",
             "vehicle_type": "INTEGER",
             "card_id": "INTEGER"
         }
-
-class PaymentCreate(PaymentBase):
-    pass
-
-class PaymentOut(BaseModel): 
-    id: Optional[int]
-    date: Optional[datetime.datetime]
-    user: Optional[str]
-    payment_quantity: Optional[float]
-    payment_method: Optional[bool]
-    vehicle_type: Optional[int]
-    card_id: Optional[int]
-
-    @classmethod
-    def from_dict(cls, data: dict):
-        return cls(**data)
+    
