@@ -96,6 +96,9 @@ class UniversalController:
         self.cursor.execute(sql, values)
         self.conn.commit()
 
+        if self.cursor.rowcount == 0:
+            raise ValueError(f"No se encontró un registro con {id_field} = {data[id_field]} en la tabla '{table}'.") #por mario
+
         return obj
 
     def delete(self, obj: Any) -> bool:
@@ -109,7 +112,11 @@ class UniversalController:
         self.cursor.execute(sql, (data[id_field],))
         self.conn.commit()
 
+        if self.cursor.rowcount == 0:
+            raise ValueError(f"No se encontró un registro con {id_field} = {data[id_field]} en la tabla '{table}'.")
+            ##por mario
         return True
+
     def clear_tables(self):
         """Delete all data from all tables in the database without dropping them."""
         self.cursor.execute("SELECT name FROM sqlite_master WHERE type='table';")

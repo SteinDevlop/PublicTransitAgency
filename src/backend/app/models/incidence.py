@@ -2,6 +2,7 @@ from typing import Optional
 from pydantic import BaseModel
 
 class IncidenceBase(BaseModel):
+    __entity_name__ = "Incidencia"  # Añadido el atributo __entity_name__
     Descripcion: str
     Tipo: Optional[str] = None
     TicketID: int
@@ -25,6 +26,7 @@ class IncidenceCreate(IncidenceBase):
 
 class IncidenceOut(IncidenceBase):
     IncidenciaID: int
+    __entity_name__ = "Incidencia"  # Añadido el atributo __entity_name__
 
     class Config:
         from_attributes = True 
