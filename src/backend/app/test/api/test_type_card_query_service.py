@@ -61,4 +61,4 @@ def test_get_by_id_not_found():
     """Prueba que la ruta '/typecard/{id}' devuelve un error 404 si no se encuentra el tipo de tarjeta."""
     response = client.get("/typecard/999",headers=headers)
     assert response.status_code == 404
-    assert response.json() == {"detail": "Not found"}
+    assert response.json() == {"detail": "TypeCard not found"}

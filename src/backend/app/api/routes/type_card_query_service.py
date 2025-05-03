@@ -36,9 +36,9 @@ def read_all(
     except Exception as e:
         logger.error(f"[GET /typecards/] Error occurred while fetching TypeCard records: {str(e)}")
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error")
-
-
+    
 @app.get("/{id}")
+
 def get_by_id(
     id: int, 
     current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
@@ -66,6 +66,8 @@ def get_by_id(
             )
         logger.info(f"[GET /{id}] Successfully fetched TypeCard with ID {id}.")
         return result.to_dict()
+    except HTTPException as e:
+        raise e  # Deja pasar los HTTPException
     except Exception as e:
         logger.error(f"[GET /{id}] Error occurred while fetching TypeCard with ID {id}: {str(e)}")
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Internal server error")
