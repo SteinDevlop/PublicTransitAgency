@@ -13,8 +13,8 @@ def crear_ticket_form(request: Request):
     return templates.TemplateResponse("CrearTicket.html", {"request": request})
 
 @app.post("/create")
-def crear_ticket(ID: int = Form(...), EstadoIncidencia: str = Form(...)):
-    ticket = Ticket(ID=ID, EstadoIncidencia=EstadoIncidencia)
+def crear_ticket(ticket_id: int = Form(...), status_code: int = Form(...)):
+    ticket = Ticket(ticket_id=ticket_id, status_code=status_code)
     try:
         controller.add(ticket)
         return {
@@ -31,8 +31,8 @@ def actualizar_ticket_form(request: Request):
     return templates.TemplateResponse("ActualizarTicket.html", {"request": request})
 
 @app.post("/update")
-def actualizar_ticket(ID: int = Form(...), EstadoIncidencia: str = Form(...)):
-    ticket = Ticket(ID=ID, EstadoIncidencia=EstadoIncidencia)
+def actualizar_ticket(ticket_id: int = Form(...), status_code: int = Form(...)):
+    ticket = Ticket(ticket_id=ticket_id, status_code=status_code)
     try:
         controller.update(ticket)
         return {
@@ -49,8 +49,8 @@ def eliminar_ticket_form(request: Request):
     return templates.TemplateResponse("EliminarTicket.html", {"request": request})
 
 @app.post("/delete")
-def eliminar_ticket(ID: int = Form(...)):
-    ticket = Ticket(ID=ID, EstadoIncidencia="")
+def eliminar_ticket(ticket_id: int = Form(...)):
+    ticket = Ticket(ticket_id=ticket_id, status_code=0)
     try:
         controller.delete(ticket)
         return {

@@ -18,7 +18,6 @@ class UniversalController:
 
     def _get_table_name(self, obj: Any) -> str:
         """Retrieve the table name based on the object's class."""
-        # Usamos __entity_name__ en lugar de table_name()
         if hasattr(obj, "__entity_name__"):
             return obj.__entity_name__
         elif hasattr(obj.__class__, "__entity_name__"):
@@ -66,7 +65,8 @@ class UniversalController:
     def get_by_id(self, model, id):
         """Retrieve a single record by ID."""
         table = model.__entity_name__
-        sql = f"SELECT * FROM {table} WHERE id = ?"
+        primary_key = list(model.get_fields().keys())[0]  # Obtener el nombre de la clave primaria
+        sql = f"SELECT * FROM {table} WHERE {primary_key} = ?"
         self.cursor.execute(sql, (id,))
         row = self.cursor.fetchone()
 
@@ -84,7 +84,7 @@ class UniversalController:
         self._ensure_table_exists(obj)
         table = self._get_table_name(obj)
         data = obj.to_dict()
-        id_field = list(data.keys())[0]
+        id_field = list(data.keys())[0]  # Obtener el nombre de la clave primaria
 
         assignments = ', '.join(
             f"{k} = ?" for k in data if k != id_field
@@ -97,7 +97,7 @@ class UniversalController:
         self.conn.commit()
 
         if self.cursor.rowcount == 0:
-            raise ValueError(f"No se encontró un registro con {id_field} = {data[id_field]} en la tabla '{table}'.") #por mario
+            raise ValueError(f"No se encontró un registro con {id_field} = {data[id_field]} en la tabla '{table}'.")
 
         return obj
 
@@ -106,7 +106,7 @@ class UniversalController:
         self._ensure_table_exists(obj)
         table = self._get_table_name(obj)
         data = obj.to_dict()
-        id_field = list(data.keys())[0]
+        id_field = list(data.keys())[0]  # Obtener el nombre de la clave primaria
 
         sql = f"DELETE FROM {table} WHERE {id_field} = ?"
         self.cursor.execute(sql, (data[id_field],))

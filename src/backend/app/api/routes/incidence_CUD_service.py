@@ -4,7 +4,7 @@ from fastapi.templating import Jinja2Templates
 from backend.app.logic.universal_controller_sql import UniversalController
 from backend.app.models.incidence import Incidence
 
-app = APIRouter(prefix="/incidence", tags=["incidence"])
+app = APIRouter(prefix="/incidences", tags=["incidences"])
 controller = UniversalController()
 templates = Jinja2Templates(directory="src/backend/app/templates")
 
@@ -13,20 +13,8 @@ def crear_incidencia_form(request: Request):
     return templates.TemplateResponse("CrearIncidencia.html", {"request": request})
 
 @app.post("/create")
-def crear_incidencia(
-    ID: int = Form(...),
-    IDTicket: int = Form(...),
-    Descripcion: str = Form(...),
-    Tipo: str = Form(...),
-    IDUnidad: int = Form(...)
-):
-    incidencia = Incidence(
-        ID=ID,
-        IDTicket=IDTicket,
-        Descripcion=Descripcion,
-        Tipo=Tipo,
-        IDUnidad=IDUnidad
-    )
+def crear_incidencia(ID: int = Form(...), IDTicket: int = Form(...), Descripcion: str = Form(...), Tipo: str = Form(...), IDUnidad: int = Form(...)):
+    incidencia = Incidence(ID=ID, IDTicket=IDTicket, Descripcion=Descripcion, Tipo=Tipo, IDUnidad=IDUnidad)
     try:
         controller.add(incidencia)
         return {
@@ -43,20 +31,8 @@ def actualizar_incidencia_form(request: Request):
     return templates.TemplateResponse("ActualizarIncidencia.html", {"request": request})
 
 @app.post("/update")
-def actualizar_incidencia(
-    ID: int = Form(...),
-    IDTicket: int = Form(...),
-    Descripcion: str = Form(...),
-    Tipo: str = Form(...),
-    IDUnidad: int = Form(...)
-):
-    incidencia = Incidence(
-        ID=ID,
-        IDTicket=IDTicket,
-        Descripcion=Descripcion,
-        Tipo=Tipo,
-        IDUnidad=IDUnidad
-    )
+def actualizar_incidencia(ID: int = Form(...), IDTicket: int = Form(...), Descripcion: str = Form(...), Tipo: str = Form(...), IDUnidad: int = Form(...)):
+    incidencia = Incidence(ID=ID, IDTicket=IDTicket, Descripcion=Descripcion, Tipo=Tipo, IDUnidad=IDUnidad)
     try:
         controller.update(incidencia)
         return {
@@ -74,7 +50,7 @@ def eliminar_incidencia_form(request: Request):
 
 @app.post("/delete")
 def eliminar_incidencia(ID: int = Form(...)):
-    incidencia = Incidence(ID=ID)
+    incidencia = Incidence(ID=ID, IDTicket=0, Descripcion="", Tipo="", IDUnidad=0)
     try:
         controller.delete(incidencia)
         return {

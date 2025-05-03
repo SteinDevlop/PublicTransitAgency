@@ -16,16 +16,16 @@ def teardown_function():
     controller.clear_tables()
 
 def test_listar_tickets():
-    controller.add(Ticket(ID=1, EstadoIncidencia="Abierto"))
+    controller.add(Ticket(ticket_id=1, status_code=1))  # Cambiado a `ticket_id`
     response = client.get("/tickets/")
     assert response.status_code == 200
-    assert "Abierto" in response.text
+    assert "1" in response.text
 
 def test_detalle_ticket_existente():
-    controller.add(Ticket(ID=1, EstadoIncidencia="Abierto"))
+    controller.add(Ticket(ticket_id=1, status_code=1))  # Cambiado a `ticket_id`
     response = client.get("/tickets/1")
     assert response.status_code == 200
-    assert "Abierto" in response.text
+    assert "1" in response.text
 
 def test_detalle_ticket_no_existente():
     response = client.get("/tickets/999")

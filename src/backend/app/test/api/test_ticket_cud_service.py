@@ -16,15 +16,15 @@ def teardown_function():
     controller.clear_tables()
 
 def test_crear_ticket():
-    response = client.post("/tickets/create", data={"ID": 1, "EstadoIncidencia": "Abierto"})
+    response = client.post("/tickets/create", data={"ticket_id": 1, "status_code": 1})
     assert response.status_code == 200
 
 def test_actualizar_ticket():
-    controller.add(Ticket(ID=1, EstadoIncidencia="Abierto"))
-    response = client.post("/tickets/update", data={"ID": 1, "EstadoIncidencia": "Cerrado"})
+    controller.add(Ticket(ticket_id=1, status_code=1))
+    response = client.post("/tickets/update", data={"ticket_id": 1, "status_code": 2})
     assert response.status_code == 200
 
 def test_eliminar_ticket():
-    controller.add(Ticket(ID=1, EstadoIncidencia="Abierto"))
-    response = client.post("/tickets/delete", data={"ID": 1})
+    controller.add(Ticket(ticket_id=1, status_code=1))
+    response = client.post("/tickets/delete", data={"ticket_id": 1})
     assert response.status_code == 200

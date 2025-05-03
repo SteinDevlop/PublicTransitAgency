@@ -1,46 +1,54 @@
-import pytest
-from backend.app.logic.incidence import Incidence
+import unittest
 from backend.app.logic.ticket import Ticket
+from backend.app.logic.incidence import Incidence
 
-def test_incidence_initialization():
-    ticket = Ticket(id=1, description="Test Ticket")  # Simula un objeto Ticket
-    incidence = Incidence(description="Test Incidence", status=ticket, type="Technical", incidence_id=1)
+class TestIncidence(unittest.TestCase):
+    def setUp(self):
+        # Crear un objeto Ticket para usar en los tests
+        self.ticket = Ticket(status_code=1, ID="T123")
+        # Crear un objeto Incidence para usar en los tests
+        self.incidence = Incidence(
+            ID=1,
+            description="Test description",
+            status=self.ticket,
+            type="Test type",
+            transport_id=123
+        )
 
-    assert incidence.description == "Test Incidence"
-    assert incidence.status == ticket
-    assert incidence.type == "Technical"
-    assert incidence.incidence_id == 1
+    def test_initialization(self):
+        # Verificar que los atributos se inicializan correctamente
+        self.assertEqual(self.incidence._ID, 1)
+        self.assertEqual(self.incidence.description, "Test description")
+        self.assertEqual(self.incidence.status, self.ticket)
+        self.assertEqual(self.incidence.type, "Test type")
+        self.assertEqual(self.incidence._transport_id, 123)
 
-def test_incidence_setters():
-    ticket = Ticket(id=1, description="Test Ticket")  # Simula un objeto Ticket
-    new_ticket = Ticket(id=2, description="Updated Ticket")
-    incidence = Incidence(description="Test Incidence", status=ticket, type="Technical", incidence_id=1)
+    def test_update_incidence(self):
+        # Crear un nuevo objeto Ticket para actualizar el estado
+        new_ticket = Ticket(status_code=2, ID="T456")
+        # Actualizar la incidencia
+        self.incidence.update_incidence(
+            description="Updated description",
+            status=new_ticket,
+            type="Updated type",
+            incidence_id=2
+        )
+        # Verificar que los atributos se actualizan correctamente
+        self.assertEqual(self.incidence.description, "Updated description")
+        self.assertEqual(self.incidence.status, new_ticket)
+        self.assertEqual(self.incidence.type, "Updated type")
+        self.assertEqual(self.incidence.incidence_id, 2)
 
-    incidence.description = "Updated Incidence"
-    incidence.status = new_ticket
-    incidence.type = "Operational"
-    incidence.incidence_id = 2
+    def test_update_incidence_without_id(self):
+        # Intentar actualizar la incidencia sin un ID debe lanzar un ValueError
+        with self.assertRaises(ValueError) as context:
+            self.incidence.update_incidence(
+                description="New description",
+                status=self.ticket,
+                type="New type",
+                incidence_id=None
+            )
+        self.assertEqual(str(context.exception), "Incidence ID is required.")
 
-    assert incidence.description == "Updated Incidence"
-    assert incidence.status == new_ticket
-    assert incidence.type == "Operational"
-    assert incidence.incidence_id == 2
-
-def test_update_incidence():
-    ticket = Ticket(id=1, description="Test Ticket")  # Simula un objeto Ticket
-    new_ticket = Ticket(id=2, description="Updated Ticket")
-    incidence = Incidence(description="Test Incidence", status=ticket, type="Technical", incidence_id=1)
-
-    incidence.update_incidence(description="Updated Incidence", status=new_ticket, type="Operational", incidence_id=2)
-
-    assert incidence.description == "Updated Incidence"
-    assert incidence.status == new_ticket
-    assert incidence.type == "Operational"
-    assert incidence.incidence_id == 2
-
-def test_update_incidence_without_id():
-    ticket = Ticket(id=1, description="Test Ticket")  # Simula un objeto Ticket
-    incidence = Incidence(description="Test Incidence", status=ticket, type="Technical", incidence_id=1)
-
-    with pytest.raises(ValueError, match="Incidence ID is required."):
-        incidence.update_incidence(description="Updated Incidence", status=ticket, type="Operational", incidence_id=None)
+if __name__ == "__main__":
+    unittest.main()

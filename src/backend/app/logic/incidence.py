@@ -1,12 +1,13 @@
 from backend.app.logic.ticket import Ticket
 
 class Incidence:
-    def __init__(self, description: str, status: Ticket, type: str, incidence_id: int = None):
+    def __init__(self, ID: int, description: str, status: Ticket, type: str, transport_id: int = None):
+        self._ID = ID
         self._description = description
         self._status = status
         self._type = type
         self._status = status
-        self._incidence_id = incidence_id
+        self._transport_id = transport_id
 
     @property
     def description(self) -> str:

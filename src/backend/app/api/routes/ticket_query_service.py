@@ -13,9 +13,9 @@ def listar_tickets(request: Request):
     tickets = controller.read_all(Ticket)
     return templates.TemplateResponse("ListarTickets.html", {"request": request, "tickets": tickets})
 
-@app.get("/{ID}", response_class=HTMLResponse)
-def detalle_ticket(ID: int, request: Request):
-    ticket = controller.get_by_id(Ticket, ID)
+@app.get("/{ticket_id}", response_class=HTMLResponse)
+def detalle_ticket(ticket_id: int, request: Request):
+    ticket = controller.get_by_id(Ticket, ticket_id)
     if not ticket:
         raise HTTPException(status_code=404, detail="Ticket no encontrado")
     return templates.TemplateResponse("DetalleTicket.html", {"request": request, "ticket": ticket})
