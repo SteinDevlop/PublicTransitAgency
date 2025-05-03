@@ -14,6 +14,7 @@ def setup_function():
 
 def teardown_function():
     UniversalController().clear_tables()
+    
 def test_listar_unidades():
     response = client.get("/transports/")
     assert response.status_code == 200
