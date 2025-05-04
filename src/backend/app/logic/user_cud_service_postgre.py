@@ -133,4 +133,5 @@ async def delete_user(id: int = Form(...), controller: UniversalController = Dep
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(500, detail=str(e))  # General server error"""
+        raise HTTPException(500, detail=str(e))  # General server error
+"""
