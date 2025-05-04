@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse, FileResponse, RedirectResponse
 from backend.app.models.user import UserCreate, UserOut  # Asegúrate de que tus modelos estén en este archivo
-from  backend.app.logic.universal_controller_postgres import UniversalController 
+from backend.app.logic.universal_controller_postgres import UniversalController 
 
 app = FastAPI(prefix="/user", tags=["user"])
 templates = Jinja2Templates(directory="src/backend/app/templates")
