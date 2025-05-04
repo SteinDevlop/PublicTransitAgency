@@ -29,8 +29,9 @@ jobs:
           pip install -r requirements.txt
       - name: Run tests with coverage
         run: |
-          export PYTHONPATH= 'src'
-          pytest src/backend/app/test --cov=. --cov-report=xml --cov-report=term --cov-config .coveragerc
+          export PYTHONPATH=src
+          coverage run -m pytest src/backend/app/test
+          coverage xml -o coverage.xml
       - name: Upload coverage report
         uses: actions/upload-artifact@v4
         with:
