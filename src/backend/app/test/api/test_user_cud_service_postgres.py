@@ -1,8 +1,8 @@
-"""import pytest
+import pytest
 from fastapi.testclient import TestClient
 from fastapi import FastAPI, HTTPException
 from backend.app.logic.user_cud_service_postgre import app as user_router, get_controller
-from src.backend.app.models.user import UserCreate
+from backend.app.models.user import UserCreate
 
 # Montar una app para test
 test_app = FastAPI()
@@ -118,4 +118,3 @@ def test_delete_nonexistent_user():
     assert response.status_code == 404
     data = response.json()
     assert data["detail"] == "User not found"
-"""
