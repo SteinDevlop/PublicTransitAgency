@@ -1,3 +1,7 @@
+#price_query_service.py
+# This file contains the query operations for the Price model using FastAPI.
+# It includes routes for retrieving all prices and viewing a specific price by its ID.
+# It does not include any CRUD operations.
 from fastapi import FastAPI, HTTPException, APIRouter, Form, Request, status, Query
 from fastapi.responses import HTMLResponse, FileResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles

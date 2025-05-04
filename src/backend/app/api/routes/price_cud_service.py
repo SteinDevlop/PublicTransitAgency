@@ -1,3 +1,6 @@
+#price_cud_service.py
+# This file contains the CRUD operations for the Price model using FastAPI.
+# It includes routes for creating, updating, and deleting prices, as well as rendering HTML templates for these operations.
 from fastapi import FastAPI, Form, HTTPException, APIRouter, Request, Depends
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse

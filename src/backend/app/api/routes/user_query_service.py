@@ -1,3 +1,5 @@
+#user_query_service.py
+# # This file contains the query service for the User model using FastAPI.
 from fastapi import FastAPI, HTTPException, APIRouter, Form, Request, status, Query
 from fastapi.responses import HTMLResponse, FileResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles

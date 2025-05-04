@@ -1,3 +1,7 @@
+#type_transport_query_service.py
+# # This file contains the query service for TypeTransport using FastAPI.
+# # It includes routes for retrieving TypeTransport records.
+
 from fastapi import FastAPI, HTTPException, APIRouter, Form, Request, status, Query
 from backend.app.models.type_transport import TypeTransportCreate, TypeTransportOut
 from backend.app.logic.universal_controller_sql import UniversalController

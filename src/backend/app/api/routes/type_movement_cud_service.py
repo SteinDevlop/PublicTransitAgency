@@ -1,3 +1,7 @@
+#type_movement_cud_service.py
+# This module provides CRUD operations for TypeMovement using FastAPI.
+# It includes routes for creating, updating, and deleting TypeMovement records.
+# It uses a controller to handle the database operations and Pydantic models for data validation.
 from fastapi import APIRouter, Form, Request, HTTPException, Depends
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates

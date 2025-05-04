@@ -1,3 +1,6 @@
+#user_cud_service.py
+# This file contains the CRUD operations for the User model using FastAPI.
+
 from fastapi import FastAPI, APIRouter, Form, HTTPException,APIRouter,Request, Depends
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.templating import Jinja2Templates

@@ -1,3 +1,7 @@
+#type_transport_cud_service.py
+# This file contains the CRUD operations for TypeTransport using FastAPI.
+# It includes routes for creating, updating, and deleting TypeTransport records.
+
 from fastapi import APIRouter, Form, Request, HTTPException, Depends
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates

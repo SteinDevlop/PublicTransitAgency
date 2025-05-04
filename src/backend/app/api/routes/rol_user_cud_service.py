@@ -1,3 +1,7 @@
+#rol_user_cud_service.py
+# This module provides CRUD operations for the RolUser model using FastAPI.
+# It includes routes for creating, updating, and deleting roles of users.
+
 from fastapi import APIRouter, Depends, Form, Request, HTTPException
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates

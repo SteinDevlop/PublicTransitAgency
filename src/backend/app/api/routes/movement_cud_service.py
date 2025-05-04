@@ -1,3 +1,8 @@
+#movement_cud_service.py
+# This file contains the CRUD operations for the Movement model using FastAPI.
+# It includes routes for creating, updating, and deleting movements.
+# The routes are designed to handle form submissions and return appropriate responses.
+
 from fastapi import FastAPI, Form, HTTPException, APIRouter, Request, Depends, status, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.templating import Jinja2Templates

@@ -1,3 +1,7 @@
+#type_movement_query_service.py
+# # This module provides a query service for TypeMovement using FastAPI.
+# # It includes routes for retrieving all TypeMovement records and getting a specific record by ID.
+
 from fastapi import FastAPI, HTTPException, APIRouter, Form, Request, status, Query
 from backend.app.models.type_movement import TypeMovementCreate, TypeMovementOut
 from backend.app.logic.universal_controller_sql import UniversalController

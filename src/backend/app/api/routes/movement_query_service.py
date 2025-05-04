@@ -1,3 +1,7 @@
+#movement_query_service.py
+# # This file contains the query service for the Movement model using FastAPI.
+# # It includes routes for retrieving all movements and fetching a specific movement by ID.
+
 from fastapi import FastAPI, HTTPException, APIRouter, Form, Request, status, Query
 from fastapi.responses import HTMLResponse, FileResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
