@@ -1,6 +1,6 @@
 import pytest
 from fastapi.testclient import TestClient
-from backend.app.api.routes.shifts_CUD_service import app as shifts_router
+from backend.app.api.routes.shifts_cud_service import app as shifts_router
 from backend.app.logic.universal_controller_sql import UniversalController
 from backend.app.models.shift import Shift
 from backend.app.core.conf import headers  # Import headers for authentication

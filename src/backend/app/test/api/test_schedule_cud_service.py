@@ -1,6 +1,6 @@
 import pytest
 from fastapi.testclient import TestClient
-from backend.app.api.routes.schedule_CUD_service import app as schedules_router
+from backend.app.api.routes.schedule_cud_service import app as schedules_router
 from backend.app.logic.universal_controller_sql import UniversalController
 from backend.app.models.schedule import Schedule
 from backend.app.core.conf import headers  # Import headers for authentication

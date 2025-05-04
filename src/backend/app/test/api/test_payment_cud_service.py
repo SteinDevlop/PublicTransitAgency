@@ -1,5 +1,5 @@
 from fastapi.testclient import TestClient
-from backend.app.api.routes.payment_CUD_service import app as payments_router
+from backend.app.api.routes.payment_cud_service import app as payments_router
 from backend.app.logic.universal_controller_sql import UniversalController
 from backend.app.models.payments import Payment
 from fastapi import FastAPI
