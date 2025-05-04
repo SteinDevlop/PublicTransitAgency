@@ -7,3 +7,5 @@ storage.json
 __pycache__
 .coverage
 coverage.xml
+.idea
+.env
