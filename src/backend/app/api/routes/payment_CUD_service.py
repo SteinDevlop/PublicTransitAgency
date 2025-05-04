@@ -1,15 +1,22 @@
-from fastapi import APIRouter, Form, HTTPException, Request
+from fastapi import APIRouter, Form, HTTPException, Request, Security
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from backend.app.logic.universal_controller_sql import UniversalController
 from backend.app.models.payments import Payment
+from backend.app.core.auth import get_current_user  # Import for authentication
 
 app = APIRouter(prefix="/payments", tags=["payments"])
 controller = UniversalController()
 templates = Jinja2Templates(directory="src/backend/app/templates")
 
 @app.get("/create", response_class=HTMLResponse)
-def crear_pago_form(request: Request):
+def crear_pago_form(
+    request: Request,
+    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "supervisor"])
+):
+    """
+    Render the form for creating a new payment. Requires authentication.
+    """
     return templates.TemplateResponse("CrearPago.html", {"request": request})
 
 @app.post("/create")
@@ -19,8 +26,12 @@ def crear_pago(
     payment_quantity: float = Form(...),
     payment_method: bool = Form(...),
     vehicle_type: int = Form(...),
-    card_id: int = Form(...)
+    card_id: int = Form(...),
+    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "supervisor"])
 ):
+    """
+    Create a new payment. Requires authentication.
+    """
     pago = Payment(
         id=id,
         user=user,
@@ -41,7 +52,13 @@ def crear_pago(
         raise HTTPException(status_code=400, detail=str(e))
 
 @app.get("/update", response_class=HTMLResponse)
-def actualizar_pago_form(request: Request):
+def actualizar_pago_form(
+    request: Request,
+    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "supervisor"])
+):
+    """
+    Render the form for updating a payment. Requires authentication.
+    """
     return templates.TemplateResponse("ActualizarPago.html", {"request": request})
 
 @app.post("/update")
@@ -51,8 +68,12 @@ def actualizar_pago(
     payment_quantity: float = Form(...),
     payment_method: bool = Form(...),
     vehicle_type: int = Form(...),
-    card_id: int = Form(...)
+    card_id: int = Form(...),
+    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "supervisor"])
 ):
+    """
+    Update an existing payment. Requires authentication.
+    """
     pago = Payment(
         id=id,
         user=user,
@@ -70,14 +91,26 @@ def actualizar_pago(
             "message": "Pago actualizado exitosamente."
         }
     except ValueError as e:
-        raise HTTPException(status_code=404, detail=str(e))
+        raise HTTPException(status_code=404, detail="Pago no encontrado")
 
 @app.get("/delete", response_class=HTMLResponse)
-def eliminar_pago_form(request: Request):
+def eliminar_pago_form(
+    request: Request,
+    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "supervisor"])
+):
+    """
+    Render the form for deleting a payment. Requires authentication.
+    """
     return templates.TemplateResponse("EliminarPago.html", {"request": request})
 
 @app.post("/delete")
-def eliminar_pago(id: int = Form(...)):
+def eliminar_pago(
+    id: int = Form(...),
+    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "supervisor"])
+):
+    """
+    Delete a payment by ID. Requires authentication.
+    """
     pago = Payment(id=id)
     try:
         controller.delete(pago)
@@ -87,4 +120,4 @@ def eliminar_pago(id: int = Form(...)):
             "message": "Pago eliminado exitosamente."
         }
     except ValueError as e:
-        raise HTTPException(status_code=404, detail=str(e))
+        raise HTTPException(status_code=404, detail="Pago no encontrado")

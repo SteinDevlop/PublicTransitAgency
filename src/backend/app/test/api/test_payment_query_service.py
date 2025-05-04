@@ -1,31 +1,35 @@
-from fastapi.testclient import TestClient
-from backend.app.api.routes.payment_query_service import app as payments_router
+from fastapi import APIRouter, HTTPException, Request, Security
+from fastapi.responses import HTMLResponse
+from fastapi.templating import Jinja2Templates
 from backend.app.logic.universal_controller_sql import UniversalController
 from backend.app.models.payments import Payment
-from fastapi import FastAPI
+from backend.app.core.auth import get_current_user  # Import for authentication
 
-app_for_test = FastAPI()
-app_for_test.include_router(payments_router)
-client = TestClient(app_for_test)
+app = APIRouter(prefix="/payments", tags=["payments"])
 controller = UniversalController()
+templates = Jinja2Templates(directory="src/backend/app/templates")
 
-def setup_function():
-    controller.clear_tables()
+@app.get("/", response_class=HTMLResponse)
+def listar_pagos(
+    request: Request,
+    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "supervisor"])
+):
+    """
+    List all payments. Requires authentication.
+    """
+    pagos = controller.read_all(Payment)
+    return templates.TemplateResponse("ListarPagos.html", {"request": request, "pagos": pagos})
 
-def teardown_function():
-    controller.clear_tables()
-
-def test_listar_pagos():
-    response = client.get("/payments/")
-    assert response.status_code == 200
-
-def test_detalle_pago_existente():
-    controller.add(Payment(id=1, user="Juan", payment_quantity=100.0, payment_method=True, vehicle_type=1, card_id=123))
-    response = client.get("/payments/1")
-    assert response.status_code == 200
-
-def test_detalle_pago_no_existente():
-    # Intentar consultar un pago en una tabla vacía
-    response = client.get("/payments/999")
-    assert response.status_code == 404
-    assert response.json()["detail"] == "Pago no encontrado"
+@app.get("/{id}", response_class=HTMLResponse)
+def detalle_pago(
+    id: int,
+    request: Request,
+    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "supervisor"])
+):
+    """
+    Get details of a specific payment by ID. Requires authentication.
+    """
+    pago = controller.get_by_id(Payment, id)
+    if not pago:
+        raise HTTPException(status_code=404, detail="Pago no encontrado")
+    return templates.TemplateResponse("DetallePago.html", {"request": request, "pago": pago})
