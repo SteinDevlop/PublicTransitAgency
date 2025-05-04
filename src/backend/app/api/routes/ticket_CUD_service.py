@@ -9,7 +9,7 @@ app = APIRouter(prefix="/tickets", tags=["tickets"])
 controller = UniversalController()
 templates = Jinja2Templates(directory="src/backend/app/templates")
 
-@app.get("/create", response_class=HTMLResponse)
+@app.get("/create", response_class=HTMLResponse)  
 def crear_ticket_form(
     request: Request,
     current_user: dict = Security(get_current_user, scopes=["system", "administrador", "supervisor"])
