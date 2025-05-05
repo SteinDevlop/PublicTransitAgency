@@ -3,11 +3,11 @@ from pydantic import BaseModel
 
 class Incidence(BaseModel):
     __entity_name__ = "Incidencia"  # Nombre de la tabla en la base de datos
-    ID: Optional[int] = None  # Clave primaria
-    IDTicket: int = None  # Clave foránea al ticket
-    Descripcion: str = None  # Descripción de la incidencia
-    Tipo: str = None  # Tipo de incidencia
-    IDUnidad: int = None  # Clave foránea a la unidad de transporte
+    id: Optional[int] = None  # Clave primaria
+    idTicket: int = None  # Clave foránea al ticket
+    description: str = None  # Descripción de la incidencia
+    type: str = None  # Tipo de incidencia
+    idunit: int = None  # Clave foránea a la unidad de transporte
 
     def to_dict(self):
         return self.model_dump()

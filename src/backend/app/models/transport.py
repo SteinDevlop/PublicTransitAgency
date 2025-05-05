@@ -2,11 +2,11 @@ from typing import Optional
 from pydantic import BaseModel
 
 class Transport(BaseModel):
-    __entity_name__ = "transport_unit"
+    __entity_name__ = "unidadtransporte"
     id: Optional[int] = None
-    type: Optional[str] = None
+    idtype: Optional[int] = None
     status: Optional[str] = None
-    ubication: Optional[str] = None
+    ubication: Optional[str]     = None
     capacity: Optional[int] = None
 
     def to_dict(self):
@@ -16,7 +16,7 @@ class Transport(BaseModel):
     def get_fields(cls):
         return {
             "id": "INTEGER PRIMARY KEY",
-            "type": "TEXT",
+            "idtype": "INTEGER",
             "status": "TEXT",
             "ubication": "TEXT",
             "capacity": "INTEGER"

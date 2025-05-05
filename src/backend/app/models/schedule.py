@@ -2,7 +2,7 @@ from typing import Optional
 from pydantic import BaseModel
 
 class Schedule(BaseModel):
-    __entity_name__ = "Horario"
+    __entity_name__ = "horario"
     ID: Optional[int] = None  # Clave primaria
     Llegada: Optional[str] = None  # Hora de llegada (opcional)
     Salida: Optional[str] = None  # Hora de salida (opcional)

@@ -2,10 +2,10 @@ from typing import Optional
 from pydantic import BaseModel
 
 class Route(BaseModel):
-    __entity_name__ = "Ruta"  # Nombre de la tabla en la base de datos
-    ID: Optional[int] = None  # Clave primaria
-    IDHorario: Optional[int] = None  # Clave foránea a la tabla Horario (opcional)
-    Nombre: Optional[str] = None  # Nombre de la ruta (opcional)
+    __entity_name__ = "ruta"  # Nombre de la tabla en la base de datos
+    id: Optional[int] = None  # Clave primaria
+    idHorario: Optional[int] = None  # Clave foránea a la tabla Horario (opcional)
+    name: Optional[str] = None  # Nombre de la ruta (opcional)
 
     def to_dict(self):
         return self.model_dump()

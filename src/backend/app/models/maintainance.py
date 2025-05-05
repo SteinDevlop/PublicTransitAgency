@@ -3,7 +3,7 @@ from typing import Optional
 from pydantic import BaseModel
 
 class MaintenanceCreate(BaseModel):
-    __entity_name__ = "maintenance"
+    __entity_name__ = "mantenimiento"
     
     id: Optional[int] = None
     type: Optional[str] = None

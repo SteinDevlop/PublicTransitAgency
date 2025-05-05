@@ -2,7 +2,7 @@ from typing import Optional
 from pydantic import BaseModel, Field
 
 class Ticket(BaseModel):
-    __entity_name__ = "Ticket"  # Nombre de la tabla en la base de datos
+    __entity_name__ = "ticket"  # Nombre de la tabla en la base de datos
     id: Optional[int] = Field(None, description="Clave primaria")
     estadoincidencia: str = Field(..., max_length=20, description="Estado de la incidencia")
 

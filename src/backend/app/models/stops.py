@@ -2,10 +2,10 @@ from typing import Optional
 from pydantic import BaseModel
 
 class Stop(BaseModel):
-    __entity_name__ = "Parada"  # Nombre de la tabla en la base de datos
-    ID: Optional[int] = None  # Clave primaria
-    Nombre: Optional[str] = None  # Nombre de la parada
-    Ubicacion: Optional[str] = None  # Ubicación de la parada
+    __entity_name__ = "parada"  # Nombre de la tabla en la base de datos
+    id: Optional[int] = None  # Clave primaria
+    name: Optional[str] = None  # Nombre de la parada
+    ubication: Optional[str] = None  # Ubicación de la parada
 
     def to_dict(self):
         return self.model_dump()
@@ -13,7 +13,7 @@ class Stop(BaseModel):
     @classmethod
     def get_fields(cls):
         return {
-            "ID": "INTEGER PRIMARY KEY",
-            "Nombre": "VARCHAR(100) NOT NULL",
-            "Ubicacion": "VARCHAR(150) NOT NULL"
+            "id": "INTEGER PRIMARY KEY",
+            "nombre": "VARCHAR(100) NOT NULL",
+            "ubicacion": "VARCHAR(150) NOT NULL"
         }

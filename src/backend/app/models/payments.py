@@ -2,13 +2,13 @@ from typing import Optional
 from pydantic import BaseModel
 
 class Payment(BaseModel):
-    __entity_name__ = "payments"
+    __entity_name__ = "pago"
     id: int  # Clave primaria, obligatorio
-    user: Optional[str] = None  # Opcional
-    payment_quantity: Optional[float] = None  # Opcional
-    payment_method: Optional[bool] = None  # Opcional
-    vehicle_type: Optional[int] = None  # Opcional
-    card_id: Optional[int] = None  # Opcional
+    iduser: Optional[int] = None  # Opcional
+    amount: Optional[float] = None  # Opcional
+    idmovement: Optional[int] = None  # Opcional
+    idtransportunit: Optional[int] = None  # Opcional
+    idcard: Optional[int] = None  # Opcional
 
     def to_dict(self):
         return self.model_dump()

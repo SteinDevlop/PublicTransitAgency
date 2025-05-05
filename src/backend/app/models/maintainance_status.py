@@ -2,9 +2,9 @@ from typing import Optional
 from pydantic import BaseModel
 
 class MaintainanceStatus(BaseModel):
-    __entity_name__ = "maintainance_status"
+    __entity_name__ = "status_mantenimiento"
     id: Optional[int] = None
-    unit: Optional[str] = None
+    idunit: Optional[str] = None
     type: Optional[str] = None
     status: Optional[str] = None
 
