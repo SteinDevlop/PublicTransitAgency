@@ -19,9 +19,9 @@
         <tbody>
             {% for ticket in tickets %}
             <tr>
-                <td>{{ ticket.ID }}</td>
-                <td>{{ ticket.EstadoIncidencia }}</td>
-                <td><a href="/tickets/{{ ticket.ID }}">Ver Detalle</a></td>
+                <td>{{ ticket.id }}</td>
+                <td>{{ ticket.estadoincidencia }}</td>
+                <td><a href="/tickets/{{ ticket.id }}">Ver Detalle</a></td>
             </tr>
             {% endfor %}
         </tbody>
