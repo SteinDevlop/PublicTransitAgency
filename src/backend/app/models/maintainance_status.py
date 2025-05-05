@@ -1,21 +1,17 @@
 from typing import Optional
 from pydantic import BaseModel
 
-class MaintainanceStatus(BaseModel):
-    __entity_name__ = "maintainance_status"
+class MaintainanceState(BaseModel):
+    __entity_name__ = "estadomantenimiento"  # Nombre de la tabla usada en la base de datos
     id: Optional[int] = None
-    unit: Optional[str] = None
-    type: Optional[str] = None
-    status: Optional[str] = None
+    tipoestado: str
 
     def to_dict(self):
-        return self.model_dump()
+        return self.dict()
 
     @classmethod
     def get_fields(cls):
         return {
             "id": "INTEGER PRIMARY KEY",
-            "unit": "TEXT",
-            "type": "TEXT",
-            "status": "TEXT"
+            "tipoestado": "VARCHAR(100) NOT NULL"
         }

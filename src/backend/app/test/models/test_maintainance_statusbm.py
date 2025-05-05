@@ -1,34 +1,38 @@
-import unittest
-from backend.app.models.maintainance_status import MaintainanceStatus
+import pytest
+from backend.app.models.maintainance_status import MaintainanceState
 
-class TestMaintainanceStatus(unittest.TestCase):
-    def setUp(self):
-        self.status = MaintainanceStatus(
-            id=1,
-            unit="Unit A",
-            type="Mechanical",
-            status="Pending"
-        )
 
-    def test_initialization(self):
-        self.assertEqual(self.status.id, 1)
-        self.assertEqual(self.status.unit, "Unit A")
-        self.assertEqual(self.status.type, "Mechanical")
-        self.assertEqual(self.status.status, "Pending")
+def test_to_dict():
+    """
+    Prueba el método `to_dict` del modelo MaintainanceState para asegurar
+    que devuelve un diccionario correcto con los datos del modelo.
+    """
+    state = MaintainanceState(id=1, tipoestado="Activo")
+    result = state.to_dict()
 
-    def test_to_dict(self):
-        status_dict = self.status.to_dict()
-        self.assertEqual(status_dict["id"], 1)
-        self.assertEqual(status_dict["unit"], "Unit A")
-        self.assertEqual(status_dict["type"], "Mechanical")
-        self.assertEqual(status_dict["status"], "Pending")
+    assert isinstance(result, dict), "El resultado debe ser un diccionario"
+    assert result["id"] == 1, "El ID debe coincidir con el valor proporcionado"
+    assert result["tipoestado"] == "Activo", "El tipoestado debe coincidir con el valor proporcionado"
 
-    def test_get_fields(self):
-        fields = MaintainanceStatus.get_fields()
-        self.assertIn("id", fields)
-        self.assertIn("unit", fields)
-        self.assertIn("type", fields)
-        self.assertIn("status", fields)
 
-if __name__ == "__main__":
-    unittest.main()
+def test_get_fields():
+    """
+    Prueba la salida del método `get_fields`, asegurando que los campos definidos
+    en el modelo son tales como se especificaron.
+    """
+    fields = MaintainanceState.get_fields()
+
+    assert isinstance(fields, dict), "Los campos deben estar definidos como un diccionario"
+    assert fields["id"] == "INTEGER PRIMARY KEY", "El campo `id` debe ser una clave primaria INTEGER"
+    assert fields[
+               "tipoestado"] == "VARCHAR(100) NOT NULL", "El campo `tipoestado` debe ser una cadena VARCHAR(100) NOT NULL"
+
+
+def test_model_default_values():
+    """
+    Prueba las propiedades predeterminadas del modelo, en este caso, la ausencia de un ID.
+    """
+    state = MaintainanceState(tipoestado="Activo")
+
+    assert state.id is None, "El ID debe ser None por defecto"
+    assert state.tipoestado == "Activo", "El campo tipoestado debe contener el valor proporcionado"

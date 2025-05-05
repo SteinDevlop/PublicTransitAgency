@@ -4,19 +4,56 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Detalle del Estado de Mantenimiento</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            line-height: 1.6;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        h1 {
+            color: #2c3e50;
+        }
+        .detail {
+            background-color: #f4f4f4;
+            padding: 15px;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+        p {
+            margin: 8px 0;
+        }
+        .back-btn {
+            display: inline-block;
+            margin-top: 20px;
+            padding: 10px 15px;
+            background-color: #3498db;
+            color: white;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+        .back-btn:hover {
+            background-color: #2980b9;
+        }
+    </style>
 </head>
 <body>
-    <h1>Detalle del Estado de Mantenimiento</h1>
+    <div class="container">
+        <h1>Detalle del Estado de Mantenimiento</h1>
 
-    {% if data %}
-    <div>
-        {% for key, value in data.dict().items() %}
-        <p><strong>{{ key }}:</strong> {{ value }}</p>
-        {% endfor %}
+        {% if data %}
+        <div class="detail">
+            <p><strong>ID:</strong> {{ data.id }}</p>
+            <p><strong>Tipo de Estado:</strong> {{ data.tipoestado }}</p>
+        </div>
+        {% else %}
+        <p>No se encontraron detalles para este estado de mantenimiento.</p>
+        {% endif %}
+
+        <a href="/maintainance_state/" class="back-btn">Volver a la lista</a>
     </div>
-    <a href="/maintainance_status/consultar">Volver a la lista</a>
-    {% else %}
-    <p>No se encontraron detalles para este estado de mantenimiento.</p>
-    {% endif %}
 </body>
 </html>

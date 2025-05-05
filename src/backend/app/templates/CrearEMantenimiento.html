@@ -8,35 +8,20 @@
         body { font-family: Arial, sans-serif; margin: 20px; }
         form { max-width: 500px; margin: auto; }
         label { display: block; margin-top: 10px; }
-        input, select { width: 100%; padding: 8px; margin-top: 5px; }
+        input { width: 100%; padding: 8px; margin-top: 5px; }
         button { margin-top: 20px; padding: 10px 15px; background-color: #4CAF50; color: white; border: none; cursor: pointer; }
         button:hover { background-color: #45a049; }
     </style>
 </head>
 <body>
     <h1>Crear Estado de Mantenimiento</h1>
-    <form action="/maintainance_status/create" method="post">
+    <form action="/maintainance_state/create" method="post">
         <label for="id">ID:</label>
         <input type="number" id="id" name="id" required>
-        
-        <label for="unit">Unidad:</label>
-        <input type="text" id="unit" name="unit" required>
-        
-        <label for="type">Tipo:</label>
-        <select id="type" name="type" required>
-            <option value="preventivo">Preventivo</option>
-            <option value="correctivo">Correctivo</option>
-            <option value="predictivo">Predictivo</option>
-        </select>
-        
-        <label for="status">Estado:</label>
-        <select id="status" name="status" required>
-            <option value="pendiente">Pendiente</option>
-            <option value="en_proceso">En Proceso</option>
-            <option value="completado">Completado</option>
-            <option value="cancelado">Cancelado</option>
-        </select>
-        
+
+        <label for="tipoestado">Tipo de Estado:</label>
+        <input type="text" id="tipoestado" name="tipoestado" required>
+
         <button type="submit">Crear</button>
     </form>
 </body>
