@@ -29,6 +29,12 @@ jobs:
       - name: Run tests with coverage
         env:
           SONAR_TOKEN: ${{secrets.SONAR_TOKEN }}
+          SECRET_KEY: ${{ secrets.SECRET_KEY }}
+          POSTGRES_HOST: ${{ secrets.POSTGRES_HOST }}
+          POSTGRES_PORT: ${{ secrets.POSTGRES_PORT }}
+          POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
+          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
+          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
         run: |
           PYTHONPATH=$PWD pytest --cov=. --cov-report=term --cov-report=html --cov-report=xml || true
 

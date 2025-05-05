@@ -6,7 +6,7 @@ from backend.app.core.middlewares import add_middlewares
 from backend.app.api.routes import (
     card_cud_service,
     card_query_service,
-    incidence_CUD_service,
+    incidence_cud_service,
     maintainance_status_query_service,
     maintance_cud_service,
     maintance_query_service,
@@ -17,7 +17,24 @@ from backend.app.api.routes import (
     type_transport_cud_service,
     rol_user_cud_service,
     movement_cud_service,
-    login_service
+    login_service,
+    price_cud_service,
+    incidence_query_service,
+    ticket_cud_service,
+    ticket_query_service,
+    routes_cud_service,
+    shifts_cud_service,
+    shifts_query_service,
+    stops_cud_service,
+    stops_query_service,
+    movement_query_service,
+    payment_cud_service,
+    payment_query_service,
+    maintainance_status_cud_service,
+    transport_unit_cud_service,
+    transport_unit_query_service,
+    schedule_cud_service,
+    schedule_query_service
 )
 
 # Initialize the FastAPI app
@@ -52,28 +69,21 @@ api_router.include_router(type_transport_cud_service.app)
 api_router.include_router(rol_user_cud_service.app)
 api_router.include_router(movement_cud_service.app)
 api_router.include_router(maintainance_status_query_service.app)
-api_router.include_router(incidence_CUD_service.app)
-
-# Placeholder for non-functional routes, commented out for now
-# api_router.include_router(price_cud_service.app)
-# api_router.include_router(incidence_query_service.app)
-# api_router.include_router(ticket_cud_service.app)
-# api_router.include_router(ticket_query_service.app)
-# api_router.include_router(routes_cud_service.app)
-# api_router.include_router(shifts_cud_service.app)
-# api_router.include_router(shifts_query_service.app)
-# api_router.include_router(stops_cud_service.app)
-# api_router.include_router(stops_query_service.app)
-# api_router.include_router(movement_query_service.app)
-# api_router.include_router(payment_cud_service.app)
-# api_router.include_router(payment_query_service.app)
-# api_router.include_router(maintainance_status_cud_service.app)
-# api_router.include_router(transport_unit_cud_service.app)
-# api_router.include_router(transport_unit_query_service.app)
-# api_router.include_router(schedule_cud_service.app)
-# api_router.include_router(schedule_query_service.app)
-# api_router.include_router(price_query_service.app)
-# api_router.include_router(type_transport_query_service.app)
-# api_router.include_router(user_query_service.app)
-# api_router.include_router(type_movement_query_service.app)
-# api_router.include_router(type_card_cud_service.app)
+api_router.include_router(incidence_cud_service.app)
+api_router.include_router(price_cud_service.app)
+api_router.include_router(incidence_query_service.app)
+api_router.include_router(ticket_cud_service.app)
+api_router.include_router(ticket_query_service.app)
+api_router.include_router(routes_cud_service.app)
+api_router.include_router(shifts_cud_service.app)
+api_router.include_router(shifts_query_service.app)
+api_router.include_router(stops_cud_service.app)
+api_router.include_router(stops_query_service.app)
+api_router.include_router(movement_query_service.app)
+api_router.include_router(payment_cud_service.app)
+api_router.include_router(payment_query_service.app)
+api_router.include_router(maintainance_status_cud_service.app)
+api_router.include_router(transport_unit_cud_service.app)
+api_router.include_router(transport_unit_query_service.app)
+api_router.include_router(schedule_cud_service.app)
+api_router.include_router(schedule_query_service.app)

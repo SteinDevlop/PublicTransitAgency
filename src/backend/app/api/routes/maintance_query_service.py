@@ -1,10 +1,10 @@
 import logging
 from fastapi import APIRouter, HTTPException, Security
-from backend.app.logic.mantainment_controller import Controller
+from backend.app.logic.universal_controller_postgres import UniversalController
 from backend.app.core.auth import get_current_user
 
 # Initialize the maintenance controller
-controller_maintenance = Controller()
+controller_maintenance = UniversalController()
 
 # Create the APIRouter instance with a prefix and tags
 app = APIRouter(prefix="/maintainance", tags=["maintainance"])
@@ -70,7 +70,7 @@ def get_by_id(
 
 @app.get("/unit/{unit_id}")
 def get_by_unit(
-    unit_id: int,
+    idunidadtransporte: int,
     current_user: dict = Security(get_current_user, scopes=["system", "administrador", "tecnico"])
 ):
     """
@@ -83,12 +83,12 @@ def get_by_unit(
     Returns:
     - List of maintenance records associated with the unit.
     """
-    logger.info(f"[GET /unit/{unit_id}] Usuario {current_user['user_id']} busca los mantenimientos asociados a la unidad {unit_id}.")
+    logger.info(f"[GET /unit/{idunidadtransporte}] Usuario {current_user['user_id']} busca los mantenimientos asociados a la unidad {idunidadtransporte}.")
     
     try:
-        records = controller_maintenance.get_by_unit(unit_id)
-        logger.info(f"[GET /unit/{unit_id}] Se han recuperado {len(records)} registros de mantenimiento para la unidad {unit_id}.")
+        records = controller_maintenance.get_by_unit(idunidadtransporte)
+        logger.info(f"[GET /unit/{idunidadtransporte}] Se han recuperado {len(records)} registros de mantenimiento para la unidad {idunidadtransporte}.")
         return records
     except Exception as e:
-        logger.error(f"[GET /unit/{unit_id}] Error al obtener los registros de mantenimiento para la unidad {unit_id}: {str(e)}")
+        logger.error(f"[GET /unit/{idunidadtransporte}] Error al obtener los registros de mantenimiento para la unidad {idunidadtransporte}: {str(e)}")
         raise HTTPException(status_code=500, detail="Internal server error")

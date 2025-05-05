@@ -6,13 +6,13 @@ load_dotenv()
 class Settings:
     PROJECT_NAME: str = "Public Transit Agency"
     ALLOWED_ORIGINS: list = os.getenv("ALLOWED_ORIGINS", "*").split(",")
-    SECRET_KEY: str = os.getenv("SECRET_KEY", "supersecretkey")
-    ALGORITHM: str = "HS256"
-    POSTGRES_HOST: str = os.getenv("POSTGRES_HOST", "ballast.proxy.rlwy.net")
-    POSTGRES_PORT: str = os.getenv("POSTGRES_PORT",     "58107")
-    POSTGRES_DB: str = os.getenv("POSTGRES_DB", "railway")
-    POSTGRES_PASSWORD: str = os.getenv("POSTGRES_PASSWORD", "eJrhyOmgcCTXRouaWJWDBhodHxthuWpq")
-    POSTGRES_USER: str = os.getenv("POSTGRES_USER", "postgres")
+    SECRET_KEY: str = os.getenv("SECRET_KEY")
+    ALGORITHM: str = os.getenv("ALGORITHM")
+    POSTGRES_HOST: str = os.getenv("POSTGRES_HOST")
+    POSTGRES_PORT: str = os.getenv("POSTGRES_PORT")
+    POSTGRES_DB: str = os.getenv("POSTGRES_DB")
+    POSTGRES_PASSWORD: str = os.getenv("POSTGRES_PASSWORD")
+    POSTGRES_USER: str = os.getenv("POSTGRES_USER")
 
     @property
     def db_config(self) -> dict:
