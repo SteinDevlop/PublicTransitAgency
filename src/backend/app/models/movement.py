@@ -13,7 +13,7 @@ class MovementCreate(BaseModel):
     def get_fields(cls) -> dict:
         return {
             "id": "INTEGER PRIMARY KEY",
-            "type": "INTEGER",
+            "idtype": "INTEGER",
             "amount": "FLOAT"
         }
 
