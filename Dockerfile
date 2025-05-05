@@ -1,6 +1,7 @@
 # Dockerfile
 FROM python:3.9-slim
 
+RUN apt-get update && apt-get install -y libpq-dev
 # Create a non-root user (e.g., "appuser")
 RUN adduser --disabled-password --gecos '' appuser
 
@@ -12,7 +13,7 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy the rest of the code
-COPY src/backend /app/
+COPY src/backend/app/
 
 # Change to the non-root user
 USER appuser
