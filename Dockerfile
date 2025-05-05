@@ -1,7 +1,12 @@
-# Dockerfile
 FROM python:3.9-slim
 
-RUN apt-get update && apt-get install -y libpq-dev
+# Install build dependencies for psycopg2 and other requirements
+RUN apt-get update && apt-get install -y \
+    gcc \
+    python3-dev \
+    libpq-dev \
+    && apt-get clean
+
 # Create a non-root user (e.g., "appuser")
 RUN adduser --disabled-password --gecos '' appuser
 
@@ -9,11 +14,14 @@ RUN adduser --disabled-password --gecos '' appuser
 WORKDIR /app
 
 # Copy the requirements file and install dependencies
-COPY requirements.txt .
+COPY requirements.txt . 
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy the rest of the code
 COPY src/backend/app/ /app/
+
+# Set appropriate permissions for the appuser to access the app directory
+RUN chown -R appuser:appuser /app
 
 # Change to the non-root user
 USER appuser
