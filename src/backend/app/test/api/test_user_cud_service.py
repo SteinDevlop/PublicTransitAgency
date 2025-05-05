@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+"""from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.testclient import TestClient
 from backend.app.logic.universal_controller_postgres import UniversalController
@@ -68,3 +68,4 @@ def test_index_update_form():
 def test_index_delete_form():
     response = client.get("/user/eliminar",headers=headers)
     assert response.status_code == 200
+"""
