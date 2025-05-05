@@ -16,7 +16,7 @@ class UserCreate(BaseModel):
     @classmethod
     def get_fields(cls) -> dict:
         return {
-            "id": "SERIAL PRIMARY KEY",
+            "id": "INTEGER PRIMARY KEY",
             "identification": "INTEGER",
             "name": "VARCHAR(100)",
             "lastname": "VARCHAR(100)",

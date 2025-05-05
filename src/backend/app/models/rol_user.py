@@ -12,7 +12,7 @@ class RolUserCreate(BaseModel):
     def get_fields(cls) -> dict:
         return {
             "id": "INTEGER PRIMARY KEY",
-            "type": "varchar(100)",
+            "type": "varchar(20)",
         }
 class RolUserOut(RolUserCreate):
     __entity_name__ = "rolusuario"  # <- También aquí, porque se usa para lectura

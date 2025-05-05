@@ -1,130 +1,138 @@
-#type_movement_cud_service.py
-# This module provides CRUD operations for TypeMovement using FastAPI.
-# It includes routes for creating, updating, and deleting TypeMovement records.
-# It uses a controller to handle the database operations and Pydantic models for data validation.
-from fastapi import APIRouter, Form, Request, HTTPException, Depends
-from fastapi.responses import HTMLResponse
+import logging
+from fastapi import (
+    Form, HTTPException, APIRouter, Request, Security
+)
 from fastapi.templating import Jinja2Templates
-from backend.app.models.type_movement import TypeMovementCreate, TypeMovementOut
-from backend.app.logic.universal_controller_sql import UniversalController
+from fastapi.responses import HTMLResponse
 
-app = APIRouter(prefix="/typemovement", tags=["Type Movement"])
-templates = Jinja2Templates(directory="src/backend/app/templates")  # Set up the template directory
+from backend.app.models.type_movement import TypeMovementCreate,TypeMovementOut
+from backend.app.logic.universal_controller_postgres import UniversalController
+from backend.app.core.auth import get_current_user
 
-def get_controller():
-    return UniversalController()
+# Configuración de logging
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
+
+app = APIRouter(prefix="/roluser", tags=["roluser"])
+controller = UniversalController()
+templates = Jinja2Templates(directory="src/backend/app/templates")
 
 
 @app.get("/crear", response_class=HTMLResponse)
-def crear_tipo_movimiento(request: Request):
-    """
-    Displays the form to create a new type of movement.
-    """
-    return templates.TemplateResponse("CrearTipoMovimiento.html", {"request": request})
+def index_create(
+    request: Request,
+    current_user: dict = Security(
+        get_current_user,
+        scopes=["system", "administrador"]
+    )
+):
+    logger.info(f"[GET /crear] Usuario: {current_user['user_id']} - Mostrando formulario de creación de rol de usuario")
+    return templates.TemplateResponse("CrearRolUsuario.html", {"request": request})
 
-# Route to delete a type of movement
-@app.get("/eliminar", response_class=HTMLResponse)
-def eliminar_tipo_movimiento(request: Request):
-    """
-    Displays the form to delete a type of movement.
-    """
-    return templates.TemplateResponse("EliminarTipoMovimiento.html", {"request": request})
-
-# Route to update a type of movement
 @app.get("/actualizar", response_class=HTMLResponse)
-def actualizar_tipo_movimiento(request: Request):
-    """
-    Displays the form to update an existing type of movement.
-    """
-    return templates.TemplateResponse("ActualizarTipoMovimiento.html", {"request": request})
+def index_update(
+    request: Request,
+    current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
+):
+    logger.info(f"[GET /actualizar] Usuario: {current_user['user_id']} - Mostrando formulario de actualización de rol de usuario")
+    return templates.TemplateResponse("ActualizarRolUsuario.html", {"request": request})
 
-# Route to add a new type of card
+
+@app.get("/eliminar", response_class=HTMLResponse)
+def index_delete(
+    request: Request,
+    current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
+):
+    logger.info(f"[GET /eliminar] Usuario: {current_user['user_id']} - Mostrando formulario de eliminación de rol de usuario")
+    return templates.TemplateResponse("EliminarRolUsuario.html", {"request": request})
+
+#
 @app.post("/create")
-async def add_typemovement(
+async def create_roluser(
     id: int = Form(...),
     type: str = Form(...),
-    controller: UniversalController = Depends(get_controller),
+    current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
 ):
-    """
-    Creates a new type of movement with the provided ID and type.
-    The controller is used to add the type of movement to the database.
-    """
+    logger.info(f"[POST /create] Usuario: {current_user['user_id']} - Intentando crear usuario de tipo {type}")
+
     try:
-        new_typemovement = TypeMovementCreate(id=id, type=type)
-        
-        # Add the new type of card using the controller
-        result = controller.add(new_typemovement)
-        
+        # Verificar si el rol de usuario ya existe
+        existing_user = controller.get_by_column(RolUserOut, "type", type)  
+        if existing_user:
+            logger.warning(f"[POST /create] Error de validación: El rol de usuario ya existe con id {id}")
+            raise HTTPException(400, detail="El rol de usuario ya existe con la misma identificación.")
+
+        # Crear usuario
+        new_roluser = RolUserCreate(id=id, type=type)
+        logger.info(f"Intentando insertar rol de usuario con datos: {new_roluser.model_dump()}")
+        controller.add(new_roluser)
+        logger.info(f"Rol de Usuario insertado con ID: {new_roluser.id}")  # Verifica si el ID se asigna
+        logger.info(f"[POST /create] Rol de Usuario creado exitosamente con identificación {id}")
         return {
             "operation": "create",
             "success": True,
-            "data": TypeMovementOut(id=new_typemovement.id, type=new_typemovement.type).model_dump(),
-            "message": "Movement type created successfully"
+            "data": RolUserOut(id=new_roluser.id, type=new_roluser.type).model_dump(),
+            "message": "RolUser created successfully."
         }
+        
     except ValueError as e:
-        raise HTTPException(400, detail=str(e))  # Bad request if validation fails
+        logger.warning(f"[POST /create] Error de validación: {str(e)}")
+        raise HTTPException(400, detail=str(e))
     except Exception as e:
-        raise HTTPException(500, detail=f"Internal server error: {str(e)}")  # General server error
+        logger.error(f"[POST /create] Error interno: {str(e)}")
+        raise HTTPException(500, detail=f"Internal server error: {str(e)}")
 
-# Route to update an existing type of movement
+
 @app.post("/update")
-async def update_typemovement(
+async def update_roluser(
     id: int = Form(...),
     type: str = Form(...),
-    controller: UniversalController = Depends(get_controller),
+    current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
 ):
+    logger.info(f"[POST /update] Usuario: {current_user['user_id']} - Actualizando rol de usuario id={id}")
     try:
-        # Attempt to retrieve the record
-        try:
-            existing = controller.get_by_id(TypeMovementOut, id)
-        except Exception:
-            # This handles exceptions like 'not found' from controller
-            raise HTTPException(404, detail="Movement type not found")
+        existing = controller.get_by_id(RolUserOut, id)
+        if existing is None:
+            logger.warning(f"[POST /update] Rol de Usuario no encontrada: id={id}")
+            raise HTTPException(404, detail="RolUser not found")
 
-        if not existing:
-            raise HTTPException(404, detail="Movement type not found")
-
-        updated_typemovement = TypeMovementCreate(id=id, type=type)
-        controller.update(updated_typemovement)
-
+        updated_roluser = RolUserOut(id=id, type=type)
+        controller.update(updated_roluser)
+        logger.info(f"[POST /update] Usuario actualizada exitosamente: {updated_roluser}")
         return {
             "operation": "update",
             "success": True,
-            "data": TypeMovementOut(id=updated_typemovement.id, type=updated_typemovement.type).model_dump(),
-            "message": "Movement type updated successfully"
+            "data": RolUserOut(id=id, type=updated_roluser.type).model_dump(),
+            "message": f"RolUser {id} updated successfully."
         }
+    except ValueError as e:
+        logger.warning(f"[POST /update] Error de validación: {str(e)}")
+        raise HTTPException(400, detail=str(e))
 
-    except HTTPException:
-        raise  # Let FastAPI handle HTTP errors normally
-    except Exception as e:
-        raise HTTPException(500, detail=str(e))  # Catch-all for unexpected errors
 
-# Route to delete a type of movement
+
 @app.post("/delete")
-async def delete_typemovement(
-    id: int = Form(...), 
-    controller: UniversalController = Depends(get_controller)
-    ):
-    """
-    Deletes an existing type of movement by its ID.
-    If the type of movement does not exist, a 404 error is raised.
-    """
+async def delete_roluser(
+    id: int = Form(...),
+    current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
+):
+    logger.info(f"[POST /delete] Usuario: {current_user['user_id']} - Eliminando rol de usuario id={id}")
     try:
-        # Look for the type of movement to delete
-        existing = controller.get_by_id(TypeMovementOut, id)
+        existing = controller.get_by_id(RolUserOut, id)
         if not existing:
-            raise HTTPException(404, detail="Movement type not found")
-        
-        # Delete the type of movement using the controller
-        controller.delete(existing)
-        
+            logger.warning(f"[POST /delete] Rol de Usuario no encontrado en la base de datos: id={id}")
+            raise HTTPException(404, detail="RolUser not found")
+
+        logger.info(f"[POST /delete] Eliminando rol de usuario con id={id}")
+        controller.delete(existing) 
+        logger.info(f"[POST /delete] Rol de Usuario eliminada exitosamente: id={id}")
         return {
             "operation": "delete",
             "success": True,
-            "message": f"Movement type deleted successfully"
+            "message": f"RolUser {id} deleted successfully."
         }
-    except HTTPException:
-        raise
+    except HTTPException as e:
+        raise e
     except Exception as e:
-        raise HTTPException(500, detail=str(e))  # General server error
-
+        logger.error(f"[POST /delete] Error interno: {str(e)}")
+        raise HTTPException(500, detail=f"Internal server error: {str(e)}")

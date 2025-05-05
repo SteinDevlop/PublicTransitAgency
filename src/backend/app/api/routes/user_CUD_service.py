@@ -1,39 +1,53 @@
-#user_cud_service.py
-# This file contains the CRUD operations for the User model using FastAPI.
-
-from fastapi import FastAPI, APIRouter, Form, HTTPException,APIRouter,Request, Depends
-from fastapi.middleware.cors import CORSMiddleware
+import logging
+from fastapi import (
+    Form, HTTPException, APIRouter, Request, Security
+)
 from fastapi.templating import Jinja2Templates
-from fastapi.responses import HTMLResponse, FileResponse, RedirectResponse
-from backend.app.models.user import UserCreate, UserOut  # Asegúrate de que tus modelos estén en este archivo
-from  backend.app.logic.universal_controller_sql import UniversalController 
+from fastapi.responses import HTMLResponse
+
+from backend.app.models.user import UserCreate, UserOut
+from backend.app.logic.universal_controller_postgres import UniversalController
+from backend.app.core.auth import get_current_user
+
+# Configuración de logging
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
 
 app = APIRouter(prefix="/user", tags=["user"])
+controller = UniversalController()
 templates = Jinja2Templates(directory="src/backend/app/templates")
 
-def get_controller():
-    """
-    Dependency to get the controller instance.
-    """
-    return UniversalController()
 
 @app.get("/crear", response_class=HTMLResponse)
-def index(request: Request):
-    """
-    Displays the form to create a new user.
-    """
+def index_create(
+    request: Request,
+    current_user: dict = Security(
+        get_current_user,
+        scopes=["system", "administrador", "pasajero"]
+    )
+):
+    logger.info(f"[GET /crear] Usuario: {current_user['user_id']} - Mostrando formulario de creación de usuario")
     return templates.TemplateResponse("CrearUsuario.html", {"request": request})
+
+
 @app.get("/actualizar", response_class=HTMLResponse)
-def index(request: Request):
-    """
-    Displays the form to update an existing user.
-    """
+def index_update(
+    request: Request,
+    current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
+):
+    logger.info(f"[GET /actualizar] Usuario: {current_user['user_id']} - Mostrando formulario de actualización de usuario")
     return templates.TemplateResponse("ActualizarUsuario.html", {"request": request})
+
+
 @app.get("/eliminar", response_class=HTMLResponse)
-def index(request: Request):
-    """
-    Displays the form to delete an existing user."""
+def index_delete(
+    request: Request,
+    current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
+):
+    logger.info(f"[GET /eliminar] Usuario: {current_user['user_id']} - Mostrando formulario de eliminación de usuario")
     return templates.TemplateResponse("EliminarUsuario.html", {"request": request})
+
+
 @app.post("/create")
 async def create_user(
     id: int = Form(...),
@@ -44,34 +58,40 @@ async def create_user(
     password: str = Form(...),
     idtype_user: int = Form(...),
     idturn: int = Form(...),
-    controller: UniversalController = Depends(get_controller)
+    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "pasajero"])
 ):
+    logger.info(f"[POST /create] Usuario: {current_user['user_id']} - Intentando crear usuario con identificación {identification}")
+
     try:
-        new_user = UserCreate(
-            id=id,
-            identification=identification,
-            name=name,
-            lastname=lastname,
-            email=email,
-            password=password,
-            idtype_user=idtype_user,
-            idturn=idturn
-        )
-        # AQUÍ: NO LLAMES to_dict()
-        result = controller.add(new_user)
-        
+        # Verificar si el usuario ya existe
+        existing_user = controller.get_by_column(UserOut, "identification", identification)  
+        if existing_user:
+            logger.warning(f"[POST /create] Error de validación: El usuario ya existe con identificación {identification}")
+            raise HTTPException(400, detail="El usuario ya existe con la misma identificación.")
+
+        # Crear usuario
+        new_user = UserCreate(id=id, identification=identification, name=name, lastname=lastname,
+                              email=email, password=password, idtype_user=idtype_user, idturn=idturn)
+        logger.info(f"Intentando insertar usuario con datos: {new_user.model_dump()}")
+        controller.add(new_user)
+        logger.info(f"Usuario insertado con ID: {new_user.id}")  # Verifica si el ID se asigna
+        logger.info(f"[POST /create] Usuario creado exitosamente con identificación {identification}")
         return {
             "operation": "create",
             "success": True,
             "data": UserOut(id=new_user.id, identification=new_user.identification, name=new_user.name,
-                            lastname=new_user.lastname, email=new_user.email,password=new_user.password,
-                            idtype_user=new_user.idtype_user, idturn=new_user.idturn).model_dump(),
-            "message": "User created successfully"
+                            lastname=new_user.lastname,email=new_user.email,password=new_user.password,
+                            idtype_user=new_user.idtype_user,idturn=new_user.idturn).model_dump(),
+            "message": "User created successfully."
         }
+        
     except ValueError as e:
+        logger.warning(f"[POST /create] Error de validación: {str(e)}")
         raise HTTPException(400, detail=str(e))
     except Exception as e:
-        raise HTTPException(500, detail=f"An error occurred: {str(e)}")
+        logger.error(f"[POST /create] Error interno: {str(e)}")
+        raise HTTPException(500, detail=f"Internal server error: {str(e)}")
+
 
 @app.post("/update")
 async def update_user(
@@ -83,57 +103,55 @@ async def update_user(
     password: str = Form(...),
     idtype_user: int = Form(...),
     idturn: int = Form(...),
-    controller: UniversalController = Depends(get_controller)
+    current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
 ):
+    logger.info(f"[POST /update] Usuario: {current_user['user_id']} - Actualizando usuario id={id}")
     try:
-        # Buscar el usuario existente para actualización
-        existing = controller.get_by_id(UserOut, id)  # Aquí usamos UserOut para buscar la usuario
+        existing = controller.get_by_id(UserOut, id)
         if existing is None:
+            logger.warning(f"[POST /update] Usuario no encontrada: id={id}")
             raise HTTPException(404, detail="User not found")
-        
-        # Crear una instancia del modelo UserCreate para validar los datos de actualización
-        updated_user = UserCreate(
-            id=id,
-            identification=identification,
-            name=name,
-            lastname=lastname,
-            email=email,
-            password=password,
-            idtype_user=idtype_user,
-            idturn=idturn
-        )
-        # Usamos el controlador para actualizar la usuario (convertimos el modelo a dict)
-        result = controller.update(updated_user)
-        
-        # Devolvemos la respuesta con la usuario actualizada utilizando UserOut
+
+        updated_user = UserOut(id=id, identification=identification, name=name, lastname=lastname,
+                       email=email, password=password, idtype_user=idtype_user, idturn=idturn)
+        controller.update(updated_user)
+        logger.info(f"[POST /update] Usuario actualizada exitosamente: {updated_user}")
         return {
             "operation": "update",
             "success": True,
-            "data": UserOut(id=updated_user.id, identification=updated_user.identification, name=updated_user.name,
-                            lastname=updated_user.lastname, email=updated_user.email,password=updated_user.password,
-                            idtype_user=updated_user.idtype_user, idturn=updated_user.idturn).model_dump(),
-            "message": f"User updated successfully"
+            "data": UserOut(id=id, identification=updated_user.identification, name=updated_user.name,
+                            lastname=updated_user.lastname,email=updated_user.email,password=updated_user.password,
+                            idtype_user=updated_user.idtype_user,idturn=updated_user.idturn).model_dump(),
+            "message": f"User {id} updated successfully."
         }
     except ValueError as e:
+        logger.warning(f"[POST /update] Error de validación: {str(e)}")
         raise HTTPException(400, detail=str(e))
 
+
+
 @app.post("/delete")
-async def delete_user(id: int = Form(...), controller: UniversalController = Depends(get_controller)):
+async def delete_user(
+    id: int = Form(...),
+    current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
+):
+    logger.info(f"[POST /delete] Usuario: {current_user['user_id']} - Eliminando usuario id={id}")
     try:
-        # Buscar la usuario para eliminar
-        existing = controller.get_by_id(UserOut, id)  # Usamos UserOut para buscar la usuario
-        if existing is None:
+        existing = controller.get_by_id(UserOut, id)
+        if not existing:
+            logger.warning(f"[POST /delete] Usuario no encontrado en la base de datos: id={id}")
             raise HTTPException(404, detail="User not found")
-        
-        # Usamos el controlador para eliminar la usuario
-        controller.delete(existing)
-        
+
+        logger.info(f"[POST /delete] Eliminando usuario con id={id}")
+        controller.delete(existing) 
+        logger.info(f"[POST /delete] Usuario eliminada exitosamente: id={id}")
         return {
             "operation": "delete",
             "success": True,
-            "message": f"User deleted successfully"
+            "message": f"User {id} deleted successfully."
         }
-    except HTTPException:
-        raise
+    except HTTPException as e:
+        raise e
     except Exception as e:
-        raise HTTPException(500, detail=str(e))  # General server error
+        logger.error(f"[POST /delete] Error interno: {str(e)}")
+        raise HTTPException(500, detail=f"Internal server error: {str(e)}")
