@@ -13,7 +13,7 @@ from backend.app.core.auth import get_current_user
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
-app = APIRouter(prefix="/roluser", tags=["roluser"])
+app = APIRouter(prefix="/typemovement", tags=["typemovement"])
 controller = UniversalController()
 templates = Jinja2Templates(directory="src/backend/app/templates")
 
@@ -26,16 +26,16 @@ def index_create(
         scopes=["system", "administrador"]
     )
 ):
-    logger.info(f"[GET /crear] Usuario: {current_user['user_id']} - Mostrando formulario de creación de rol de usuario")
-    return templates.TemplateResponse("CrearRolUsuario.html", {"request": request})
+    logger.info(f"[GET /crear] Usuario: {current_user['user_id']} - Mostrando formulario de creación de tipo de movimiento")
+    return templates.TemplateResponse("CrearTipoMovimiento.html", {"request": request})
 
 @app.get("/actualizar", response_class=HTMLResponse)
 def index_update(
     request: Request,
     current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
 ):
-    logger.info(f"[GET /actualizar] Usuario: {current_user['user_id']} - Mostrando formulario de actualización de rol de usuario")
-    return templates.TemplateResponse("ActualizarRolUsuario.html", {"request": request})
+    logger.info(f"[GET /actualizar] Usuario: {current_user['user_id']} - Mostrando formulario de actualización de tipo de movimiento")
+    return templates.TemplateResponse("ActualizarTipoMovimiento.html", {"request": request})
 
 
 @app.get("/eliminar", response_class=HTMLResponse)
@@ -43,36 +43,36 @@ def index_delete(
     request: Request,
     current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
 ):
-    logger.info(f"[GET /eliminar] Usuario: {current_user['user_id']} - Mostrando formulario de eliminación de rol de usuario")
-    return templates.TemplateResponse("EliminarRolUsuario.html", {"request": request})
+    logger.info(f"[GET /eliminar] Usuario: {current_user['user_id']} - Mostrando formulario de eliminación de tipo de movimiento")
+    return templates.TemplateResponse("EliminarTipoMovimiento.html", {"request": request})
 
 #
 @app.post("/create")
-async def create_roluser(
+async def create_typemovement(
     id: int = Form(...),
     type: str = Form(...),
     current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
 ):
-    logger.info(f"[POST /create] Usuario: {current_user['user_id']} - Intentando crear usuario de tipo {type}")
+    logger.info(f"[POST /create] Usuario: {current_user['user_id']} - Intentando crear tipo de movimiento {type}")
 
     try:
         # Verificar si el rol de usuario ya existe
-        existing_user = controller.get_by_column(RolUserOut, "type", type)  
+        existing_user = controller.get_by_column(TypeMovementOut, "type", type)  
         if existing_user:
-            logger.warning(f"[POST /create] Error de validación: El rol de usuario ya existe con id {id}")
-            raise HTTPException(400, detail="El rol de usuario ya existe con la misma identificación.")
+            logger.warning(f"[POST /create] Error de validación: El tipo de movimiento ya existe con id {id}")
+            raise HTTPException(400, detail="El tipo de movimiento ya existe con la misma identificación.")
 
-        # Crear usuario
-        new_roluser = RolUserCreate(id=id, type=type)
-        logger.info(f"Intentando insertar rol de usuario con datos: {new_roluser.model_dump()}")
-        controller.add(new_roluser)
-        logger.info(f"Rol de Usuario insertado con ID: {new_roluser.id}")  # Verifica si el ID se asigna
+        # Crear tipo de movimiento
+        new_typemovement = TypeMovementCreate(id=id, type=type)
+        logger.info(f"Intentando insertar rol de usuario con datos: {new_typemovement.model_dump()}")
+        controller.add(new_typemovement)
+        logger.info(f"Rol de Usuario insertado con ID: {new_typemovement.id}")  # Verifica si el ID se asigna
         logger.info(f"[POST /create] Rol de Usuario creado exitosamente con identificación {id}")
         return {
             "operation": "create",
             "success": True,
-            "data": RolUserOut(id=new_roluser.id, type=new_roluser.type).model_dump(),
-            "message": "RolUser created successfully."
+            "data": TypeMovementOut(id=new_typemovement.id, type=new_typemovement.type).model_dump(),
+            "message": "TypeMovement created successfully."
         }
         
     except ValueError as e:
@@ -84,26 +84,26 @@ async def create_roluser(
 
 
 @app.post("/update")
-async def update_roluser(
+async def update_typemovement(
     id: int = Form(...),
     type: str = Form(...),
     current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
 ):
-    logger.info(f"[POST /update] Usuario: {current_user['user_id']} - Actualizando rol de usuario id={id}")
+    logger.info(f"[POST /update] Usuario: {current_user['user_id']} - Actualizando tipo de movimiento id={id}")
     try:
-        existing = controller.get_by_id(RolUserOut, id)
+        existing = controller.get_by_id(TypeMovementOut, id)
         if existing is None:
             logger.warning(f"[POST /update] Rol de Usuario no encontrada: id={id}")
-            raise HTTPException(404, detail="RolUser not found")
+            raise HTTPException(404, detail="TypeMovement not found")
 
-        updated_roluser = RolUserOut(id=id, type=type)
-        controller.update(updated_roluser)
-        logger.info(f"[POST /update] Usuario actualizada exitosamente: {updated_roluser}")
+        updated_typemovement = TypeMovementOut(id=id, type=type)
+        controller.update(updated_typemovement)
+        logger.info(f"[POST /update] TipoMovimiento actualizada exitosamente: {updated_typemovement}")
         return {
             "operation": "update",
             "success": True,
-            "data": RolUserOut(id=id, type=updated_roluser.type).model_dump(),
-            "message": f"RolUser {id} updated successfully."
+            "data": TypeMovementOut(id=id, type=updated_typemovement.type).model_dump(),
+            "message": f"TypeMovement {id} updated successfully."
         }
     except ValueError as e:
         logger.warning(f"[POST /update] Error de validación: {str(e)}")
@@ -116,20 +116,20 @@ async def delete_roluser(
     id: int = Form(...),
     current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
 ):
-    logger.info(f"[POST /delete] Usuario: {current_user['user_id']} - Eliminando rol de usuario id={id}")
+    logger.info(f"[POST /delete] Usuario: {current_user['user_id']} - Eliminando tipo de movimiento con id={id}")
     try:
-        existing = controller.get_by_id(RolUserOut, id)
+        existing = controller.get_by_id(TypeMovementOut, id)
         if not existing:
-            logger.warning(f"[POST /delete] Rol de Usuario no encontrado en la base de datos: id={id}")
-            raise HTTPException(404, detail="RolUser not found")
+            logger.warning(f"[POST /delete] Tipo de Movimiento no encontrado en la base de datos: id={id}")
+            raise HTTPException(404, detail="TypeMovement not found")
 
-        logger.info(f"[POST /delete] Eliminando rol de usuario con id={id}")
+        logger.info(f"[POST /delete] Eliminando tipo de movimiento con id={id}")
         controller.delete(existing) 
-        logger.info(f"[POST /delete] Rol de Usuario eliminada exitosamente: id={id}")
+        logger.info(f"[POST /delete] Tipo de Movimiento eliminada exitosamente: id={id}")
         return {
             "operation": "delete",
             "success": True,
-            "message": f"RolUser {id} deleted successfully."
+            "message": f"TypeMovement {id} deleted successfully."
         }
     except HTTPException as e:
         raise e

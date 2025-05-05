@@ -1,130 +1,138 @@
-#type_transport_cud_service.py
-# This file contains the CRUD operations for TypeTransport using FastAPI.
-# It includes routes for creating, updating, and deleting TypeTransport records.
-
-from fastapi import APIRouter, Form, Request, HTTPException, Depends
-from fastapi.responses import HTMLResponse
+import logging
+from fastapi import (
+    Form, HTTPException, APIRouter, Request, Security
+)
 from fastapi.templating import Jinja2Templates
-from backend.app.models.type_transport import TypeTransportCreate, TypeTransportOut
-from backend.app.logic.universal_controller_sql import UniversalController
+from fastapi.responses import HTMLResponse
 
-app = APIRouter(prefix="/typetransport", tags=["Type Transport"])
-templates = Jinja2Templates(directory="src/backend/app/templates")  # Set up the template directory
+from backend.app.models.type_transport import TypeTransportCreate,TypeTransportOut
+from backend.app.logic.universal_controller_postgres import UniversalController
+from backend.app.core.auth import get_current_user
 
-def get_controller():
-    """
-    Returns an instance of the UniversalController for database operations.
-    """
-    return UniversalController()
+# Configuración de logging
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
 
-# Route to create a type of transport
+app = APIRouter(prefix="/typetransport", tags=["typetransport"])
+controller = UniversalController()
+templates = Jinja2Templates(directory="src/backend/app/templates")
+
+
 @app.get("/crear", response_class=HTMLResponse)
-def crear_tipo_transporte(request: Request):
-    """
-    Displays the form to create a new type of transport.
-    """
+def index_create(
+    request: Request,
+    current_user: dict = Security(
+        get_current_user,
+        scopes=["system", "administrador"]
+    )
+):
+    logger.info(f"[GET /crear] Usuario: {current_user['user_id']} - Mostrando formulario de creación de tipo de transporte")
     return templates.TemplateResponse("CrearTipoTransporte.html", {"request": request})
 
-# Route to delete a type of transport
-@app.get("/eliminar", response_class=HTMLResponse)
-def eliminar_tipo_transporte(request: Request):
-    """
-    Displays the form to delete a type of transport.
-    """
-    return templates.TemplateResponse("EliminarTipoTransporte.html", {"request": request})
-
-# Route to update a type of transport
 @app.get("/actualizar", response_class=HTMLResponse)
-def actualizar_tipo_transporte(request: Request):
-    """
-    Displays the form to update an existing type of transport.
-    """
+def index_update(
+    request: Request,
+    current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
+):
+    logger.info(f"[GET /actualizar] Usuario: {current_user['user_id']} - Mostrando formulario de actualización de tipo de transporte")
     return templates.TemplateResponse("ActualizarTipoTransporte.html", {"request": request})
 
-# Route to add a new type of transport
+
+@app.get("/eliminar", response_class=HTMLResponse)
+def index_delete(
+    request: Request,
+    current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
+):
+    logger.info(f"[GET /eliminar] Usuario: {current_user['user_id']} - Mostrando formulario de eliminación de tipo de transporte")
+    return templates.TemplateResponse("EliminarTipoTransporte.html", {"request": request})
+
+#
 @app.post("/create")
-async def add_typetransport(
+async def create_typetransport(
     id: int = Form(...),
     type: str = Form(...),
-    controller: UniversalController = Depends(get_controller)
+    current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
 ):
-    """
-    Creates a new type of transport with the provided ID and type.
-    The controller is used to add the type of transport to the database.
-    """
+    logger.info(f"[POST /create] Usuario: {current_user['user_id']} - Intentando crear tipo de transporte {type}")
+
     try:
+        # Verificar si el tipo de transporte ya existe
+        existing_transport = controller.get_by_column(TypeTransportOut, "type", type)  
+        if existing_transport:
+            logger.warning(f"[POST /create] Error de validación: El tipo de transporte ya existe con id {id}")
+            raise HTTPException(400, detail="El tipo de transporte ya existe con la misma identificación.")
+
+        # Crear tipo de transporte
         new_typetransport = TypeTransportCreate(id=id, type=type)
-        
-        # Add the new type of transport using the controller
-        result = controller.add(new_typetransport)
-        
+        logger.info(f"Intentando insertar rol de usuario con datos: {new_typetransport.model_dump()}")
+        controller.add(new_typetransport)
+        logger.info(f"Rol de Usuario insertado con ID: {new_typetransport.id}")  # Verifica si el ID se asigna
+        logger.info(f"[POST /create] Tipo de Transporte creado exitosamente con identificación {id}")
         return {
             "operation": "create",
             "success": True,
             "data": TypeTransportOut(id=new_typetransport.id, type=new_typetransport.type).model_dump(),
-            "message": "Transport type created successfully"
+            "message": "TypeTransport created successfully."
         }
-    except HTTPException:
-        raise
+        
+    except ValueError as e:
+        logger.warning(f"[POST /create] Error de validación: {str(e)}")
+        raise HTTPException(400, detail=str(e))
     except Exception as e:
-        raise HTTPException(500, detail=str(e))  # General server error
+        logger.error(f"[POST /create] Error interno: {str(e)}")
+        raise HTTPException(500, detail=f"Internal server error: {str(e)}")
 
-# Route to update an existing type of transport
+
 @app.post("/update")
 async def update_typetransport(
     id: int = Form(...),
     type: str = Form(...),
-    controller: UniversalController = Depends(get_controller)
+    current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
 ):
-    """
-    Updates an existing type of transport by its ID and new type.
-    If the type of transport does not exist, a 404 error is raised.
-    """
+    logger.info(f"[POST /update] Usuario: {current_user['user_id']} - Actualizando tipo de transporte id={id}")
     try:
-        # Look for the existing type of transport to update
         existing = controller.get_by_id(TypeTransportOut, id)
         if existing is None:
-            raise HTTPException(404, detail="Transport type not found")
-        
-        # Create a new instance with the updated data
-        updated_typetransport = TypeTransportCreate(id=id, type=type)
-        
-        # Update the type of transport using the controller
-        result = controller.update(updated_typetransport)
-        
+            logger.warning(f"[POST /update] Tipo de Transporte no encontrada: id={id}")
+            raise HTTPException(404, detail="TypeTransport not found")
+
+        updated_typetransport = TypeTransportOut(id=id, type=type)
+        controller.update(updated_typetransport)
+        logger.info(f"[POST /update] TipoTransporte actualizada exitosamente: {updated_typetransport}")
         return {
             "operation": "update",
             "success": True,
-            "data": TypeTransportOut(id=updated_typetransport.id, type=updated_typetransport.type).model_dump(),
-            "message": f"Transport type updated successfully"
+            "data": TypeTransportOut(id=id, type=updated_typetransport.type).model_dump(),
+            "message": f"TypeTransport {id} updated successfully."
         }
-    except HTTPException:
-        raise
-    except Exception as e:
-        raise HTTPException(500, detail=str(e))  # General server error
+    except ValueError as e:
+        logger.warning(f"[POST /update] Error de validación: {str(e)}")
+        raise HTTPException(400, detail=str(e))
 
-# Route to delete a type of transport
+
+
 @app.post("/delete")
-async def delete_typetransport(id: int = Form(...), controller: UniversalController = Depends(get_controller)):
-    """
-    Deletes an existing type transport by its ID.
-    If the type of transport does not exist, a 404 error is raised.
-    """
+async def delete_roluser(
+    id: int = Form(...),
+    current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
+):
+    logger.info(f"[POST /delete] Usuario: {current_user['user_id']} - Eliminando tipo de transporte con id={id}")
     try:
-        # Look for the type of transport to delete
         existing = controller.get_by_id(TypeTransportOut, id)
-        if existing is None:
-            raise HTTPException(404, detail="Transport type not found")
-        
-        # Delete the type of transport using the controller
-        controller.delete(existing)
-        
+        if not existing:
+            logger.warning(f"[POST /delete] Tipo de transporte no encontrado en la base de datos: id={id}")
+            raise HTTPException(404, detail="TypeTransport not found")
+
+        logger.info(f"[POST /delete] Eliminando tipo de transporte con id={id}")
+        controller.delete(existing) 
+        logger.info(f"[POST /delete] Tipo de Transporte eliminada exitosamente: id={id}")
         return {
             "operation": "delete",
             "success": True,
-            "message": f"Transport type deleted successfully"
+            "message": f"TypeTransport {id} deleted successfully."
         }
-    except HTTPException:
-        raise
+    except HTTPException as e:
+        raise e
     except Exception as e:
-        raise HTTPException(500, detail=str(e))  # General server error
+        logger.error(f"[POST /delete] Error interno: {str(e)}")
+        raise HTTPException(500, detail=f"Internal server error: {str(e)}")
