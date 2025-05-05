@@ -2,14 +2,14 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>Detalles del Precio</title>
+    <title>Detalles del Tipo de Movimiento</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             background-color: #eef2f7;
             padding: 2em;
         }
-        .card-container {
+        .typemovement-container {
             background-color: #ffffff;
             max-width: 400px;
             margin: auto;
@@ -18,10 +18,10 @@
             box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
             text-align: center;
         }
-        .card-container h2 {
+        .typemovement-container h2 {
             color: #333;
         }
-        .card-detail {
+        .typemovement-detail {
             margin: 1em 0;
             font-size: 1.1em;
         }
@@ -31,16 +31,13 @@
     </style>
 </head>
 <body>
-    <div class="card-container">
-        <h2>Precio</h2>
-        <div class="card-detail">
+    <div class="typemovement-container">
+        <h2>Tipo de Movimiento</h2>
+        <div class="typemovement-detail">
             <span class="label">ID:</span> {{ id }}
         </div>
-        <div class="card-detail">
-            <span class="label">ID Tipo de Unidad de Transporte:</span> {{ unidadtransportype}}
-        </div>
-        <div class="card-detail">
-            <span class="label">Monto:</span> ${{ amount }}
+        <div class="typemovement-detail">
+            <span class="label">Tipo de Movimiento:</span> {{type}}
         </div>
     </div>
 </body>

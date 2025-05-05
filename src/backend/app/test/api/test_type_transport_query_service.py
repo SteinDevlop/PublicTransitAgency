@@ -1,30 +1,39 @@
 import pytest
-from fastapi.testclient import TestClient
-from backend.app.models.type_transport import TypeTransportOut
 from fastapi import FastAPI
+from fastapi.testclient import TestClient
+
 from backend.app.api.routes.type_transport_query_service import app as typetransport_router
-from backend.app.logic.universal_controller_sql import UniversalController
+from backend.app.logic.universal_controller_postgres import UniversalController
+from backend.app.core.conf import headers
+from backend.app.models.type_transport import TypeTransportOut
+
+
 def setup_function():
     UniversalController().clear_tables()
 
 def teardown_function():
     UniversalController().clear_tables()
-# Mock de la clase UniversalController
+
+# Mock para UniversalController
 class MockUniversalController:
     def __init__(self):
         # Datos simulados de tipos de tarjeta
-        self.typetransports = {
-            3: TypeTransportOut(id=3, type="bus"),  # Tipo de tarjeta con id=3
+        self.users = {
+            3: TypeTransportOut(
+                    id=3,
+                    type="bus"
+                ),
         }
 
     def read_all(self, model):
-        """Simula obtener todos los tipos de transporte"""
-        return list(self.typetransports.values())
+        """Simula obtener todos los usuarios"""
+        return list(self.users.values())
 
     def get_by_id(self, model, id_: int):
-        """Simula obtener un tipo de transporte por ID"""
-        return self.typetransports.get(id_)
+        """Simula obtener un usuario por ID"""
+        return self.users.get(id_)
 
+# Patching el controller en tests
 @pytest.fixture(autouse=True)
 def override_controller(monkeypatch):
     """Fixture para reemplazar el controlador real por el mock"""
@@ -32,15 +41,20 @@ def override_controller(monkeypatch):
     monkeypatch.setattr(controller, "read_all", MockUniversalController().read_all)
     monkeypatch.setattr(controller, "get_by_id", MockUniversalController().get_by_id)
 
-# Crear la aplicación de prueba
-app_for_test = FastAPI()
-app_for_test.include_router(typetransport_router)
+test_app = FastAPI()
+test_app.include_router(typetransport_router)
+client = TestClient(test_app)
 
-client = TestClient(app_for_test)
+# Test GET /consultar (vista HTML)
+#def test_consultar_page():
+"""Prueba que la ruta '/consultar' devuelve la plantilla 'ConsultarTarjeta.html' correctamente."""
+    #response = client.get("/user/consultar",headers=headers)
+    #assert response.status_code == 200
+    #assert "Consultar Saldo" in response.text  # Verifica si la plantilla está presente
 
 def test_read_all():
-    """Prueba que la ruta '/typetransport/' devuelve todos los tipos de transporte."""
-    response = client.get("/typetransport/typetransports/")
+    """Prueba que la ruta '/user/' devuelve todos los tipos de transporte."""
+    response = client.get("/typetransport/typetransports/", headers=headers)
     assert response.status_code == 200
     data = response.json()
     assert len(data) == 1
@@ -48,15 +62,16 @@ def test_read_all():
     assert data[0]["type"] == "bus"
 
 def test_get_by_id():
-    """Prueba que la ruta '/typetransport/{id}' devuelve el tipo de transporte correcto."""
-    response = client.get("/typetransport/3")
+    """Prueba que la ruta '/user/{id}' devuelve el usuario correcto."""
+    response = client.get("/typetransport/3", headers=headers)
     assert response.status_code == 200
     data = response.json()
     assert data["id"] == 3
     assert data["type"] == "bus"
 
 def test_get_by_id_not_found():
-    """Prueba que la ruta '/typetransport/{id}' devuelve un error 404 si no se encuentra el tipo de transporte."""
-    response = client.get("/typetransport/999")
+    """Prueba que la ruta '/user/{id}' devuelve un error 404 si no se encuentra el usuario."""
+    response = client.get("/typetransport/999", headers=headers)  # ID que no existe
     assert response.status_code == 404
-    assert response.json() == {"detail": "Not found"}
+    assert response.json() == "Tipo de Transporte no encontrado"
+

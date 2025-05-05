@@ -45,7 +45,7 @@ async def get_users(
     """
     logger.info(f"[GET /tarjetas] Usuario: {current_user['user_id']} - Consultando todas los usuarios.")
     usuarios = controller.read_all(UserOut)
-    logger.info(f"[GET /tarjetas] Número de tarjetas encontradas: {len(usuarios)}")
+    logger.info(f"[GET /tarjetas] Número de usuarios encontrados: {len(usuarios)}")
     return usuarios
 
 

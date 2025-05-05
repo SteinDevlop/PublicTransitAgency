@@ -3,7 +3,8 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 
 from backend.app.api.routes.user_query_service import app as user_router
-from backend.app.logic.universal_controller_sql import UniversalController
+from backend.app.logic.universal_controller_postgres import UniversalController
+from backend.app.core.conf import headers
 from backend.app.models.user import UserOut
 
 
@@ -51,10 +52,15 @@ test_app.include_router(user_router)
 client = TestClient(test_app)
 
 # Test GET /consultar (vista HTML)
+#def test_consultar_page():
+"""Prueba que la ruta '/consultar' devuelve la plantilla 'ConsultarTarjeta.html' correctamente."""
+    #response = client.get("/user/consultar",headers=headers)
+    #assert response.status_code == 200
+    #assert "Consultar Saldo" in response.text  # Verifica si la plantilla está presente
 
 def test_read_all():
     """Prueba que la ruta '/user/' devuelve todos los tipos de transporte."""
-    response = client.get("/user/users/")
+    response = client.get("/user/users/", headers=headers)
     assert response.status_code == 200
     data = response.json()
     assert len(data) == 1
@@ -69,7 +75,7 @@ def test_read_all():
 
 def test_get_by_id():
     """Prueba que la ruta '/user/{id}' devuelve el usuario correcto."""
-    response = client.get("/user/3")
+    response = client.get("/user/3", headers=headers)
     assert response.status_code == 200
     data = response.json()
     assert data["id"] == 3
@@ -83,7 +89,7 @@ def test_get_by_id():
 
 def test_get_by_id_not_found():
     """Prueba que la ruta '/user/{id}' devuelve un error 404 si no se encuentra el usuario."""
-    response = client.get("/user/999")
+    response = client.get("/user/999", headers=headers)  # ID que no existe
     assert response.status_code == 404
-    assert response.json() == {"detail": "Not found"}
+    assert response.json() == "Usuario no encontrado"
 

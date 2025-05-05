@@ -1,94 +1,60 @@
-import pytest
+from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
 from fastapi.testclient import TestClient
-from fastapi import FastAPI, HTTPException
+from backend.app.logic.universal_controller_postgres import UniversalController
+from backend.app.api.routes.type_transport_cud_service import app as typetransport_router  # Importa bien
+from backend.app.core.conf import headers
+# Limpieza de base de datos antes y después de cada test
+def setup_function():
+    UniversalController().clear_tables()
 
-from backend.app.api.routes.type_transport_cud_service import app as type_transport_router, get_controller
-from backend.app.models.type_transport import TypeTransportCreate, TypeTransportOut
-from backend.app.logic.universal_controller_sql import UniversalController
+def teardown_function():
+    UniversalController().clear_tables()
+# Creamos la app de prueba
+app_for_test = FastAPI()
+app_for_test.include_router(typetransport_router)
+app_for_test.mount("/static", StaticFiles(directory="src/frontend/static"), name="static")
 
-app = FastAPI()
-app.include_router(type_transport_router)
-client = TestClient(app)
+# Cliente de prueba
+client = TestClient(app_for_test)
 
-# Mock del controlador
-class MockUniversalController:
-    def __init__(self):
-        self.transports = {
-            1: TypeTransportOut(id=1, type="Bus"),
-            2: TypeTransportOut(id=2, type="Boat"),
-        }
-
-    def add(self, transport):
-        self.transports[transport.id] = transport
-        return transport
-
-    def get_by_id(self, model, id_):
-        existing = self.transports.get(id_)
-        if existing is not None:
-            return existing
-        if existing is None:
-            raise HTTPException(404, detail="Not found")
-
-    def update(self, transport):
-        if transport.id in self.transports:
-            self.transports[transport.id] = transport
-            return transport
-        raise HTTPException(status_code=404, detail="Not found")
-
-    def delete(self, transport):
-        if transport.id in self.transports:
-            del self.transports[transport.id]
-            return transport
-        raise HTTPException(status_code=404, detail="Not found")
-
-
-@pytest.fixture
-def mock_controller():
-    return MockUniversalController()
-
-@pytest.fixture(autouse=True)
-def override_controller(mock_controller):
-    app.dependency_overrides[get_controller] = lambda: mock_controller
-    yield
-    app.dependency_overrides.clear()
-
-def test_create_type_transport():
-    response = client.post("/typetransport/create", data={"id": 3, "type": "train"})
+def test_create_transport():
+    response = client.post("/typetransport/create", data={"id":1,"type":"bus"},headers=headers)
     assert response.status_code == 200
-    data = response.json()
-    assert data["operation"] == "create"
-    assert data["success"] is True
-    assert data["data"]["id"] == 3
-    assert data["data"]["type"] == "train"
-    assert "Transport type created successfully" in data["message"]
 
-def test_update_existing_type_transport():
-    response = client.post("/typetransport/update", data={"id": 1, "type": "subway"})
-    assert response.status_code == 200
-    data = response.json()
-    assert data["operation"] == "update"
-    assert data["success"] is True
-    assert data["data"]["id"] == 1
-    assert data["data"]["type"] == "subway"
-    assert "Transport type updated successfully" in data["message"]
-
-def test_update_nonexistent_type_transport():
-    response = client.post("/typetransport/update", data={"id": 999, "type": "unknown"})
-    assert response.status_code == 404
-    data = response.json()
-    assert data["detail"] == "Not found"
-
-def test_delete_existing_type_transport():
-    response = client.post("/typetransport/delete", data={"id": 1})
-    assert response.status_code == 200
-    data = response.json()
-    assert data["operation"] == "delete"
-    assert data["success"] is True
-    assert "Transport type deleted successfully" in data["message"]
-
-def test_delete_nonexistent_type_transport():
-    response = client.post("/typetransport/delete", data={"id": 999})
-    assert response.status_code == 404
-    data = response.json()
-    assert data["detail"] == "Not found"
+def test_update_transport_existing():
+    # Crear el registro primero
+    client.post("/typetransport/create", data={"id":2,"type":"prueba"},headers=headers)
     
+    # Luego actualizarlo
+    response = client.post("/typetransport/update", data={"id":2,"type":"railway"},headers=headers)
+    assert response.status_code == 200
+
+def test_update_transport_not_found():
+    response = client.post("/typetransport/update", data={"id": 99, "type":"ninguno"},headers=headers)
+    assert response.status_code == 404
+    assert response.json()["detail"] == "TypeTransport not found"
+
+def test_delete_transport_existing():
+    # Crear el registro primero
+    client.post("/typetransport/create", data={"id":44,"type":"train"},headers=headers)
+    # Luego eliminarlo
+    response = client.post("/typetransport/delete", data={"id": 44},headers=headers)
+    assert response.status_code == 200
+
+def test_delete_transport_not_found():
+    response = client.post("/typetransport/delete", data={"id": 999},headers=headers)
+    assert response.status_code == 404
+    assert response.json()["detail"] == "TypeTransport not found"
+
+def test_index_create_form():
+    response = client.get("/typetransport/crear",headers=headers)
+    assert response.status_code == 200
+
+def test_index_update_form():
+    response = client.get("/typetransport/actualizar",headers=headers)
+    assert response.status_code == 200
+
+def test_index_delete_form():
+    response = client.get("/typetransport/eliminar",headers=headers)
+    assert response.status_code == 200

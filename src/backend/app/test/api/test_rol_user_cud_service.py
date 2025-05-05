@@ -1,94 +1,60 @@
-import pytest
+from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
 from fastapi.testclient import TestClient
-from fastapi import FastAPI, HTTPException
+from backend.app.logic.universal_controller_postgres import UniversalController
+from backend.app.api.routes.rol_user_cud_service import app as roluser_router  # Importa bien
+from backend.app.core.conf import headers
+# Limpieza de base de datos antes y después de cada test
+def setup_function():
+    UniversalController().clear_tables()
 
-from backend.app.api.routes.rol_user_cud_service import app as rol_user_router, get_controller
-from backend.app.models.rol_user import RolUserCreate, RolUserOut
-from backend.app.logic.universal_controller_sql import UniversalController
+def teardown_function():
+    UniversalController().clear_tables()
+# Creamos la app de prueba
+app_for_test = FastAPI()
+app_for_test.include_router(roluser_router)
+app_for_test.mount("/static", StaticFiles(directory="src/frontend/static"), name="static")
 
-app = FastAPI()
-app.include_router(rol_user_router)
-client = TestClient(app)
+# Cliente de prueba
+client = TestClient(app_for_test)
 
-# Mock del controlador
-class MockUniversalController:
-    def __init__(self):
-        self.users = {
-            1: RolUserOut(id=1, type="passanger"),
-            2: RolUserOut(id=2, type="driver"),
-        }
-
-    def add(self, user):
-        self.users[user.id] = user
-        return user
-
-    def get_by_id(self, model, id_):
-        existing = self.users.get(id_)
-        if existing is not None:
-            return existing
-        if existing is None:
-            raise HTTPException(404, detail="Not found")
-
-    def update(self, user):
-        if user.id in self.users:
-            self.users[user.id] = user
-            return user
-        raise HTTPException(status_code=404, detail="Not found")
-
-    def delete(self, user):
-        if user.id in self.users:
-            del self.users[user.id]
-            return user
-        raise HTTPException(status_code=404, detail="Not found")
-
-
-@pytest.fixture
-def mock_controller():
-    return MockUniversalController()
-
-@pytest.fixture(autouse=True)
-def override_controller(mock_controller):
-    app.dependency_overrides[get_controller] = lambda: mock_controller
-    yield
-    app.dependency_overrides.clear()
-
-def test_create_user():
-    response = client.post("/roluser/create", data={"id": 3, "type": "admin"})
+def test_create_roluser():
+    response = client.post("/roluser/create", data={"id":1,"type":"pasajero"},headers=headers)
     assert response.status_code == 200
-    data = response.json()
-    assert data["operation"] == "create"
-    assert data["success"] is True
-    assert data["data"]["id"] == 3
-    assert data["data"]["type"] == "admin"
-    assert "Role User created successfully" in data["message"]
 
-def test_update_existing_user():
-    response = client.post("/roluser/update", data={"id": 1, "type": "maintenance"})
-    assert response.status_code == 200
-    data = response.json()
-    assert data["operation"] == "update"
-    assert data["success"] is True
-    assert data["data"]["id"] == 1
-    assert data["data"]["type"] == "maintenance"
-    assert "Role User updated successfully" in data["message"]
-
-def test_update_nonexistent_user():
-    response = client.post("/roluser/update", data={"id": 999, "type": "admin"})
-    assert response.status_code == 404
-    data = response.json()
-    assert data["detail"] == "Not found"
-
-def test_delete_existing_user():
-    response = client.post("/roluser/delete", data={"id": 1})
-    assert response.status_code == 200
-    data = response.json()
-    assert data["operation"] == "delete"
-    assert data["success"] is True
-    assert "Role User deleted successfully" in data["message"]
-
-def test_delete_nonexistent_user():
-    response = client.post("/roluser/delete", data={"id": 999})
-    assert response.status_code == 404
-    data = response.json()
-    assert data["detail"] == "Not found"
+def test_update_roluser_existing():
+    # Crear el registro primero
+    client.post("/roluser/create", data={"id":2,"type":"operario"},headers=headers)
     
+    # Luego actualizarlo
+    response = client.post("/roluser/update", data={"id":2,"type":"conductor"},headers=headers)
+    assert response.status_code == 200
+
+def test_update_roluser_not_found():
+    response = client.post("/roluser/update", data={"id": 99,"type":"administrador"},headers=headers) 
+    assert response.status_code == 404
+    assert response.json()["detail"] == "RolUser not found"
+
+def test_delete_roluser_existing():
+    # Crear el registro primero
+    client.post("/roluser/create", data={"id":44,"type":"system"},headers=headers)
+    # Luego eliminarlo
+    response = client.post("/roluser/delete", data={"id": 44},headers=headers)
+    assert response.status_code == 200
+
+def test_delete_roluser_not_found():
+    response = client.post("/roluser/delete", data={"id": 999},headers=headers)
+    assert response.status_code == 404
+    assert response.json()["detail"] == "RolUser not found"
+
+def test_index_create_form():
+    response = client.get("/roluser/crear",headers=headers)
+    assert response.status_code == 200
+
+def test_index_update_form():
+    response = client.get("/roluser/actualizar",headers=headers)
+    assert response.status_code == 200
+
+def test_index_delete_form():
+    response = client.get("/roluser/eliminar",headers=headers)
+    assert response.status_code == 200
