@@ -29,7 +29,7 @@ def test_rol_user_get_fields():
     """Verifica que get_fields devuelve la estructura esperada."""
     expected_fields = {
         "id": "INTEGER PRIMARY KEY",
-        "type": "varchar(100)"
+        "type": "varchar(20)"
     }
     assert RolUserCreate.get_fields() == expected_fields
 

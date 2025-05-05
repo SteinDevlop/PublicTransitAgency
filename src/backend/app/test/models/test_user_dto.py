@@ -36,14 +36,14 @@ def test_to_dict_method(sample_user_data):
 def test_get_fields_method():
     """Verifica que get_fields devuelve la estructura esperada de la base de datos."""
     expected_fields = {
-        "id": "SERIAL PRIMARY KEY",
-        "identification": "INTEGER",
-        "name": "VARCHAR(100)",
-        "lastname": "VARCHAR(100)",
-        "email": "VARCHAR(100)",
-        "password": "VARCHAR(100)",
-        "idtype_user": "INTEGER",
-        "idturn": "INTEGER"
+            "id": "INTEGER PRIMARY KEY",
+            "identification": "INTEGER",
+            "name": "VARCHAR(100)",
+            "lastname": "VARCHAR(100)",
+            "email": "VARCHAR(100)",
+            "password": "VARCHAR(100)",
+            "idtype_user": "INTEGER",
+            "idturn": "INTEGER"
     }
     assert UserCreate.get_fields() == expected_fields
 
