@@ -7,4 +7,5 @@ pytest
 pylint
 fastapi[standard]
 python-jose
+psycopg2
 
