@@ -45,11 +45,11 @@ def test_update_user_not_found():
 
 def test_delete_user_existing():
     # Crear el registro primero
-    client.post("/user/create", data={"id":44,"identification":11,"name":"aa","lastname":"bb",
+    client.post("/user/create", data={"id":17,"identification":11,"name":"aa","lastname":"bb",
                                                  "email":"prueba@gmail.com", "password":"1234@1234Aasss",
                                                     "idtype_user":1,"idturn":1},headers=headers)
     # Luego eliminarlo
-    response = client.post("/user/delete", data={"id": 44},headers=headers)
+    response = client.post("/user/delete", data={"id": 17},headers=headers)
     assert response.status_code == 200
 
 def test_delete_user_not_found():
