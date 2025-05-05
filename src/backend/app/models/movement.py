@@ -3,7 +3,7 @@ from pydantic import BaseModel
 class MovementCreate(BaseModel):
     __entity_name__ =  "movimiento"  # <- Aquí se define el nombre general de la entidad
     id: int
-    type: int
+    idtype: int
     amount: float
 
     def to_dict(self):
