@@ -15,7 +15,7 @@ def listar_turnos(
     current_user: dict = Security(get_current_user, scopes=["system", "administrador", "supervisor"])
 ):
     turnos = controller.read_all(Shift)
-    return templates.TemplateResponse("ListarTurnos.html", {"request": request, "turnos": turnos})
+    return templates.TemplateResponse("ListarTurno.html", {"request": request, "turnos": turnos})
 
 @app.get("/{id}", response_class=HTMLResponse)
 def detalle_turno(

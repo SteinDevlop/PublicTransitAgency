@@ -30,6 +30,6 @@ def test_detalle_turno_existente():
     assert "Diurno" in response.text
 
 def test_detalle_turno_no_existente():
-    response = client.get("/shifts/999", headers=headers)
+    response = client.get("/shifts/998", headers=headers)
     assert response.status_code == 404
     assert response.json()["detail"] == "Turno no encontrado"

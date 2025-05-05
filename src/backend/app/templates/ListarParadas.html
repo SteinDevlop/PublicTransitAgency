@@ -19,10 +19,10 @@
         <tbody>
             {% for parada in paradas %}
             <tr>
-                <td>{{ parada.ID }}</td>
-                <td>{{ parada.Nombre }}</td>
-                <td>{{ parada.Ubicacion }}</td>
-                <td><a href="/stops/{{ parada.ID }}">Detalles</a></td>
+                <td>{{ parada.id }}</td>
+                <td>{{ parada.nombre }}</td>
+                <td>{{ parada.ubicacion }}</td>
+                <td><a href="/stops/{{ parada.id }}">Detalles</a></td>
             </tr>
             {% else %}
             <tr><td colspan="4">No hay paradas registradas.</td></tr>

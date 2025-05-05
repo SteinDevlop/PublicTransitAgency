@@ -16,11 +16,11 @@
             </tr>
         </thead>
         <tbody>
-            {% for shift in shifts %}
+            {% for turno in turnos %}
             <tr>
-                <td>{{ shift.ID }}</td>
-                <td>{{ shift.TipoTurno }}</td>
-                <td><a href="/shifts/{{ shift.ID }}">Detalles</a></td>
+                <td>{{ turno.id }}</td>
+                <td>{{ turno.tipoturno }}</td>
+                <td><a href="/shifts/{{ turno.id }}">Detalles</a></td>
             </tr>
             {% else %}
             <tr><td colspan="3">No hay turnos registrados.</td></tr>

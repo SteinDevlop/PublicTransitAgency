@@ -7,10 +7,10 @@
 </head>
 <body>
     <h1>Detalle del Turno</h1>
-    {% if shift %}
+    {% if turno %}
     <div>
-        <p><strong>ID del Turno:</strong> {{ shift.ID }}</p>
-        <p><strong>Tipo de Turno:</strong> {{ shift.TipoTurno }}</p>
+        <p><strong>ID del Turno:</strong> {{ turno.id }}</p>
+        <p><strong>Tipo de Turno:</strong> {{ turno.tipoturno }}</p>
     </div>
     {% else %}
     <p>No se encontró el turno.</p>
