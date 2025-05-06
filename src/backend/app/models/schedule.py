@@ -11,6 +11,10 @@ class Schedule(BaseModel):
         return self.dict()
 
     @classmethod
+    def from_dict(cls, data: dict):
+        return cls(**data)
+
+    @classmethod
     def get_fields(cls):
         return {
             "id": "INTEGER PRIMARY KEY",

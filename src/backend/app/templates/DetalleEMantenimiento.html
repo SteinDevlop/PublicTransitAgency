@@ -47,7 +47,8 @@
         {% if data %}
         <div class="detail">
             <p><strong>ID:</strong> {{ data.id }}</p>
-            <p><strong>Tipo de Estado:</strong> {{ data.tipoestado }}</p>
+            <p><strong>Tipo:</strong> {{ data.type }}</p> <!-- Nuevo -->
+            <p><strong>Estado:</strong> {{ data.status }}</p> <!-- Nuevo -->
         </div>
         {% else %}
         <p>No se encontraron detalles para este estado de mantenimiento.</p>

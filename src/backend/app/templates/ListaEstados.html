@@ -1,26 +1,19 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <title>Listado de Estados</title>
+    <tr>
+        <th>ID</th>
+        <th>Tipo</th> <!-- Nuevo -->
+        <th>Estado</th> <!-- Nuevo -->
+    </tr>
 </head>
 <body>
-    <h1>Listado de Estados de Mantenimiento</h1>
-    <table>
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Tipo Estado</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for estado in estados %}
-            <tr>
-                <td>{{ estado.id }}</td>
-                <td>{{ estado.tipoestado }}</td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+    {% for estado in estados %}
+    <tr>
+        <td>{{ estado.id }}</td>
+        <td>{{ estado.type }}</td> <!-- Nuevo -->
+        <td>{{ estado.status }}</td> <!-- Nuevo -->
+    </tr>
+    {% endfor %}
 </body>
 </html>
