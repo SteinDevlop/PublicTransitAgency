@@ -34,7 +34,9 @@ from backend.app.api.routes import (
     transport_unit_cud_service,
     transport_unit_query_service,
     schedule_cud_service,
-    schedule_query_service
+    schedule_query_service,
+    routes_query_service,
+    user_query_service
 )
 
 # Initialize the FastAPI app
@@ -87,3 +89,5 @@ api_router.include_router(transport_unit_cud_service.app)
 api_router.include_router(transport_unit_query_service.app)
 api_router.include_router(schedule_cud_service.app)
 api_router.include_router(schedule_query_service.app)
+api_router.include_router(routes_query_service.app)
+api_router.include_router(user_query_service.app)

@@ -6,7 +6,7 @@ from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse
 
 from backend.app.models.user import UserCreate, UserOut
-from backend.app.logic.universal_controller_postgres import UniversalController
+from backend.app.logic.universal_controller_sql import UniversalController
 from backend.app.core.auth import get_current_user
 
 # Configuración de logging
@@ -20,31 +20,22 @@ templates = Jinja2Templates(directory="src/backend/app/templates")
 
 @app.get("/crear", response_class=HTMLResponse)
 def index_create(
-    request: Request,
-    current_user: dict = Security(
-        get_current_user,
-        scopes=["system", "administrador", "pasajero"]
-    )
+    request: Request
 ):
-    logger.info(f"[GET /crear] Usuario: {current_user['user_id']} - Mostrando formulario de creación de usuario")
     return templates.TemplateResponse("CrearUsuario.html", {"request": request})
 
 
 @app.get("/actualizar", response_class=HTMLResponse)
 def index_update(
-    request: Request,
-    current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
+    request: Request
 ):
-    logger.info(f"[GET /actualizar] Usuario: {current_user['user_id']} - Mostrando formulario de actualización de usuario")
     return templates.TemplateResponse("ActualizarUsuario.html", {"request": request})
 
 
 @app.get("/eliminar", response_class=HTMLResponse)
 def index_delete(
-    request: Request,
-    current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
+    request: Request
 ):
-    logger.info(f"[GET /eliminar] Usuario: {current_user['user_id']} - Mostrando formulario de eliminación de usuario")
     return templates.TemplateResponse("EliminarUsuario.html", {"request": request})
 
 
@@ -57,16 +48,13 @@ async def create_user(
     email: str = Form(...),
     password: str = Form(...),
     idtype_user: int = Form(...),
-    idturn: int = Form(...),
-    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "pasajero"])
+    idturn: int = Form(...)
 ):
-    logger.info(f"[POST /create] Usuario: {current_user['user_id']} - Intentando crear usuario con identificación {identification}")
 
     try:
         # Verificar si el usuario ya existe
         existing_user = controller.get_by_column(UserOut, "identification", identification)  
         if existing_user:
-            logger.warning(f"[POST /create] Error de validación: El usuario ya existe con identificación {identification}")
             raise HTTPException(400, detail="El usuario ya existe con la misma identificación.")
 
         # Crear usuario
@@ -102,10 +90,8 @@ async def update_user(
     email: str = Form(...),
     password: str = Form(...),
     idtype_user: int = Form(...),
-    idturn: int = Form(...),
-    current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
+    idturn: int = Form(...)
 ):
-    logger.info(f"[POST /update] Usuario: {current_user['user_id']} - Actualizando usuario id={id}")
     try:
         existing = controller.get_by_id(UserOut, id)
         if existing is None:
@@ -132,10 +118,8 @@ async def update_user(
 
 @app.post("/delete")
 async def delete_user(
-    id: int = Form(...),
-    current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
+    id: int = Form(...)
 ):
-    logger.info(f"[POST /delete] Usuario: {current_user['user_id']} - Eliminando usuario id={id}")
     try:
         existing = controller.get_by_id(UserOut, id)
         if not existing:

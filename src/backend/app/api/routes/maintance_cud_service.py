@@ -4,7 +4,7 @@ from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from datetime import datetime
 from backend.app.models.maintainance import MaintenanceCreate, MaintenanceOut
-from backend.app.logic.universal_controller_postgres import UniversalController
+from backend.app.logic.universal_controller_sql import UniversalController
 from backend.app.core.auth import get_current_user
 
 # Initialize the controller and templates
@@ -24,37 +24,33 @@ async def maintenance_token_info(request: Request, token_info= get_current_user)
 
 @app.get("/crear", response_class=HTMLResponse)
 def crear_mantenimiento(
-    request: Request,
-    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "supervisor", "tecnico", "operador"])
+    request: Request
 ):
     """
     Route to display the maintenance creation form.
     """
-    logger.info(f"[GET /crear] Usuario {current_user['user_id']} accede al formulario para crear mantenimiento.")
     return templates.TemplateResponse(request,"CrearMantenimiento.html", {"request": request})
 
 
 @app.get("/eliminar", response_class=HTMLResponse)
 def eliminar_mantenimiento(
-    request: Request,
-    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "tecnico"])
+    request: Request
+    
 ):
     """
     Route to display the maintenance deletion form.
     """
-    logger.info(f"[GET /eliminar] Usuario {current_user['user_id']} accede al formulario para eliminar mantenimiento.")
     return templates.TemplateResponse(request,"EliminarMantenimiento.html", {"request": request})
 
 
 @app.get("/actualizar", response_class=HTMLResponse)
 def actualizar_mantenimiento(
-    request: Request,
-    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "tecnico"])
+    request: Request
+    
 ):
     """
     Route to display the maintenance update form.
     """
-    logger.info(f"[GET /actualizar] Usuario {current_user['user_id']} accede al formulario para actualizar mantenimiento.")
     return templates.TemplateResponse(request,"ActualizarMantenimiento.html", {"request": request})
 
 
@@ -64,14 +60,13 @@ async def add(
     id_status: int = Form(...),
     type: str = Form(...),
     fecha: datetime = Form(...),
-    id_unit: int = Form(...),
-    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "tecnico"])
+    id_unit: int = Form(...)
+    
 ):
     """
     Route to add a new maintenance record.
     Receives maintenance information and creates a MaintenanceCreate object.
     """
-    logger.info(f"[POST /create] Usuario {current_user['user_id']} intenta crear mantenimiento: {id}, {id_status}, {type}, {fecha}, {id_unit}.")
     
     maintenance_temp = MaintenanceCreate(
         id=id,
@@ -96,14 +91,13 @@ async def update(
     id_status: int = Form(...),
     type: str = Form(...),
     fecha: datetime = Form(...),
-    id_unit: int = Form(...),
-    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "tecnico"])
+    id_unit: int = Form(...)
+    
 ):
     """
     Route to update an existing maintenance record.
     Checks if the maintenance record exists and updates it with new data.
     """
-    logger.info(f"[POST /update] Usuario {current_user['user_id']} intenta actualizar mantenimiento con ID {id}.")
     
     existing_maintenance = controller.get_by_id(MaintenanceOut, id)
     
@@ -130,13 +124,12 @@ async def update(
 
 @app.post("/delete")
 async def delete_maintenance(
-    id: int = Form(...),
-    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "tecnico"])
+    id: int = Form(...)
+    
 ):
     """
     Route to delete an existing maintenance record by its ID.
     """
-    logger.info(f"[POST /delete] Usuario {current_user['user_id']} intenta eliminar mantenimiento con ID {id}.")
     
     try:
         existing_maintenance = controller.get_by_id(MaintenanceOut, id)

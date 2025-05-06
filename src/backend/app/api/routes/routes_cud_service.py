@@ -11,8 +11,8 @@ templates = Jinja2Templates(directory="src/backend/app/templates")
 
 @app.get("/create", response_class=HTMLResponse)
 def crear_ruta_form(
-    request: Request,
-    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "supervisor"])
+    request: Request
+    
 ):
     """
     Render the form for creating a new route. Requires authentication.
@@ -24,7 +24,7 @@ def crear_ruta(
     ID: int = Form(...),
     IDHorario: int = Form(...),
     Nombre: str = Form(...),
-    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "supervisor"])
+    
 ):
     """
     Create a new route. Requires authentication.
@@ -43,8 +43,8 @@ def crear_ruta(
 
 @app.get("/update", response_class=HTMLResponse)
 def actualizar_ruta_form(
-    request: Request,
-    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "supervisor"])
+    request: Request
+    
 ):
     """
     Render the form for updating a route. Requires authentication.
@@ -56,7 +56,7 @@ def actualizar_ruta(
     ID: int = Form(...),
     IDHorario: int = Form(...),
     Nombre: str = Form(...),
-    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "supervisor"])
+    
 ):
     """
     Update an existing route. Requires authentication.
@@ -75,8 +75,8 @@ def actualizar_ruta(
 
 @app.get("/delete", response_class=HTMLResponse)
 def eliminar_ruta_form(
-    request: Request,
-    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "supervisor"])
+    request: Request
+    
 ):
     """
     Render the form for deleting a route. Requires authentication.
@@ -86,7 +86,7 @@ def eliminar_ruta_form(
 @app.post("/delete")
 def eliminar_ruta(
     ID: int = Form(...),
-    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "supervisor"])
+    
 ):
     """
     Delete a route by ID. Requires authentication.

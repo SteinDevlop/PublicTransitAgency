@@ -25,26 +25,21 @@ templates = Jinja2Templates(directory="src/backend/app/templates")
 
 @app.get("/consultar", response_class=HTMLResponse)
 def consultar(
-    request: Request,
-    current_user: dict = Security(get_current_user, scopes=[
-        "system", "administrador"
-    ])
+    request: Request
 ):
     """
     Render the 'ConsultarMovimiento.html' template for the movement consultation page.
     """
-    logger.info(f"[GET /consultar] Usuario: {current_user['user_id']} - Mostrando página de consulta de movimiento")
     return templates.TemplateResponse("ConsultarMovimiento.html", {"request": request})
 
 
 
 # Route to get all the movement from the database
 @app.get("/movements")
-async def get_all(current_user: dict = Security(get_current_user, scopes=["system", "administrador"])):
+async def get_all():
     """
     Returns all the movement records from the database.
     """
-    logger.info(f"[GET /movements] Usuario: {current_user['user_id']} - Consultando todas los Movimientos.")
     movimientos = controller.read_all(MovementOut)
     logger.info(f"[GET /movements] Número de Movimientos encontradas: {len(movimientos)}")
     return movimientos

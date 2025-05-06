@@ -11,8 +11,7 @@ templates = Jinja2Templates(directory="src/backend/app/templates")
 
 @app.get("/", response_class=HTMLResponse)
 def listar_horarios(
-    request: Request,
-    current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
+    request: Request
 ):
     horarios = controller.read_all(Schedule)
     return templates.TemplateResponse("ListarHorarios.html", {"request": request, "horarios": horarios})
@@ -20,8 +19,7 @@ def listar_horarios(
 @app.get("/{id}", response_class=HTMLResponse)
 def obtener_detalle_horario(
     id: int,
-    request: Request,
-    current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
+    request: Request
 ):
     horario = controller.get_by_id(Schedule, id)
     if not horario:

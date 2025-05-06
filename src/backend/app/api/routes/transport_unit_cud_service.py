@@ -11,8 +11,8 @@ templates = Jinja2Templates(directory="src/backend/app/templates")
 
 @app.get("/create", response_class=HTMLResponse)
 def crear_unidad_form(
-    request: Request,
-    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "supervisor"])
+    request: Request
+    
 ):
     """
     Render the form for creating a new transport unit. Requires authentication.
@@ -26,7 +26,7 @@ def crear_unidad(
     status: str = Form(...),
     ubication: str = Form(...),
     capacity: int = Form(...),
-    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "supervisor"])
+    
 ):
     """
     Create a new transport unit. Requires authentication.
@@ -45,8 +45,8 @@ def crear_unidad(
 
 @app.get("/update", response_class=HTMLResponse)
 def actualizar_unidad_form(
-    request: Request,
-    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "supervisor"])
+    request: Request
+    
 ):
     """
     Render the form for updating a transport unit. Requires authentication.
@@ -60,7 +60,7 @@ def actualizar_unidad(
     status: str = Form(...),
     ubication: str = Form(...),
     capacity: int = Form(...),
-    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "supervisor"])
+    
 ):
     """
     Update an existing transport unit. Requires authentication.
@@ -79,8 +79,8 @@ def actualizar_unidad(
 
 @app.get("/delete", response_class=HTMLResponse)
 def eliminar_unidad_form(
-    request: Request,
-    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "supervisor"])
+    request: Request
+    
 ):
     """
     Render the form for deleting a transport unit. Requires authentication.
@@ -90,7 +90,7 @@ def eliminar_unidad_form(
 @app.post("/delete")
 def eliminar_unidad(
     id: int = Form(...),
-    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "supervisor"])
+    
 ):
     """
     Delete a transport unit by ID. Requires authentication.

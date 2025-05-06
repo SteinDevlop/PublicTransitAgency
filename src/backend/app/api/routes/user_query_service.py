@@ -6,7 +6,7 @@ from fastapi.templating import Jinja2Templates
 
 from backend.app.core.auth import get_current_user
 from backend.app.models.user import UserOut
-from backend.app.logic.universal_controller_postgres import UniversalController
+from backend.app.logic.universal_controller_sql import UniversalController
 
 # Configuración del logger
 logger = logging.getLogger(__name__)
@@ -24,28 +24,21 @@ templates = Jinja2Templates(directory="src/backend/app/templates")
 
 @app.get("/consultar", response_class=HTMLResponse)
 def consultar(
-    request: Request,
-    current_user: dict = Security(get_current_user, scopes=[
-        "system", "administrador", "pasajero", "supervisor", "mantenimiento","conductor"
-    ])
+    request: Request
 ):
     """
     Render the 'ConsultarUsuario.html' template for the user consultation page.
     """
-    logger.info(f"[GET /consultar] Usuario: {current_user['user_id']} - Mostrando página de consulta de usuario")
     return templates.TemplateResponse("ConsultarUsuario.html", {"request": request})
 
 
 @app.get("/users")
 async def get_users(
-    current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
 ):
     """
     Retrieve and return all user records from the database.
     """
-    logger.info(f"[GET /tarjetas] Usuario: {current_user['user_id']} - Consultando todas los usuarios.")
     usuarios = controller.read_all(UserOut)
-    logger.info(f"[GET /tarjetas] Número de usuarios encontrados: {len(usuarios)}")
     return usuarios
 
 

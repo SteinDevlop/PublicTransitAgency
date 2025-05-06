@@ -1,6 +1,6 @@
 import logging
 from fastapi import APIRouter, HTTPException, Security
-from backend.app.logic.universal_controller_postgres import UniversalController
+from backend.app.logic.universal_controller_sql import UniversalController
 from backend.app.core.auth import get_current_user
 from backend.app.models.maintainance import MaintenanceOut
 
@@ -17,7 +17,7 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(
 
 @app.get("/maintainancements", response_model=list[dict])
 def read_all(
-    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "tecnico"])
+    
 ):
     """
     Returns all maintenance records.
@@ -28,7 +28,6 @@ def read_all(
     Returns:
     - List of maintenance records.
     """
-    logger.info(f"[GET /maintainancements] Usuario {current_user['user_id']} accede a todos los registros de mantenimiento.")
     
     try:
         records = controller_maintenance.read_all(MaintenanceOut)
@@ -41,8 +40,8 @@ def read_all(
 
 @app.get("/{id}")
 def get_by_id(
-    id: int,
-    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "tecnico"])
+    id: int
+    
 ):
     """
     Returns a maintenance record by its ID.
@@ -57,9 +56,7 @@ def get_by_id(
 
     Raises:
     - HTTPException: If the maintenance record is not found.
-    """
-    logger.info(f"[GET /{id}] Usuario {current_user['user_id']} busca el mantenimiento con ID {id}.")
-    
+    """    
     result = controller_maintenance.get_by_id(MaintenanceOut,id)
     if not result:
         logger.warning(f"[GET /{id}] Mantenimiento con ID {id} no encontrado.")
@@ -72,7 +69,7 @@ def get_by_id(
 @app.get("/unit/{unit_id}")
 def get_by_unit(
     id_unit: int,
-    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "tecnico"])
+    
 ):
     """
     Returns all maintenance records associated with a specific unit.
@@ -84,7 +81,6 @@ def get_by_unit(
     Returns:
     - List of maintenance records associated with the unit.
     """
-    logger.info(f"[GET /unit/{id_unit}] Usuario {current_user['user_id']} busca los mantenimientos asociados a la unidad {id_unit}.")
     
     try:
         records = controller_maintenance.get_by_unit(id_unit)

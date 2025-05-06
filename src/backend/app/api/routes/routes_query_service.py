@@ -9,10 +9,10 @@ app = APIRouter(prefix="/routes", tags=["routes"])
 controller = UniversalController()
 templates = Jinja2Templates(directory="src/backend/app/templates")
 
-@app.get("/", response_class=HTMLResponse)
+@app.get("/list", response_class=HTMLResponse)
 def listar_rutas(
-    request: Request,
-    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "supervisor"])
+    request: Request
+    
 ):
     """
     List all routes. Requires authentication.
@@ -23,8 +23,8 @@ def listar_rutas(
 @app.get("/{ID}", response_class=HTMLResponse)
 def detalle_ruta(
     ID: int,
-    request: Request,
-    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "supervisor"])
+    request: Request
+    
 ):
     """
     Get details of a specific route by ID. Requires authentication.

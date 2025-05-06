@@ -8,20 +8,20 @@ class Settings:
     ALLOWED_ORIGINS: list = os.getenv("ALLOWED_ORIGINS", "*").split(",")
     SECRET_KEY: str = os.getenv("SECRET_KEY")
     ALGORITHM: str = os.getenv("ALGORITHM")
-    POSTGRES_HOST: str = os.getenv("POSTGRES_HOST")
-    POSTGRES_PORT: str = os.getenv("POSTGRES_PORT")
-    POSTGRES_DB: str = os.getenv("POSTGRES_DB")
-    POSTGRES_PASSWORD: str = os.getenv("POSTGRES_PASSWORD")
-    POSTGRES_USER: str = os.getenv("POSTGRES_USER")
+    HOST: str = os.getenv("HOST")
+    PORT: str = os.getenv("PORT")
+    DB: str = os.getenv("DB")
+    PASSWORD: str = os.getenv("PASSWORD")
+    USER: str = os.getenv("USER")
 
     @property
     def db_config(self) -> dict:
         return {
-            "host": self.POSTGRES_HOST,
-            "port": self.POSTGRES_PORT,
-            "dbname": self.POSTGRES_DB,
-            "user": self.POSTGRES_USER,
-            "password": self.POSTGRES_PASSWORD,
+            "host": self.HOST,
+            "port": self.PORT,
+            "dbname": self.DB,
+            "user": self.USER,
+            "password": self.PASSWORD,
         }
 
 settings = Settings()

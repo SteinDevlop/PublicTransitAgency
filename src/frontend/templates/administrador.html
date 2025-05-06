@@ -11,10 +11,9 @@
     <aside class="sidebar">
       <h2>Administrador</h2>
 
-      <button class="menu-btn">Actualizar Flota</button>
-      <button class="menu-btn">Agendar Mantenimiento</button>
-      <button class="menu-btn">Asignar Ruta Vehículo</button>
-      <button class="menu-btn">Reporte de Operaciones</button>
+      <button class="menu-btn" onclick="location.href='/transports/create'">Actualizar Flota</button>
+      <button class="menu-btn" onclick="location.href='/maintainance/crear'" >Agendar Mantenimiento</button>
+      <button class="menu-btn" onclick="location.href='/routes/create'">Asignar Ruta Vehículo</button>
 
       <div class="sublist-title">Gestión CRUD</div>
 
@@ -22,10 +21,10 @@
       <div class="crud-section">
         <button class="crud-toggle">▶ Rutas</button>
         <div class="crud-options">
-          <button class="crud-btn">➕ Añadir Ruta</button>
-          <button class="crud-btn">📄 Leer Rutas</button>
-          <button class="crud-btn">🖊️ Actualizar Ruta</button>
-          <button class="crud-btn">🗑️ Eliminar Ruta</button>
+          <button class="crud-btn"onclick="location.href='/routes/create'">➕ Añadir Ruta</button>
+          <button class="crud-btn"onclick="location.href='/routes/list'">📄 Leer Rutas</button>
+          <button class="crud-btn"onclick="location.href='/routes/update'">🖊️ Actualizar Ruta</button>
+          <button class="crud-btn"onclick="location.href='/routes/delete'">🗑️ Eliminar Ruta</button>
         </div>
       </div>
 
@@ -33,10 +32,10 @@
       <div class="crud-section">
         <button class="crud-toggle">▶ Usuarios</button>
         <div class="crud-options">
-          <button class="crud-btn">➕ Añadir Usuario</button>
-          <button class="crud-btn">📄 Leer Usuarios</button>
-          <button class="crud-btn">🖊️ Actualizar Usuario</button>
-          <button class="crud-btn">🗑️ Eliminar Usuario</button>
+          <button class="crud-btn" onclick="location.href='/user/crear'">➕ Añadir Usuario</button>
+          <button class="crud-btn" onclick="location.href='/user/users'">📄 Leer Usuarios</button>
+          <button class="crud-btn" onclick="location.href='/user/actualizar'">🖊️ Actualizar Usuario</button>
+          <button class="crud-btn" onclick="location.href='/user/eliminar'">🗑️ Eliminar Usuario</button>
         </div>
       </div>
 
@@ -55,10 +54,10 @@
       <div class="crud-section">
         <button class="crud-toggle">▶ Mantenimiento</button>
         <div class="crud-options">
-          <button class="crud-btn">➕ Añadir Mantenimiento</button>
-          <button class="crud-btn">📄 Leer Mantenimientos</button>
-          <button class="crud-btn">🖊️ Actualizar Mantenimiento</button>
-          <button class="crud-btn">🗑️ Eliminar Mantenimiento</button>
+          <button class="crud-btn" onclick="location.href='/maintainance/crear'">➕ Añadir Mantenimiento</button>
+          <button class="crud-btn" onclick="location.href='/maintainance/maintainancements'">📄 Leer Mantenimientos</button>
+          <button class="crud-btn" onclick="location.href='/maintainance/actualizar'">🖊️ Actualizar Mantenimiento</button>
+          <button class="crud-btn" onclick="location.href='/maintainance/eliminar'">🗑️ Eliminar Mantenimiento</button>
         </div>
       </div>
 
