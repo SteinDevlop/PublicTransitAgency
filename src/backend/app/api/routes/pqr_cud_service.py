@@ -56,29 +56,27 @@ async def create_pqr(
     identificationuser: int  = Form(...),
     current_user: dict = Security(get_current_user, scopes=["system", "administrador", "pasajero"])
 ):
-    logger.info(f"[POST /create] Usuario: {current_user['user_id']} - Intentando crear PQR con identificación {identification}")
+    logger.info(f"[POST /create] Usuario: {current_user['user_id']} - Intentando crear PQR con identificación {id}")
 
     try:
         # Verificar si el PQR ya existe
-        existing_user = controller.get_by_column(UserOut, "identification", identification)  
+        existing_user = controller.get_by_column(PQROut, "id", id)  
         if existing_user:
-            logger.warning(f"[POST /create] Error de validación: El PQR ya existe con identificación {identification}")
+            logger.warning(f"[POST /create] Error de validación: El PQR ya existe con id {id}")
             raise HTTPException(400, detail="El PQR ya existe con la misma identificación.")
 
         # Crear PQR
-        new_user = UserCreate(id=id, identification=identification, name=name, lastname=lastname,
-                              email=email, password=password, idtype_user=idtype_user, idturn=idturn)
-        logger.info(f"Intentando insertar PQR con datos: {new_user.model_dump()}")
-        controller.add(new_user)
-        logger.info(f"Usuario insertado con ID: {new_user.id}")  # Verifica si el ID se asigna
-        logger.info(f"[POST /create] Usuario creado exitosamente con identificación {identification}")
+        new_pqr = PQRCreate(id=id, type=type, description=description, fecha=fecha,identificationuser=identificationuser)
+        logger.info(f"Intentando insertar PQR con datos: {new_pqr.model_dump()}")
+        controller.add(new_pqr)
+        logger.info(f"PQR insertado con ID: {new_pqr.id}")  # Verifica si el ID se asigna
+        logger.info(f"[POST /create] Usuario creado exitosamente con id {id}")
         return {
             "operation": "create",
             "success": True,
-            "data": UserOut(id=new_user.id, identification=new_user.identification, name=new_user.name,
-                            lastname=new_user.lastname,email=new_user.email,password=new_user.password,
-                            idtype_user=new_user.idtype_user,idturn=new_user.idturn).model_dump(),
-            "message": "User created successfully."
+            "data": PQROut(id=new_pqr.id, type=new_pqr.type, description=new_pqr.description,
+                            fecha=new_pqr.fecha,identificationuser=new_pqr.identificationuser).model_dump(),
+            "message": "PQR created successfully."
         }
         
     except ValueError as e:
@@ -90,35 +88,30 @@ async def create_pqr(
 
 
 @app.post("/update")
-async def update_user(
+async def update_pqr(
     id: int = Form(...),
-    identification: int = Form(...),
-    name: str = Form(...),
-    lastname: str = Form(...),
-    email: str = Form(...),
-    password: str = Form(...),
-    idtype_user: int = Form(...),
-    idturn: int = Form(...),
+    type: str  = Form(...),
+    description: str  = Form(...),
+    fecha: datetime.date = Form(...),
+    identificationuser: int  = Form(...),
     current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
 ):
     logger.info(f"[POST /update] Usuario: {current_user['user_id']} - Actualizando PQR id={id}")
     try:
-        existing = controller.get_by_id(UserOut, id)
+        existing = controller.get_by_id(PQROut, id)
         if existing is None:
-            logger.warning(f"[POST /update] Usuario no encontrada: id={id}")
-            raise HTTPException(404, detail="User not found")
+            logger.warning(f"[POST /update] PQR no encontrada: id={id}")
+            raise HTTPException(404, detail="PQR not found")
 
-        updated_user = UserOut(id=id, identification=identification, name=name, lastname=lastname,
-                       email=email, password=password, idtype_user=idtype_user, idturn=idturn)
-        controller.update(updated_user)
-        logger.info(f"[POST /update] Usuario actualizada exitosamente: {updated_user}")
+        updated_pqr = PQROut(id=id, type=type,description=description,fecha=fecha,identificationuser=identificationuser)
+        controller.update(updated_pqr)
+        logger.info(f"[POST /update] PQR actualizada exitosamente: {updated_pqr}")
         return {
             "operation": "update",
             "success": True,
-            "data": UserOut(id=id, identification=updated_user.identification, name=updated_user.name,
-                            lastname=updated_user.lastname,email=updated_user.email,password=updated_user.password,
-                            idtype_user=updated_user.idtype_user,idturn=updated_user.idturn).model_dump(),
-            "message": f"User {id} updated successfully."
+            "data": PQROut(id=updated_pqr.id, type=updated_pqr.type, description=updated_pqr.description,
+                            fecha=updated_pqr.fecha,identificationuser=updated_pqr.identificationuser).model_dump(),
+            "message": f"PQR {id} updated successfully."
         }
     except ValueError as e:
         logger.warning(f"[POST /update] Error de validación: {str(e)}")
@@ -133,18 +126,18 @@ async def delete_user(
 ):
     logger.info(f"[POST /delete] Usuario: {current_user['user_id']} - Eliminando PQR id={id}")
     try:
-        existing = controller.get_by_id(UserOut, id)
+        existing = controller.get_by_id(PQROut, id)
         if not existing:
-            logger.warning(f"[POST /delete] Usuario no encontrado en la base de datos: id={id}")
-            raise HTTPException(404, detail="User not found")
+            logger.warning(f"[POST /delete] PQR no encontrado en la base de datos: id={id}")
+            raise HTTPException(404, detail="PQR not found")
 
         logger.info(f"[POST /delete] Eliminando PQR con id={id}")
         controller.delete(existing) 
-        logger.info(f"[POST /delete] Usuario eliminada exitosamente: id={id}")
+        logger.info(f"[POST /delete] PQR eliminada exitosamente: id={id}")
         return {
             "operation": "delete",
             "success": True,
-            "message": f"User {id} deleted successfully."
+            "message": f"PQR {id} deleted successfully."
         }
     except HTTPException as e:
         raise e
