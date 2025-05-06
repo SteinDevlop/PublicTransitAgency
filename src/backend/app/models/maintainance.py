@@ -6,10 +6,10 @@ class MaintenanceCreate(BaseModel):
     __entity_name__ = "mantenimiento"
     
     id: Optional[int] = None
-    idestado: Optional[int] = None
-    tipo: Optional[str] = None
+    id_status: Optional[int] = None
+    type: Optional[str] = None
     fecha: Optional[datetime] = None
-    idunidadtransporte: Optional[int] = None
+    id_unit: Optional[int] = None
     
     def to_dict(self):
         """Convierte el objeto a un diccionario"""
@@ -20,10 +20,10 @@ class MaintenanceCreate(BaseModel):
         """Devuelve los campos de la tabla como un diccionario con los tipos de datos"""
         return {
             "id": "INTEGER PRIMARY KEY",       # ID de la entidad, clave primaria
-            "idestado":"INTEGER",                # ID del estado (entero)
-            "tipo": "varchar(100)",                    # Tipo de mantenimiento (cadena de texto)
-            "fecha": "DATE",                    # Fecha del mantenimiento (tipo DATE)
-            "idunidadtransporte": "INTEGER",              # ID de la unidad asociada (entero)
+            "id_status":"INTEGER",                # ID del estado (entero)
+            "type": "varchar(100)",                    # Tipo de mantenimiento (cadena de texto)
+            "fecha": "DATE",                    # Fecha del mantenimiento (type DATE)
+            "id_unit": "INTEGER",              # ID de la unidad asociada (entero)
         }
 class MaintenanceOut(MaintenanceCreate):
     __entity_name__ = "mantenimiento"

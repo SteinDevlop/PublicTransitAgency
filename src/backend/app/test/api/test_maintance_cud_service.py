@@ -2,9 +2,12 @@ import pytest
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.testclient import TestClient
-from backend.app.api.routes.maintance_cud_service import app as maintainance_router  # importa tu router correctamente
+from backend.app.api.routes.maintance_cud_service import app as maintance_cud_service
 from backend.app.logic.universal_controller_sql import UniversalController
 from backend.app.core.conf import headers
+
+test_controller = UniversalController()
+maintance_cud_service.controller = test_controller
 def setup_function():
     UniversalController().clear_tables()
 
@@ -12,7 +15,7 @@ def teardown_function():
     UniversalController().clear_tables()
 # Usamos el app del router
 app_for_test = FastAPI()
-app_for_test.include_router(maintainance_router)  # <<--- importante incluir el router
+app_for_test.include_router(maintance_cud_service)
 app_for_test.mount("/static", StaticFiles(directory="src/frontend/static"), name="static")
 client = TestClient(app_for_test)
 
@@ -39,7 +42,7 @@ class MockController:
 
     def get_by_id(self, model, id):
         if id == 1:
-            return {"id": id, "id_unit": 1, "id_status": 1, "type": "Preventive", "date": "2024-01-01T00:00:00"}
+            return {"id": id, "id_unit": 1, "id_status": 1, "type": "Preventive", "fecha": "2024-01-01T00:00:00"}
         else:
             return None
 
@@ -58,10 +61,11 @@ def override_controller(monkeypatch):
 # Test POST /create
 def test_create_mantainment_post():
     response = client.post("/maintainance/create", data={
+        "id": 1,
         "id_unit": 1,
         "id_status": 2,
         "type": "Preventive",
-        "date": "2024-01-01T00:00:00"
+        "fecha": "2024-01-01T00:00:00"
     },headers=headers)
     assert response.status_code == 200
     assert response.json() == {"message": "Maintenance added successfully"}
@@ -73,7 +77,7 @@ def test_update_mantainment_post_success():
         "id_unit": 2,
         "id_status": 2,
         "type": "Corrective",
-        "date": "2024-01-02T00:00:00"
+        "fecha": "2024-01-02T00:00:00"
     },headers=headers)
     assert response.status_code == 200
     assert response.json() == {"message": "Maintenance 1 updated successfully"}
@@ -85,7 +89,7 @@ def test_update_mantainment_post_not_found():
         "id_unit": 2,
         "id_status": 2,
         "type": "Corrective",
-        "date": "2024-01-02T00:00:00"
+        "fecha": "2024-01-02T00:00:00"
     },headers=headers)
     assert response.status_code == 404
     assert response.json() == {"detail": "Maintenance not found"}

@@ -62,16 +62,16 @@ def tarjeta(
     unit_tarjeta = controller.get_by_id(CardOut, id)
 
     if unit_tarjeta:
-        logger.info(f"[GET /tarjeta] Tarjeta encontrada: {unit_tarjeta.id}, idusuario: {unit_tarjeta.idusuario}, idtipotarjeta: {unit_tarjeta.idtipotarjeta}")
+        logger.info(f"[GET /tarjeta] Tarjeta encontrada: {unit_tarjeta.id}, iduser: {unit_tarjeta.iduser}, idtype: {unit_tarjeta.idtype}")
     else:
         logger.warning(f"[GET /tarjeta] No se encontró tarjeta con id={id}")
 
     context = {
         "request": request,
         "id": unit_tarjeta.id if unit_tarjeta else "None",
-        "idusuario": unit_tarjeta.idusuario if unit_tarjeta else "None",
-        "idtipotarjeta": unit_tarjeta.idtipotarjeta if unit_tarjeta else "None",
-        "saldo": unit_tarjeta.saldo if unit_tarjeta else "None"
+        "iduser": unit_tarjeta.iduser if unit_tarjeta else "None",
+        "idtype": unit_tarjeta.idtype if unit_tarjeta else "None",
+        "balance": unit_tarjeta.balance if unit_tarjeta else "None"
     }
 
     return templates.TemplateResponse(request,"tarjeta.html", context)

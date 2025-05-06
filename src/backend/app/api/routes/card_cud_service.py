@@ -51,20 +51,20 @@ def index_delete(
 @app.post("/create")
 async def create_card(
     id: int = Form(...),
-    idusuario: int = Form(...),
-    idtipotarjeta: int = Form(...),
+    iduser: int = Form(...),
+    idtype: int = Form(...),
     current_user: dict = Security(get_current_user, scopes=["system", "administrador", "pasajero"])
 ):
-    logger.info(f"[POST /create] Usuario: {current_user['user_id']} - Creando tarjeta: id={id}, idusuario={idusuario}, idtipotarjeta={idtipotarjeta}")
+    logger.info(f"[POST /create] Usuario: {current_user['user_id']} - Creando tarjeta: id={id}, iduser={iduser}, idtype={idtype}")
     try:
-        new_card = CardCreate(id=id, idusuario=idusuario,idtipotarjeta=idtipotarjeta, saldo=0)
+        new_card = CardCreate(id=id, iduser=iduser,idtype=idtype, balance=0)
         controller.add(new_card)
 
         logger.info(f"[POST /create] Tarjeta creada exitosamente: {new_card}")
         return {
             "operation": "create",
             "success": True,
-            "data": CardOut(id=new_card.id, idusuario=new_card.idusuario,idtipotarjeta=new_card.idtipotarjeta, balance=new_card.saldo).model_dump(),
+            "data": CardOut(id=new_card.id, iduser=new_card.iduser,idtype=new_card.idtype, balance=new_card.balance).model_dump(),
             "message": "Card created successfully."
         }
     except ValueError as e:
@@ -78,25 +78,25 @@ async def create_card(
 @app.post("/update")
 async def update_card(
     id: int = Form(...),
-    idusuario: int = Form(...),
-    idtipotarjeta: int = Form(...),
+    iduser: int = Form(...),
+    idtype: int = Form(...),
     current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
 ):
-    logger.info(f"[POST /update] Usuario: {current_user['user_id']} - Actualizando tarjeta: id={id}, idusuario={idusuario}, idtipotarjeta={idtipotarjeta}")
+    logger.info(f"[POST /update] Usuario: {current_user['user_id']} - Actualizando tarjeta: id={id}, iduser={iduser}, idtype={idtype}")
     try:
         existing = controller.get_by_id(CardOut, id)
         if existing is None:
             logger.warning(f"[POST /update] Tarjeta no encontrada: id={id}")
             raise HTTPException(404, detail="Card not found")
 
-        updated_card = CardCreate(id=id,idusuario=idusuario,idtipotarjeta=idtipotarjeta, saldo=existing.saldo)
+        updated_card = CardCreate(id=id,iduser=iduser,idtype=idtype, balance=existing.balance)
         controller.update(updated_card)
 
         logger.info(f"[POST /update] Tarjeta actualizada exitosamente: {updated_card}")
         return {
             "operation": "update",
             "success": True,
-            "data": CardOut(id=updated_card.id, idusuario=updated_card.idusuario,idtipotarjeta=updated_card.idtipotarjeta, balance=updated_card.saldo).model_dump(),
+            "data": CardOut(id=updated_card.id, iduser=updated_card.iduser,idtype=updated_card.idtype, balance=updated_card.balance).model_dump(),
             "message": f"Card {id} updated successfully."
         }
     except ValueError as e:

@@ -61,29 +61,29 @@ def actualizar_mantenimiento(
 @app.post("/create")
 async def add(
     id: int = Form(...),
-    idestado: int = Form(...),
-    tipo: str = Form(...),
+    id_status: int = Form(...),
+    type: str = Form(...),
     fecha: datetime = Form(...),
-    idunidadtransporte: int = Form(...),
+    id_unit: int = Form(...),
     current_user: dict = Security(get_current_user, scopes=["system", "administrador", "tecnico"])
 ):
     """
     Route to add a new maintenance record.
     Receives maintenance information and creates a MaintenanceCreate object.
     """
-    logger.info(f"[POST /create] Usuario {current_user['user_id']} intenta crear mantenimiento: {id}, {idestado}, {tipo}, {fecha}, {idunidadtransporte}.")
+    logger.info(f"[POST /create] Usuario {current_user['user_id']} intenta crear mantenimiento: {id}, {id_status}, {type}, {fecha}, {id_unit}.")
     
     maintenance_temp = MaintenanceCreate(
         id=id,
-        idestado=idestado,
-        tipo=tipo,
+        id_status=id_status,
+        type=type,
         fecha=fecha,
-        idunidadtransporte=idunidadtransporte
+        id_unit=id_unit
     )
     
     try:
         controller.add(maintenance_temp)
-        logger.info(f"[POST /create] Mantenimiento con ID {maintenance_temp.idunidadtransporte} creado con éxito.")
+        logger.info(f"[POST /create] Mantenimiento con ID {maintenance_temp.id_unit} creado con éxito.")
         return {"message": "Maintenance added successfully"}
     except Exception as e:
         logger.error(f"[POST /create] Error al crear mantenimiento: {e}")
@@ -93,10 +93,10 @@ async def add(
 @app.post("/update")
 async def update(
     id: int = Form(...),
-    idestado: int = Form(...),
-    tipo: str = Form(...),
+    id_status: int = Form(...),
+    type: str = Form(...),
     fecha: datetime = Form(...),
-    idunidadtransporte: int = Form(...),
+    id_unit: int = Form(...),
     current_user: dict = Security(get_current_user, scopes=["system", "administrador", "tecnico"])
 ):
     """
@@ -113,10 +113,10 @@ async def update(
     
     maintenance_temp = MaintenanceCreate(
         id=id,  # The ID must remain the same to update the object
-        idestado=idestado,
-        tipo=tipo,
+        id_status=id_status,
+        type=type,
         fecha=fecha,
-        idunidadtransporte=idunidadtransporte
+        id_unit=id_unit
     )
     
     try:

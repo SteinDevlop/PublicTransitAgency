@@ -2,20 +2,21 @@ import logging
 from fastapi import APIRouter, HTTPException, Security
 from backend.app.logic.universal_controller_postgres import UniversalController
 from backend.app.core.auth import get_current_user
+from backend.app.models.maintainance import MaintenanceOut
 
 # Initialize the maintenance controller
-controller_maintenance = UniversalController()
+
 
 # Create the APIRouter instance with a prefix and tags
 app = APIRouter(prefix="/maintainance", tags=["maintainance"])
-
+controller_maintenance = UniversalController()
 # Set up logging
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 
 
 @app.get("/maintainancements", response_model=list[dict])
-def get_all(
+def read_all(
     current_user: dict = Security(get_current_user, scopes=["system", "administrador", "tecnico"])
 ):
     """
@@ -30,7 +31,7 @@ def get_all(
     logger.info(f"[GET /maintainancements] Usuario {current_user['user_id']} accede a todos los registros de mantenimiento.")
     
     try:
-        records = controller_maintenance.get_all()
+        records = controller_maintenance.read_all(MaintenanceOut)
         logger.info(f"[GET /maintainancements] Se han recuperado {len(records)} registros de mantenimiento.")
         return records
     except Exception as e:
@@ -59,7 +60,7 @@ def get_by_id(
     """
     logger.info(f"[GET /{id}] Usuario {current_user['user_id']} busca el mantenimiento con ID {id}.")
     
-    result = controller_maintenance.get_by_id(id)
+    result = controller_maintenance.get_by_id(MaintenanceOut,id)
     if not result:
         logger.warning(f"[GET /{id}] Mantenimiento con ID {id} no encontrado.")
         raise HTTPException(status_code=404, detail="Not found")
@@ -70,7 +71,7 @@ def get_by_id(
 
 @app.get("/unit/{unit_id}")
 def get_by_unit(
-    idunidadtransporte: int,
+    id_unit: int,
     current_user: dict = Security(get_current_user, scopes=["system", "administrador", "tecnico"])
 ):
     """
@@ -83,12 +84,12 @@ def get_by_unit(
     Returns:
     - List of maintenance records associated with the unit.
     """
-    logger.info(f"[GET /unit/{idunidadtransporte}] Usuario {current_user['user_id']} busca los mantenimientos asociados a la unidad {idunidadtransporte}.")
+    logger.info(f"[GET /unit/{id_unit}] Usuario {current_user['user_id']} busca los mantenimientos asociados a la unidad {id_unit}.")
     
     try:
-        records = controller_maintenance.get_by_unit(idunidadtransporte)
-        logger.info(f"[GET /unit/{idunidadtransporte}] Se han recuperado {len(records)} registros de mantenimiento para la unidad {idunidadtransporte}.")
+        records = controller_maintenance.get_by_unit(id_unit)
+        logger.info(f"[GET /unit/{id_unit}] Se han recuperado {len(records)} registros de mantenimiento para la unidad {id_unit}.")
         return records
     except Exception as e:
-        logger.error(f"[GET /unit/{idunidadtransporte}] Error al obtener los registros de mantenimiento para la unidad {idunidadtransporte}: {str(e)}")
+        logger.error(f"[GET /unit/{id_unit}] Error al obtener los registros de mantenimiento para la unidad {id_unit}: {str(e)}")
         raise HTTPException(status_code=500, detail="Internal server error")
