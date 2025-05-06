@@ -1,26 +1,34 @@
 from typing import Optional
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
-class Stop(BaseModel):
+
+class Parada(BaseModel):
     __entity_name__ = "parada"  # Nombre de la tabla en la base de datos
-    id: Optional[int] = None  # Clave primaria
-    name: Optional[str] = None  # Nombre de la parada
-    ubication: Optional[str] = None  # Ubicación de la parada
+
+    id: Optional[int] = None  # Clave primaria ID
+    name: str  # Nombre de la parada
+    ubication: str  # Ubicación de la parada
 
     def to_dict(self):
-        return self.model_dump()
+        """
+        Serializa el modelo `Parada` en un diccionario.
+        """
+        return self.dict()
 
     @classmethod
     def from_dict(cls, data: dict):
+        """
+        Crea una instancia de `Parada` a partir de un diccionario.
+        """
         return cls(**data)
 
     @classmethod
     def get_fields(cls):
+        """
+        Define los campos de la tabla para su creación.
+        """
         return {
-            "id": "INTEGER PRIMARY KEY",
-            "nombre": "VARCHAR(100) NOT NULL",
-            "ubicacion": "VARCHAR(150) NOT NULL"
-            "id": "INTEGER PRIMARY KEY",
-            "nombre": "VARCHAR(100) NOT NULL",
-            "ubicacion": "VARCHAR(150) NOT NULL"
+            "id": "INT PRIMARY KEY",
+            "name": "VARCHAR NOT NULL",
+            "ubication": "VARCHAR NOT NULL"
         }

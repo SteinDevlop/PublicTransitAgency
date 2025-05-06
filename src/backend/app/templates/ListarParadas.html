@@ -20,8 +20,8 @@
             {% for parada in paradas %}
             <tr>
                 <td>{{ parada.id }}</td>
-                <td>{{ parada.nombre }}</td>
-                <td>{{ parada.ubicacion }}</td>
+                <td>{{ parada.name }}</td> <!-- Corregido -->
+                <td>{{ parada.ubication }}</td> <!-- Corregido -->
                 <td><a href="/stops/{{ parada.id }}">Detalles</a></td>
             </tr>
             {% else %}

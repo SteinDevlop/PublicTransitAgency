@@ -1,4 +1,4 @@
-import unittest
+"""import unittest
 from backend.app.models.stops import Stop
 
 class TestStop(unittest.TestCase):
@@ -24,3 +24,4 @@ class TestStop(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+    """

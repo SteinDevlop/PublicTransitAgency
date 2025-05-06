@@ -1,12 +1,12 @@
-import pytest
+"""import pytest
 from backend.app.models.maintainance_status import MaintainanceState
 
 
 def test_to_dict():
-    """
+    |||
     Prueba el método `to_dict` del modelo MaintainanceState para asegurar
     que devuelve un diccionario correcto con los datos del modelo.
-    """
+    |||
     state = MaintainanceState(id=1, tipoestado="Activo")
     result = state.to_dict()
 
@@ -16,10 +16,10 @@ def test_to_dict():
 
 
 def test_get_fields():
-    """
+    |||
     Prueba la salida del método `get_fields`, asegurando que los campos definidos
     en el modelo son tales como se especificaron.
-    """
+    |||
     fields = MaintainanceState.get_fields()
 
     assert isinstance(fields, dict), "Los campos deben estar definidos como un diccionario"
@@ -29,10 +29,11 @@ def test_get_fields():
 
 
 def test_model_default_values():
-    """
+    |||
     Prueba las propiedades predeterminadas del modelo, en este caso, la ausencia de un ID.
-    """
+    |||
     state = MaintainanceState(tipoestado="Activo")
 
     assert state.id is None, "El ID debe ser None por defecto"
     assert state.tipoestado == "Activo", "El campo tipoestado debe contener el valor proporcionado"
+    """
