@@ -4,12 +4,16 @@ from fastapi.testclient import TestClient
 from backend.app.logic.universal_controller_sql import UniversalController
 from backend.app.api.routes.card_cud_service import app as card_router  # Importa bien
 from backend.app.core.conf import headers
+from backend.app.models.user import UserCreate, UserOut
+from backend.app.models.shift import Shift
+from backend.app.models.type_card import TypeCardCreate, TypeCardOut
 # Limpieza de base de datos antes y después de cada test
+controller = UniversalController()
 def setup_function():
-    UniversalController().clear_tables()
+    controller.clear_tables()
 
 def teardown_function():
-    UniversalController().clear_tables()
+    controller.clear_tables()
 # Creamos la app de prueba
 app_for_test = FastAPI()
 app_for_test.include_router(card_router)
@@ -19,7 +23,11 @@ app_for_test.mount("/static", StaticFiles(directory="src/frontend/static"), name
 client = TestClient(app_for_test)
 
 def test_create_card():
-    response = client.post("/card/create", data={"id": 15, "tipo": "tipo_1"},headers=headers)
+    controller.add(TypeCardCreate(id=1,tipo="Estandar"))
+    controller.add(Shift(ID=1,TipoTurno="No Aplica"))
+    controller.add(UserCreate(id= 1,identification= 11022311,name= "Kenan",lastname= "Jarrus",email= "msjedi@yoda.com",password= "hera",idtype_user= 1,idturn= 1))
+    
+    response = client.post("/card/create", data={"id": 15, "idusuario": 1,"idtipotarjeta": 1,"saldo":0},headers=headers)
     assert response.status_code == 200
 
 def test_update_card_existing():

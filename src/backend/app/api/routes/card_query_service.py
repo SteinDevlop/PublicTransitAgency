@@ -5,7 +5,7 @@ from fastapi.templating import Jinja2Templates
 
 from backend.app.core.auth import get_current_user
 from backend.app.models.card import CardOut
-from backend.app.logic.universal_controller_sql import UniversalController
+from backend.app.logic.universal_controller_postgres import UniversalController
 
 # Configuración del logger
 logger = logging.getLogger(__name__)
@@ -32,7 +32,7 @@ def consultar(
     Render the 'ConsultarTarjeta.html' template for the card consultation page.
     """
     logger.info(f"[GET /consultar] Usuario: {current_user['user_id']} - Mostrando página de consulta de tarjeta")
-    return templates.TemplateResponse("ConsultarTarjeta.html", {"request": request})
+    return templates.TemplateResponse(request,"ConsultarTarjeta.html", {"request": request})
 
 
 @app.get("/tarjetas")
@@ -62,15 +62,16 @@ def tarjeta(
     unit_tarjeta = controller.get_by_id(CardOut, id)
 
     if unit_tarjeta:
-        logger.info(f"[GET /tarjeta] Tarjeta encontrada: {unit_tarjeta.id}, Tipo: {unit_tarjeta.tipo}, Saldo: {unit_tarjeta.balance}")
+        logger.info(f"[GET /tarjeta] Tarjeta encontrada: {unit_tarjeta.id}, idusuario: {unit_tarjeta.idusuario}, idtipotarjeta: {unit_tarjeta.idtipotarjeta}")
     else:
         logger.warning(f"[GET /tarjeta] No se encontró tarjeta con id={id}")
 
     context = {
         "request": request,
         "id": unit_tarjeta.id if unit_tarjeta else "None",
-        "tipo": unit_tarjeta.tipo if unit_tarjeta else "None",
-        "saldo": unit_tarjeta.balance if unit_tarjeta else "None"
+        "idusuario": unit_tarjeta.idusuario if unit_tarjeta else "None",
+        "idtipotarjeta": unit_tarjeta.idtipotarjeta if unit_tarjeta else "None",
+        "saldo": unit_tarjeta.saldo if unit_tarjeta else "None"
     }
 
-    return templates.TemplateResponse("tarjeta.html", context)
+    return templates.TemplateResponse(request,"tarjeta.html", context)

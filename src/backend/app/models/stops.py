@@ -1,5 +1,5 @@
 from typing import Optional
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 class Stop(BaseModel):
     __entity_name__ = "parada"  # Nombre de la tabla en la base de datos
@@ -11,8 +11,15 @@ class Stop(BaseModel):
         return self.model_dump()
 
     @classmethod
+    def from_dict(cls, data: dict):
+        return cls(**data)
+
+    @classmethod
     def get_fields(cls):
         return {
+            "id": "INTEGER PRIMARY KEY",
+            "nombre": "VARCHAR(100) NOT NULL",
+            "ubicacion": "VARCHAR(150) NOT NULL"
             "id": "INTEGER PRIMARY KEY",
             "nombre": "VARCHAR(100) NOT NULL",
             "ubicacion": "VARCHAR(150) NOT NULL"

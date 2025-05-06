@@ -6,7 +6,7 @@ from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse
 
 from backend.app.models.card import CardCreate, CardOut
-from backend.app.logic.universal_controller_sql import UniversalController
+from backend.app.logic.universal_controller_postgres import UniversalController
 from backend.app.core.auth import get_current_user
 
 # Configuración de logging
@@ -27,7 +27,7 @@ def index_create(
     )
 ):
     logger.info(f"[GET /crear] Usuario: {current_user['user_id']} - Mostrando formulario de creación de tarjeta")
-    return templates.TemplateResponse("CrearTarjeta.html", {"request": request})
+    return templates.TemplateResponse(request,"CrearTarjeta.html", {"request": request})
 
 
 @app.get("/actualizar", response_class=HTMLResponse)
@@ -36,7 +36,7 @@ def index_update(
     current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
 ):
     logger.info(f"[GET /actualizar] Usuario: {current_user['user_id']} - Mostrando formulario de actualización de tarjeta")
-    return templates.TemplateResponse("ActualizarTarjeta.html", {"request": request})
+    return templates.TemplateResponse(request,"ActualizarTarjeta.html", {"request": request})
 
 
 @app.get("/eliminar", response_class=HTMLResponse)
@@ -45,25 +45,26 @@ def index_delete(
     current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
 ):
     logger.info(f"[GET /eliminar] Usuario: {current_user['user_id']} - Mostrando formulario de eliminación de tarjeta")
-    return templates.TemplateResponse("EliminarTarjeta.html", {"request": request})
+    return templates.TemplateResponse(request,"EliminarTarjeta.html", {"request": request})
 
 
 @app.post("/create")
 async def create_card(
     id: int = Form(...),
-    tipo: str = Form(...),
+    idusuario: int = Form(...),
+    idtipotarjeta: int = Form(...),
     current_user: dict = Security(get_current_user, scopes=["system", "administrador", "pasajero"])
 ):
-    logger.info(f"[POST /create] Usuario: {current_user['user_id']} - Creando tarjeta: id={id}, tipo={tipo}")
+    logger.info(f"[POST /create] Usuario: {current_user['user_id']} - Creando tarjeta: id={id}, idusuario={idusuario}, idtipotarjeta={idtipotarjeta}")
     try:
-        new_card = CardCreate(id=id, tipo=tipo, balance=0)
+        new_card = CardCreate(id=id, idusuario=idusuario,idtipotarjeta=idtipotarjeta, saldo=0)
         controller.add(new_card)
 
         logger.info(f"[POST /create] Tarjeta creada exitosamente: {new_card}")
         return {
             "operation": "create",
             "success": True,
-            "data": CardOut(id=new_card.id, tipo=new_card.tipo, balance=new_card.balance).model_dump(),
+            "data": CardOut(id=new_card.id, idusuario=new_card.idusuario,idtipotarjeta=new_card.idtipotarjeta, balance=new_card.saldo).model_dump(),
             "message": "Card created successfully."
         }
     except ValueError as e:
@@ -77,24 +78,25 @@ async def create_card(
 @app.post("/update")
 async def update_card(
     id: int = Form(...),
-    tipo: str = Form(...),
+    idusuario: int = Form(...),
+    idtipotarjeta: int = Form(...),
     current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
 ):
-    logger.info(f"[POST /update] Usuario: {current_user['user_id']} - Actualizando tarjeta id={id}, nuevo tipo={tipo}")
+    logger.info(f"[POST /update] Usuario: {current_user['user_id']} - Actualizando tarjeta: id={id}, idusuario={idusuario}, idtipotarjeta={idtipotarjeta}")
     try:
         existing = controller.get_by_id(CardOut, id)
         if existing is None:
             logger.warning(f"[POST /update] Tarjeta no encontrada: id={id}")
             raise HTTPException(404, detail="Card not found")
 
-        updated_card = CardCreate(id=id, tipo=tipo, balance=existing.balance)
+        updated_card = CardCreate(id=id,idusuario=idusuario,idtipotarjeta=idtipotarjeta, saldo=existing.saldo)
         controller.update(updated_card)
 
         logger.info(f"[POST /update] Tarjeta actualizada exitosamente: {updated_card}")
         return {
             "operation": "update",
             "success": True,
-            "data": CardOut(id=updated_card.id, tipo=updated_card.tipo, balance=updated_card.balance).model_dump(),
+            "data": CardOut(id=updated_card.id, idusuario=updated_card.idusuario,idtipotarjeta=updated_card.idtipotarjeta, balance=updated_card.saldo).model_dump(),
             "message": f"Card {id} updated successfully."
         }
     except ValueError as e:
@@ -126,4 +128,4 @@ async def delete_card(
         raise e
     except Exception as e:
         logger.error(f"[POST /delete] Error interno: {str(e)}")
-        raise HTTPException(500, detail=f"Internal server error: {str(e)}")
+        raise HTTPException(500, detail=str(e))

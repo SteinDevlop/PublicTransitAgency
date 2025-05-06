@@ -4,7 +4,7 @@ from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from datetime import datetime
 from backend.app.models.maintainance import MaintenanceCreate, MaintenanceOut
-from backend.app.logic.universal_controller_sql import UniversalController
+from backend.app.logic.universal_controller_postgres import UniversalController
 from backend.app.core.auth import get_current_user
 
 # Initialize the controller and templates
@@ -31,7 +31,7 @@ def crear_mantenimiento(
     Route to display the maintenance creation form.
     """
     logger.info(f"[GET /crear] Usuario {current_user['user_id']} accede al formulario para crear mantenimiento.")
-    return templates.TemplateResponse("CrearMantenimiento.html", {"request": request})
+    return templates.TemplateResponse(request,"CrearMantenimiento.html", {"request": request})
 
 
 @app.get("/eliminar", response_class=HTMLResponse)
@@ -43,7 +43,7 @@ def eliminar_mantenimiento(
     Route to display the maintenance deletion form.
     """
     logger.info(f"[GET /eliminar] Usuario {current_user['user_id']} accede al formulario para eliminar mantenimiento.")
-    return templates.TemplateResponse("EliminarMantenimiento.html", {"request": request})
+    return templates.TemplateResponse(request,"EliminarMantenimiento.html", {"request": request})
 
 
 @app.get("/actualizar", response_class=HTMLResponse)
@@ -55,30 +55,35 @@ def actualizar_mantenimiento(
     Route to display the maintenance update form.
     """
     logger.info(f"[GET /actualizar] Usuario {current_user['user_id']} accede al formulario para actualizar mantenimiento.")
-    return templates.TemplateResponse("ActualizarMantenimiento.html", {"request": request})
+    return templates.TemplateResponse(request,"ActualizarMantenimiento.html", {"request": request})
 
 
 @app.post("/create")
 async def add(
-    id_unit: int = Form(...),
-    id_status: int = Form(...),
-    type: str = Form(...),
-    date: datetime = Form(...),
+    id: int = Form(...),
+    idestado: int = Form(...),
+    tipo: str = Form(...),
+    fecha: datetime = Form(...),
+    idunidadtransporte: int = Form(...),
     current_user: dict = Security(get_current_user, scopes=["system", "administrador", "tecnico"])
 ):
     """
     Route to add a new maintenance record.
     Receives maintenance information and creates a MaintenanceCreate object.
     """
-    logger.info(f"[POST /create] Usuario {current_user['user_id']} intenta crear mantenimiento: {id_unit}, {type}, {date}")
+    logger.info(f"[POST /create] Usuario {current_user['user_id']} intenta crear mantenimiento: {id}, {idestado}, {tipo}, {fecha}, {idunidadtransporte}.")
     
     maintenance_temp = MaintenanceCreate(
-        id_unit=id_unit, id_status=id_status, type=type, date=date
+        id=id,
+        idestado=idestado,
+        tipo=tipo,
+        fecha=fecha,
+        idunidadtransporte=idunidadtransporte
     )
     
     try:
         controller.add(maintenance_temp)
-        logger.info(f"[POST /create] Mantenimiento con ID {maintenance_temp.id_unit} creado con éxito.")
+        logger.info(f"[POST /create] Mantenimiento con ID {maintenance_temp.idunidadtransporte} creado con éxito.")
         return {"message": "Maintenance added successfully"}
     except Exception as e:
         logger.error(f"[POST /create] Error al crear mantenimiento: {e}")
@@ -88,10 +93,10 @@ async def add(
 @app.post("/update")
 async def update(
     id: int = Form(...),
-    id_unit: int = Form(...),
-    id_status: int = Form(...),
-    type: str = Form(...),
-    date: datetime = Form(...),
+    idestado: int = Form(...),
+    tipo: str = Form(...),
+    fecha: datetime = Form(...),
+    idunidadtransporte: int = Form(...),
     current_user: dict = Security(get_current_user, scopes=["system", "administrador", "tecnico"])
 ):
     """
@@ -108,10 +113,10 @@ async def update(
     
     maintenance_temp = MaintenanceCreate(
         id=id,  # The ID must remain the same to update the object
-        id_unit=id_unit,
-        id_status=id_status,
-        type=type,
-        date=date
+        idestado=idestado,
+        tipo=tipo,
+        fecha=fecha,
+        idunidadtransporte=idunidadtransporte
     )
     
     try:

@@ -9,13 +9,11 @@ class MaintainanceStatus(BaseModel):
     status: Optional[str] = None
 
     def to_dict(self):
-        return self.model_dump()
+        return self.dict()
 
     @classmethod
     def get_fields(cls):
         return {
             "id": "INTEGER PRIMARY KEY",
-            "unit": "TEXT",
-            "type": "TEXT",
-            "status": "TEXT"
+            "tipoestado": "VARCHAR(100) NOT NULL"
         }
