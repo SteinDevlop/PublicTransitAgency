@@ -53,7 +53,11 @@ async def create_user(
 
     try:
         # Verificar si el usuario ya existe
+<<<<<<< HEAD
         existing_user = controller.get_by_column(UserOut, "identification", identification)  
+=======
+        existing_user = controller.get_by_id(UserOut, ID)  
+>>>>>>> 94efd67 (main functionally)
         if existing_user:
             raise HTTPException(400, detail="El usuario ya existe con la misma identificación.")
 
