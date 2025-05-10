@@ -3,8 +3,8 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from fastapi.staticfiles import StaticFiles
 
-from backend.app.api.routes.card_query_service import app as card_router
-from backend.app.api.routes import card_query_service
+from backend.app.api.routes.card_service.card_query_service import app as card_router
+from backend.app.api.routes.card_service import card_query_service
 from backend.app.logic.universal_controller_sql import UniversalController
 from backend.app.core.conf import headers
 

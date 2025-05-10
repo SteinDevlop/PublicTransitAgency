@@ -4,14 +4,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from backend.app.core.config import settings
 from backend.app.core.middlewares import add_middlewares
 from backend.app.api.routes import (
-    card_cud_service,
-    card_query_service,
     incidence_cud_service,
     maintainance_status_query_service,
-    maintance_cud_service,
-    maintance_query_service,
-    type_card_query_service,
-    type_card_cud_service,
     user_CUD_service,
     type_movement_cud_service,
     type_transport_cud_service,
@@ -38,6 +32,9 @@ from backend.app.api.routes import (
     routes_query_service,
     user_query_service
 )
+from backend.app.api.routes.card_service import (card_cud_service,card_query_service)
+from backend.app.api.routes.maintainance_service import (maintance_cud_service,maintance_query_service)
+from backend.app.api.routes.type_card_service import (type_card_cud_service,type_card_query_service)
 
 # Initialize the FastAPI app
 api_router = FastAPI(title=settings.PROJECT_NAME)

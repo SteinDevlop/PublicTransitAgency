@@ -2,7 +2,7 @@ import pytest
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.testclient import TestClient
-from backend.app.api.routes.maintance_cud_service import app as maintance_cud_service
+from backend.app.api.routes.maintainance_service.maintance_cud_service import app as maintance_cud_service
 from backend.app.logic.universal_controller_sql import UniversalController
 from backend.app.core.conf import headers
 
@@ -55,7 +55,7 @@ class MockController:
 # Patching el controller en tests
 @pytest.fixture(autouse=True)
 def override_controller(monkeypatch):
-    from backend.app.api.routes import maintance_cud_service
+    from backend.app.api.routes.maintainance_service import maintance_cud_service
     maintance_cud_service.controller = MockController()
 
 # Test POST /create

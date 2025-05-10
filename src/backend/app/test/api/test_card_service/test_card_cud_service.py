@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.testclient import TestClient
 from backend.app.logic.universal_controller_sql import UniversalController
-from backend.app.api.routes import card_cud_service  # Importamos el módulo, no solo el `app`
+from backend.app.api.routes.card_service import card_cud_service  # Importamos el módulo, no solo el `app`
 from backend.app.core.conf import headers
 from backend.app.models.user import UserCreate
 from backend.app.models.shift import Shift

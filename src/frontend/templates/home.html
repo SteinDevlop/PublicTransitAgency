@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='css/home.css') }}">
+</head>
+<body>
+    <div class="dashboard">
+        <aside class="sidebar">
+            <h2>Public Transit Agency</h2>
+            <button class="menu-btn">Consultar saldo</button>
+            <button class="menu-btn">Portal de usuario</button>
+            <button class="menu-btn">Avisos</button>
+        </aside>
+        <main class="main-content">
+            <div class="info-box">
+                <h2>PORTAL DEL USUARIO</h2>
+                <p>Consulta tu saldo y gestiona tus viajes</p>
+                <button class="menu-btn">Ingresar</button>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

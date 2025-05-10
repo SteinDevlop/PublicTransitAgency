@@ -1,76 +1,54 @@
-import unittest
+import pytest
 from backend.app.logic.card import Card
 
-class TestCard(Card):
+# Clase concreta de prueba que NO empieza con 'Test'
+class ConcreteCard(Card):
     """
-    Concrete test subclass of Card used for unit testing.
+    Concrete subclass of Card used for unit testing.
     Implements the abstract use_card method.
     """
     def use_card(self):
         return "Card used"
 
+# Fixture para configurar la tarjeta antes de cada prueba
+@pytest.fixture
+def test_card():
+    return ConcreteCard(1234, "TestType", 100.0)
 
-class TestCardClass(unittest.TestCase):
-    """
-    Unit tests for the Card class and its behavior using a test subclass.
-    """
+# Prueba: valores iniciales de la tarjeta
+def test_initial_values(test_card):
+    assert test_card.id_card == 1234
+    assert test_card.card_type == "TestType"
+    assert test_card.balance == 100.0
 
-    def setUp(self):
-        """
-        Set up a default TestCard instance before each test.
-        """
-        self.card = TestCard(1234, "TestType", 100.0)
+# Prueba: actualización de valores mediante setters
+def test_setters(test_card):
+    test_card.id_card = 4321
+    test_card.card_type = "UpdatedType"
+    test_card.balance = 50.0
 
-    def test_initial_values(self):
-        """
-        Test that the initial values are set correctly.
-        """
-        self.assertEqual(self.card.id_card, 1234)
-        self.assertEqual(self.card.card_type, "TestType")
-        self.assertEqual(self.card.balance, 100.0)
+    assert test_card.id_card == 4321
+    assert test_card.card_type == "UpdatedType"
+    assert test_card.balance == 50.0
 
-    def test_setters(self):
-        """
-        Test that setters update the values correctly.
-        """
-        self.card.id_card = 4321
-        self.card.card_type = "UpdatedType"
-        self.card.balance = 50.0
+# Prueba: el saldo no puede ser negativo
+def test_balance_cannot_be_negative(test_card):
+    with pytest.raises(ValueError):
+        test_card.balance = -10.0
 
-        self.assertEqual(self.card.id_card, 4321)
-        self.assertEqual(self.card.card_type, "UpdatedType")
-        self.assertEqual(self.card.balance, 50.0)
+# Prueba: representación en cadena (__str__)
+def test_str_representation(test_card):
+    expected = "{'idn': 1234, 'tipo': 'TestType', 'saldo': 100.0}"
+    assert str(test_card) == expected
 
-    def test_balance_cannot_be_negative(self):
-        """
-        Test that setting a negative balance raises a ValueError.
-        """
-        with self.assertRaises(ValueError):
-            self.card.balance = -10.0
+# Prueba: uso de la tarjeta en la subclase
+def test_use_card_method(test_card):
+    assert test_card.use_card() == "Card used"
 
-    def test_str_representation(self):
-        """
-        Test the __str__ method returns the correct string representation.
-        """
-        expected = "{'idn': 1234, 'tipo': 'TestType', 'saldo': 100.0}"
-        self.assertEqual(str(self.card), expected)
+# Prueba: error al instanciar la clase abstracta
+def test_abstract_class_instantiation_raises_error():
+    class Dummy(Card):
+        pass
 
-    def test_use_card_method(self):
-        """
-        Test that the use_card method works in the subclass.
-        """
-        self.assertEqual(self.card.use_card(), "Card used")
-
-    def test_abstract_class_instantiation_raises_error(self):
-        """
-        Test that calling use_card on the abstract Card class raises NotImplementedError.
-        """
-        class Dummy(Card):
-            pass
-
-        with self.assertRaises(NotImplementedError):
-            Dummy(1111, "DummyType", 0.0).use_card()
-
-
-if __name__ == "__main__":
-    unittest.main()
+    with pytest.raises(NotImplementedError):
+        Dummy(1111, "DummyType", 0.0).use_card()

@@ -3,7 +3,7 @@ from fastapi.testclient import TestClient
 from backend.app.models.type_card import TypeCardOut
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
-from backend.app.api.routes.type_card_query_service import app as typecard_router
+from backend.app.api.routes.type_card_service.type_card_query_service import app as typecard_router
 from backend.app.logic.universal_controller_sql import UniversalController
 from backend.app.core.conf import headers
 def setup_function():
@@ -30,7 +30,7 @@ class MockUniversalController:
 @pytest.fixture(autouse=True)
 def override_controller(monkeypatch):
     """Fixture para reemplazar el controlador real por el mock"""
-    from backend.app.api.routes.type_card_query_service import controller
+    from backend.app.api.routes.type_card_service.type_card_query_service import controller
     monkeypatch.setattr(controller, "read_all", MockUniversalController().read_all)
     monkeypatch.setattr(controller, "get_by_id", MockUniversalController().get_by_id)
 

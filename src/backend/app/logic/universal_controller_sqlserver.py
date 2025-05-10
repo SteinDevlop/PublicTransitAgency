@@ -9,8 +9,8 @@ class UniversalController:
         try:
             settings = Settings()
             self.conn = pyodbc.connect(
-                f"DRIVER={{SQL Server}};SERVER={settings.db_config['host'],1435};DATABASE={settings.db_config['dbname']};UID={settings.db_config['user']};PWD={settings.db_config['password']}"
-            )
+    f"DRIVER={{SQL Server}};SERVER={settings.db_config['host']},1435;DATABASE={settings.db_config['dbname']};UID={settings.db_config['user']};PWD={settings.db_config['password']}"
+)
             self.conn.autocommit = False  # Desactivar autocommit
             self.cursor = self.conn.cursor()
         except pyodbc.Error as e:
@@ -113,3 +113,12 @@ class UniversalController:
         self.cursor.execute(sql, (data["id"],))
         self.conn.commit()
         return True
+    def get_by_unit(self, unit_id: int) -> list[dict]:
+        sql = "SELECT * FROM mantenimiento WHERE id_unit = ?"
+        try:
+            self.cursor.execute(sql, (unit_id,))
+            rows = self.cursor.fetchall()
+            # Convertir cada fila en un diccionario utilizando los nombres de las columnas
+            return [dict(zip([column[0] for column in self.cursor.description], row)) for row in rows]
+        except pyodbc.Error as e:
+            raise RuntimeError(f"Error al obtener registros de la unidad {unit_id}: {e}")
