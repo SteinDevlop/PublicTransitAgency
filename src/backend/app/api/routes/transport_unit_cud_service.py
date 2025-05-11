@@ -1,11 +1,13 @@
 from fastapi import APIRouter, Form, HTTPException, Security, Request
 from backend.app.logic.universal_controller_sqlserver import UniversalController
-from backend.app.models.transport import Transport
+from backend.app.models.routes import Route
+from backend.app.models.type_transport import TypeTransportCreate
+from backend.app.models.transport import UnidadTransporte
 from backend.app.core.auth import get_current_user
 from starlette.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
-app = APIRouter(prefix="/transports", tags=["transports"])
+app = APIRouter(prefix="/transport_units", tags=["transport_units"])
 controller = UniversalController()
 templates = Jinja2Templates(directory="src/backend/app/templates")
 
@@ -40,26 +42,27 @@ def eliminar_unidad_form(
     return templates.TemplateResponse("EliminarTransport.html", {"request": request})
 
 @app.post("/create")
-def crear_unidad(
+def crear_unidad_transporte(
     Ubicacion: str = Form(...),
     Capacidad: int = Form(...),
     IDRuta: int = Form(...),
     IDTipo: int = Form(...),
+    ID: str = Form("EMPTY"),
     current_user: dict = Security(get_current_user, scopes=["system", "administrador", "supervisor"])
 ):
     """
-    Crea una unidad de transporte con los datos proporcionados.
+    Crea una nueva unidad de transporte.
     """
-    transport = Transport(Ubicacion=Ubicacion, Capacidad=Capacidad, IDRuta=IDRuta, IDTipo=IDTipo)
+    unidad = UnidadTransporte(Ubicacion=Ubicacion, Capacidad=Capacidad, IDRuta=IDRuta, IDTipo=IDTipo, ID=ID)
     try:
-        controller.add(transport)
-        return {"message": "Unidad de transporte creada exitosamente.", "data": transport.to_dict()}
-    except Exception as e:
+        controller.add(unidad)
+        return {"message": "Unidad de transporte creada exitosamente.", "data": unidad.to_dict()}
+    except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
 @app.post("/update")
-def actualizar_unidad(
-    ID: int = Form(...),
+def actualizar_unidad_transporte(
+    ID: str = Form(...),
     Ubicacion: str = Form(...),
     Capacidad: int = Form(...),
     IDRuta: int = Form(...),
@@ -67,33 +70,35 @@ def actualizar_unidad(
     current_user: dict = Security(get_current_user, scopes=["system", "administrador", "supervisor"])
 ):
     """
-    Actualiza la información de una unidad de transporte existente.
+    Actualiza una unidad de transporte existente.
     """
-    existing_transport = controller.get_by_id(Transport, ID)
-    if not existing_transport:
-        raise HTTPException(status_code=404, detail="Unidad de transporte no encontrada")
+    # Validar si la unidad de transporte existe
+    existing_unidad = controller.get_by_id(UnidadTransporte, ID)
+    if not existing_unidad:
+        raise HTTPException(status_code=404, detail="Unidad de transporte no encontrada.")
 
-    updated_transport = Transport(ID=ID, Ubicacion=Ubicacion, Capacidad=Capacidad, IDRuta=IDRuta, IDTipo=IDTipo)
+    unidad_actualizada = UnidadTransporte(Ubicacion=Ubicacion, Capacidad=Capacidad, IDRuta=IDRuta, IDTipo=IDTipo, ID=ID)
     try:
-        controller.update(updated_transport)
-        return {"message": "Unidad de transporte actualizada exitosamente.", "data": updated_transport.to_dict()}
-    except Exception as e:
+        controller.update(unidad_actualizada)
+        return {"message": "Unidad de transporte actualizada exitosamente.", "data": unidad_actualizada.to_dict()}
+    except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
 @app.post("/delete")
-def eliminar_unidad(
-    ID: int = Form(...),
+def eliminar_unidad_transporte(
+    ID: str = Form(...),
     current_user: dict = Security(get_current_user, scopes=["system", "administrador", "supervisor"])
 ):
     """
-    Elimina una unidad de transporte existente por su ID.
+    Elimina una unidad de transporte por su ID.
     """
-    existing_transport = controller.get_by_id(Transport, ID)
-    if not existing_transport:
-        raise HTTPException(status_code=404, detail="Unidad de transporte no encontrada")
+    # Validar si la unidad de transporte existe
+    existing_unidad = controller.get_by_id(UnidadTransporte, ID)
+    if not existing_unidad:
+        raise HTTPException(status_code=404, detail="Unidad de transporte no encontrada.")
 
     try:
-        controller.delete(existing_transport)
+        controller.delete(existing_unidad)
         return {"message": "Unidad de transporte eliminada exitosamente."}
-    except Exception as e:
+    except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
