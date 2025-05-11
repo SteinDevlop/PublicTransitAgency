@@ -49,10 +49,10 @@ async def get_typemovement(
     return typemovements
 
 
-@app.get("/{id}", response_class=HTMLResponse)
-def typetransport(
+@app.get("/tipomovimiento", response_class=HTMLResponse)
+def typemovement(
     request: Request,
-    id: int,
+    id: int = Query(...),
     current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
 ):
     """
@@ -64,8 +64,14 @@ def typetransport(
 
     if unit_typemovement:
         logger.info(f"[GET /typemovement] Tipo de Movimiento encontrado: {unit_typemovement.id}, {unit_typemovement.type}")
-        return JSONResponse(content=unit_typemovement.model_dump(), status_code=200)
 
     else:
         logger.warning(f"[GET /typemovement] No se encontró tipo de movimientos con id={id}")
-        return JSONResponse(content="Tipo de Movimientos no encontrado", status_code=404)
+        
+    context = {
+        "request": request,
+        "id": unit_typemovement.id if unit_typemovement else "None",
+        "type": unit_typemovement.type if unit_typemovement else "None"
+    }
+
+    return templates.TemplateResponse(request,"tipomovimiento.html", context)

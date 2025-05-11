@@ -49,10 +49,10 @@ async def get_price(
     return prices
 
 
-@app.get("/{id}", response_class=HTMLResponse)
+@app.get("/precio", response_class=HTMLResponse)
 def price(
     request: Request,
-    id: int,
+    id: int = Query(...),
     current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
 ):
     """
@@ -64,8 +64,15 @@ def price(
 
     if unit_price:
         logger.info(f"[GET /price] Precio encontrado: {unit_price.ID}, {unit_price.IDTipoTransporte},{unit_price.Monto}")
-        return JSONResponse(content=unit_price.model_dump(), status_code=200)
 
     else:
         logger.warning(f"[GET /price] No se encontró precio con id={id}")
-        return JSONResponse(content="Precio no encontrado", status_code=404)
+
+        context = {
+        "request": request,
+        "ID": unit_price.ID if unit_price else "None",
+        "IDTipoTransporte": unit_price.IDTipoTransporte if unit_price else "None",
+        "Monto": unit_price.Monto if unit_price else "None"
+    }
+
+    return templates.TemplateResponse(request,"precio.html", context)
