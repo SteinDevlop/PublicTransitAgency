@@ -65,22 +65,22 @@ async def create_asistance(
         if existing_asistance:
             logger.warning(f"[POST /create] Error de validación: El asistencia ya existe con identificación {id}")
             raise HTTPException(400, detail="El asistencia ya existe con la misma identificación.")
-
-        # Crear asistencia
-        new_asistance = AsistanceCreate(id=id, iduser=iduser,horainicio=horainicio,horafinal=horafinal,fecha=fecha)
-        logger.info(f"Intentando insertar asistencia con datos: {new_asistance.model_dump()}")
-        controller.add(new_asistance)
-        logger.info(f"Asistencia insertado con id: {new_asistance.id}")  # Verifica si el ID se asigna
-        logger.info(f"[POST /create] Asistencia creado exitosamente con identificación {id}")
-        return {
-            "operation": "create",
-            "success": True,
-            "data": AsistanceOut(id=new_asistance.id,iduser=new_asistance.iduser,
-                                 horainicio=new_asistance.horainicio,
-                                 horafinal=new_asistance.horafinal,
-                                 fecha=new_asistance.fecha).model_dump(),
-            "message": "Asistance created successfully."
-        }
+        if existing_asistance is None or not existing_asistance:
+            # Crear asistencia
+            new_asistance = AsistanceCreate(id=id, iduser=iduser,horainicio=horainicio,horafinal=horafinal,fecha=fecha)
+            logger.info(f"Intentando insertar asistencia con datos: {new_asistance.model_dump()}")
+            controller.add(new_asistance)
+            logger.info(f"Asistencia insertado con id: {new_asistance.id}")  # Verifica si el ID se asigna
+            logger.info(f"[POST /create] Asistencia creado exitosamente con identificación {id}")
+            return {
+                "operation": "create",
+                "success": True,
+                "data": AsistanceOut(id=new_asistance.id,iduser=new_asistance.iduser,
+                                    horainicio=new_asistance.horainicio,
+                                    horafinal=new_asistance.horafinal,
+                                    fecha=new_asistance.fecha).model_dump(),
+                "message": "Asistance created successfully."
+            }
         
     except ValueError as e:
         logger.warning(f"[POST /create] Error de validación: {str(e)}")

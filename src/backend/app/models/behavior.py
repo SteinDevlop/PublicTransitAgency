@@ -6,7 +6,7 @@ class BehaviorCreate(BaseModel):
     cantidadrutas: int
     horastrabajadas: int
     observaciones:str
-    fecha:datetime.date
+    fecha:str
     iduser:int
 
     def to_dict(self):
@@ -19,7 +19,7 @@ class BehaviorCreate(BaseModel):
             "cantidadrutas": "INTEGER",
             "horastrabajadas": "INTEGER",
             "observaciones": "VARCHAR",
-            "fecha": "DATE",
+            "fecha": "VARCHAR",
             "iduser":"INTEGER"
         }
 class BehaviorOut(BehaviorCreate):

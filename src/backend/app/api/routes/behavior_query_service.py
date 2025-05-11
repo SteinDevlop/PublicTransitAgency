@@ -1,5 +1,5 @@
 import logging
-from fastapi import Request, Query, APIRouter, Security
+from fastapi import Request, Query, APIRouter, Security, Path
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
@@ -48,10 +48,10 @@ async def get_rendimientos(
     return rendimientos
 
 #behavior by id behavior
-@app.get("/", response_class=HTMLResponse)
+@app.get("/{id}", response_class=HTMLResponse)
 def rendimiento_by_id(
     request: Request,
-    id: int = Query(...),
+    id: int =Path(...),
     current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
 ):
     """
@@ -79,10 +79,10 @@ def rendimiento_by_id(
     return templates.TemplateResponse(request,"rendimiento.html", context)
 
 #behavior by user id
-@app.get("/user", response_class=HTMLResponse)
+@app.get("/user/{iduser}", response_class=HTMLResponse)
 def rendimiento_by_user(
     request: Request,
-    iduser: int = Query(...),
+    iduser: int = Path(...),
     current_user: dict = Security(get_current_user, scopes=["system", "administrador","supervisor"])
 ):
     """
@@ -93,7 +93,7 @@ def rendimiento_by_user(
     unit_rendimiento = controller.get_by_column(BehaviorOut, column_name="iduser", value = iduser)
 
     if unit_rendimiento:
-        logger.info(f"[GET /rendimiento] Rendimiento encontrada: {unit_rendimiento.id}, iduser: {unit_rendimiento.iduser}, horainicio: {unit_rendimiento.horainicio},horafinal={unit_rendimiento.horafinal}, fecha={unit_rendimiento.fecha}")
+        logger.info(f"[GET /rendimiento] Rendimiento encontrada: {unit_rendimiento.id}, iduser: {unit_rendimiento.iduser}")
     else:
         logger.warning(f"[GET /rendimiento] No se encontró rendimiento con iduser={iduser}")
 

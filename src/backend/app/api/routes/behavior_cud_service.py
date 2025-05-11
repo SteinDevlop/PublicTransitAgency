@@ -55,7 +55,7 @@ async def create_behavior(
     cantidadrutas: int=Form(...),
     horastrabajadas: int=Form(...),
     observaciones:str=Form(...),
-    fecha: datetime.date = Form(...),
+    fecha: str = Form(...),
     current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
 ):
     logger.info(f"[POST /create] Behavior: {current_user['user_id']} - Intentando crear rendimiento con id: {id}")
@@ -95,12 +95,12 @@ async def update_behavior(
     cantidadrutas: int=Form(...),
     horastrabajadas: int=Form(...),
     observaciones:str=Form(...),
-    fecha: datetime.date = Form(...),
+    fecha: str = Form(...),
     current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
 ):
     logger.info(f"[POST /update] Rendimiento: {current_user['user_id']} - Actualizando rendimiento id={id}")
     try:
-        existing = controller.get_by_id(BehaviorOut, id)
+        existing = controller.get_by_column(BehaviorOut,"id" ,id)
         if existing is None:
             logger.warning(f"[POST /update] Rendimiento no encontrada: id={id}")
             raise HTTPException(404, detail="Behavior not found")
@@ -132,7 +132,7 @@ async def delete_behavior(
 ):
     logger.info(f"[POST /delete] Rendimiento: {current_user['user_id']} - Eliminando rendimiento id={id}")
     try:
-        existing = controller.get_by_id(BehaviorOut, id)
+        existing = controller.get_by_column(BehaviorOut,"id",id)
         if not existing:
             logger.warning(f"[POST /delete] Rendimiento no encontrado en la base de datos: id={id}")
             raise HTTPException(404, detail="Behavior not found")
