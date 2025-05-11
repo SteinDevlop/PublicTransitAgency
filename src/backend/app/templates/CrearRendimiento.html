@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Crear Reporte de Rendimiento</title>
+    <link rel="stylesheet" href="{{ url_for('static', path='css/styles.css') }}">
+</head>
+<body>
+    <h2 style="text-align: center;">Crear Reporte de Rendimiento</h2>
+    <form action="/behavior/create" method="post">
+
+        <label for="id">ID del Reporte de Rendimiento:</label>
+        <input type="number" id="id" name="id" required>
+        
+        <label for="iduser">Identificador del Empleado:</label>
+        <input type="number" id="iduser" name="iduser" required>
+
+        <label for="horastrabajadas">Cantidad de Horas Trabajadas:</label>
+        <input type="number" id="horastrabajadas" name="horastrabajadas" required>
+        
+        <label for="cantidadrutas">Cantidad de Rutas Cubiertas:</label>
+        <input type="number" id="cantidadrutas" name="cantidadrutas" required>
+
+        <label for="observaciones"> Observaciones:</label>
+        <input type="text" id="observaciones" name="observaciones" required>
+
+        <label for="fecha"> Fecha del Reporte de Rendimiento:</label>
+        <input type="date" id="fecha" name="fecha" required>
+
+        <button type="submit">Crear Reporte de Rendimiento</button>
+    </form>
+</body>
+</html>
