@@ -9,12 +9,8 @@ class UniversalController:
         try:
             settings = Settings()
             self.conn = pyodbc.connect(
-               f"DRIVER={{SQL Server}};"
-                f"SERVER={settings.db_config['host']},{settings.db_config['port']};"
-                f"DATABASE={settings.db_config['dbname']};"
-                f"UID={settings.db_config['user']};"
-                f"PWD={settings.db_config['password']}"
-            )
+    f"DRIVER={{SQL Server}};SERVER={settings.db_config['host']},1435;DATABASE={settings.db_config['dbname']};UID={settings.db_config['user']};PWD={settings.db_config['password']}"
+)
             self.conn.autocommit = False  # Desactivar autocommit
             self.cursor = self.conn.cursor()
         except pyodbc.Error as e:
@@ -65,16 +61,6 @@ class UniversalController:
 
         return cls.from_dict(dict(zip([column[0] for column in self.cursor.description], row))) if row else None
 
-    def get_by_column(self, cls: Any, column_name: str, value: Any) -> Any | None:
-        table = cls.__entity_name__
-        sql = f"SELECT * FROM {table} WHERE {column_name} = ?"
-
-        self.cursor.execute(sql, (value,))
-        row = self.cursor.fetchone()
-
-        return cls.from_dict(dict(zip([column[0] for column in self.cursor.description], row))) if row else None
-
-    
     def add(self, obj: Any) -> Any:
         """
         Agrega un nuevo registro a la tabla correspondiente al objeto proporcionado.
@@ -82,15 +68,9 @@ class UniversalController:
         table = self._get_table_name(obj)
         data = obj.to_dict()
 
-<<<<<<< HEAD
         # Eliminar el campo ID si es None (autoincremental)
         if "ID" in data and data["ID"] is None:
             del data["ID"]
-=======
-        columns = ', '.join(data.keys())
-        placeholders = ', '.join(['?'] * len(data))
-        values = list(data.values())
->>>>>>> 6157e83e6c9df8070f49ddaa46cab9d268bba0d9
 
         # Construir la consulta SQL para insertar el registro
         columns = ", ".join(data.keys())
@@ -104,7 +84,6 @@ class UniversalController:
         except Exception as e:
             self.conn.rollback()
             raise ValueError(f"Error al agregar el registro: {e}")
-
 
     def update(self, obj: Any) -> Any:
         """
