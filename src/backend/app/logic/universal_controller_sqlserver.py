@@ -60,6 +60,17 @@ class UniversalController:
         row = self.cursor.fetchone()
 
         return cls.from_dict(dict(zip([column[0] for column in self.cursor.description], row))) if row else None
+    
+    def get_by_column(self, cls: Any, column_name: str, value: Any) -> list[dict]:
+        table = cls.__entity_name__
+
+        sql = f"SELECT * FROM {table} WHERE {column_name} = ?"
+        try:
+            self.cursor.execute(sql, (value,))
+            rows = self.cursor.fetchall()
+            return [dict(zip([column[0] for column in self.cursor.description], row)) for row in rows]
+        except pyodbc.Error as e:
+            raise RuntimeError(f"Error al obtener registros por columna {column_name}: {e}")
 
     def add(self, obj: Any) -> Any:
         """
@@ -92,15 +103,17 @@ class UniversalController:
         table = self._get_table_name(obj)
         data = obj.to_dict()
 
+        # Normalizar clave 'id' -> 'ID'
+        if "id" in data and "ID" not in data:
+            data["ID"] = data.pop("id")
+
         if "ID" not in data or data["ID"] is None:
             raise ValueError("El objeto debe tener un campo 'ID' válido para ser actualizado.")
 
-        # Construir la consulta SQL para actualizar el registro
         columns = [f"{key} = ?" for key in data.keys() if key != "ID"]
         sql = f"UPDATE {table} SET {', '.join(columns)} WHERE ID = ?"
 
         try:
-            # Ejecutar la consulta con los valores correspondientes
             values = [data[key] for key in data.keys() if key != "ID"] + [data["ID"]]
             self.cursor.execute(sql, values)
             self.conn.commit()
@@ -109,6 +122,7 @@ class UniversalController:
             self.conn.rollback()
             raise ValueError(f"Error al actualizar el registro: {e}")
 
+
     def delete(self, obj: Any) -> bool:
         """
         Elimina un registro de la tabla correspondiente al objeto proporcionado.
@@ -116,9 +130,10 @@ class UniversalController:
         table = self._get_table_name(obj)
         data = obj.to_dict()
 
-        if "ID" not in data or data["ID"] is None:
-            raise ValueError("El objeto debe tener un campo 'ID' válido para ser eliminado.")
-
+        # Normalizar clave 'id' -> 'ID'
+        if "id" in data and "ID" not in data:
+            data["ID"] = data.pop("id")
+            
         sql = f"DELETE FROM {table} WHERE ID = ?"
         try:
             # Ejecutar la consulta para eliminar el registro

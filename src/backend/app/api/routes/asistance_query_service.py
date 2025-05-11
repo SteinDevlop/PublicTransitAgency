@@ -1,5 +1,5 @@
 import logging
-from fastapi import Request, Query, APIRouter, Security
+from fastapi import Request, Query, APIRouter, Security, Path
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 
@@ -48,10 +48,10 @@ async def get_asistencias(
     return asistencias
 
 #asistance by id asistance
-@app.get("/", response_class=HTMLResponse)
+@app.get("/{id}", response_class=HTMLResponse)
 def asistencia_by_id(
     request: Request,
-    id: int = Query(...),
+    id: int = Path(...),
     current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
 ):
     """
@@ -70,17 +70,18 @@ def asistencia_by_id(
         "request": request,
         "id": unit_asistencia.id if unit_asistencia else "None",
         "iduser": unit_asistencia.iduser if unit_asistencia else "None",
-        "idtype": unit_asistencia.idtype if unit_asistencia else "None",
-        "balance": unit_asistencia.balance if unit_asistencia else "None"
+        "horainicio":unit_asistencia.horainicio if unit_asistencia else "None",
+        "horafinal":unit_asistencia.horafinal if unit_asistencia else "None",
+        "fecha":unit_asistencia.fecha if unit_asistencia else "None"
     }
 
     return templates.TemplateResponse(request,"asistencia.html", context)
 
 #asistance by user id
-@app.get("/user", response_class=HTMLResponse)
+@app.get("/user/{iduser}", response_class=HTMLResponse)
 def asistencia_by_user(
     request: Request,
-    iduser: int = Query(...),
+    iduser: int = Path(...),
     current_user: dict = Security(get_current_user, scopes=["system", "administrador","conductor","tecnico","supervisor"])
 ):
     """
@@ -91,17 +92,17 @@ def asistencia_by_user(
     unit_asistencia = controller.get_by_column(AsistanceOut, column_name="iduser", value = iduser)
 
     if unit_asistencia:
-        logger.info(f"[GET /asistencia] Asistencia encontrada: {unit_asistencia.id}, iduser: {unit_asistencia.iduser}, horainicio: {unit_asistencia.horainicio},horafinal={unit_asistencia.horafinal}, fecha={unit_asistencia.fecha}")
+        logger.info(f"[GET /asistencia] Se encontraron {len(unit_asistencia)} asistencias para iduser={iduser}")
+        # Si hay varias asistencias, iterar sobre ellas
+        context = {
+            "request": request,
+            "asistencias": unit_asistencia,  # Lista de asistencias
+        }
     else:
-        logger.warning(f"[GET /asistencia] No se encontró asistencia con iduser={iduser}")
+        logger.warning(f"[GET /asistencia] No se encontraron asistencias con iduser={iduser}")
+        context = {
+            "request": request,
+            "asistencias": []  # Si no se encontraron asistencias, pasar una lista vacía
+        }
 
-    context = {
-        "request": request,
-        "id": unit_asistencia.id if unit_asistencia else "None",
-        "iduser": unit_asistencia.iduser if unit_asistencia else "None",
-        "horainicio":unit_asistencia.horainicio if unit_asistencia else "None",
-        "horafinal":unit_asistencia.horafinal if unit_asistencia else "None",
-        "fecha":unit_asistencia.fecha if unit_asistencia else "None"
-    }
-
-    return templates.TemplateResponse(request,"asistencia.html", context)
+    return templates.TemplateResponse("asistencias.html", context)
