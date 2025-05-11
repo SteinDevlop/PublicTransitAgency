@@ -1,24 +1,42 @@
-from fastapi import APIRouter, Form, HTTPException
-from backend.app.models.transport import Transport
+from fastapi import APIRouter, Form, HTTPException, Security, Request
 from backend.app.logic.universal_controller_sqlserver import UniversalController
+from backend.app.models.transport import Transport
+from backend.app.core.auth import get_current_user
 from starlette.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
-from fastapi import Request
 
 app = APIRouter(prefix="/transports", tags=["transports"])
 controller = UniversalController()
 templates = Jinja2Templates(directory="src/backend/app/templates")
 
 @app.get("/create", response_class=HTMLResponse)
-def crear_unidad_form(request: Request):
+def crear_unidad_form(
+    request: Request,
+    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "supervisor"])
+):
+    """
+    Renderiza el formulario para crear una unidad de transporte.
+    """
     return templates.TemplateResponse("CrearTransport.html", {"request": request})
 
 @app.get("/update", response_class=HTMLResponse)
-def actualizar_unidad_form(request: Request):
+def actualizar_unidad_form(
+    request: Request,
+    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "supervisor"])
+):
+    """
+    Renderiza el formulario para actualizar una unidad de transporte.
+    """
     return templates.TemplateResponse("ActualizarTransport.html", {"request": request})
 
 @app.get("/delete", response_class=HTMLResponse)
-def eliminar_unidad_form(request: Request):
+def eliminar_unidad_form(
+    request: Request,
+    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "supervisor"])
+):
+    """
+    Renderiza el formulario para eliminar una unidad de transporte.
+    """
     return templates.TemplateResponse("EliminarTransport.html", {"request": request})
 
 @app.post("/create")
@@ -26,10 +44,11 @@ def crear_unidad(
     Ubicacion: str = Form(...),
     Capacidad: int = Form(...),
     IDRuta: int = Form(...),
-    IDTipo: int = Form(...)
+    IDTipo: int = Form(...),
+    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "supervisor"])
 ):
     """
-    Endpoint para crear una unidad de transporte.
+    Crea una unidad de transporte con los datos proporcionados.
     """
     transport = Transport(Ubicacion=Ubicacion, Capacidad=Capacidad, IDRuta=IDRuta, IDTipo=IDTipo)
     try:
@@ -44,10 +63,11 @@ def actualizar_unidad(
     Ubicacion: str = Form(...),
     Capacidad: int = Form(...),
     IDRuta: int = Form(...),
-    IDTipo: int = Form(...)
+    IDTipo: int = Form(...),
+    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "supervisor"])
 ):
     """
-    Endpoint para actualizar una unidad de transporte existente.
+    Actualiza la información de una unidad de transporte existente.
     """
     existing_transport = controller.get_by_id(Transport, ID)
     if not existing_transport:
@@ -62,10 +82,11 @@ def actualizar_unidad(
 
 @app.post("/delete")
 def eliminar_unidad(
-    ID: int = Form(...)
+    ID: int = Form(...),
+    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "supervisor"])
 ):
     """
-    Endpoint para eliminar una unidad de transporte por su ID.
+    Elimina una unidad de transporte existente por su ID.
     """
     existing_transport = controller.get_by_id(Transport, ID)
     if not existing_transport:

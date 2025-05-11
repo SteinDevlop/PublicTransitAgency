@@ -17,8 +17,11 @@ def listar_tickets(
     """
     Lista todos los tickets.
     """
-    tickets = controller.read_all(Ticket)
-    return templates.TemplateResponse("ListarTickets.html", {"request": request, "tickets": tickets})
+    try:
+        tickets = controller.read_all(Ticket)
+        return templates.TemplateResponse("ListarTickets.html", {"request": request, "tickets": tickets})
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/{ID}", response_class=HTMLResponse)
 def detalle_ticket(
@@ -29,7 +32,10 @@ def detalle_ticket(
     """
     Obtiene el detalle de un ticket por su ID.
     """
-    ticket = controller.get_by_id(Ticket, ID)
-    if not ticket:
-        raise HTTPException(status_code=404, detail="Ticket no encontrado")
-    return templates.TemplateResponse("DetalleTicket.html", {"request": request, "ticket": ticket.to_dict()})
+    try:
+        ticket = controller.get_by_id(Ticket, ID)
+        if not ticket:
+            raise HTTPException(status_code=404, detail="Ticket no encontrado")
+        return templates.TemplateResponse("DetalleTicket.html", {"request": request, "ticket": ticket.to_dict()})
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
