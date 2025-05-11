@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Crear PQR</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <h2 style="text-align: center;">Crear PQR</h2>
+    <form action="/user/create" method="post">
+        <label for="type">Tipo de PQR:</label>
+        <input type="text" id="type" name="type" required>
+
+        <label for="name">Descripcion:</label>
+        <input type="text" id="name" name="name" required>
+
+        <label for="lastname">Apellido:</label>
+        <input type="text" id="lastname" name="lastname" required>
+
+        <label for="email">Correo:</label>
+        <input type="text" id="email" name="email" required>
+
+        <label for="password">Contraseña:</label>
+        <input type="text" id="password" name="password" required>
+
+        <label for="id_typeuser">Tipo de Usuario:</label>
+        <select id="opciones" name="opciones">
+            <option value="1">Pasajero</option>
+            <option value="2">Conductor</option>
+            <option value="3">Supervisor</option>
+            <option value="4">Mantenimiento</option>
+            <option value="5">Administrador</option>
+          </select>
+
+        <label for="idturn">Turno Laboral:</label>
+        <select id="opciones" name="opciones">
+            <option value="1">Turno diurno</option>
+            <option value="2">Turno nocturno</option>
+            <option value="3">Turno vespertino</option>
+            <option value="4">Turno matutino</option>
+            <option value="5">Turno fijo</option>
+            <option value="6">Turno rotativo</option>
+            <option value="7">Turno mixto</option>
+            <option value="8">Turno de fin de semana</option>
+            <option value="9">Ninguno</option>
+          </select>
+
+        <button type="submit">Crear Usuario</button>
+    </form>
+</body>
+</html>
