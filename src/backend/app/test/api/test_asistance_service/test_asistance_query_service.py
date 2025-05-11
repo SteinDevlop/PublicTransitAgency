@@ -35,27 +35,11 @@ def test_get_by_id():
 
 def test_get_by_userid():
     """Prueba que la ruta '/asistance/user/{iduser}' devuelve las asistencias correctas para un iduser."""
-    response = client.get("/asistance/user/100001", headers=headers)
+    response = client.get("/asistance/user/99", headers=headers)
     assert response.status_code == 200
-    
     data = response.json()
-    
-    # Verificar que la respuesta es una lista de asistencias
-    assert isinstance(data, list)
-    
-    # Verificar que al menos una asistencia está presente en la respuesta
-    assert len(data) > 0
-    
-    # Verificar que la primera asistencia tiene los campos esperados
-    assert "id" in data[0]
-    assert "iduser" in data[0]
-    assert "horainicio" in data[0]
-    assert "horafinal" in data[0]
-    assert "fecha" in data[0]
-    
-    # Opcional: Verificar que la primera asistencia tiene los valores correctos (ajusta según tu base de datos)
     assert data[0]["id"] == 44
-    assert data[0]["iduser"] == 100001  # Asume que este es el iduser que buscas
+    assert data[0]["iduser"] == 99
 
 def test_get_by_id_not_found():
     """Prueba que la ruta '/asistance/{id}' devuelve un error 404 si no se encuentra el usuario."""

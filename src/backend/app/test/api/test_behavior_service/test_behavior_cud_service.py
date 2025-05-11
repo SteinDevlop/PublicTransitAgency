@@ -17,7 +17,7 @@ app_for_test.mount("/static", StaticFiles(directory="src/frontend/static"), name
 client = TestClient(app_for_test)
 
 def test_create_behavior():
-    response = client.post("/behavior/create", data={"id": 44, "iduser": 100001, "cantidadrutas": 2,"horastrabajadas":12,
+    response = client.post("/behavior/create", data={"id": 44, "iduser": 99, "cantidadrutas": 2,"horastrabajadas":12,
                                                 "observaciones":"none",
                                                  "fecha":"29-08-2024"}, headers=headers)
     assert response.status_code == 200
@@ -25,7 +25,7 @@ def test_create_behavior():
     assert response.json()["data"]["observaciones"] == "none"
 
 def test_update_behavior_existing():
-    response = client.post("/behavior/update", data={"id": 44, "iduser": 100001, "cantidadrutas": 3,"horastrabajadas":12,
+    response = client.post("/behavior/update", data={"id": 44, "iduser": 99, "cantidadrutas": 3,"horastrabajadas":12,
                                                 "observaciones":"milei",
                                                  "fecha":"29-08-2024"}, headers=headers)
     assert response.status_code == 200
@@ -33,7 +33,7 @@ def test_update_behavior_existing():
     assert response.json()["data"]["cantidadrutas"] == 3
 
 def test_update_behavior_not_found():
-    response = client.post("/behavior/update",data={"id": 999, "iduser": 100001, "cantidadrutas": 3,"horastrabajadas":12,
+    response = client.post("/behavior/update",data={"id": 999, "iduser": 99, "cantidadrutas": 3,"horastrabajadas":12,
                                                 "observaciones":"milei",
                                                  "fecha":"29-08-2024"}, headers=headers)
     assert response.status_code == 404

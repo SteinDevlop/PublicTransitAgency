@@ -92,7 +92,6 @@ def asistencia_by_user(
     unit_asistencia = controller.get_by_column(AsistanceOut, column_name="iduser", value = iduser)
 
     if unit_asistencia:
-        logger.info(f"[GET /asistencia] Se encontraron {len(unit_asistencia)} asistencias para iduser={iduser}")
         # Si hay varias asistencias, iterar sobre ellas
         context = {
             "request": request,

@@ -142,7 +142,6 @@ async def delete_asistance(
             raise HTTPException(404, detail="Asistance not found")
 
         logger.info(f"[POST /delete] Eliminando asistencia con id={id}")
-        existing = AsistanceOut.from_dict(existing[0])  # <-- convierte el dict a instancia
         controller.delete(existing) 
         logger.info(f"[POST /delete] Asistencia eliminada exitosamente: id={id}")
         return {
