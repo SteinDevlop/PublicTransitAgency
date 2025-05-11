@@ -94,4 +94,4 @@ def eliminar_parada(
         controller.delete(existing_parada)
         return {"message": "Parada eliminada exitosamente."}
     except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Error al eliminar la parada: {str(e)})
+        raise HTTPException(status_code=400, detail=f"Error al eliminar la parada: {str(e)}")
