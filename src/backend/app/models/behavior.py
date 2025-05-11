@@ -1,7 +1,7 @@
 from pydantic import BaseModel
 import datetime
 class BehaviorCreate(BaseModel):
-    __entity_name__ = "rendimiento"  # <- Aquí se define el nombre general de la entidad
+    __entity_name__ = "Rendimiento"  # <- Aquí se define el nombre general de la entidad
     id: int
     cantidadrutas: int
     horastrabajadas: int
@@ -22,8 +22,8 @@ class BehaviorCreate(BaseModel):
             "fecha": "DATE",
             "iduser":"INTEGER"
         }
-class PQROut(BehaviorCreate):
-    __entity_name__ = "rendimiento"  # <- También aquí, porque se usa para lectura
+class BehaviorOut(BehaviorCreate):
+    __entity_name__ = "Rendimiento"  # <- También aquí, porque se usa para lectura
 
     @classmethod
     def from_dict(cls, data: dict):
