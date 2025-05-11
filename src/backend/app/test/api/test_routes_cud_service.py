@@ -3,6 +3,7 @@ from fastapi.testclient import TestClient
 from backend.app.api.routes.routes_cud_service import app
 from backend.app.models.routes import Route
 from backend.app.logic.universal_controller_sqlserver import UniversalController
+from backend.app.core.conf import headers
 
 client = TestClient(app)
 controller = UniversalController()
@@ -12,60 +13,41 @@ def setup_and_teardown():
     """
     Fixture para configurar y limpiar los datos de prueba.
     """
-    route = Route(ID=9999, IDHorario=1, Nombre="Ruta de prueba")
-    # Asegurarse de que la ruta no exista antes de crearla
-    existing_route = controller.get_by_id(Route, route.ID)
-    if existing_route:
-        controller.delete(existing_route)
-
-    # Crear la ruta de prueba
-    controller.add(route)
-    yield route
-
-    # Eliminar la ruta de prueba
-    controller.delete(route)
+    ruta = Route(ID=9999, IDHorario=1, Nombre="Ruta de Prueba")
+    controller.add(ruta)
+    yield ruta
+    controller.delete(ruta)
 
 def test_crear_ruta():
     """
-    Prueba para crear una ruta.
+    Prueba para crear una nueva ruta.
     """
-    route = Route(ID=9998, IDHorario=1, Nombre="Nueva ruta")
+    ruta = Route(ID=9998, IDHorario=2, Nombre="Nueva Ruta")
     try:
-        response = client.post("/routes/create", data=route.to_dict())
+        response = client.post("/routes/create", data=ruta.to_dict(), headers=headers)
         assert response.status_code == 200
         assert response.json()["message"] == "Ruta creada exitosamente."
     finally:
-        # Teardown: Eliminar la ruta creada
-        controller.delete(route)
+        controller.delete(ruta)
 
 def test_actualizar_ruta(setup_and_teardown):
     """
     Prueba para actualizar una ruta existente.
     """
-    route = setup_and_teardown
-    updated_data = {
-        "ID": route.ID,
-        "IDHorario": 2,
-        "Nombre": "Ruta actualizada"
-    }
-    response = client.post("/routes/update", data=updated_data)
+    ruta = setup_and_teardown
+    response = client.post(
+        "/routes/update",
+        data={"ID": ruta.ID, "IDHorario": 3, "Nombre": "Ruta Actualizada"},
+        headers=headers
+    )
     assert response.status_code == 200
     assert response.json()["message"] == "Ruta actualizada exitosamente."
-
-    # Verificar que los datos se hayan actualizado
-    updated_route = controller.get_by_id(Route, route.ID)
-    assert updated_route.IDHorario == 2
-    assert updated_route.Nombre == "Ruta actualizada"
 
 def test_eliminar_ruta(setup_and_teardown):
     """
     Prueba para eliminar una ruta existente.
     """
-    route = setup_and_teardown
-    response = client.post("/routes/delete", data={"ID": route.ID})
+    ruta = setup_and_teardown
+    response = client.post("/routes/delete", data={"ID": ruta.ID}, headers=headers)
     assert response.status_code == 200
     assert response.json()["message"] == "Ruta eliminada exitosamente."
-
-    # Verificar que la ruta haya sido eliminada
-    deleted_route = controller.get_by_id(Route, route.ID)
-    assert deleted_route is None

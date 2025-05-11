@@ -1,15 +1,19 @@
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, HTTPException, Request, Security
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from backend.app.logic.universal_controller_sqlserver import UniversalController
 from backend.app.models.incidence import Incidence
+from backend.app.core.auth import get_current_user
 
 app = APIRouter(prefix="/incidences", tags=["incidences"])
 controller = UniversalController()
 templates = Jinja2Templates(directory="src/backend/app/templates")
 
 @app.get("/", response_class=HTMLResponse)
-def listar_incidencias(request: Request):
+def listar_incidencias(
+    request: Request,
+    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "supervisor", "operador"])
+):
     """
     Lista todas las incidencias.
     """
@@ -20,7 +24,11 @@ def listar_incidencias(request: Request):
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/{ID}", response_class=HTMLResponse)
-def detalle_incidencia(ID: int, request: Request):
+def detalle_incidencia(
+    ID: int,
+    request: Request,
+    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "supervisor", "operador"])
+):
     """
     Obtiene el detalle de una incidencia por su ID.
     """

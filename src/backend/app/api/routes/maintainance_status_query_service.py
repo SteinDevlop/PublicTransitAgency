@@ -35,12 +35,9 @@ def detalle_estado(
     try:
         estado = controller.get_by_id(MaintainanceStatus, id)
         if not estado:
-            # Si el estado no existe, devolver un error 404
             raise HTTPException(status_code=404, detail="Estado de mantenimiento no encontrado")
         return templates.TemplateResponse("DetalleEMantenimiento.html", {"request": request, "estado": estado.to_dict()})
     except HTTPException as e:
-        # Re-lanzar excepciones HTTP para que sean manejadas correctamente
         raise e
     except Exception as e:
-        # Manejar cualquier otro error como un error interno del servidor
         raise HTTPException(status_code=500, detail=str(e))

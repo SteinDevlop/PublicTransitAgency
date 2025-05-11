@@ -1,5 +1,4 @@
-from fastapi import Request
-from fastapi import APIRouter, Form, HTTPException, Security
+from fastapi import Request, APIRouter, Form, HTTPException, Security
 from fastapi.templating import Jinja2Templates
 from backend.app.logic.universal_controller_sqlserver import UniversalController
 from backend.app.models.maintainance_status import MaintainanceStatus
@@ -11,21 +10,20 @@ controller = UniversalController()
 templates = Jinja2Templates(directory="src/backend/app/templates")
 
 @app.get("/create", response_class=HTMLResponse)
-def crear_estado_form(request: Request):
+def crear_estado_form(
+    request: Request,
+    current_user: dict = Security(get_current_user, scopes=["system", "mantenimiento"])
+):
+    """
+    Renderiza el formulario para crear un estado de mantenimiento.
+    """
     return templates.TemplateResponse("CrearEMantenimiento.html", {"request": request})
-
-@app.get("/update", response_class=HTMLResponse)
-def actualizar_estado_form(request: Request):
-    return templates.TemplateResponse("ActualizarEMantenimiento.html", {"request": request})
-
-@app.get("/delete", response_class=HTMLResponse)
-def eliminar_estado_form(request: Request):
-    return templates.TemplateResponse("EliminarEMantenimiento.html", {"request": request})
 
 @app.post("/create")
 def crear_estado(
     id: int = Form(...),
-    TipoEstado: str = Form(...)
+    TipoEstado: str = Form(...),
+    current_user: dict = Security(get_current_user, scopes=["system", "mantenimiento"])
 ):
     """
     Crea un nuevo estado de mantenimiento.
@@ -37,10 +35,21 @@ def crear_estado(
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
+@app.get("/update", response_class=HTMLResponse)
+def actualizar_estado_form(
+    request: Request,
+    current_user: dict = Security(get_current_user, scopes=["system", "mantenimiento"])
+):
+    """
+    Renderiza el formulario para actualizar un estado de mantenimiento.
+    """
+    return templates.TemplateResponse("ActualizarEMantenimiento.html", {"request": request})
+
 @app.post("/update")
 def actualizar_estado(
     id: int = Form(...),
-    TipoEstado: str = Form(...)
+    TipoEstado: str = Form(...),
+    current_user: dict = Security(get_current_user, scopes=["system", "mantenimiento"])
 ):
     """
     Actualiza un estado de mantenimiento existente.
@@ -56,9 +65,20 @@ def actualizar_estado(
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
+@app.get("/delete", response_class=HTMLResponse)
+def eliminar_estado_form(
+    request: Request,
+    current_user: dict = Security(get_current_user, scopes=["system", "mantenimiento"])
+):
+    """
+    Renderiza el formulario para eliminar un estado de mantenimiento.
+    """
+    return templates.TemplateResponse("EliminarEMantenimiento.html", {"request": request})
+
 @app.post("/delete")
 def eliminar_estado(
-    id: int = Form(...)
+    id: int = Form(...),
+    current_user: dict = Security(get_current_user, scopes=["system", "mantenimiento"])
 ):
     """
     Elimina un estado de mantenimiento por su ID.
