@@ -46,8 +46,9 @@ jobs:
           PASSWORD: ${{ secrets.PASSWORD }}
           ALGORITHM: ${{ secrets.ALGORITHM }}
         run: |
-          export PYTHONPATH= 'src'
-          pytest src/backend/app/tests --cov=. --cov-report=xml --cov-report=term --cov-config .coveragerc || true
+          export PYTHONPATH=src
+          pytest src/backend/app/tests --cov=src --cov-report=xml --cov-report=term --cov-config .coveragerc || true
+
       - name: Upload coverage report
         uses: actions/upload-artifact@v4
         with:
