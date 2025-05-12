@@ -1,4 +1,5 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 from fastapi import APIRouter, Form, HTTPException, Security, Request
 =======
 <<<<<<< HEAD
@@ -7,10 +8,14 @@ from fastapi import APIRouter, Form, HTTPException
 from fastapi import APIRouter, Form, HTTPException, Security, Request
 >>>>>>> a8980fb (Corrections on test)
 >>>>>>> 52e45f5 (Corrections on test)
+=======
+from fastapi import APIRouter, Form, HTTPException, Security, Request
+>>>>>>> de23b1a (changes)
 from backend.app.models.stops import Parada
 from backend.app.logic.universal_controller_sqlserver import UniversalController
 from starlette.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
+<<<<<<< HEAD
 <<<<<<< HEAD
 from backend.app.core.auth import get_current_user
 =======
@@ -20,12 +25,16 @@ from fastapi import Request
 from backend.app.core.auth import get_current_user
 >>>>>>> a8980fb (Corrections on test)
 >>>>>>> 52e45f5 (Corrections on test)
+=======
+from backend.app.core.auth import get_current_user
+>>>>>>> de23b1a (changes)
 
 app = APIRouter(prefix="/stops", tags=["stops"])
 controller = UniversalController()
 templates = Jinja2Templates(directory="src/backend/app/templates")
 
 @app.get("/create", response_class=HTMLResponse)
+<<<<<<< HEAD
 <<<<<<< HEAD
 def crear_parada_form(
     request: Request,
@@ -50,21 +59,26 @@ def eliminar_parada_form(request: Request):
     return templates.TemplateResponse("EliminarParada.html", {"request": request})
 
 =======
+=======
+>>>>>>> de23b1a (changes)
 def crear_parada_form(
     request: Request,
-    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "planificador"])
 ):
     """
     Renderiza el formulario para crear una parada.
     """
     return templates.TemplateResponse("CrearParada.html", {"request": request})
 
+<<<<<<< HEAD
 >>>>>>> a8980fb (Corrections on test)
 >>>>>>> 52e45f5 (Corrections on test)
+=======
+>>>>>>> de23b1a (changes)
 @app.post("/create")
 def crear_parada(
     ID: int = Form(...),
     Nombre: str = Form(...),
+<<<<<<< HEAD
 <<<<<<< HEAD
     Ubicacion: str = Form(...),
     current_user: dict = Security(get_current_user, scopes=["system", "administrador", "planificador"])
@@ -76,6 +90,9 @@ def crear_parada(
     current_user: dict = Security(get_current_user, scopes=["system", "administrador", "planificador"])
 >>>>>>> a8980fb (Corrections on test)
 >>>>>>> 52e45f5 (Corrections on test)
+=======
+    Ubicacion: str = Form(...),
+>>>>>>> de23b1a (changes)
 ):
     """
     Endpoint para crear una parada.
@@ -86,19 +103,15 @@ def crear_parada(
         return {"message": "Parada creada exitosamente.", "data": parada.to_dict()}
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
-<<<<<<< HEAD
-=======
 
 @app.get("/update", response_class=HTMLResponse)
 def actualizar_parada_form(
     request: Request,
-    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "planificador"])
 ):
     """
     Renderiza el formulario para actualizar una parada.
     """
     return templates.TemplateResponse("ActualizarParada.html", {"request": request})
->>>>>>> a8980fb (Corrections on test)
 
 @app.get("/update", response_class=HTMLResponse)
 def actualizar_parada_form(
@@ -115,6 +128,7 @@ def actualizar_parada(
     ID: int = Form(...),
     Nombre: str = Form(...),
 <<<<<<< HEAD
+<<<<<<< HEAD
     Ubicacion: str = Form(...),
     current_user: dict = Security(get_current_user, scopes=["system", "administrador", "planificador"])
 =======
@@ -125,6 +139,9 @@ def actualizar_parada(
     current_user: dict = Security(get_current_user, scopes=["system", "administrador", "planificador"])
 >>>>>>> a8980fb (Corrections on test)
 >>>>>>> 52e45f5 (Corrections on test)
+=======
+    Ubicacion: str = Form(...),
+>>>>>>> de23b1a (changes)
 ):
     """
     Endpoint para actualizar una parada existente.
@@ -133,6 +150,7 @@ def actualizar_parada(
     if not existing_parada:
         raise HTTPException(status_code=404, detail="Parada no encontrada")
 
+<<<<<<< HEAD
 <<<<<<< HEAD
     updated_parada = Parada(ID=ID, Nombre=Nombre, Ubicacion=Ubicacion)
 =======
@@ -163,6 +181,8 @@ def eliminar_parada(
 =======
     id: int = Form(...)
 =======
+=======
+>>>>>>> de23b1a (changes)
     updated_parada = Parada(ID=ID, Nombre=Nombre, Ubicacion=Ubicacion)
     try:
         controller.update(updated_parada)
@@ -173,7 +193,6 @@ def eliminar_parada(
 @app.get("/delete", response_class=HTMLResponse)
 def eliminar_parada_form(
     request: Request,
-    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "planificador"])
 ):
     """
     Renderiza el formulario para eliminar una parada.
@@ -183,9 +202,12 @@ def eliminar_parada_form(
 @app.post("/delete")
 def eliminar_parada(
     ID: int = Form(...),
+<<<<<<< HEAD
     current_user: dict = Security(get_current_user, scopes=["system", "administrador", "planificador"])
 >>>>>>> a8980fb (Corrections on test)
 >>>>>>> 52e45f5 (Corrections on test)
+=======
+>>>>>>> de23b1a (changes)
 ):
     """
     Endpoint para eliminar una parada por su ID.

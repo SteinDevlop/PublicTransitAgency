@@ -11,19 +11,24 @@ templates = Jinja2Templates(directory="src/backend/app/templates")
 
 @app.get("/", response_class=HTMLResponse)
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 def listar_paradas(request: Request):
 =======
 >>>>>>> 52e45f5 (Corrections on test)
+=======
+>>>>>>> de23b1a (changes)
 def listar_paradas(
     request: Request,
-    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "planificador", "operador"])
 ):
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> a8980fb (Corrections on test)
 >>>>>>> 52e45f5 (Corrections on test)
+=======
+>>>>>>> de23b1a (changes)
     """
     Lista todas las paradas.
     """
@@ -32,20 +37,25 @@ def listar_paradas(
 
 @app.get("/{id}", response_class=HTMLResponse)
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 <<<<<<< HEAD
 def detalle_parada(id: int, request: Request):
 =======
 >>>>>>> 52e45f5 (Corrections on test)
+=======
+>>>>>>> de23b1a (changes)
 def obtener_detalle_parada(
     id: int,
     request: Request,
-    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "planificador", "operador"])
 ):
+<<<<<<< HEAD
 <<<<<<< HEAD
 =======
 >>>>>>> a8980fb (Corrections on test)
 >>>>>>> 52e45f5 (Corrections on test)
+=======
+>>>>>>> de23b1a (changes)
     """
     Obtiene el detalle de una parada por su ID.
     """
