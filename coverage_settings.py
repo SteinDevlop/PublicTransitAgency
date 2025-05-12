@@ -1,5 +1,5 @@
 [tox]
-envlist = py310
+envlist = py313
 skipsdist = True
 
 [testenv]
