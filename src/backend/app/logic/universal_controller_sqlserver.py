@@ -2,18 +2,22 @@ import pyodbc
 from backend.app.core.config import Settings
 from typing import Any
 import os
-
+import platform
 
 class UniversalController:
     def __init__(self):
         try:
             settings = Settings()
+            # Detectar el sistema operativo
+            driver = '{SQL Server}' if platform.system() == 'Windows' else '{ODBC Driver 18 for SQL Server}'
+            
             self.conn = pyodbc.connect(
-               f"DRIVER={{SQL Server}};"
+                f"DRIVER={driver};"
                 f"SERVER={settings.db_config['host']},{settings.db_config['port']};"
                 f"DATABASE={settings.db_config['dbname']};"
                 f"UID={settings.db_config['user']};"
-                f"PWD={settings.db_config['password']}"
+                f"PWD={settings.db_config['password']};"
+                f"TrustServerCertificate=yes;"  # Desactiva la verificación del certificado
             )
             self.conn.autocommit = False  # Desactivar autocommit
             self.cursor = self.conn.cursor()
