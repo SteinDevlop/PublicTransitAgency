@@ -32,15 +32,9 @@ def test_detalle_ruta_existente(setup_and_teardown):
     ruta = setup_and_teardown
     response = client.get(f"/routes/{ruta.ID}", headers=headers)
     assert response.status_code == 200
-<<<<<<< HEAD
-
-
-=======
-<<<<<<< HEAD
     assert "Ruta de prueba" in response.text
-=======
 
 
->>>>>>> a8980fb (Corrections on test)
->>>>>>> 52e45f5 (Corrections on test)
+
+
 

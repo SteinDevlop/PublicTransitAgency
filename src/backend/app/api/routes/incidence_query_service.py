@@ -18,7 +18,7 @@ def listar_incidencias(
     Lista todas las incidencias.
     """
     incidencias = controller.read_all(Incidence)
-    return templates.TemplateResponse("ListarIncidencias.html", {"request": request, "incidencias": incidencias})
+    return templates.TemplateResponse("ListarIncidencia.html", {"request": request, "incidencias": incidencias})
 
 @app.get("/{ID}", response_class=HTMLResponse)
 def detalle_incidencia(

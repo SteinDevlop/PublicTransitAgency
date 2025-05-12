@@ -19,13 +19,6 @@ def crear_estado_form(
     """
     return templates.TemplateResponse("CrearEMantenimiento.html", {"request": request})
 
-<<<<<<< HEAD
-@app.post("/create")
-def crear_estado(
-    id: int = Form(...),
-    TipoEstado: str = Form(...),
-    current_user: dict = Security(get_current_user, scopes=["system", "mantenimiento"])
-=======
 @app.get("/update", response_class=HTMLResponse)
 def actualizar_estado_form(request: Request):
     return templates.TemplateResponse("ActualizarEMantenimiento.html", {"request": request})
@@ -39,7 +32,6 @@ def eliminar_estado_form(request: Request):
 def crear_estado_mantenimiento(
     Nombre: str = Form(...),
     Descripcion: str = Form(...)
->>>>>>> 52e45f5 (Corrections on test)
 ):
     """
     Crea un nuevo estado de mantenimiento.
