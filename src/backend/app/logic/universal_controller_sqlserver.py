@@ -16,7 +16,8 @@ class UniversalController:
                 f"SERVER={settings.db_config['host']},{settings.db_config['port']};"
                 f"DATABASE={settings.db_config['dbname']};"
                 f"UID={settings.db_config['user']};"
-                f"PWD={settings.db_config['password']}"
+                f"PWD={settings.db_config['password']};"
+                f"TrustServerCertificate=yes;"  # Desactiva la verificación del certificado
             )
             self.conn.autocommit = False  # Desactivar autocommit
             self.cursor = self.conn.cursor()
