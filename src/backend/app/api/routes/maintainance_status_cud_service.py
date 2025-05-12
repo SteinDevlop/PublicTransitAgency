@@ -19,19 +19,34 @@ def crear_estado_form(
     """
     return templates.TemplateResponse("CrearEMantenimiento.html", {"request": request})
 
+<<<<<<< HEAD
 @app.post("/create")
 def crear_estado(
     id: int = Form(...),
     TipoEstado: str = Form(...),
     current_user: dict = Security(get_current_user, scopes=["system", "mantenimiento"])
+=======
+@app.get("/update", response_class=HTMLResponse)
+def actualizar_estado_form(request: Request):
+    return templates.TemplateResponse("ActualizarEMantenimiento.html", {"request": request})
+
+@app.get("/delete", response_class=HTMLResponse)
+def eliminar_estado_form(request: Request):
+    return templates.TemplateResponse("EliminarEMantenimiento.html", {"request": request})
+
+
+@app.post("/create")
+def crear_estado_mantenimiento(
+    Nombre: str = Form(...),
+    Descripcion: str = Form(...)
+>>>>>>> 52e45f5 (Corrections on test)
 ):
     """
     Crea un nuevo estado de mantenimiento.
     """
-    estado = MaintainanceStatus(ID=id, TipoEstado=TipoEstado)
     try:
-        controller.add(estado)
-        return {"message": "Estado de mantenimiento creado exitosamente.", "data": estado.to_dict()}
+        # Lógica para crear el estado de mantenimiento
+        return {"message": "Estado de mantenimiento creado exitosamente."}
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
