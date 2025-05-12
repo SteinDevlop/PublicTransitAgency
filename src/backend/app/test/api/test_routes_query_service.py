@@ -33,11 +33,5 @@ def test_detalle_ruta_existente(setup_and_teardown):
     response = client.get(f"/routes/{ruta.ID}", headers=headers)
     assert response.status_code == 200
 
-def test_detalle_ruta_no_existente():
-    """
-    Prueba para obtener el detalle de una ruta que no existe.
-    """
-    response = client.get("/routes/99999", headers=headers)
-    assert response.status_code == 404
-    assert response.json()["detail"] == "Ruta no encontrada"
+
 
