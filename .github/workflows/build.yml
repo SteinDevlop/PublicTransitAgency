@@ -30,11 +30,11 @@ jobs:
       - name: Run tests with coverage
         env:
           SECRET_KEY: ${{ secrets.SECRET_KEY }}
-          POSTGRES_HOST: ${{ secrets.POSTGRES_HOST }}
-          POSTGRES_PORT: ${{ secrets.POSTGRES_PORT }}
-          POSTGRES_DB: ${{ secrets.POSTGRES_DB }}
-          POSTGRES_USER: ${{ secrets.POSTGRES_USER }}
-          POSTGRES_PASSWORD: ${{ secrets.POSTGRES_PASSWORD }}
+          HOST: ${{ secrets.HOST }}
+          PORT: ${{ secrets.PORT }}
+          DB: ${{ secrets.DB }}
+          USER: ${{ secrets.USER }}
+          PASSWORD: ${{ secrets.PASSWORD }}
           ALGORITHM: ${{ secrets.ALGORITHM }}
         run: |
           export PYTHONPATH=.
