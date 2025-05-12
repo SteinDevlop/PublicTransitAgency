@@ -4,7 +4,6 @@ from typing import Any
 import os
 import platform
 
-
 class UniversalController:
     def __init__(self):
         try:
@@ -19,8 +18,11 @@ class UniversalController:
                 f"UID={settings.db_config['user']};"
                 f"PWD={settings.db_config['password']}"
             )
-        except Exception as e:
-            print(f"Error al conectar a la base de datos: {e}")
+            self.conn.autocommit = False  # Desactivar autocommit
+            self.cursor = self.conn.cursor()
+        except pyodbc.Error as e:
+            raise ConnectionError(f"Error de conexión a la base de datos: {e}")
+
     def _get_table_name(self, obj: Any) -> str:
         if hasattr(obj, "__entity_name__"):
             return obj.__entity_name__
