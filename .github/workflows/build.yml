@@ -66,3 +66,5 @@ jobs:
             -Dsonar.python.coverage.reportPaths=coverage.xml
             -Dsonar.exclusions=src/frontend/*,src/backend/app/tests/,src/backend/app/templates/,src/backend/app/tests/**
             -Dsonar.python.version=3.13
+            -Dsonar.sources=./src/backend/app/api
+            -Dsonar.tests=./src/backend/app/tests
