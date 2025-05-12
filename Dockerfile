@@ -1,4 +1,4 @@
-FROM python:3.11-slim
+FROM python:3.10
 
 # Create a non-root user (e.g., "appuser")
 RUN adduser --disabled-password --gecos '' appuser
@@ -11,7 +11,7 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy the rest of the code
-COPY src/backend/app/ 
+COPY src/backend/app/ /app/
 
 # Set appropriate permissions for the appuser to access the app directory
 RUN chown -R appuser:appuser /app
