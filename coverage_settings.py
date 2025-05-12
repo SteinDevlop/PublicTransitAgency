@@ -12,5 +12,5 @@ commands =
 
 [coverage:run]
 relative_files = True
-source = src/backend/app
+source = src/
 branch = True
