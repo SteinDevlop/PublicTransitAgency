@@ -1,11 +1,4 @@
-FROM python:3.9-slim
-
-# Install build dependencies for psycopg2 and other requirements
-RUN apt-get update && apt-get install -y \
-    gcc \
-    python3-dev \
-    libpq-dev \
-    && apt-get clean
+FROM python:3.11-slim
 
 # Create a non-root user (e.g., "appuser")
 RUN adduser --disabled-password --gecos '' appuser
@@ -18,7 +11,7 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy the rest of the code
-COPY src/backend/app/ /app/
+COPY src/backend/app/ 
 
 # Set appropriate permissions for the appuser to access the app directory
 RUN chown -R appuser:appuser /app
