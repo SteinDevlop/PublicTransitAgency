@@ -45,7 +45,7 @@ jobs:
           PASSWORD: ${{ secrets.PASSWORD }}
           ALGORITHM: ${{ secrets.ALGORITHM }}
         run: |
-          export PYTHONPATH=.
+          export PYTHONPATH= 'src'
           pytest src/backend/app/test --cov=. --cov-report=xml --cov-report=term --cov-config .coveragerc
 
       - name: Upload coverage report
