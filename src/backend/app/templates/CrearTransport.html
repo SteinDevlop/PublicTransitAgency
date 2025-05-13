@@ -35,11 +35,17 @@
         Crear Nuevo Transporte
     </h1>
 
+<<<<<<< HEAD
     <div class="flex justify-center mb-8 w-full">
         <a href="/transports" class="text-link hover:text-link-hover font-medium px-4 py-2 rounded-md transition duration-300 ease-in-out">
             Volver a la lista de transportes
         </a>
     </div>
+=======
+{% block title %}Crear Nuevo Transporte{% endblock %}
+{% block header %}Crear Nuevo Transporte{% endblock %}
+{% block back_url %}/trasnsport_units{% endblock %}
+>>>>>>> f7c4ade (everything works)
 
     <div class="bg-form-background p-8 rounded-lg shadow-md w-90 max-w-xl animate-slide-in">
         <form method="post" action="/transport_units/create" class="space-y-4">
@@ -68,6 +74,7 @@
             </button>
         </form>
     </div>
+<<<<<<< HEAD
 
     <footer class="bg-gray-200 text-secondary py-3 text-center w-full absolute bottom-0 left-0 box-border">
         <p>© 2024 Sistema de Gestión de Transportes. Todos los derechos reservados.</p>
@@ -100,3 +107,31 @@
     </style>
 </body>
 </html>
+=======
+    <div>
+        <label for="Ubicacion" class="block text-sm font-medium text-gray-700">Ubicación:</label>
+        <input type="text" id="Ubicacion" name="Ubicacion" required class="w-full border border-gray-300 rounded-lg p-2 mt-1">
+    </div>
+    <div>
+        <label for="Capacidad" class="block text-sm font-medium text-gray-700">Capacidad:</label>
+        <input type="number" id="Capacidad" name="Capacidad" required class="w-full border border-gray-300 rounded-lg p-2 mt-1">
+    </div>
+    <div>
+        <label for="IDRuta" class="block text-sm font-medium text-gray-700">ID Ruta:</label>
+        <input type="number" id="IDRuta" name="IDRuta" required class="w-full border border-gray-300 rounded-lg p-2 mt-1">
+    </div>
+    <div>
+        <label for="IDTipo" class="block text-sm font-medium text-gray-700">ID Tipo:</label>
+        <input type="number" id="IDTipo" name="IDTipo" required class="w-full border border-gray-300 rounded-lg p-2 mt-1">
+    </div>
+    <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700">
+        Crear Transporte
+    </button>
+</form>
+<div class="mt-6">
+    <a href="/trasnsport_units" class="w-full inline-block text-center bg-gray-600 text-white py-2 px-4 rounded-md hover:bg-gray-700">
+        Volver a Listar Transportes
+    </a>
+</div>
+{% endblock %}
+>>>>>>> f7c4ade (everything works)

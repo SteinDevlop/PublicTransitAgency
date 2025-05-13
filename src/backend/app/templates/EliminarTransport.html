@@ -36,6 +36,7 @@
             Eliminar Transporte
         </h1>
 
+<<<<<<< HEAD
         <div class="nav-links flex justify-center mb-8 w-full">
             <a href="/transports" class="text-link hover:text-link-hover font-medium px-4 py-2 rounded-md transition duration-300 ease-in-out">
                 Volver a la lista de transportes
@@ -102,3 +103,25 @@
     </style>
 </body>
 </html>
+=======
+{% block title %}Eliminar Transporte{% endblock %}
+{% block header %}Eliminar Transporte{% endblock %}
+{% block back_url %}/trasnsport_units{% endblock %}
+
+{% block content %}
+<form action="/transport_units/delete" method="post" class="space-y-4">
+    <div>
+        <label for="ID" class="block text-sm font-medium text-gray-700">ID del Transporte a Eliminar:</label>
+        <input type="text" id="ID" name="ID" required class="w-full border border-gray-300 rounded-lg p-2 mt-1">
+    </div>
+    <button type="submit" class="w-full bg-red-600 text-white py-2 rounded-lg hover:bg-red-700">
+        Eliminar Transporte
+    </button>
+</form>
+<div class="mt-6">
+    <a href="/transport_units" class="w-full inline-block text-center bg-gray-600 text-white py-2 px-4 rounded-md hover:bg-gray-700">
+        Volver a Listar Transportes
+    </a>
+</div>
+{% endblock %}
+>>>>>>> f7c4ade (everything works)

@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -92,3 +93,37 @@
     <p><a href="/routes/">Volver a la lista de rutas</a></p>
 </body>
 </html>
+=======
+{% extends "base.html" %}
+
+{% block title %}Actualizar Ruta{% endblock %}
+{% block header %}Actualizar Ruta{% endblock %}
+{% block back_url %}/routes{% endblock %}
+
+{% block content %}
+<form action="/routes/update" method="post">
+    <div>
+        <label for="ID" class="block text-sm font-medium text-gray-700">ID de la Ruta:</label>
+        <input id="ID" name="ID" type="text" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
+    </div>
+    <div>
+        <label for="IDHorario" class="block text-sm font-medium text-gray-700">ID del horario:</label>
+        <input id="IDHorario" name="IDHorario" type="text" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
+    </div>
+    <div class="mt-4">
+        <label for="Nombre" class="block text-sm font-medium text-gray-700">Nombre de la Ruta:</label>
+        <input id="Nombre" name="Nombre" type="text" required class="mt-1 block w-full border-gray-300 rounded-md shadow-sm">
+    </div>
+    <div class="mt-6">
+        <button type="submit" class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700">
+            Actualizar Ruta
+        </button>
+    </div>
+</form>
+<div class="mt-6">
+    <a href="/routes" class="w-full inline-block text-center bg-gray-600 text-white py-2 px-4 rounded-md hover:bg-gray-700">
+        Volver a Listar Rutas
+    </a>
+</div>
+{% endblock %}
+>>>>>>> f7c4ade (everything works)

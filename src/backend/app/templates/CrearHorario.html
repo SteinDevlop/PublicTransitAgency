@@ -45,6 +45,7 @@
                         </div>
                     </div>
 
+<<<<<<< HEAD
                     <div>
                         <label for="arrival_date" class="block text-sm font-medium text-secondary">
                             Fecha de Llegada (YYYY-MM-DD HH:MM:SS):
@@ -93,3 +94,29 @@
     </div>
 </body>
 </html>
+=======
+{% block content %}
+<form action="/schedules/create" method="post" class="space-y-4">
+    <div>
+        <label for="id" class="block text-sm font-medium text-gray-700">id del Horario:</label>
+        <input type="text" id="id" name="id" required class="w-full border border-gray-300 rounded-lg p-2 mt-1">
+    </div>
+    <div>
+        <label for="Llegada" class="block text-sm font-medium text-gray-700">Hora de Inicio:</label>
+        <input type="time" id="Llegada" name="Llegada" required class="w-full border border-gray-300 rounded-lg p-2 mt-1">
+    </div>
+    <div>
+        <label for="Salida" class="block text-sm font-medium text-gray-700">Hora de Fin:</label>
+        <input type="time" id="Salida" name="Salida" required class="w-full border border-gray-300 rounded-lg p-2 mt-1">
+    </div>
+    <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700">
+        Crear Horario
+    </button>
+</form>
+<div class="mt-6">
+    <a href="/schedules" class="w-full inline-block text-center bg-gray-600 text-white py-2 px-4 rounded-md hover:bg-gray-700">
+        Volver a Listar Horarios
+    </a>
+</div>
+{% endblock %}
+>>>>>>> f7c4ade (everything works)

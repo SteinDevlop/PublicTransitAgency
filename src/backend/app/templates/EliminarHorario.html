@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -52,6 +53,19 @@
                 <a href="/" class="text-link hover:text-link-hover font-medium">Volver</a>
             </div>
         </div>
+=======
+{% extends "base.html" %}
+
+{% block title %}Eliminar Horario{% endblock %}
+{% block header %}Eliminar Horario{% endblock %}
+{% block back_url %}/schedules{% endblock %}
+
+{% block content %}
+<form action="/schedules/delete" method="post" class="space-y-4">
+    <div>
+        <label for="id" class="block text-sm font-medium text-gray-700">ID del Horario a Eliminar:</label>
+        <input type="text" id="id" name="id" required class="w-full border border-gray-300 rounded-lg p-2 mt-1">
+>>>>>>> f7c4ade (everything works)
     </div>
 </body>
 </html>

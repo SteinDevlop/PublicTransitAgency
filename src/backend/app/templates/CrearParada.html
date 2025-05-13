@@ -45,6 +45,7 @@
                         </div>
                     </div>
 
+<<<<<<< HEAD
                     <div>
                         <label for="Nombre" class="block text-sm font-medium text-secondary">
                             Nombre de la Parada:
@@ -83,3 +84,29 @@
     </div>
 </body>
 </html>
+=======
+{% block content %}
+<form action="/stops/create" method="post" class="space-y-4">
+    <div>
+        <label for="id" class="block text-sm font-medium text-gray-700">id de la Parada:</label>
+        <input type="text" id="id" name="id" required class="w-full border border-gray-300 rounded-lg p-2 mt-1">
+    </div>
+    <div>
+        <label for="Nombre" class="block text-sm font-medium text-gray-700">Nombre de la Parada:</label>
+        <input type="text" id="Nombre" name="Nombre" required class="w-full border border-gray-300 rounded-lg p-2 mt-1">
+    </div>
+    <div>
+        <label for="Ubicacion" class="block text-sm font-medium text-gray-700">Ubicacion:</label>
+        <input type="text" id="Ubicacion" name="Ubicacion" required class="w-full border border-gray-300 rounded-lg p-2 mt-1">
+    </div>
+    <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700">
+        Crear Parada
+    </button>
+</form>
+<div class="mt-6">
+    <a href="/stops" class="w-full inline-block text-center bg-gray-600 text-white py-2 px-4 rounded-md hover:bg-gray-700">
+        Volver a Listar Paradas
+    </a>
+</div>
+{% endblock %}
+>>>>>>> f7c4ade (everything works)
