@@ -1,41 +1,6 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Eliminar Transporte</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script>
-        tailwind.config = {
-            theme: {
-                extend: {
-                    fontFamily: {
-                        'inter': ['Inter', 'sans-serif'],
-                    },
-                    colors: {
-                        'danger': '#dc2626',
-                        'danger-hover': '#b91c1c',
-                        'text-label': '#374151',
-                        'link': '#3b82f6',
-                        'link-hover': '#2563eb',
-                        'form-bg': '#fff',
-                        'error-bg': '#fef2f2',
-                        'error-text': '#ef4444',
-                    },
-                },
-            },
-        }
-    </script>
-</head>
-<body class="bg-gray-100 font-inter antialiased">
-    <div class="min-h-screen flex flex-col items-center justify-start pt-10 pb-16 box-border relative">
-        <h1 class="text-3xl font-semibold text-danger mt-10 mb-6 text-center animate-fade-in">
-            Eliminar Transporte
-        </h1>
+{% extends "base.html" %}
 
+<<<<<<< HEAD
 <<<<<<< HEAD
         <div class="nav-links flex justify-center mb-8 w-full">
             <a href="/transports" class="text-link hover:text-link-hover font-medium px-4 py-2 rounded-md transition duration-300 ease-in-out">
@@ -110,6 +75,14 @@
 
 {% block content %}
 <form action="/transport_units/delete" method="post" class="space-y-4">
+=======
+{% block title %}Eliminar Transporte{% endblock %}
+{% block header %}Eliminar Transporte{% endblock %}
+{% block back_url %}/transports{% endblock %}
+
+{% block content %}
+<form action="/transports/delete" method="post" class="space-y-4">
+>>>>>>> cafe4e8 (More decorations)
     <div>
         <label for="ID" class="block text-sm font-medium text-gray-700">ID del Transporte a Eliminar:</label>
         <input type="text" id="ID" name="ID" required class="w-full border border-gray-300 rounded-lg p-2 mt-1">
@@ -119,9 +92,16 @@
     </button>
 </form>
 <div class="mt-6">
+<<<<<<< HEAD
     <a href="/transport_units" class="w-full inline-block text-center bg-gray-600 text-white py-2 px-4 rounded-md hover:bg-gray-700">
+=======
+    <a href="/transports" class="w-full inline-block text-center bg-gray-600 text-white py-2 px-4 rounded-md hover:bg-gray-700">
+>>>>>>> cafe4e8 (More decorations)
         Volver a Listar Transportes
     </a>
 </div>
 {% endblock %}
+<<<<<<< HEAD
 >>>>>>> f7c4ade (everything works)
+=======
+>>>>>>> cafe4e8 (More decorations)

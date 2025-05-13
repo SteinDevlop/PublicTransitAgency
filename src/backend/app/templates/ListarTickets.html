@@ -1,4 +1,5 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -43,6 +44,8 @@
 </body>
 </html>
 =======
+=======
+>>>>>>> cafe4e8 (More decorations)
 {% extends "base.html" %}
 
 {% block title %}Listar Tickets{% endblock %}
@@ -61,10 +64,18 @@
         {% for ticket in tickets %}
         <tr class="hover:bg-gray-100">
             <td class="border border-gray-300 px-4 py-2">{{ ticket.ID }}</td>
+<<<<<<< HEAD
             <td class="border border-gray-300 px-4 py-2">{{ ticket.EstadoIncidencia }}</td>
+=======
+            <td class="border border-gray-300 px-4 py-2">{{ ticket.Estado }}</td>
+>>>>>>> cafe4e8 (More decorations)
         </tr>
         {% endfor %}
     </tbody>
 </table>
+<<<<<<< HEAD
 {% endblock %}
 >>>>>>> 207cdfe (Correction on lists)
+=======
+{% endblock %}
+>>>>>>> cafe4e8 (More decorations)

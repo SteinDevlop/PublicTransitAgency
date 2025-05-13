@@ -1,4 +1,5 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -65,6 +66,8 @@
 </body>
 </html>
 =======
+=======
+>>>>>>> cafe4e8 (More decorations)
 {% extends "base.html" %}
 
 {% block title %}Listar Turnos{% endblock %}
@@ -76,17 +79,31 @@
     <thead>
         <tr class="bg-gray-200">
             <th class="border border-gray-300 px-4 py-2 text-left">ID</th>
+<<<<<<< HEAD
             <th class="border border-gray-300 px-4 py-2 text-left">Tipo de turno</th>
+=======
+            <th class="border border-gray-300 px-4 py-2 text-left">Nombre</th>
+            <th class="border border-gray-300 px-4 py-2 text-left">Horario</th>
+>>>>>>> cafe4e8 (More decorations)
         </tr>
     </thead>
     <tbody>
         {% for turno in turnos %}
         <tr class="hover:bg-gray-100">
             <td class="border border-gray-300 px-4 py-2">{{ turno.ID }}</td>
+<<<<<<< HEAD
             <td class="border border-gray-300 px-4 py-2">{{ turno.TipoTurno }}</td>
+=======
+            <td class="border border-gray-300 px-4 py-2">{{ turno.Nombre }}</td>
+            <td class="border border-gray-300 px-4 py-2">{{ turno.Horario }}</td>
+>>>>>>> cafe4e8 (More decorations)
         </tr>
         {% endfor %}
     </tbody>
 </table>
+<<<<<<< HEAD
 {% endblock %}
 >>>>>>> 207cdfe (Correction on lists)
+=======
+{% endblock %}
+>>>>>>> cafe4e8 (More decorations)

@@ -1,35 +1,3 @@
-<<<<<<< HEAD
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Crear Nuevo Turno</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-gray-100 font-sans">
-    <header class="bg-blue-600 text-white p-4">
-        <h1 class="text-2xl font-bold text-center">Crear Nuevo Turno</h1>
-    </header>
-    <main class="max-w-2xl mx-auto mt-8 bg-white p-6 rounded-lg shadow-md">
-        <form action="/turno/create" method="post" class="space-y-4">
-            <div>
-                <label for="nombre" class="block text-gray-700 font-medium">Nombre del Turno:</label>
-                <input type="text" id="nombre" name="nombre" required class="w-full border border-gray-300 rounded-lg p-2 mt-1">
-            </div>
-            <div>
-                <label for="horario" class="block text-gray-700 font-medium">Horario:</label>
-                <input type="text" id="horario" name="horario" required class="w-full border border-gray-300 rounded-lg p-2 mt-1">
-            </div>
-            <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700">Crear Turno</button>
-        </form>
-    </main>
-    <footer class="text-center mt-6">
-        <a href="/" class="text-blue-600 hover:underline">Volver</a>
-    </footer>
-</body>
-</html>
-=======
 {% extends "base.html" %}
 
 {% block title %}Crear Nuevo Turno{% endblock %}
@@ -37,14 +5,18 @@
 {% block back_url %}/shifts{% endblock %}
 
 {% block content %}
-<form action="/shifts/create" method="post" class="space-y-4">
+<form action="/turno/create" method="post" class="space-y-4">
     <div>
-        <label for="id" class="block text-sm font-medium text-gray-700">ID del Turno:</label>
-        <input type="text" id="id" name="id" required class="w-full border border-gray-300 rounded-lg p-2 mt-1">
+        <label for="ID" class="block text-sm font-medium text-gray-700">ID del Turno:</label>
+        <input type="text" id="ID" name="ID" required class="w-full border border-gray-300 rounded-lg p-2 mt-1">
     </div>
     <div>
-        <label for="TipoTurno" class="block text-sm font-medium text-gray-700">Nombre del Turno:</label>
-        <input type="text" id="TipoTurno" name="TipoTurno" required class="w-full border border-gray-300 rounded-lg p-2 mt-1">
+        <label for="Nombre" class="block text-sm font-medium text-gray-700">Nombre del Turno:</label>
+        <input type="text" id="Nombre" name="Nombre" required class="w-full border border-gray-300 rounded-lg p-2 mt-1">
+    </div>
+    <div>
+        <label for="Horario" class="block text-sm font-medium text-gray-700">Horario:</label>
+        <input type="text" id="Horario" name="Horario" required class="w-full border border-gray-300 rounded-lg p-2 mt-1">
     </div>
     <button type="submit" class="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700">
         Crear Turno
@@ -56,4 +28,3 @@
     </a>
 </div>
 {% endblock %}
->>>>>>> f7c4ade (everything works)

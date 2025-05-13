@@ -1,4 +1,5 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -54,6 +55,8 @@
             </div>
         </div>
 =======
+=======
+>>>>>>> cafe4e8 (More decorations)
 {% extends "base.html" %}
 
 {% block title %}Eliminar Parada{% endblock %}
@@ -63,9 +66,22 @@
 {% block content %}
 <form action="/stops/delete" method="post" class="space-y-4">
     <div>
+<<<<<<< HEAD
         <label for="id" class="block text-sm font-medium text-gray-700">ID de la Parada a Eliminar:</label>
         <input type="text" id="id" name="id" required class="w-full border border-gray-300 rounded-lg p-2 mt-1">
 >>>>>>> f7c4ade (everything works)
+=======
+        <label for="stop_id" class="block text-sm font-medium text-gray-700">ID de la Parada a Eliminar:</label>
+        <input type="text" id="stop_id" name="stop_id" required class="w-full border border-gray-300 rounded-lg p-2 mt-1">
+>>>>>>> cafe4e8 (More decorations)
     </div>
-</body>
-</html>
+    <button type="submit" class="w-full bg-red-600 text-white py-2 rounded-lg hover:bg-red-700">
+        Eliminar Parada
+    </button>
+</form>
+<div class="mt-6">
+    <a href="/stops" class="w-full inline-block text-center bg-gray-600 text-white py-2 px-4 rounded-md hover:bg-gray-700">
+        Volver a Listar Paradas
+    </a>
+</div>
+{% endblock %}

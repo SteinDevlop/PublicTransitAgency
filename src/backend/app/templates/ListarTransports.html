@@ -1,4 +1,5 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -76,6 +77,13 @@
 {% block title %}Listar unidades{% endblock %}
 {% block header %}Lista de unidades{% endblock %}
 {% block back_url %}/transport_units{% endblock %}
+=======
+{% extends "base.html" %}
+
+{% block title %}Listar Transportes{% endblock %}
+{% block header %}Lista de Transportes{% endblock %}
+{% block back_url %}/transports{% endblock %}
+>>>>>>> cafe4e8 (More decorations)
 
 {% block content %}
 <table class="table-auto w-full border-collapse border border-gray-300">
@@ -89,6 +97,7 @@
         </tr>
     </thead>
     <tbody>
+<<<<<<< HEAD
         {% for unidad in unidades %}
         <tr class="hover:bg-gray-100">
             <td class="border border-gray-300 px-4 py-2">{{ unidad.ID }}</td>
@@ -96,9 +105,22 @@
             <td class="border border-gray-300 px-4 py-2">{{ unidad.Capacidad }}</td>
             <td class="border border-gray-300 px-4 py-2">{{ unidad.IDRuta }}</td>
             <td class="border border-gray-300 px-4 py-2">{{ unidad.IDTipo }}</td>
+=======
+        {% for transport in transports %}
+        <tr class="hover:bg-gray-100">
+            <td class="border border-gray-300 px-4 py-2">{{ transport.ID }}</td>
+            <td class="border border-gray-300 px-4 py-2">{{ transport.Ubicacion }}</td>
+            <td class="border border-gray-300 px-4 py-2">{{ transport.Capacidad }}</td>
+            <td class="border border-gray-300 px-4 py-2">{{ transport.IDRuta }}</td>
+            <td class="border border-gray-300 px-4 py-2">{{ transport.IDTipo }}</td>
+>>>>>>> cafe4e8 (More decorations)
         </tr>
         {% endfor %}
     </tbody>
 </table>
+<<<<<<< HEAD
 {% endblock %}
 >>>>>>> 207cdfe (Correction on lists)
+=======
+{% endblock %}
+>>>>>>> cafe4e8 (More decorations)
