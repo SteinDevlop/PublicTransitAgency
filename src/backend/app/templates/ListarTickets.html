@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -41,3 +42,29 @@
     </footer>
 </body>
 </html>
+=======
+{% extends "base.html" %}
+
+{% block title %}Listar Tickets{% endblock %}
+{% block header %}Lista de Tickets{% endblock %}
+{% block back_url %}/tickets{% endblock %}
+
+{% block content %}
+<table class="table-auto w-full border-collapse border border-gray-300">
+    <thead>
+        <tr class="bg-gray-200">
+            <th class="border border-gray-300 px-4 py-2 text-left">ID</th>
+            <th class="border border-gray-300 px-4 py-2 text-left">Estado</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for ticket in tickets %}
+        <tr class="hover:bg-gray-100">
+            <td class="border border-gray-300 px-4 py-2">{{ ticket.ID }}</td>
+            <td class="border border-gray-300 px-4 py-2">{{ ticket.EstadoIncidencia }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
+>>>>>>> 207cdfe (Correction on lists)

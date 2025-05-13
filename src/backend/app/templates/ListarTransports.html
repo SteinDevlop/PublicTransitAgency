@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -69,3 +70,35 @@
     </footer>
 </body>
 </html>
+=======
+{% extends "base.html" %}
+
+{% block title %}Listar unidades{% endblock %}
+{% block header %}Lista de unidades{% endblock %}
+{% block back_url %}/unidads{% endblock %}
+
+{% block content %}
+<table class="table-auto w-full border-collapse border border-gray-300">
+    <thead>
+        <tr class="bg-gray-200">
+            <th class="border border-gray-300 px-4 py-2 text-left">ID</th>
+            <th class="border border-gray-300 px-4 py-2 text-left">Ubicación</th>
+            <th class="border border-gray-300 px-4 py-2 text-left">Capacidad</th>
+            <th class="border border-gray-300 px-4 py-2 text-left">ID Ruta</th>
+            <th class="border border-gray-300 px-4 py-2 text-left">ID Tipo</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for unidad in unidades %}
+        <tr class="hover:bg-gray-100">
+            <td class="border border-gray-300 px-4 py-2">{{ unidad.ID }}</td>
+            <td class="border border-gray-300 px-4 py-2">{{ unidad.Ubicacion }}</td>
+            <td class="border border-gray-300 px-4 py-2">{{ unidad.Capacidad }}</td>
+            <td class="border border-gray-300 px-4 py-2">{{ unidad.IDRuta }}</td>
+            <td class="border border-gray-300 px-4 py-2">{{ unidad.IDTipo }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
+>>>>>>> 207cdfe (Correction on lists)

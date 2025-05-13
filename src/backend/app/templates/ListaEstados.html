@@ -47,6 +47,7 @@
                     </a>
                 </div>
 
+<<<<<<< HEAD
                 <div class="overflow-x-auto">
                     <table class="w-full table-auto border-collapse">
                         <thead class="bg-gray-light">
@@ -82,3 +83,23 @@
     </div>
 </body>
 </html>
+=======
+{% block content %}
+<table class="table-auto w-full border-collapse border border-gray-300">
+    <thead>
+        <tr class="bg-gray-200">
+            <th class="border border-gray-300 px-4 py-2 text-left">ID</th>
+            <th class="border border-gray-300 px-4 py-2 text-left">Estado</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for estado in estados %}
+        <tr class="hover:bg-gray-100">
+            <td class="border border-gray-300 px-4 py-2">{{ estado.ID }}</td>
+            <td class="border border-gray-300 px-4 py-2">{{ estado.TipoEstado }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
+>>>>>>> 207cdfe (Correction on lists)

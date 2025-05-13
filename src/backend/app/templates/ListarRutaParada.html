@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -65,3 +66,33 @@
     </footer>
 </body>
 </html>
+=======
+{% extends "base.html" %}
+
+{% block title %}Listar Rutas y Paradas{% endblock %}
+{% block header %}Lista de Rutas y Paradas{% endblock %}
+{% block back_url %}/ruta_parada{% endblock %}
+
+{% block content %}
+<table class="table-auto w-full border-collapse border border-gray-300">
+    <thead>
+        <tr class="bg-gray-200">
+            <th class="border border-gray-300 px-4 py-2 text-left">ID Ruta</th>
+            <th class="border border-gray-300 px-4 py-2 text-left">Nombre Ruta</th>
+            <th class="border border-gray-300 px-4 py-2 text-left">ID Parada</th>
+            <th class="border border-gray-300 px-4 py-2 text-left">Nombre Parada</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for rutaparada in rutaparadas %}
+        <tr class="hover:bg-gray-100">
+            <td class="border border-gray-300 px-4 py-2">{{ rutaparada.IDRuta }}</td>
+            <td class="border border-gray-300 px-4 py-2">{{ rutaparada.NombreRuta }}</td>
+            <td class="border border-gray-300 px-4 py-2">{{ rutaparada.IDParada }}</td>
+            <td class="border border-gray-300 px-4 py-2">{{ rutaparada.NombreParada }}</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
+>>>>>>> 207cdfe (Correction on lists)
