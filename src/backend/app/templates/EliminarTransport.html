@@ -78,11 +78,15 @@
 =======
 {% block title %}Eliminar Transporte{% endblock %}
 {% block header %}Eliminar Transporte{% endblock %}
-{% block back_url %}/transports{% endblock %}
+{% block back_url %}/trasnsport_units{% endblock %}
 
 {% block content %}
+<<<<<<< HEAD
 <form action="/transports/delete" method="post" class="space-y-4">
 >>>>>>> cafe4e8 (More decorations)
+=======
+<form action="/transport_units/delete" method="post" class="space-y-4">
+>>>>>>> f7c4ade (everything works)
     <div>
         <label for="ID" class="block text-sm font-medium text-gray-700">ID del Transporte a Eliminar:</label>
         <input type="text" id="ID" name="ID" required class="w-full border border-gray-300 rounded-lg p-2 mt-1">
@@ -93,10 +97,14 @@
 </form>
 <div class="mt-6">
 <<<<<<< HEAD
+<<<<<<< HEAD
     <a href="/transport_units" class="w-full inline-block text-center bg-gray-600 text-white py-2 px-4 rounded-md hover:bg-gray-700">
 =======
     <a href="/transports" class="w-full inline-block text-center bg-gray-600 text-white py-2 px-4 rounded-md hover:bg-gray-700">
 >>>>>>> cafe4e8 (More decorations)
+=======
+    <a href="/transport_units" class="w-full inline-block text-center bg-gray-600 text-white py-2 px-4 rounded-md hover:bg-gray-700">
+>>>>>>> f7c4ade (everything works)
         Volver a Listar Transportes
     </a>
 </div>
