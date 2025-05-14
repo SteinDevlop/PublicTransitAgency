@@ -2,8 +2,12 @@ import pytest
 from fastapi.testclient import TestClient
 from backend.app.api.routes.incidence_query_service import app
 from backend.app.models.incidence import Incidence
+<<<<<<< HEAD:src/backend/app/tests/api/test_incidence_query_service.py
 from backend.app.logic.universal_controller_instance import universal_controller as controller
 
+=======
+from backend.app.logic.universal_controller_sqlserver import UniversalController
+>>>>>>> 9ef45c5 (corrections (minimals)):src/backend/app/test/api/test_incidence_query_service.py
 from backend.app.core.conf import headers
 
 client = TestClient(app)
