@@ -32,16 +32,7 @@ def test_detalle_ruta_existente(setup_and_teardown):
     ruta = setup_and_teardown
     response = client.get(f"/routes/{ruta.ID}", headers=headers)
     assert response.status_code == 200
-<<<<<<< HEAD:src/backend/app/tests/api/test_routes_query_service.py
     assert "Ruta de prueba" in response.text
 
 
-
-
-=======
-
-    assert "Ruta de prueba" in response.text
-
-
->>>>>>> 9ef45c5 (corrections (minimals)):src/backend/app/test/api/test_routes_query_service.py
 
