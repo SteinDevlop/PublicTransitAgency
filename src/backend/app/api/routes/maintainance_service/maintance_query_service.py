@@ -1,18 +1,20 @@
 import logging
-from fastapi import APIRouter, HTTPException, Security
-from backend.app.logic.universal_controller_sqlserver import UniversalController
+from fastapi import APIRouter, HTTPException, Security,Request
+from fastapi.responses import HTMLResponse
+from backend.app.logic.universal_controller_instance import universal_controller as controller
 from backend.app.core.auth import get_current_user
 from backend.app.models.maintainance import MaintenanceOut
-from fastapi import FastAPI, HTTPException, Query
-import logging
+from fastapi.templating import Jinja2Templates
+
+# Initialize the maintenance controller
+
 
 # Create the APIRouter instance with a prefix and tags
 app = APIRouter(prefix="/maintainance", tags=["maintainance"])
-controller = UniversalController()
 # Set up logging
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
-
+templates = Jinja2Templates(directory="src/backend/app/templates")
 
 @app.get("/maintainancements", response_model=list[dict])
 def read_all():
@@ -35,9 +37,9 @@ def read_all():
         raise HTTPException(status_code=500, detail="Internal server error")
 
 
-@app.get("/{id}")
+@app.get("/id/{ID}")
 def get_by_id(
-    id: int
+    ID: int
     
 ):
     """
@@ -45,7 +47,7 @@ def get_by_id(
     If not found, raises a 404 error.
 
     Args:
-    - id (int): The ID of the maintenance record.
+    - ID (int): The ID of the maintenance record.
     - current_user (dict): User information from authentication.
 
     Returns:
@@ -54,42 +56,35 @@ def get_by_id(
     Raises:
     - HTTPException: If the maintenance record is not found.
     """    
-    result = controller.get_by_id(MaintenanceOut,id)
+    result = controller.get_by_id(MaintenanceOut,ID)
     if not result:
-        logger.warning(f"[GET /{id}] Mantenimiento con ID {id} no encontrado.")
+        logger.warning(f"[GET /{ID}] Mantenimiento con ID {ID} no encontrado.")
         raise HTTPException(status_code=404, detail="Not found")
     
-    logger.info(f"[GET /{id}] Se ha encontrado el mantenimiento con ID {id}.")
+    logger.info(f"[GET /{ID}] Se ha encontrado el mantenimiento con ID {ID}.")
     return result.to_dict()
 
 
 @app.get("/unit/")
-def get_by_unit(id_unit: int = Query(..., description="ID of the unit")):
+def get_by_unit(idunidad: int):
+        records = controller.get_by_unit(MaintenanceOut,idunidad)
+        if not records:
+            logger.warning(f"[GET /{idunidad}] Mantenimiento con ID {idunidad} no encontrado.")
+            raise HTTPException(status_code=404, detail="Not found")
+        
+        logger.info(f"[GET /{idunidad}] Se ha encontrado el mantenimiento con ID {idunidad}.")
+        return records.to_dict()
+@app.get("/listar")
+async def listar_mantenimientos(request: Request):
     """
-    Returns all maintenance records associated with a specific unit.
-
-    Args:
-    - id_unit (int): The ID of the unit.
-
-    Returns:
-    - List of maintenance records associated with the unit.
+    Muestra la lista de registros de mantenimiento en formato HTML.
     """
     try:
-        # Verificar que el ID sea válido
-        if not isinstance(id_unit, int):
-            raise ValueError("El ID de la unidad debe ser un número entero.")
-        
-        # Obtener los registros de mantenimiento
-        records = controller.get_by_unit(id_unit)
+        # Obtener todos los registros de mantenimiento de la base de datos
+        mantenimientos = controller.read_all(MaintenanceOut)
 
-        # Verificar si se encontraron registros
-        if not records:
-            logger.warning(f"[GET /unit/{id_unit}] No se encontraron registros para la unidad {id_unit}.")
-            return {"message": f"No se encontraron registros para la unidad {id_unit}."}
-        
-        logger.info(f"[GET /unit/{id_unit}] Se han recuperado {len(records)} registros de mantenimiento.")
-        return records
+        # Renderizar la plantilla HTML con los datos obtenidos
+        return mantenimientos
     except Exception as e:
-        # Capturar el error con mayor detalle
-        logger.error(f"[GET /unit/{id_unit}] Error al obtener los registros: {str(e)}", exc_info=True)
-        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+        logger.error(f"[GET /listar] Error al listar mantenimientos: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Error al listar mantenimientos: {str(e)}")

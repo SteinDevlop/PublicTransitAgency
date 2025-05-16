@@ -19,30 +19,14 @@ app_for_test.include_router(maintance_cud_service)
 app_for_test.mount("/static", StaticFiles(directory="src/frontend/static"), name="static")
 client = TestClient(app_for_test)
 
-# Test GET routes (crear, eliminar, actualizar)
-def test_crear_mantenimiento_get():
-    response = client.get("/maintainance/crear",headers=headers)
-    assert response.status_code == 200
-    assert "text/html" in response.headers["content-type"]
-
-def test_eliminar_mantenimiento_get():
-    response = client.get("/maintainance/eliminar",headers=headers)
-    assert response.status_code == 200
-    assert "text/html" in response.headers["content-type"]
-
-def test_actualizar_mantenimiento_get():
-    response = client.get("/maintainance/actualizar",headers=headers)
-    assert response.status_code == 200
-    assert "text/html" in response.headers["content-type"]
-
 # Mock para UniversalController
 class MockController:
     def add(self, data):
         return True
 
-    def get_by_id(self, model, id):
-        if id == 1:
-            return {"id": id, "id_unit": 1, "id_status": 1, "type": "Preventive", "fecha": "2024-01-01T00:00:00"}
+    def get_by_id(self, model, ID):
+        if ID == 1:
+            return {"ID": ID, "idunidad": 1, "id_status": 1, "type": "Preventive", "fecha": "2024-01-01T00:00:00"}
         else:
             return None
 
@@ -61,8 +45,8 @@ def override_controller(monkeypatch):
 # Test POST /create
 def test_create_mantainment_post():
     response = client.post("/maintainance/create", data={
-        "id": 1,
-        "id_unit": 1,
+        "ID": 1,
+        "idunidad": 1,
         "id_status": 2,
         "type": "Preventive",
         "fecha": "2024-01-01T00:00:00"
@@ -73,8 +57,8 @@ def test_create_mantainment_post():
 # Test POST /update para mantenimiento existente
 def test_update_mantainment_post_success():
     response = client.post("/maintainance/update", data={
-        "id": 1,
-        "id_unit": 2,
+        "ID": 1,
+        "idunidad": 2,
         "id_status": 2,
         "type": "Corrective",
         "fecha": "2024-01-02T00:00:00"
@@ -85,8 +69,8 @@ def test_update_mantainment_post_success():
 # Test POST /update para mantenimiento no encontrado
 def test_update_mantainment_post_not_found():
     response = client.post("/maintainance/update", data={
-        "id": 999,  # id no existente
-        "id_unit": 2,
+        "ID": 999,  # ID no existente
+        "idunidad": 2,
         "id_status": 2,
         "type": "Corrective",
         "fecha": "2024-01-02T00:00:00"
@@ -97,13 +81,13 @@ def test_update_mantainment_post_not_found():
 # Test POST /delete para mantenimiento existente
 def test_delete_mantainment_post_success():
     response = client.post("/maintainance/delete", data={
-        "id": 1,
+        "ID": 1,
     },headers=headers)
     assert response.status_code == 200
     assert response.json() == {"message": "Maintenance 1 deleted successfully"}
 
 # Test POST /delete para mantenimiento no encontrado
 def test_delete_mantainment_post_not_found():
-    response = client.post("/maintainance/delete", data={"id": 999},headers=headers)
+    response = client.post("/maintainance/delete", data={"ID": 999},headers=headers)
     assert response.status_code == 404
     assert response.json() == {"detail": "Maintenance not found"}

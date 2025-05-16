@@ -8,7 +8,7 @@ WORKDIR /app
 
 # Copy the requirements file and install dependencies
 COPY requirements.txt . 
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --upgrade pip && pip install --no-cache-dir -r requirements.txt
 
 # Copy the rest of the code
 COPY src/backend/app/ /app/
@@ -20,7 +20,7 @@ RUN chown -R appuser:appuser /app
 USER appuser
 
 # Expose the port that the app uses
-EXPOSE 8080
+EXPOSE 8000
 
 # Command to start the application
-CMD ["python", "main.py"]
+CMD ["sh", "-c", "export PYTHONPATH=/src && fastapi dev .\\src\\backend\\app\\api\\main.py"]

@@ -16,7 +16,7 @@ class MockUniversalController:
     def __init__(self):
         # Datos simulados de tipos de tarjeta
         self.typecards = {
-            3: TypeCardOut(id=3, type="lolu"),  # Tipo de tarjeta con id=3
+            3: TypeCardOut(ID=3, Tipo="lolu"),  # Tipo de tarjeta con ID=3
         }
 
     def read_all(self, model):
@@ -46,19 +46,19 @@ def test_read_all():
     assert response.status_code == 200
     data = response.json()
     assert len(data) == 1
-    assert data[0]["id"] == 3
-    assert data[0]["type"] == "lolu"
+    assert data[0]["ID"] == 3
+    assert data[0]["Tipo"] == "lolu"
 
 def test_get_by_id():
-    """Prueba que la ruta '/typecard/{id}' devuelve el tipo de tarjeta correcto."""
+    """Prueba que la ruta '/typecard/{ID}' devuelve el tipo de tarjeta correcto."""
     response = client.get("/typecard/3",headers=headers)
     assert response.status_code == 200
     data = response.json()
-    assert data["id"] == 3
-    assert data["type"] == "lolu"
+    assert data["ID"] == 3
+    assert data["Tipo"] == "lolu"
 
 def test_get_by_id_not_found():
-    """Prueba que la ruta '/typecard/{id}' devuelve un error 404 si no se encuentra el tipo de tarjeta."""
+    """Prueba que la ruta '/typecard/{ID}' devuelve un error 404 si no se encuentra el tipo de tarjeta."""
     response = client.get("/typecard/999",headers=headers)
     assert response.status_code == 404
     assert response.json() == {"detail": "TypeCard not found"}

@@ -30,7 +30,7 @@ app_for_test.mount("/static", StaticFiles(directory="src/frontend/static"), name
 client = TestClient(app_for_test)
 
 def test_create_card():
-    test_controller.add(TypeCardCreate(id=1, type="Estandar"))
+    test_controller.add(TypeCardCreate(ID=1, type="Estandar"))
     test_controller.add(Shift(ID=1, TipoTurno="No Aplica"))
     test_controller.add(UserCreate(
         ID=1,
@@ -43,13 +43,13 @@ def test_create_card():
         IDTurno=1,
         IDTarjeta=1
     ))
-    response = client.post("/card/create", data={"id": 15, "iduser": 1, "idtype": 1}, headers=headers)
+    response = client.post("/card/create", data={"ID": 15, "IDUsuario": 1, "IDTipoTarjeta": 1}, headers=headers)
     assert response.status_code == 200
-    assert response.json()["data"]["id"] == 15
-    assert response.json()["data"]["balance"] == 0
+    assert response.json()["data"]["ID"] == 15
+    assert response.json()["data"]["Saldo"] == 0
 
 def test_update_card_existing():
-    test_controller.add(TypeCardCreate(id=1, type="Estandar"))
+    test_controller.add(TypeCardCreate(ID=1, type="Estandar"))
     test_controller.add(Shift(ID=1, TipoTurno="No Aplica"))
     test_controller.add(UserCreate(
         ID=1,
@@ -62,19 +62,19 @@ def test_update_card_existing():
         IDTurno=1,
         IDTarjeta=1
     ))
-    test_controller.add(CardCreate(id=20, iduser=1, idtype=1, balance=10))
+    test_controller.add(CardCreate(ID=20, IDUsuario=1, IDTipoTarjeta=1, Saldo=10))
 
-    response = client.post("/card/update", data={"id": 20, "iduser": 1, "idtype": 2}, headers=headers)
+    response = client.post("/card/update", data={"ID": 20, "IDUsuario": 1, "IDTipoTarjeta": 2}, headers=headers)
     assert response.status_code == 200
-    assert response.json()["data"]["idtype"] == 2
+    assert response.json()["data"]["IDTipoTarjeta"] == 2
 
 def test_update_card_not_found():
-    response = client.post("/card/update", data={"id": 999, "iduser": 1, "idtype": 1}, headers=headers)
+    response = client.post("/card/update", data={"ID": 999, "IDUsuario": 1, "IDTipoTarjeta": 1}, headers=headers)
     assert response.status_code == 404
     assert response.json()["detail"] == "Card not found"
 
 def test_delete_card_existing():
-    test_controller.add(TypeCardCreate(id=1, type="Estandar"))
+    test_controller.add(TypeCardCreate(ID=1, type="Estandar"))
     test_controller.add(Shift(ID=1, TipoTurno="No Aplica"))
     test_controller.add(UserCreate(
         ID=1,
@@ -87,25 +87,14 @@ def test_delete_card_existing():
         IDTurno=1,
         IDTarjeta=1
     ))
-    test_controller.add(CardCreate(id=30, iduser=1, idtype=1, balance=0))
+    test_controller.add(CardCreate(ID=30, IDUsuario=1, IDTipoTarjeta=1, Saldo=0))
 
-    response = client.post("/card/delete", data={"id": 30}, headers=headers)
+    response = client.post("/card/delete", data={"ID": 30}, headers=headers)
     assert response.status_code == 200
     assert "deleted" in response.json()["message"]
 
 def test_delete_card_not_found():
-    response = client.post("/card/delete", data={"id": 999}, headers=headers)
+    response = client.post("/card/delete", data={"ID": 999}, headers=headers)
     assert response.status_code == 404
     assert response.json()["detail"] == "Card not found"
 
-def test_index_create_form():
-    response = client.get("/card/crear", headers=headers)
-    assert response.status_code == 200
-
-def test_index_update_form():
-    response = client.get("/card/actualizar", headers=headers)
-    assert response.status_code == 200
-
-def test_index_delete_form():
-    response = client.get("/card/eliminar", headers=headers)
-    assert response.status_code == 200

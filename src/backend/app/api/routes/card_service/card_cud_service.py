@@ -6,7 +6,7 @@ from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse
 
 from backend.app.models.card import CardCreate, CardOut
-from backend.app.logic.universal_controller_sqlserver import UniversalController
+from backend.app.logic.universal_controller_instance import universal_controller as controller
 from backend.app.core.auth import get_current_user
 
 # Configuración de logging
@@ -14,57 +14,24 @@ logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
 app = APIRouter(prefix="/card", tags=["card"])
-controller = UniversalController()
 templates = Jinja2Templates(directory="src/backend/app/templates")
-
-
-@app.get("/crear", response_class=HTMLResponse)
-def index_create(
-    request: Request,
-    current_user: dict = Security(
-        get_current_user,
-        scopes=["system", "administrador", "pasajero", "supervisor", "mantenimiento"]
-    )
-):
-    logger.info(f"[GET /crear] Usuario: {current_user['user_id']} - Mostrando formulario de creación de tarjeta")
-    return templates.TemplateResponse(request,"CrearTarjeta.html", {"request": request})
-
-
-@app.get("/actualizar", response_class=HTMLResponse)
-def index_update(
-    request: Request,
-    current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
-):
-    logger.info(f"[GET /actualizar] Usuario: {current_user['user_id']} - Mostrando formulario de actualización de tarjeta")
-    return templates.TemplateResponse(request,"ActualizarTarjeta.html", {"request": request})
-
-
-@app.get("/eliminar", response_class=HTMLResponse)
-def index_delete(
-    request: Request,
-    current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
-):
-    logger.info(f"[GET /eliminar] Usuario: {current_user['user_id']} - Mostrando formulario de eliminación de tarjeta")
-    return templates.TemplateResponse(request,"EliminarTarjeta.html", {"request": request})
 
 
 @app.post("/create")
 async def create_card(
-    id: int = Form(...),
-    iduser: int = Form(...),
-    idtype: int = Form(...),
-    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "pasajero"])
+    ID: int = Form(...),
+    IDUsuario: int = Form(...),
+    IDTipoTarjeta: int = Form(...)
 ):
-    logger.info(f"[POST /create] Usuario: {current_user['user_id']} - Creando tarjeta: id={id}, iduser={iduser}, idtype={idtype}")
     try:
-        new_card = CardCreate(id=id, iduser=iduser,idtype=idtype, balance=0)
+        new_card = CardCreate(ID=ID, IDUsuario=IDUsuario,IDTipoTarjeta=IDTipoTarjeta, Saldo=0)
         controller.add(new_card)
 
         logger.info(f"[POST /create] Tarjeta creada exitosamente: {new_card}")
         return {
             "operation": "create",
             "success": True,
-            "data": CardOut(id=new_card.id, iduser=new_card.iduser,idtype=new_card.idtype, balance=new_card.balance).model_dump(),
+            "data": CardOut(ID=new_card.ID, IDUsuario=new_card.IDUsuario,IDTipoTarjeta=new_card.IDTipoTarjeta, Saldo=new_card.Saldo).model_dump(),
             "message": "Card created successfully."
         }
     except ValueError as e:
@@ -77,27 +44,26 @@ async def create_card(
 
 @app.post("/update")
 async def update_card(
-    id: int = Form(...),
-    iduser: int = Form(...),
-    idtype: int = Form(...),
-    current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
+    ID: int = Form(...),
+    IDUsuario: int = Form(...),
+    IDTipoTarjeta: int = Form(...),
+    
 ):
-    logger.info(f"[POST /update] Usuario: {current_user['user_id']} - Actualizando tarjeta: id={id}, iduser={iduser}, idtype={idtype}")
     try:
-        existing = controller.get_by_id(CardOut, id)
+        existing = controller.get_by_id(CardOut, ID)
         if existing is None:
-            logger.warning(f"[POST /update] Tarjeta no encontrada: id={id}")
+            logger.warning(f"[POST /update] Tarjeta no encontrada: ID={ID}")
             raise HTTPException(404, detail="Card not found")
 
-        updated_card = CardCreate(id=id,iduser=iduser,idtype=idtype, balance=existing.balance)
+        updated_card = CardCreate(ID=ID,IDUsuario=IDUsuario,IDTipoTarjeta=IDTipoTarjeta, Saldo=existing.Saldo)
         controller.update(updated_card)
 
         logger.info(f"[POST /update] Tarjeta actualizada exitosamente: {updated_card}")
         return {
             "operation": "update",
             "success": True,
-            "data": CardOut(id=updated_card.id, iduser=updated_card.iduser,idtype=updated_card.idtype, balance=updated_card.balance).model_dump(),
-            "message": f"Card {id} updated successfully."
+            "data": CardOut(ID=updated_card.ID, IDUsuario=updated_card.IDUsuario,IDTipoTarjeta=updated_card.IDTipoTarjeta, Saldo=updated_card.Saldo).model_dump(),
+            "message": f"Card {ID} updated successfully."
         }
     except ValueError as e:
         logger.warning(f"[POST /update] Error de validación: {str(e)}")
@@ -107,22 +73,21 @@ async def update_card(
 
 @app.post("/delete")
 async def delete_card(
-    id: int = Form(...),
-    current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
+    ID: int = Form(...),
+    
 ):
-    logger.info(f"[POST /delete] Usuario: {current_user['user_id']} - Eliminando tarjeta id={id}")
     try:
-        existing = controller.get_by_id(CardOut, id)
+        existing = controller.get_by_id(CardOut, ID)
         if not existing:
-            logger.warning(f"[POST /delete] Tarjeta no encontrada: id={id}")
+            logger.warning(f"[POST /delete] Tarjeta no encontrada: ID={ID}")
             raise HTTPException(404, detail="Card not found")
 
         controller.delete(existing)
-        logger.info(f"[POST /delete] Tarjeta eliminada exitosamente: id={id}")
+        logger.info(f"[POST /delete] Tarjeta eliminada exitosamente: ID={ID}")
         return {
             "operation": "delete",
             "success": True,
-            "message": f"Card {id} deleted successfully."
+            "message": f"Card {ID} deleted successfully."
         }
     except HTTPException as e:
         raise e

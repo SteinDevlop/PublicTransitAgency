@@ -33,7 +33,7 @@ class UniversalController:
         sql = f"CREATE TABLE IF NOT EXISTS {table} ({columns})"
         self.cursor.execute(sql)
         self.conn.commit()
-
+        
     def add(self, obj: Any) -> Any:
         """Add a new object to the database."""
         self._ensure_table_exists(obj)
@@ -64,6 +64,7 @@ class UniversalController:
 
     def get_by_id(self, model, id):
         """Retrieve a single record by ID."""
+        self._ensure_table_exists(model)
         table = model.__entity_name__
         primary_key = list(model.get_fields().keys())[0]  # Obtener el nombre de la clave primaria
         sql = f"SELECT * FROM {table} WHERE {primary_key} = ?"
@@ -124,8 +125,12 @@ class UniversalController:
             table_name = table["name"]
             self.cursor.execute(f"DELETE FROM {table_name}")
         self.conn.commit()
-    def get_by_unit(self, unit_id: int) -> list[dict]:
-        sql = "SELECT * FROM mantenimiento WHERE id_unit = ?"
-        self.cursor.execute(sql, (unit_id,))
-        rows = self.cursor.fetchall()
-        return [dict(row) for row in rows]
+    def get_by_unit(self,cls: Any, unit_id: int) -> list[dict]:
+        table= table = cls.__entity_name__
+        sql = f"SELECT * FROM {table} WHERE idunidad = ?"
+        try:
+            self.cursor.execute(sql, (unit_id,))
+            row = self.cursor.fetchone()
+            return cls.from_dict(dict(zip([column[0] for column in self.cursor.description], row))) if row else None
+        except Exception as e:
+            raise RuntimeError(f"Error al obtener registros de la unidad {unit_id}: {e}")

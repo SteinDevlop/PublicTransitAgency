@@ -7,7 +7,7 @@ class Shift(BaseModel):
     TipoTurno: str = Field(..., max_length=30)
 
     def to_dict(self):
-        return self.dict()
+        return self.model_dump()
 
     @classmethod
     def from_dict(cls, data: dict):
