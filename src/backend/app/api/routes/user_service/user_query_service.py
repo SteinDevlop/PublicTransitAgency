@@ -6,7 +6,7 @@ from fastapi.templating import Jinja2Templates
 
 from backend.app.core.auth import get_current_user
 from backend.app.models.user import UserOut
-from backend.app.logic.universal_controller_sqlserver import UniversalController
+from backend.app.logic.universal_controller_instance import universal_controller as controller
 
 # Configuración del logger
 logger = logging.getLogger(__name__)
@@ -16,7 +16,6 @@ logging.basicConfig(level=logging.INFO)
 app = APIRouter(prefix="/user", tags=["user"])
 
 # Initialize universal controller instance
-controller = UniversalController()
 
 # Setup Jinja2 template engine
 templates = Jinja2Templates(directory="src/backend/app/templates")
@@ -34,26 +33,40 @@ def consultar(
 
 @app.get("/users")
 async def get_users(
+    request:Request
 ):
     """
     Retrieve and return all user records from the database.
     """
     usuarios = controller.read_all(UserOut)
-    return usuarios
+    if usuarios:
+        # Si hay varias asistencias, iterar sobre ellas
+        context = {
+            "request": request,
+            "usuarios": usuarios,  # Lista de asistencias
+        }
+    else:
+        logger.warning(f"[GET /users] No se encontraron usuarios registrados")
+        context = {
+            "request": request,
+            "usuarios": usuarios  # Si no se encontraron usuarios
+        }
+
+    return templates.TemplateResponse("usuarios.html", context)
 
 
 @app.get("/usuario", response_class=HTMLResponse)
 def usuario(
     request: Request,
     id: int= Query(...),
-    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "pasajero"])
+    #current_user: dict = Security(get_current_user, scopes=["system", "administrador", "pasajero"])
 ):
     """
     Retrieve a user by its ID and render the 'usuario.html' template with its details.
     If the user is not found, display 'None' for all fields.
     """
-    logger.info(f"[GET /user] Usuario: {current_user['user_id']} - Consultando usuario con id={id}")
-    unit_usuario= controller.get_by_id(UserOut, id)
+    #logger.info(f"[GET /user] Usuario: {current_user['user_id']} - Consultando usuario con id={id}")
+    unit_usuario= controller.get_by_column(UserOut, "ID",id)
 
     if unit_usuario:
         logger.info(f"[GET /user] Usuario encontrados: {unit_usuario.ID}")
