@@ -1,26 +1,30 @@
+# Utiliza una imagen base de Python
 FROM python:3.13
 
-# Create a non-root user (e.g., "appuser")
+# Crear un usuario no root
 RUN adduser --disabled-password --gecos '' appuser
 
-# Set the working directory
+# Establecer el directorio de trabajo
 WORKDIR /app
 
-# Copy the requirements file and install dependencies
-COPY requirements.txt . 
+# Copiar el archivo de requisitos y instalar dependencias
+COPY requirements.txt .
 RUN pip install --upgrade pip && pip install --no-cache-dir -r requirements.txt
 
-# Copy the rest of the code
+# Copiar el resto del código al directorio de trabajo
 COPY src/backend/app/ /app/
 
-# Set appropriate permissions for the appuser to access the app directory
+# Establecer el PYTHONPATH para el entorno de FastAPI
+ENV PYTHONPATH=/app
+
+# Asignar permisos al usuario
 RUN chown -R appuser:appuser /app
 
-# Change to the non-root user
+# Cambiar al usuario no root
 USER appuser
 
-# Expose the port that the app uses
+# Exponer el puerto de la aplicación
 EXPOSE 8000
 
-# Command to start the application
-CMD ["sh", "-c", "export PYTHONPATH=/app && uvicorn api.main:app --host 0.0.0.0 --port 8000"]
+# Comando para iniciar la aplicación
+CMD ["uvicorn", "api.main:app", "--host", "0.0.0.0", "--port", "8000"]
