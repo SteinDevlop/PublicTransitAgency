@@ -22,8 +22,11 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --upgrade pip && pip install --no-cache-dir -r requirements.txt
 
-# Copy the source code
+# Copy backend files to maintain the existing structure
 COPY src/backend /app/backend
+
+# Copy frontend files to a separate directory
+COPY src/frontend /app/frontend
 
 # Set ownership to the non-root user
 RUN chown -R appuser:appuser /app
@@ -37,5 +40,5 @@ EXPOSE 8000
 # Set environment variable for Python path
 ENV PYTHONPATH=/app/
 
-# Comando para iniciar la app (ajusta la ruta si es necesario)
+# Start the FastAPI application with the same command
 CMD ["sh", "-c", "export PYTHONPATH=/app && uvicorn backend.app.api.main:app --host 0.0.0.0 --port 8000 --reload"]
