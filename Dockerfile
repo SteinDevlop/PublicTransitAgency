@@ -23,7 +23,7 @@ COPY requirements.txt .
 RUN pip install --upgrade pip && pip install --no-cache-dir -r requirements.txt
 
 # Copiar el código fuente completo, ajusta según tu estructura
-COPY backend src/backend
+COPY src/backend /app/backend
 
 # Ajustar permisos para appuser
 RUN chown -R appuser:appuser /app
