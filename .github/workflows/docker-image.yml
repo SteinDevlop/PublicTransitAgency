@@ -17,11 +17,15 @@ jobs:
       USER: ${{ secrets.USER }}
       PASSWORD: ${{ secrets.PASSWORD }}
       ALGORITHM: ${{ secrets.ALGORITHM }}
+
     steps:
       - uses: actions/checkout@v4
+
+      # Construcción de la imagen con un nombre fijo
       - name: Build the Docker image
-        run: docker build . --file Dockerfile --tag my-image-name:$(date +%s)
+        run: docker build . --file Dockerfile --tag my-image-name:latest
+
       # Verificar la instalación del driver ODBC
       - name: Check ODBC Driver Installation
         run: |
-          docker run --rm my-image-name:$(date +%s) odbcinst -q -d || echo "ODBC Driver not found"
+          docker run --rm my-image-name:latest odbcinst -q -d || echo "ODBC Driver not found"

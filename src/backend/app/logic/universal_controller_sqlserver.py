@@ -16,7 +16,7 @@ class UniversalController:
             driver = "ODBC Driver 18 for SQL Server" if is_railway else "SQL Server"
 
             self.conn = pyodbc.connect(
-                f"DRIVER={{{driver}}};SERVER={settings.db_config['host']},1435;DATABASE={settings.db_config['dbname']};UID={settings.db_config['user']};PWD={settings.db_config['password']}"
+                f"DRIVER={{{driver}}};SERVER={settings.db_config['host']},1435;DATABASE={settings.db_config['dbname']};UID={settings.db_config['user']};PWD={settings.db_config['password']};TrustServerCertificate=yes"
             )
             self.conn.autocommit = False  # Desactivar autocommit
             self.cursor = self.conn.cursor()
