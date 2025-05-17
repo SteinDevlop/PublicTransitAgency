@@ -41,4 +41,4 @@ EXPOSE 8000
 ENV PYTHONPATH=/app/
 
 # Start the FastAPI application with the same command
-CMD ["sh", "-c", "export PYTHONPATH=/app && uvicorn backend.app.api.main:app --host 0.0.0.0 --port 8000 --reload"]
+CMD ["sh", "-c", "export PYTHONPATH=/app && uvicorn backend.app.api.main:app --host 0.0.0.0 --port 8000 --reload --lifespan on"]
