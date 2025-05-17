@@ -17,25 +17,7 @@ jobs:
       USER: ${{ secrets.USER }}
       PASSWORD: ${{ secrets.PASSWORD }}
       ALGORITHM: ${{ secrets.ALGORITHM }}
-
     steps:
-    - uses: actions/checkout@v4
-
-    - name: Define Docker image tag
-      id: tag
-      run: echo "IMAGE_TAG=my-image-name:latest" >> $GITHUB_ENV
-
-    - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag ${{ env.IMAGE_TAG }}
-
-    - name: Run the Docker container with secrets
-      run: |
-        docker run -d -p 8000:8000 \
-          -e SECRET_KEY=$SECRET_KEY \
-          -e HOST=$HOST \
-          -e PORT=$PORT \
-          -e DB=$DB \
-          -e USER=$USER \
-          -e PASSWORD=$PASSWORD \
-          -e ALGORITHM=$ALGORITHM \
-          ${{ env.IMAGE_TAG }}
+      - uses: actions/checkout@v4
+      - name: Build the Docker image
+        run: docker build . --file Dockerfile --tag my-image-name:$(date +%s)
