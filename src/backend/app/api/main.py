@@ -45,13 +45,13 @@ from backend.app.api.routes.behavior_service import (behavior_cud_service, behav
 
 
 # Inicializar la aplicación FastAPI
-api_router = FastAPI(title=settings.PROJECT_NAME)
+app = FastAPI(title=settings.PROJECT_NAME)
 
 # Añadir middlewares globales
-add_middlewares(api_router)
+add_middlewares(app)
 
 # Configurar CORS
-api_router.add_middleware(
+app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.ALLOWED_ORIGINS,
     allow_credentials=True,
@@ -61,7 +61,7 @@ api_router.add_middleware(
 
 # Montar archivos estáticos
 static_dir = os.path.join(os.path.dirname(__file__), "../../../frontend/static")
-api_router.mount("/static", StaticFiles(directory=static_dir), name="static")
+app.mount("/static", StaticFiles(directory=static_dir), name="static")
 
 # Contexto asincrónico para el ciclo de vida de la aplicación
 @asynccontextmanager
@@ -77,52 +77,52 @@ async def lifespan(app: FastAPI):
             print("Conexión cerrada correctamente")
 
 # Asignar el ciclo de vida a la aplicación
-api_router.router.lifespan = lifespan
+app.router.lifespan = lifespan
 
 # Incluir rutas de los microservicios
-api_router.include_router(reporte_service.app)
-api_router.include_router(planificador_service.app)
-api_router.include_router(type_card_cud_service.app)
-api_router.include_router(login_service.app)
-api_router.include_router(card_cud_service.app)
-api_router.include_router(card_query_service.app)
-api_router.include_router(maintance_cud_service.app)
-api_router.include_router(maintance_query_service.app)
-api_router.include_router(type_card_query_service.app)
-api_router.include_router(user_CUD_service.app)
-api_router.include_router(type_movement_cud_service.app)
-api_router.include_router(type_transport_cud_service.app)
-api_router.include_router(rol_user_cud_service.app)
-api_router.include_router(movement_cud_service.app)
-api_router.include_router(maintainance_status_query_service.app)
-api_router.include_router(incidence_cud_service.app)
-api_router.include_router(price_cud_service.app)
-api_router.include_router(incidence_query_service.app)
-api_router.include_router(ticket_cud_service.app)
-api_router.include_router(ticket_query_service.app)
-api_router.include_router(routes_cud_service.app)
-api_router.include_router(shifts_cud_service.app)
-api_router.include_router(shifts_query_service.app)
-api_router.include_router(stops_cud_service.app)
-api_router.include_router(stops_query_service.app)
-api_router.include_router(movement_query_service.app)
-api_router.include_router(payment_cud_service.app)
-api_router.include_router(payment_query_service.app)
-api_router.include_router(maintainance_status_cud_service.app)
-api_router.include_router(transport_unit_cud_service.app)
-api_router.include_router(transport_unit_query_service.app)
-api_router.include_router(schedule_cud_service.app)
-api_router.include_router(schedule_query_service.app)
-api_router.include_router(routes_query_service.app)
-api_router.include_router(user_query_service.app)
-api_router.include_router(price_query_service.app)
-api_router.include_router(type_movement_query_service.app)
-api_router.include_router(type_transport_query_service.app)
-api_router.include_router(rol_user_query_service.app)
-api_router.include_router(pqr_query_service.app)
-api_router.include_router(pqr_cud_service.app)
-api_router.include_router(asistance_cud_service.app)
-api_router.include_router(asistance_query_service.app)
-api_router.include_router(behavior_cud_service.app)
-api_router.include_router(behavior_query_service.app)
-api_router.include_router(rutaparada_query_service.app)
+app.include_router(reporte_service.app)
+app.include_router(planificador_service.app)
+app.include_router(type_card_cud_service.app)
+app.include_router(login_service.app)
+app.include_router(card_cud_service.app)
+app.include_router(card_query_service.app)
+app.include_router(maintance_cud_service.app)
+app.include_router(maintance_query_service.app)
+app.include_router(type_card_query_service.app)
+app.include_router(user_CUD_service.app)
+app.include_router(type_movement_cud_service.app)
+app.include_router(type_transport_cud_service.app)
+app.include_router(rol_user_cud_service.app)
+app.include_router(movement_cud_service.app)
+app.include_router(maintainance_status_query_service.app)
+app.include_router(incidence_cud_service.app)
+app.include_router(price_cud_service.app)
+app.include_router(incidence_query_service.app)
+app.include_router(ticket_cud_service.app)
+app.include_router(ticket_query_service.app)
+app.include_router(routes_cud_service.app)
+app.include_router(shifts_cud_service.app)
+app.include_router(shifts_query_service.app)
+app.include_router(stops_cud_service.app)
+app.include_router(stops_query_service.app)
+app.include_router(movement_query_service.app)
+app.include_router(payment_cud_service.app)
+app.include_router(payment_query_service.app)
+app.include_router(maintainance_status_cud_service.app)
+app.include_router(transport_unit_cud_service.app)
+app.include_router(transport_unit_query_service.app)
+app.include_router(schedule_cud_service.app)
+app.include_router(schedule_query_service.app)
+app.include_router(routes_query_service.app)
+app.include_router(user_query_service.app)
+app.include_router(price_query_service.app)
+app.include_router(type_movement_query_service.app)
+app.include_router(type_transport_query_service.app)
+app.include_router(rol_user_query_service.app)
+app.include_router(pqr_query_service.app)
+app.include_router(pqr_cud_service.app)
+app.include_router(asistance_cud_service.app)
+app.include_router(asistance_query_service.app)
+app.include_router(behavior_cud_service.app)
+app.include_router(behavior_query_service.app)
+app.include_router(rutaparada_query_service.app)
