@@ -13,8 +13,6 @@ class UniversalController:
             # Detectar si está en un entorno Railway o local
 # Detectar si está en un entorno Railway o local
             is_railway = os.getenv("RAILWAY_ENV", "false") == "true"
-
-            # Selección del driver según el entorno
             driver = "ODBC Driver 18 for SQL Server" if is_railway else "SQL Server"
 
             self.conn = pyodbc.connect(

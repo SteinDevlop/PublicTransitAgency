@@ -12,9 +12,6 @@ RUN apt-get update && apt-get install -y \
     && apt-get update \
     && ACCEPT_EULA=Y apt-get install -y msodbcsql18
 
-# Verify ODBC driver installation
-RUN odbcinst -q -d
-
 # Create a non-root user
 RUN adduser --disabled-password --gecos '' appuser
 

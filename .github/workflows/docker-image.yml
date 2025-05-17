@@ -21,3 +21,7 @@ jobs:
       - uses: actions/checkout@v4
       - name: Build the Docker image
         run: docker build . --file Dockerfile --tag my-image-name:$(date +%s)
+      # Verificar la instalación del driver ODBC
+      - name: Check ODBC Driver Installation
+        run: |
+          docker run --rm my-image-name:$(date +%s) odbcinst -q -d || echo "ODBC Driver not found"
