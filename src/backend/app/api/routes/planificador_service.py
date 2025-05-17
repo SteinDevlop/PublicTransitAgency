@@ -23,9 +23,17 @@ async def get_route_plan(request: Request, ubicacion_entrada: str = Form(...), u
         
         # Verificamos si el resultado es vacío o None, y gestionamos el error
         if resultado:
-            logger.log(logging.CRITICAL, "%s", ubicacion_entrada,ubicacion_final)
+            if ubicacion_entrada.isalnum() and ubicacion_final.isalnum():
+                logger.log(logging.CRITICAL, "Entrada: %s, Final: %s", ubicacion_entrada, ubicacion_final)
+            else:
+                logger.log(
+                    logging.CRITICAL,
+                    "Invalid Input: %s, %s",
+                    base64.b64encode(ubicacion_entrada.encode('UTF-8')).decode(),
+                    base64.b64encode(ubicacion_final.encode('UTF-8')).decode()
+                )
         else:
-            logger.log(logging.CRITICAL, "Invalid Input: %s", base64.b64encode(resultado.encode('UTF-8')))
+            logger.log(logging.CRITICAL, "Resultado vacío o inválido")
         # Si todo está bien, retornamos el resultado a la plantilla
         return resultado
     except Exception as e:
