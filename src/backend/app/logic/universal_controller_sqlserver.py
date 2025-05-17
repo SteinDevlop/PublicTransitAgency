@@ -10,9 +10,16 @@ class UniversalController:
     def __init__(self):
         try:
             settings = Settings()
+            # Detectar si está en un entorno Railway o local
+# Detectar si está en un entorno Railway o local
+            is_railway = os.getenv("RAILWAY_ENV", "false") == "true"
+
+            # Selección del driver según el entorno
+            driver = "ODBC Driver 18 for SQL Server" if is_railway else "SQL Server"
+
             self.conn = pyodbc.connect(
-    f"DRIVER={{SQL Server}};SERVER={settings.db_config['host']},1435;DATABASE={settings.db_config['dbname']};UID={settings.db_config['user']};PWD={settings.db_config['password']}"
-)
+                f"DRIVER={{{driver}}};SERVER={settings.db_config['host']},1435;DATABASE={settings.db_config['dbname']};UID={settings.db_config['user']};PWD={settings.db_config['password']}"
+            )
             self.conn.autocommit = False  # Desactivar autocommit
             self.cursor = self.conn.cursor()
         except pyodbc.Error as e:

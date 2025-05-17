@@ -1,6 +1,6 @@
-FROM python:3.13
+FFROM python:3.13
 
-# Instalar dependencias necesarias y driver ODBC MS SQL
+# Update and install required packages and ODBC driver
 RUN apt-get update && apt-get install -y \
     curl \
     apt-transport-https \
@@ -12,29 +12,32 @@ RUN apt-get update && apt-get install -y \
     && apt-get update \
     && ACCEPT_EULA=Y apt-get install -y msodbcsql18
 
-# Crear usuario no root
+# Verify ODBC driver installation
+RUN odbcinst -q -d
+
+# Create a non-root user
 RUN adduser --disabled-password --gecos '' appuser
 
-# Establecer directorio de trabajo
+# Set the working directory
 WORKDIR /app
 
-# Copiar requirements e instalar paquetes Python
+# Copy requirements and install Python packages
 COPY requirements.txt .
 RUN pip install --upgrade pip && pip install --no-cache-dir -r requirements.txt
 
-# Copiar el código fuente completo, ajusta según tu estructura
+# Copy the source code
 COPY src/backend /app/backend
 
-# Ajustar permisos para appuser
+# Set ownership to the non-root user
 RUN chown -R appuser:appuser /app
 
-# Cambiar a usuario no root
+# Switch to the non-root user
 USER appuser
 
-# Puerto expuesto por FastAPI
+# Expose the FastAPI port
 EXPOSE 8000
 
-# Variable de entorno para PYTHONPATH
+# Set environment variable for Python path
 ENV PYTHONPATH=/app/
 
 # Comando para iniciar la app (ajusta la ruta si es necesario)
