@@ -1,4 +1,4 @@
-FFROM python:3.13
+FROM python:3.13
 
 # Update and install required packages and ODBC driver
 RUN apt-get update && apt-get install -y \
