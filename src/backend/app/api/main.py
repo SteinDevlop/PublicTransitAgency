@@ -1,3 +1,4 @@
+import os
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
@@ -59,7 +60,8 @@ api_router.add_middleware(
 )
 
 # Montar archivos estáticos
-api_router.mount("/static", StaticFiles(directory="src/frontend/static"), name="static")
+static_dir = os.path.join(os.path.dirname(__file__), "../../../frontend/static")
+api_router.mount("/static", StaticFiles(directory=static_dir), name="static")
 
 # Contexto asincrónico para el ciclo de vida de la aplicación
 @asynccontextmanager
