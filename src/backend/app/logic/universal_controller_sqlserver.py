@@ -3,6 +3,7 @@ from backend.app.core.config import Settings
 from typing import Any
 import os
 import logging
+import platform
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG)
@@ -11,9 +12,13 @@ class UniversalController:
         try:
             settings = Settings()
             # Detectar si está en un entorno Railway o local
-# Detectar si está en un entorno Railway o local
             is_railway = os.getenv("RAILWAY_ENV", "false") == "true"
-            driver = "ODBC Driver 18 for SQL Server" if is_railway else "SQL Server"
+
+            # Detectar sistema operativo
+            if is_railway or platform.system().lower() != "windows":
+                driver = "ODBC Driver 18 for SQL Server"
+            else:
+                driver = "SQL Server"
 
             self.conn = pyodbc.connect(
                 f"DRIVER={{{driver}}};SERVER={settings.db_config['host']},1435;DATABASE={settings.db_config['dbname']};UID={settings.db_config['user']};PWD={settings.db_config['password']};TrustServerCertificate=yes"
