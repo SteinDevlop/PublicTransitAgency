@@ -18,25 +18,22 @@ app = APIRouter(prefix="/planificador", tags=["Planificador"])
 @app.post("/ubicaciones")
 async def get_route_plan(request: Request, ubicacion_entrada: str = Form(...), ubicacion_final: str = Form(...)):
     try:
-        # Intentamos obtener el resultado de la interconexión
-        resultado = controller.obtener_ruta_con_interconexion(ubicacion_entrada, ubicacion_final)
-        
-        # Verificamos si el resultado es vacío o None, y gestionamos el error
-        if resultado:
-            if ubicacion_entrada.isalnum() and ubicacion_final.isalnum():
-                logger.log(logging.CRITICAL, "Entrada: %s, Final: %s", ubicacion_entrada, ubicacion_final)
+        # Log seguro de los datos de entrada ANTES de usarlos
+        for label, value in [("ubicacion_entrada", ubicacion_entrada), ("ubicacion_final", ubicacion_final)]:
+            if value.isalnum():
+                logger.log(logging.CRITICAL, "%s: %s", label, value)
             else:
                 logger.log(
                     logging.CRITICAL,
-                    "Invalid Input: %s, %s",
-                    base64.b64encode(ubicacion_entrada.encode('UTF-8')).decode(),
-                    base64.b64encode(ubicacion_final.encode('UTF-8')).decode()
+                    "%s (Invalid Input, base64): %s",
+                    label,
+                    base64.b64encode(value.encode('UTF-8')).decode()
                 )
-        else:
+
+        resultado = controller.obtener_ruta_con_interconexion(ubicacion_entrada, ubicacion_final)
+        
+        if not resultado:
             logger.log(logging.CRITICAL, "Resultado vacío o inválido")
-        # Si todo está bien, retornamos el resultado a la plantilla
         return resultado
     except Exception as e:
-        # Logueamos el error si algo falla
-        logger.error(f"Error al obtener las rutas con interconexión: {str(e)}")
-        # Retornamos un mensaje de error al usuario
+        logger.error("Error al obtener las rutas con interconexión: %s", str(e))
