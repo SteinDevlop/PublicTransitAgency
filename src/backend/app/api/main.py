@@ -2,7 +2,6 @@ import os
 from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
-from contextlib import asynccontextmanager
 from backend.app.core.config import settings
 from backend.app.core.middlewares import add_middlewares
 from backend.app.logic.universal_controller_instance import universal_controller
@@ -43,7 +42,6 @@ from backend.app.api.routes.pqr_service import (pqr_cud_service, pqr_query_servi
 from backend.app.api.routes.asistance_service import (asistance_cud_service, asistance_query_service)
 from backend.app.api.routes.behavior_service import (behavior_cud_service, behavior_query_service)
 
-
 # Inicializar la aplicación FastAPI
 app = FastAPI(title=settings.PROJECT_NAME)
 
@@ -63,21 +61,16 @@ app.add_middleware(
 static_dir = os.path.join(os.path.dirname(__file__), "../../../frontend/static")
 app.mount("/static", StaticFiles(directory=static_dir), name="static")
 
-# Contexto asincrónico para el ciclo de vida de la aplicación
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    try:
-        # Conexión a la base de datos al iniciar la aplicación
-        print("Conexión establecida con la base de datos")
-        yield
-    finally:
-        # Cerrar la conexión al apagar la aplicación
-        if universal_controller.conn:
-            universal_controller.conn.close()
-            print("Conexión cerrada correctamente")
+# Eventos de inicio y apagado
+@app.on_event("startup")
+async def startup_event():
+    print("Conexión establecida con la base de datos")
 
-# Asignar el ciclo de vida a la aplicación
-app.router.lifespan = lifespan
+@app.on_event("shutdown")
+async def shutdown_event():
+    if universal_controller.conn:
+        universal_controller.conn.close()
+        print("Conexión cerrada correctamente")
 
 # Incluir rutas de los microservicios
 app.include_router(reporte_service.app)
