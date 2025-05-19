@@ -14,7 +14,7 @@ def crear_horario(
     ID: int = Form(...),
     Llegada: str = Form(...),
     Salida: str = Form(...),
-    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "planificador"])
+   #current_user: dict  = Security(get_current_user, scopes=["system", "administrador", "planificador"])
 ):
     """
     Endpoint para crear un horario.
@@ -33,7 +33,7 @@ def actualizar_horario(
     id: int = Form(...),
     Llegada: str = Form(...),
     Salida: str = Form(...),
-    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "planificador"])
+   #current_user: dict  = Security(get_current_user, scopes=["system", "administrador", "planificador"])
 ):
     """
     Endpoint para actualizar un horario existente.
@@ -55,7 +55,7 @@ def actualizar_horario(
 @app.post("/delete")
 def eliminar_horario(
     id: int = Form(...),
-    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "planificador"])
+   #current_user: dict  = Security(get_current_user, scopes=["system", "administrador", "planificador"])
 ):
     """
     Endpoint para eliminar un horario por su ID.

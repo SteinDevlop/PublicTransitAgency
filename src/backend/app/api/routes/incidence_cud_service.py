@@ -17,7 +17,7 @@ def crear_incidencia(
     Descripcion: str = Form(...),
     Tipo: str = Form(...),
     IDUnidad: str = Form(...),
-    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "supervisor"])
+   #current_user: dict  = Security(get_current_user, scopes=["system", "administrador", "supervisor"])
 ):
     """
     Crea una nueva incidencia.
@@ -38,7 +38,7 @@ def actualizar_incidencia(
     Descripcion: str = Form(...),
     Tipo: str = Form(...),
     IDUnidad: str = Form(...),
-    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "supervisor"])
+   #current_user: dict  = Security(get_current_user, scopes=["system", "administrador", "supervisor"])
 ):
     """
     Actualiza una incidencia existente.
@@ -55,7 +55,7 @@ def actualizar_incidencia(
 @app.post("/delete")
 def eliminar_incidencia(
     ID: int = Form(...),
-    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "supervisor"])
+   #current_user: dict  = Security(get_current_user, scopes=["system", "administrador", "supervisor"])
 ):
     """
     Elimina una incidencia por su ID.

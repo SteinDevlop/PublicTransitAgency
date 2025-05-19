@@ -12,7 +12,7 @@ templates = Jinja2Templates(directory="src/backend/app/templates")
 @app.get("/", response_class=HTMLResponse)
 def listar_pagos(
     request: Request,
-    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "finanzas", "operador"])
+   #current_user: dict  = Security(get_current_user, scopes=["system", "administrador", "finanzas", "operador"])
 ):
     """
     Lista todos los pagos.
@@ -27,7 +27,7 @@ def listar_pagos(
 def detalle_pago(
     IDMovimiento: int,
     request: Request,
-    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "finanzas", "operador"])
+   #current_user: dict  = Security(get_current_user, scopes=["system", "administrador", "finanzas", "operador"])
 ):
     """
     Obtiene el detalle de un pago por su IDMovimiento.

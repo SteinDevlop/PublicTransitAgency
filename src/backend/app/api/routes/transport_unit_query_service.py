@@ -16,7 +16,7 @@ templates = Jinja2Templates(directory="src/backend/app/templates")
 @app.get("/", response_class=HTMLResponse)
 def listar_unidades_transporte(
     request: Request,
-    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "supervisor", "operador"])
+   #current_user: dict  = Security(get_current_user, scopes=["system", "administrador", "supervisor", "operador"])
 ):
     """
     Lista todas las unidades de transporte.
@@ -33,7 +33,7 @@ def listar_unidades_transporte(
 def detalle_unidad_transporte(
     ID: str,
     request: Request,
-    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "supervisor", "operador"])
+   #current_user: dict  = Security(get_current_user, scopes=["system", "administrador", "supervisor", "operador"])
 ):
     """
     Obtiene el detalle de una unidad de transporte por su ID.

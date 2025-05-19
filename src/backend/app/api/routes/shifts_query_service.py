@@ -16,7 +16,7 @@ templates = Jinja2Templates(directory="src/backend/app/templates")
 @app.get("/", response_class=HTMLResponse)
 def listar_turnos(
     request: Request,
-    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "supervisor"])
+   #current_user: dict  = Security(get_current_user, scopes=["system", "administrador", "supervisor"])
 ):
     """
     Consulta la lista de todos los turnos.
@@ -33,7 +33,7 @@ def listar_turnos(
 def detalle_turno(
     id: int,
     request: Request,
-    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "supervisor"])
+   #current_user: dict  = Security(get_current_user, scopes=["system", "administrador", "supervisor"])
 ):
     """
     Consulta el detalle de un turno en específico por su ID.

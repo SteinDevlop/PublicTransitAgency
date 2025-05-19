@@ -16,7 +16,7 @@ templates = Jinja2Templates(directory="src/backend/app/templates")
 @app.get("/", response_class=HTMLResponse)
 def listar_horarios(
     request: Request,
-    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "planificador", "operador"])
+   #current_user: dict  = Security(get_current_user, scopes=["system", "administrador", "planificador", "operador"])
 ):
     """
     Lista todos los horarios y los renderiza en una plantilla HTML.
@@ -33,7 +33,7 @@ def listar_horarios(
 def obtener_detalle_horario(
     id: int,
     request: Request,
-    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "planificador", "operador"])
+   #current_user: dict  = Security(get_current_user, scopes=["system", "administrador", "planificador", "operador"])
 ):
     """
     Obtiene el detalle de un horario por su ID.

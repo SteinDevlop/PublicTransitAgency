@@ -16,7 +16,7 @@ def crear_unidad_transporte(
     IDRuta: int = Form(...),
     IDTipo: int = Form(...),
     ID: str = Form("EMPTY"),
-    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "supervisor"])
+   #current_user: dict  = Security(get_current_user, scopes=["system", "administrador", "supervisor"])
 ):
     """
     Crea una nueva unidad de transporte.
@@ -37,7 +37,7 @@ def actualizar_unidad_transporte(
     Capacidad: int = Form(...),
     IDRuta: int = Form(...),
     IDTipo: int = Form(...),
-    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "supervisor"])
+   #current_user: dict  = Security(get_current_user, scopes=["system", "administrador", "supervisor"])
 ):
     """
     Actualiza una unidad de transporte existente.
@@ -59,7 +59,7 @@ def actualizar_unidad_transporte(
 @app.post("/delete")
 def eliminar_unidad_transporte(
     ID: str = Form(...),
-    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "supervisor"])
+   #current_user: dict  = Security(get_current_user, scopes=["system", "administrador", "supervisor"])
 ):
     """
     Elimina una unidad de transporte por su ID.

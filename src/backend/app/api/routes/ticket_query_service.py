@@ -16,7 +16,7 @@ templates = Jinja2Templates(directory="src/backend/app/templates")
 @app.get("/", response_class=HTMLResponse)
 def listar_tickets(
     request: Request,
-    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "supervisor"])
+   #current_user: dict  = Security(get_current_user, scopes=["system", "administrador", "supervisor"])
 ):
     """
     Lista todos los tickets.
@@ -33,7 +33,7 @@ def listar_tickets(
 def detalle_ticket(
     ID: int,
     request: Request,
-    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "supervisor"])
+   #current_user: dict  = Security(get_current_user, scopes=["system", "administrador", "supervisor"])
 ):
     """
     Obtiene el detalle de un ticket por su ID.
