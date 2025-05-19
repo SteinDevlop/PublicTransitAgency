@@ -1,3 +1,4 @@
+import logging
 from starlette.responses import HTMLResponse, RedirectResponse
 from jose import jwt, JWTError
 from fastapi.security import OAuth2PasswordRequestForm
@@ -7,7 +8,9 @@ from backend.app.core.auth import encode_token, settings
 from backend.app.logic.universal_controller_instance import universal_controller as controller
 from backend.app.models.user import UserCreate, UserOut
 
-# Crear el controlador para acceder a la base de datos
+# Configurar logging
+logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
+logger = logging.getLogger(__name__)
 
 app = APIRouter(prefix="/login", tags=["login"])
 templates = Jinja2Templates(directory="src/frontend/templates")
@@ -19,23 +22,46 @@ async def login_form(request: Request):
 
 @app.post("/token")
 async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends()):
-    user = controller.get_by_column(UserCreate, "ID", form_data.username)
+    try:
+        logger.info("[POST /token] Attempting login for username: %s", form_data.username)
 
-    if not user or user.Contrasena != form_data.password:
-        raise HTTPException(status_code=401, detail="Incorrect username or password")
+        # Validar que el username sea un número si la columna ID es de tipo int
+        if not form_data.username.isdigit():
+            logger.warning("[POST /token] Invalid username format: %s. Expected numeric ID.", form_data.username)
+            raise HTTPException(status_code=400, detail="El ID debe ser un número.")
 
-    scope = map_role_to_scope(user.IDRolUsuario)
+        # Convertir el username a entero antes de pasarlo al controlador
+        user_id = int(form_data.username)
+        user = controller.get_by_column(UserOut, "ID", user_id)
 
-    payload = {
-        "sub": user.Nombre,
-        "scope": scope
-    }
+        if not user:
+            logger.warning("[POST /token] User not found: %s", form_data.username)
+            raise HTTPException(status_code=401, detail="Incorrect username or password")
 
-    token = encode_token(payload)
-    return {
-        "access_token": token,
-        "token_type": "bearer"
-    }
+        if user.Contrasena != form_data.password:
+            logger.warning("[POST /token] Incorrect password for user: %s", form_data.username)
+            raise HTTPException(status_code=401, detail="Incorrect username or password")
+
+        scope = map_role_to_scope(user.IDRolUsuario)
+        logger.info("[POST /token] User scope: %s", scope)
+
+        payload = {
+            "sub": user.Nombre,
+            "scope": scope
+        }
+
+        token = encode_token(payload)
+        logger.info("[POST /token] Token generated successfully for user: %s", form_data.username)
+
+        return {
+            "access_token": token,
+            "token_type": "bearer"
+        }
+    except HTTPException as http_exc:
+        raise http_exc
+    except Exception as e:
+        logger.error("[POST /token] Error occurred: %s", str(e), exc_info=True)
+        raise HTTPException(status_code=500, detail="Internal server error")
 
 @app.post("/", response_class=HTMLResponse)
 async def login_user(request: Request, username: str = Form(...), password: str = Form(...)):

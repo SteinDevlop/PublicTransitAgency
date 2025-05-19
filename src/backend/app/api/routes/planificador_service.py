@@ -16,7 +16,7 @@ logging.basicConfig(level=logging.INFO)
 app = APIRouter(prefix="/planificador", tags=["Planificador"])
 
 @app.post("/ubicaciones")
-async def get_route_plan(request: Request, ubicacion_entrada: str = Form(...), ubicacion_final: str = Form(...)):
+async def get_route_plan(request: Request, ubicacion_entrada: str = Form(...), ubicacion_final: str = Form(...),current_user: dict = Security(get_current_user,scopes=["system", "administrador","pasajero"])):
     try:
         # Log seguro de los datos de entrada ANTES de usarlos
         for label, value in [("ubicacion_entrada", ubicacion_entrada), ("ubicacion_final", ubicacion_final)]:

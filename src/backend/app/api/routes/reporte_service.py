@@ -1,7 +1,8 @@
 import logging
-from fastapi import Request, APIRouter, HTTPException
-from fastapi.responses import HTMLResponse, JSONResponse
-from fastapi.templating import Jinja2Templates
+import json
+from fastapi import Request, APIRouter,Security
+from fastapi.responses import JSONResponse
+from backend.app.core.auth import get_current_user
 
 from backend.app.logic.universal_controller_instance import universal_controller as controller
 
@@ -14,11 +15,8 @@ app = APIRouter(prefix="/reporte", tags=["Reporte"])
 
 # Inicializar el controlador universal
 
-# Configuración del motor de plantillas Jinja2
-templates = Jinja2Templates(directory="src/backend/app/templates")
-
-@app.get("/supervisor", response_class=HTMLResponse)
-async def get_supervisor_report(request: Request):
+@app.get("/supervisor")
+async def get_supervisor_report(request: Request,current_user: dict = Security(get_current_user,scopes=["system", "administrador","supervisor"])):
     try:
         # Obtener datos desde el controlador
         report_data = {
@@ -27,7 +25,7 @@ async def get_supervisor_report(request: Request):
             "promedio_horas_trabajadas": controller.promedio_horas_trabajadas(),
         }
         logger.info("Reporte de supervisor generado exitosamente.")
-        return templates.TemplateResponse("reporte_supervisor.html", {"request": request, **report_data})
+        return report_data
     except Exception as e:
         # Log de error con detalles
         logger.error(f"Error al generar el reporte de supervisor: {e}", exc_info=True)
@@ -36,16 +34,42 @@ async def get_supervisor_report(request: Request):
             content={"detail": "Ocurrió un error al generar el reporte de supervisor."}
         )
 
-@app.get("/alert-tec", response_class=HTMLResponse)
-async def get_technical_alert_report(request: Request):
+@app.get("/alert-tec")
+async def get_technical_alert_report(request: Request,current_user: dict = Security(get_current_user,scopes=["system", "administrador","mantenimiento"])):
     try:
         # Obtener datos desde el controlador
+        atrasados = controller.alerta_mantenimiento_atrasados()
+        proximos = controller.alerta_mantenimiento_proximos()
+
+        # Convertir los datos a un formato serializable
+        def serialize(obj):
+            if hasattr(obj, "to_dict"):
+                return obj.to_dict()
+            elif hasattr(obj, "__dict__"):
+                return vars(obj)
+            else:
+                return str(obj)  # Convertir a string como último recurso
+
         report_data = {
-            "mantenimientos_atrasados": controller.alerta_mantenimiento_atrasados(),
-            "mantenimientos_proximos": controller.alerta_mantenimiento_proximos(),
+            "mantenimientos_atrasados": [serialize(obj) for obj in atrasados],
+            "mantenimientos_proximos": [serialize(obj) for obj in proximos],
         }
+
         logger.info("Reporte técnico generado exitosamente.")
-        return templates.TemplateResponse("reporte_tecnico.html", {"request": request, **report_data})
+        logger.info(f"Datos del reporte técnico: {report_data}")
+
+        # Validar si los datos son serializables a JSON
+        try:
+            json.dumps(report_data)  # Intentar serializar los datos
+        except TypeError as e:
+            logger.error(f"Datos no serializables a JSON: {e}")
+            return JSONResponse(
+                status_code=500,
+                content={"detail": "Los datos del reporte no son válidos para JSON."}
+            )
+
+        # Devolver los datos como JSON
+        return report_data
     except Exception as e:
         # Log de error con detalles
         logger.error(f"Error al generar el reporte técnico: {e}", exc_info=True)

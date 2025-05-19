@@ -1,0 +1,152 @@
+{
+	"id": "b24f7630-9d97-454d-8278-057cf2f4fb4e",
+	"name": "Integration testing user: supervisor",
+	"timestamp": "2025-05-19T03:20:12.168Z",
+	"collection_id": "44652092-3d9853e5-f655-4975-b1a0-5a5fe104f799",
+	"folder_id": 0,
+	"environment_id": "44652092-9e3441a7-b463-4dbf-ab65-234fcccf21cb",
+	"totalPass": 3,
+	"delay": 0,
+	"persist": true,
+	"status": "finished",
+	"startedAt": "2025-05-19T03:20:09.067Z",
+	"totalFail": 2,
+	"results": [
+		{
+			"id": "6e22ae7a-06ec-4ea3-b469-0ca60c6d8d3a",
+			"name": "Register",
+			"url": "http://127.0.0.1:8000/login/",
+			"time": 1225,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Status code is 200": true,
+				"HTML contains button titles": true
+			},
+			"testPassFailCounts": {
+				"Status code is 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"HTML contains button titles": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				1225
+			],
+			"allTests": [
+				{
+					"Status code is 200": true,
+					"HTML contains button titles": true
+				}
+			]
+		},
+		{
+			"id": "da59257f-b0b4-4ee0-a31d-fd2a35cb9e09",
+			"name": "{{base_url}}/reporte/supervisor",
+			"url": "http://127.0.0.1:8000/reporte/supervisor",
+			"time": 363,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {
+				"Status code is 200": true
+			},
+			"testPassFailCounts": {
+				"Status code is 200": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
+			"times": [
+				363
+			],
+			"allTests": [
+				{
+					"Status code is 200": true
+				}
+			]
+		},
+		{
+			"id": "bebb19ae-9b2d-461a-85de-152533984d57",
+			"name": "{{base_url}}/transport_units/",
+			"url": "http://127.0.0.1:8000/transport_units/",
+			"time": 417,
+			"responseCode": {
+				"code": 500,
+				"name": "Internal Server Error"
+			},
+			"tests": {
+				"Status code is 200": false
+			},
+			"testPassFailCounts": {
+				"Status code is 200": {
+					"pass": 0,
+					"fail": 1
+				}
+			},
+			"times": [
+				417
+			],
+			"allTests": [
+				{
+					"Status code is 200": false
+				}
+			]
+		},
+		{
+			"id": "b38dc109-c1c2-4fa4-a97a-9244ce41178d",
+			"name": "{{base_url}}/incidences/",
+			"url": "http://127.0.0.1:8000/incidences/",
+			"time": 370,
+			"responseCode": {
+				"code": 500,
+				"name": "Internal Server Error"
+			},
+			"tests": {
+				"Status code is 200": false
+			},
+			"testPassFailCounts": {
+				"Status code is 200": {
+					"pass": 0,
+					"fail": 1
+				}
+			},
+			"times": [
+				370
+			],
+			"allTests": [
+				{
+					"Status code is 200": false
+				}
+			]
+		}
+	],
+	"count": 1,
+	"totalTime": 2375,
+	"collection": {
+		"requests": [
+			{
+				"id": "6e22ae7a-06ec-4ea3-b469-0ca60c6d8d3a",
+				"method": "POST"
+			},
+			{
+				"id": "da59257f-b0b4-4ee0-a31d-fd2a35cb9e09",
+				"method": "GET"
+			},
+			{
+				"id": "bebb19ae-9b2d-461a-85de-152533984d57",
+				"method": "GET"
+			},
+			{
+				"id": "b38dc109-c1c2-4fa4-a97a-9244ce41178d",
+				"method": "GET"
+			}
+		]
+	}
+}
