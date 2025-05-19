@@ -1,12 +1,14 @@
 import logging
 from fastapi import APIRouter, Form, Request, HTTPException, Security
 from fastapi.responses import HTMLResponse
+from fastapi.templating import Jinja2Templates
 from datetime import datetime
 from backend.app.models.maintainance import MaintenanceCreate, MaintenanceOut
 from backend.app.logic.universal_controller_instance import universal_controller as controller
 from backend.app.core.auth import get_current_user
 
 # Initialize the controller and templates
+templates = Jinja2Templates(directory="src/backend/app/templates")
 
 # Define the APIRouter with a prefix and tags
 app = APIRouter(prefix="/maintainance", tags=["maintainance"])
@@ -25,11 +27,7 @@ async def add(
     id_status: int = Form(...),
     type: str = Form(...),
     fecha: datetime = Form(...),
-    idunidad: int = Form(...),
-    current_user: dict = Security(
-        get_current_user,
-        scopes=["system", "administrador", "mantenimiento"]
-    )    
+    idunidad: int = Form(...)    
 ):
     """
     Route to add a new maintenance record.
@@ -59,11 +57,7 @@ async def update(
     id_status: int = Form(...),
     type: str = Form(...),
     fecha: datetime = Form(...),
-    idunidad: int = Form(...),
-    current_user: dict = Security(
-        get_current_user,
-        scopes=["system", "administrador", "mantenimiento"]
-    )        
+    idunidad: int = Form(...)    
 ):
     """
     Route to update an existing maintenance record.
@@ -95,11 +89,7 @@ async def update(
 
 @app.post("/delete")
 async def delete_maintenance(
-    ID: int = Form(...),
-    current_user: dict = Security(
-        get_current_user,
-        scopes=["system", "administrador", "mantenimiento"]
-    )        
+    ID: int = Form(...)    
 ):
     """
     Route to delete an existing maintenance record by its ID.

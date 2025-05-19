@@ -1,5 +1,7 @@
 import logging
 from fastapi import Request, Query, APIRouter, Security
+from fastapi.responses import HTMLResponse
+from fastapi.templating import Jinja2Templates
 
 from backend.app.core.auth import get_current_user
 from backend.app.models.card import CardOut
@@ -15,12 +17,19 @@ app = APIRouter(prefix="/card", tags=["card"])
 # Initialize universal controller instance
 
 # Setup Jinja2 template engine
+templates = Jinja2Templates(directory="src/backend/app/templates")
+
+
+@app.get("/consultar", response_class=HTMLResponse)
+def consultar(request: Request):
+    """
+    Render the 'ConsultarTarjeta.html' template for the card consultation page.
+    """
+    return templates.TemplateResponse(request,"ConsultarTarjeta.html", {"request": request})
+
+
 @app.get("/tarjetas")
-async def get_tarjetas(
-    current_user: dict = Security(
-        get_current_user,
-        scopes=["system", "administrador", "pasajero"]
-    )):
+async def get_tarjetas():
     """
     Retrieve and return all card records from the database.
     """
@@ -29,12 +38,8 @@ async def get_tarjetas(
     return tarjetas
 
 
-@app.get("/tarjeta")
-def tarjeta(request: Request, ID: int = Query(...),
-    current_user: dict = Security(
-        get_current_user,
-        scopes=["system", "administrador", "pasajero"]
-    )):
+@app.get("/tarjeta", response_class=HTMLResponse)
+def tarjeta(request: Request, ID: int = Query(...)):
     """
     Retrieve a card by its ID and render the 'tarjeta.html' template with its details.
     If the card is not found, display 'None' for all fields.
@@ -47,10 +52,11 @@ def tarjeta(request: Request, ID: int = Query(...),
         logger.warning(f"[GET /tarjeta] No se encontró tarjeta con ID={ID}")
 
     context = {
+        "request": request,
         "ID": unit_tarjeta.ID if unit_tarjeta else "None",
         "IDUsuario": unit_tarjeta.IDUsuario if unit_tarjeta else "None",
         "IDTipoTarjeta": unit_tarjeta.IDTipoTarjeta if unit_tarjeta else "None",
         "Saldo": unit_tarjeta.Saldo if unit_tarjeta else "None"
     }
 
-    return context
+    return templates.TemplateResponse(request,"tarjeta.html", context)

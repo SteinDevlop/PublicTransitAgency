@@ -3,56 +3,56 @@ from backend.app.models.card import CardCreate, CardOut
 
 # Prueba: Crear una tarjeta correctamente
 def test_card_create():
-    card = CardCreate(ID=1, IDUsuario=101, IDTipoTarjeta=1, Saldo=1000)
-    assert card.ID == 1
-    assert card.IDUsuario == 101
-    assert card.IDTipoTarjeta == 1
-    assert card.Saldo == 1000
+    card = CardCreate(id=1, iduser=101, idtype=1, balance=1000)
+    assert card.id == 1
+    assert card.iduser == 101
+    assert card.idtype == 1
+    assert card.balance == 1000
 
 # Prueba: Crear una tarjeta con valores por defecto
 def test_card_create_with_defaults():
     card = CardCreate()
-    assert card.ID is None
-    assert card.IDUsuario is None
-    assert card.IDTipoTarjeta is None
-    assert card.Saldo is None
+    assert card.id is None
+    assert card.iduser is None
+    assert card.idtype is None
+    assert card.balance is None
 
 # Prueba: Verificar el método to_dict
 def test_card_to_dict():
-    card = CardCreate(ID=2, IDUsuario=202, IDTipoTarjeta=2, Saldo=500)
+    card = CardCreate(id=2, iduser=202, idtype=2, balance=500)
     card_dict = card.to_dict()
     assert isinstance(card_dict, dict)
     assert card_dict == {
-        "ID": 2,
-        "IDUsuario": 202,
-        "IDTipoTarjeta": 2,
-        "Saldo": 500
+        "id": 2,
+        "iduser": 202,
+        "idtype": 2,
+        "balance": 500
     }
 
 # Prueba: Obtener campos del modelo
 def test_card_get_fields():
     expected_fields = {
-        "ID": "INTEGER PRIMARY KEY",
-        "IDUsuario": "INTEGER",
-        "IDTipoTarjeta": "INTEGER",
-        "Saldo": "INTEGER"
+        "id": "INTEGER PRIMARY KEY",
+        "iduser": "INTEGER",
+        "idtype": "INTEGER",
+        "balance": "INTEGER"
     }
     assert CardCreate.get_fields() == expected_fields
 
 # Prueba: Crear una tarjeta de salida a partir de un diccionario
 def test_card_out_from_dict():
     data = {
-        "ID": 3,
-        "IDUsuario": 303,
-        "IDTipoTarjeta": 3,
-        "Saldo": 750
+        "id": 3,
+        "iduser": 303,
+        "idtype": 3,
+        "balance": 750
     }
     card_out = CardOut.from_dict(data)
     assert isinstance(card_out, CardOut)
-    assert card_out.ID == 3
-    assert card_out.IDUsuario == 303
-    assert card_out.IDTipoTarjeta == 3
-    assert card_out.Saldo == 750
+    assert card_out.id == 3
+    assert card_out.iduser == 303
+    assert card_out.idtype == 3
+    assert card_out.balance == 750
 
 # Prueba: Verificar que el método from_dict falle con datos inválidos
 def test_card_out_from_dict_invalid():
@@ -61,8 +61,8 @@ def test_card_out_from_dict_invalid():
 
 # Prueba: Verificar el nombre de la entidad en CardCreate
 def test_card_create_entity_name():
-    assert CardCreate.__entity_name__ == "TarjetaIns"
+    assert CardCreate.__entity_name__ == "tarjeta"
 
 # Prueba: Verificar el nombre de la entidad en CardOut
 def test_card_out_entity_name():
-    assert CardOut.__entity_name__ == "TarjetaIns"
+    assert CardOut.__entity_name__ == "tarjeta"

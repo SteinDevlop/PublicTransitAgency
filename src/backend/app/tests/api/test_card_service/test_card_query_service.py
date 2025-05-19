@@ -30,6 +30,12 @@ app_for_test.include_router(card_router)
 app_for_test.mount("/static", StaticFiles(directory="src/frontend/static"), name="static")
 client = TestClient(app_for_test)
 
+# Test GET /card/consultar
+def test_consultar_page():
+    response = client.get("/card/consultar", headers=headers)
+    assert response.status_code == 200
+    assert "Consultar Saldo" in response.text
+
 # Test GET /card/tarjetas
 def test_get_tarjetas():
     # Carga previa necesaria
@@ -84,7 +90,7 @@ def test_get_tarjeta_existing():
     response = client.get("/card/tarjeta?ID=3", headers=headers)
 
     assert response.status_code == 200
-    assert """{"ID":3,"IDUsuario":1,"IDTipoTarjeta":3,"Saldo":0}""" in response.text
+    assert "Detalles de la Tarjeta" in response.text
     assert "3" in response.text
     assert "0" in response.text
 

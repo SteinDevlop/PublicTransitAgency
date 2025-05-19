@@ -9,17 +9,7 @@ import '/pages/supervisor.dart';
 import '/pages/tecnico.dart';
 
 void main() {
-  runApp(MaterialApp(
-    initialRoute: '/',
-    routes: {
-      '/': (context) => LoginPage(),
-      '/pasajero': (context) => PasajeroPage(),
-      '/operario': (context) => OperarioPage(),
-      '/supervisor': (context) => SupervisorPage(),
-      '/administrador': (context) => AdministradorPage(),
-      '/mantenimiento': (context) => MantenimientoPage(),
-    },
-  ));
+  runApp(TransitConnectApp());
 }
 
 class TransitConnectApp extends StatelessWidget {

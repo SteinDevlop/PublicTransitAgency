@@ -16,11 +16,7 @@ logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
 
 @app.get("/typecards/")
-def read_all(
-    current_user: dict = Security(
-        get_current_user,
-        scopes=["system", "administrador"]
-    )    ):
+def read_all():
     """
     Fetches all records of TypeCard.
 
@@ -41,11 +37,7 @@ def read_all(
 @app.get("/{ID}")
 
 def get_by_id(
-    ID: int,
-    current_user: dict = Security(
-        get_current_user,
-        scopes=["system", "administrador"]
-    )    
+    ID: int, 
     
 ):
     """

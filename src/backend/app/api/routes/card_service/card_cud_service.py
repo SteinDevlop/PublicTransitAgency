@@ -21,11 +21,7 @@ templates = Jinja2Templates(directory="src/backend/app/templates")
 async def create_card(
     ID: int = Form(...),
     IDUsuario: int = Form(...),
-    IDTipoTarjeta: int = Form(...),
-    current_user: dict = Security(
-        get_current_user,
-        scopes=["system", "administrador", "pasajero"]
-    )
+    IDTipoTarjeta: int = Form(...)
 ):
     try:
         new_card = CardCreate(ID=ID, IDUsuario=IDUsuario,IDTipoTarjeta=IDTipoTarjeta, Saldo=0)
@@ -51,10 +47,6 @@ async def update_card(
     ID: int = Form(...),
     IDUsuario: int = Form(...),
     IDTipoTarjeta: int = Form(...),
-    current_user: dict = Security(
-        get_current_user,
-        scopes=["system", "administrador", "pasajero"]
-    )
     
 ):
     try:
@@ -82,10 +74,6 @@ async def update_card(
 @app.post("/delete")
 async def delete_card(
     ID: int = Form(...),
-    current_user: dict = Security(
-        get_current_user,
-        scopes=["system", "administrador"]
-    )
     
 ):
     try:
