@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Form, HTTPException, Security, Request
 from backend.app.models.stops import Parada
-from backend.app.logic.universal_controller_sqlserver import UniversalController
+from backend.app.logic.universal_controller_instance import universal_controller as UniversalController
+
 from starlette.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from backend.app.core.auth import get_current_user

@@ -1,7 +1,8 @@
 import pytest
 from fastapi.testclient import TestClient
 from backend.app.api.routes.ticket_cud_service import app as tickets_router
-from backend.app.logic.universal_controller_sqlserver import UniversalController
+from backend.app.logic.universal_controller_instance import universal_controller as UniversalController
+
 from backend.app.models.ticket import Ticket
 from backend.app.core.conf import headers
 from fastapi import FastAPI

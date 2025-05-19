@@ -2,7 +2,8 @@
 # from fastapi.testclient import TestClient
 # from backend.app.api.routes.payment_cud_service import app
 # from backend.app.models.payment import Payment
-# from backend.app.logic.universal_controller_sqlserver import UniversalController
+# from backend.app.logic.universal_controller_instance import universal_controller as UniversalController
+
 
 # client = TestClient(app)
 # controller = UniversalController()

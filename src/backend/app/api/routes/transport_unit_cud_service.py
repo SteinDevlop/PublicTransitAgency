@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Form, HTTPException, Security, Request
-from backend.app.logic.universal_controller_sqlserver import UniversalController
+from backend.app.logic.universal_controller_instance import universal_controller as UniversalController
+
 from backend.app.models.routes import Route
 from backend.app.models.type_transport import TypeTransportCreate
 from backend.app.models.transport import UnidadTransporte

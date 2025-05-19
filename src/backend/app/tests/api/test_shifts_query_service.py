@@ -1,7 +1,8 @@
 import pytest
 from fastapi.testclient import TestClient
 from backend.app.api.routes.shifts_query_service import app as shifts_router
-from backend.app.logic.universal_controller_sqlserver import UniversalController
+from backend.app.logic.universal_controller_instance import universal_controller as UniversalController
+
 from backend.app.models.shift import Shift
 from backend.app.core.conf import headers
 from fastapi import FastAPI

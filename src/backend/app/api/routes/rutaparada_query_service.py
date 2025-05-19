@@ -1,7 +1,8 @@
 from fastapi import APIRouter, HTTPException, Request
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
-from backend.app.logic.universal_controller_sqlserver import UniversalController
+from backend.app.logic.universal_controller_instance import universal_controller as UniversalController
+
 from backend.app.models.rutaparada import RutaParada
 
 app = APIRouter(prefix="/rutaparada", tags=["rutaparada"])

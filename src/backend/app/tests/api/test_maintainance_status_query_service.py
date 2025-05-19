@@ -1,7 +1,8 @@
 import pytest
 from fastapi.testclient import TestClient
 from backend.app.api.routes.maintainance_status_query_service import app as maintainance_status_router
-from backend.app.logic.universal_controller_sqlserver import UniversalController
+from backend.app.logic.universal_controller_instance import universal_controller as UniversalController
+
 from backend.app.models.maintainance_status import MaintainanceStatus
 from backend.app.core.conf import headers
 from fastapi import FastAPI

@@ -2,7 +2,8 @@ import pytest
 from fastapi.testclient import TestClient
 from backend.app.api.routes.schedule_cud_service import app
 from backend.app.models.schedule import Schedule
-from backend.app.logic.universal_controller_sqlserver import UniversalController
+from backend.app.logic.universal_controller_instance import universal_controller as UniversalController
+
 from backend.app.core.conf import headers
 
 client = TestClient(app)

@@ -2,7 +2,8 @@ import pytest
 from fastapi.testclient import TestClient
 from backend.app.api.routes.transport_unit_cud_service import app
 from backend.app.models.transport import UnidadTransporte
-from backend.app.logic.universal_controller_sqlserver import UniversalController
+from backend.app.logic.universal_controller_instance import universal_controller as UniversalController
+
 from backend.app.core.conf import headers
 
 client = TestClient(app)

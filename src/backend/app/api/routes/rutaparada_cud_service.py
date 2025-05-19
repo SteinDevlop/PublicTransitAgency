@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Form, HTTPException
 from backend.app.models.rutaparada import RutaParada
-from backend.app.logic.universal_controller_sqlserver import UniversalController
+from backend.app.logic.universal_controller_instance import universal_controller as UniversalController
 from starlette.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
 from fastapi import Request

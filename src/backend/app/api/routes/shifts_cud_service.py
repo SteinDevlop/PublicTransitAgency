@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Form, HTTPException, Security, Request
-from backend.app.logic.universal_controller_sqlserver import UniversalController
+from backend.app.logic.universal_controller_instance import universal_controller as UniversalController
+
 from backend.app.models.shift import Shift
 from backend.app.core.auth import get_current_user
 from starlette.responses import HTMLResponse
