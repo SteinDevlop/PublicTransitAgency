@@ -16,16 +16,13 @@ def test_crear_ticket():
     """Prueba para crear un ticket"""
     # Usar un ID muy alto para evitar conflictos con datos existentes
     ticket_id = 9999
-
     try:
         response = client.post("/tickets/create", data={
             "ID": ticket_id,
             "EstadoIncidencia": "Abierto"
         }, headers=headers)
-
         assert response.status_code == 200
         assert response.json()["message"] == "Ticket creado exitosamente."
-
         # Verificar que el ticket se creó correctamente
         ticket = controller.get_by_id(Ticket, ticket_id)
         assert ticket is not None
@@ -35,7 +32,6 @@ def test_crear_ticket():
         ticket = controller.get_by_id(Ticket, ticket_id)
         if ticket:
             controller.delete(ticket)
-
 def test_actualizar_ticket():
     """Prueba para actualizar un ticket existente"""
     # Usar un ID muy alto para evitar conflictos con datos existentes

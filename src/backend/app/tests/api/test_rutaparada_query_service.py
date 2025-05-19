@@ -1,49 +1,27 @@
-# import pytest
-# from fastapi.testclient import TestClient
-# from backend.app.api.routes.rutaparada_query_service import app
-# from backend.app.models.rutaparada import RutaParada
-# from backend.app.logic.universal_controller_instance import universal_controller as controller
+import logging
+from fastapi.testclient import TestClient
+from backend.app.api.routes.rutaparada_query_service import app as rutaparada_router
 
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("backend.app.api.routes.rutaparada_query_service")
 
-# client = TestClient(app)
+client = TestClient(rutaparada_router)
 
-# @pytest.fixture
-# def setup_and_teardown():
-#     """
-#     Fixture para configurar y limpiar los datos de prueba.
-#     """
-#     rutaparada = RutaParada(IDParada=9999, IDRuta=8888)
-#     # Asegurarse de que la relación no exista antes de crearla
-#     existing_rutaparada = controller.get_by_id(RutaParada, rutaparada.IDParada)
-#     if existing_rutaparada:
-#         controller.delete(existing_rutaparada)
+def test_listar_rutaparada():
+    """
+    Prueba para listar todas las relaciones Ruta-Parada.
+    """
+    response = client.get("/ruta_parada/")
+    assert response.status_code == 200
+    assert "ListarRutaParada.html" in response.text or "Lista de Rutas y Paradas" in response.text
+    logger.info("Test listar_rutaparada ejecutado correctamente.")
 
-#     # Crear la relación de prueba
-#     controller.add(rutaparada)
-#     yield rutaparada
+def test_detalle_rutaparada_existente():
+    """
+    Prueba para obtener el detalle de una relación Ruta-Parada existente (IDRuta=1, IDParada=1).
+    """
+    response = client.get("/ruta_parada/1")
+    assert response.status_code == 200
+    assert "DetalleRutaParada.html" in response.text or "Parada" in response.text
+    logger.info("Test detalle_rutaparada_existente ejecutado correctamente para IDParada=1.")
 
-#     # Eliminar la relación de prueba
-#     controller.delete(rutaparada)
-
-# def test_listar_rutaparada(setup_and_teardown):
-#     """
-#     Prueba para listar todas las relaciones Ruta-Parada.
-#     """
-#     response = client.get("/rutaparada/")
-#     assert response.status_code == 200
-
-# def test_detalle_rutaparada_existente(setup_and_teardown):
-#     """
-#     Prueba para obtener el detalle de una relación Ruta-Parada existente.
-#     """
-#     rutaparada = setup_and_teardown
-#     response = client.get(f"/rutaparada/{rutaparada.IDParada}")
-#     assert response.status_code == 200
-
-# def test_detalle_rutaparada_no_existente():
-#     """
-#     Prueba para obtener el detalle de una relación Ruta-Parada que no existe.
-#     """
-#     response = client.get("/rutaparada/99999")
-#     assert response.status_code == 404
-#     assert response.json()["detail"] == "Relación Ruta-Parada no encontrada"

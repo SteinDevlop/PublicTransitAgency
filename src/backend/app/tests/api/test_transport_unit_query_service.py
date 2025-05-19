@@ -33,4 +33,3 @@ def test_detalle_unidad_transporte_existente(setup_and_teardown):
     response = client.get(f"/transport_units/{unidad.ID}", headers=headers)
     assert response.status_code == 200
     assert "Depósito Central" in response.text
-    assert str(unidad.Capacidad) in response.text

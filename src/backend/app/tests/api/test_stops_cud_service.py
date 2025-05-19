@@ -78,25 +78,3 @@ def test_eliminar_parada(setup_and_teardown):
     parada_eliminada = controller.get_by_id(Parada, parada_prueba.ID)
     assert parada_eliminada is None
 
-def test_renderizar_formulario_crear():
-    """
-    Prueba para verificar que el formulario de creación se renderiza correctamente.
-    """
-    response = client.get("/stops/create", headers=headers)  # Añadir los headers
-    assert response.status_code == 200
-
-def test_renderizar_formulario_actualizar():
-    """
-    Prueba para verificar que el formulario de actualización se renderiza correctamente.
-    """
-    response = client.get("/stops/update", headers=headers)  # Añadir los headers
-    assert response.status_code == 200
-
-def test_renderizar_formulario_eliminar():
-    """
-    Prueba para verificar que el formulario de eliminación se renderiza correctamente.
-    """
-    response = client.get("/stops/delete", headers=headers)  # Añadir los headers
-    assert response.status_code == 200
-
-

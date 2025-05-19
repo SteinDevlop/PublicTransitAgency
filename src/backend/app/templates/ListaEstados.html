@@ -1,61 +1,9 @@
 {% extends "base.html" %}
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-                <div class="mb-4 text-right">
-                    <a href="/maintainance_status/create" class="inline-block bg-success text-white font-semibold py-2 px-4 rounded-md hover:bg-green-600 transition duration-300">
-                        Crear Nuevo Estado
-                    </a>
-                </div>
-=======
-{% block title %}Listar Estados de Mantenimiento{% endblock %}
-{% block header %}Lista de Estados de Mantenimiento{% endblock %}
-{% block back_url %}/maintainance_status{% endblock %}
->>>>>>> f7c4ade (everything works)
-
-<<<<<<< HEAD
-                <div class="overflow-x-auto">
-                    <table class="w-full table-auto border-collapse">
-                        <thead class="bg-gray-light">
-                            <tr>
-                                <th class="px-4 py-2 text-left font-bold">ID</th>
-                                <th class="px-4 py-2 text-left font-bold">Tipo de Estado</th>
-                                <th class="px-4 py-2 text-left font-bold">Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for estado in estados %}
-                            <tr class="hover:bg-gray-hover transition duration-200">
-                                <td class="border-b border-gray-border px-4 py-2">{{ estado.id }}</td>
-                                <td class="border-b border-gray-border px-4 py-2">{{ estado.TipoEstado }}</td>
-                                <td class="border-b border-gray-border px-4 py-2">
-                                    <a href="/maintainance_status/{{ estado.id }}" class="inline-block bg-action-blue text-white font-semibold py-1 px-2 rounded-md text-xs hover:bg-blue-700 transition duration-200 mr-2">
-                                        Ver
-                                    </a>
-                                    <a href="/maintainance_status/update?id={{ estado.id }}" class="inline-block bg-action-edit text-white font-semibold py-1 px-2 rounded-md text-xs hover:bg-yellow-600 transition duration-200 mr-2">
-                                        Editar
-                                    </a>
-                                    <a href="/maintainance_status/delete?id={{ estado.id }}" class="inline-block bg-action-delete text-white font-semibold py-1 px-2 rounded-md text-xs hover:bg-red-700 transition duration-200">
-                                        Eliminar
-                                    </a>
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    </div>
-</body>
-</html>
-=======
-=======
 {% block title %}Listar Estados de Mantenimiento{% endblock %}
 {% block header %}Lista de Estados de Mantenimiento{% endblock %}
 {% block back_url %}/maintainance_status{% endblock %}
 
->>>>>>> cafe4e8 (More decorations)
 {% block content %}
 <table class="table-auto w-full border-collapse border border-gray-300">
     <thead>
@@ -68,18 +16,9 @@
         {% for estado in estados %}
         <tr class="hover:bg-gray-100">
             <td class="border border-gray-300 px-4 py-2">{{ estado.ID }}</td>
-<<<<<<< HEAD
             <td class="border border-gray-300 px-4 py-2">{{ estado.TipoEstado }}</td>
-=======
-            <td class="border border-gray-300 px-4 py-2">{{ estado.Estado }}</td>
->>>>>>> cafe4e8 (More decorations)
         </tr>
         {% endfor %}
     </tbody>
 </table>
-<<<<<<< HEAD
 {% endblock %}
->>>>>>> 207cdfe (Correction on lists)
-=======
-{% endblock %}
->>>>>>> cafe4e8 (More decorations)
