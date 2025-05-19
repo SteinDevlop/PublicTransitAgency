@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, Request, Security
 from fastapi.responses import HTMLResponse
 from fastapi.templating import Jinja2Templates
-from backend.app.logic.universal_controller_instance import universal_controller as UniversalController
+from backend.app.logic.universal_controller_instance import universal_controller as controller
 
 from backend.app.models.incidence import Incidence
 from backend.app.core.auth import get_current_user
@@ -12,7 +12,7 @@ templates = Jinja2Templates(directory="src/backend/app/templates")
 @app.get("/", response_class=HTMLResponse)
 def listar_incidencias(
     request: Request,
-    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "supervisor"])
+ #   current_user: dict = Security(get_current_user, scopes=["system", "administrador", "supervisor"])
 ):
     """
     Lista todas las incidencias.
