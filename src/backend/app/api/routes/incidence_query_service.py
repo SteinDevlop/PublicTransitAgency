@@ -7,7 +7,6 @@ from backend.app.models.incidence import Incidence
 from backend.app.core.auth import get_current_user
 
 app = APIRouter(prefix="/incidences", tags=["incidences"])
-controller = UniversalController()
 templates = Jinja2Templates(directory="src/backend/app/templates")
 
 @app.get("/", response_class=HTMLResponse)

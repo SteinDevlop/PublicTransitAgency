@@ -2,12 +2,11 @@ import pytest
 from fastapi.testclient import TestClient
 from backend.app.api.routes.incidence_query_service import app
 from backend.app.models.incidence import Incidence
-from backend.app.logic.universal_controller_instance import universal_controller as UniversalController
+from backend.app.logic.universal_controller_instance import universal_controller as controller
 
 from backend.app.core.conf import headers
 
 client = TestClient(app)
-controller = UniversalController()
 
 @pytest.fixture
 def setup_and_teardown():

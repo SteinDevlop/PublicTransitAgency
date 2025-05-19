@@ -2,11 +2,10 @@
 # from fastapi.testclient import TestClient
 # from backend.app.api.routes.rutaparada_cud_service import app
 # from backend.app.models.rutaparada import RutaParada
-# from backend.app.logic.universal_controller_instance import universal_controller as UniversalController
+# from backend.app.logic.universal_controller_instance import universal_controller as controller
 
 
 # client = TestClient(app)
-# controller = UniversalController()
 
 # @pytest.fixture
 # def setup_and_teardown():
