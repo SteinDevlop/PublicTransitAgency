@@ -1,0 +1,176 @@
+{
+	"id": "e9f21660-c3ac-46d1-8c44-c2729b9c35ff",
+	"name": "Sistema Transporte - Técnico",
+	"timestamp": "2025-05-19T23:00:16.473Z",
+	"collection_id": "44967146-0302735a-bb02-40e2-b235-7beca73d3316",
+	"folder_id": 0,
+	"environment_id": "44967146-9f97856b-6424-43f6-a586-1305d69db72c",
+	"totalPass": 0,
+	"delay": 0,
+	"persist": true,
+	"status": "finished",
+	"startedAt": "2025-05-19T23:00:12.600Z",
+	"totalFail": 0,
+	"results": [
+		{
+			"id": "49a06a91-12e9-4c98-bbe8-9a6d76bff87a",
+			"name": "Login Técnico",
+			"url": "http://localhost:8000/login/",
+			"time": 1105,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {},
+			"testPassFailCounts": {},
+			"times": [
+				1105
+			],
+			"allTests": [
+				{}
+			]
+		},
+		{
+			"id": "971f3984-f653-40a5-b457-5e87cdb756fd",
+			"name": "Consultar Horarios",
+			"url": "http://localhost:8000/schedules/",
+			"time": 326,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {},
+			"testPassFailCounts": {},
+			"times": [
+				326
+			],
+			"allTests": [
+				{}
+			]
+		},
+		{
+			"id": "9639863f-4c6f-4b8d-b7e3-1d9e1b60d74a",
+			"name": "Consultar Detalle de Horario",
+			"url": "http://localhost:8000/schedules/1",
+			"time": 106,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {},
+			"testPassFailCounts": {},
+			"times": [
+				106
+			],
+			"allTests": [
+				{}
+			]
+		},
+		{
+			"id": "b87f1c7e-ed02-4044-98b3-1e5040e91195",
+			"name": "Registrar Mantenimiento",
+			"url": "http://localhost:8000/maintainance/create",
+			"time": 211,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {},
+			"testPassFailCounts": {},
+			"times": [
+				211
+			],
+			"allTests": [
+				{}
+			]
+		},
+		{
+			"id": "72121c48-3441-4b9a-ab73-6975db002379",
+			"name": "Actualizar Mantenimiento",
+			"url": "http://localhost:8000/maintainance/update",
+			"time": 308,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {},
+			"testPassFailCounts": {},
+			"times": [
+				308
+			],
+			"allTests": [
+				{}
+			]
+		},
+		{
+			"id": "1f76143d-5c76-47eb-a9e5-f6aaef50520f",
+			"name": "Eliminar Mantenimiento",
+			"url": "http://localhost:8000/maintainance/delete",
+			"time": 412,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {},
+			"testPassFailCounts": {},
+			"times": [
+				412
+			],
+			"allTests": [
+				{}
+			]
+		},
+		{
+			"id": "f74c001b-cba1-4538-a969-d8fdf9402612",
+			"name": "Reporte Supervisor",
+			"url": "http://localhost:8000/reporte/supervisor",
+			"time": 294,
+			"responseCode": {
+				"code": 200,
+				"name": "OK"
+			},
+			"tests": {},
+			"testPassFailCounts": {},
+			"times": [
+				294
+			],
+			"allTests": [
+				{}
+			]
+		}
+	],
+	"count": 1,
+	"totalTime": 2762,
+	"collection": {
+		"requests": [
+			{
+				"id": "49a06a91-12e9-4c98-bbe8-9a6d76bff87a",
+				"method": "POST"
+			},
+			{
+				"id": "971f3984-f653-40a5-b457-5e87cdb756fd",
+				"method": "GET"
+			},
+			{
+				"id": "9639863f-4c6f-4b8d-b7e3-1d9e1b60d74a",
+				"method": "GET"
+			},
+			{
+				"id": "b87f1c7e-ed02-4044-98b3-1e5040e91195",
+				"method": "POST"
+			},
+			{
+				"id": "72121c48-3441-4b9a-ab73-6975db002379",
+				"method": "POST"
+			},
+			{
+				"id": "1f76143d-5c76-47eb-a9e5-f6aaef50520f",
+				"method": "POST"
+			},
+			{
+				"id": "f74c001b-cba1-4538-a969-d8fdf9402612",
+				"method": "GET"
+			}
+		]
+	}
+}
