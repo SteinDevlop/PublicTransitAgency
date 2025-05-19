@@ -1,146 +1,233 @@
 {
-	"id": "e9f21660-c3ac-46d1-8c44-c2729b9c35ff",
+	"id": "d7b382cc-b793-4b70-9740-f5bd3176aaad",
 	"name": "Sistema Transporte - Técnico",
-	"timestamp": "2025-05-19T23:00:16.473Z",
+	"timestamp": "2025-05-19T23:17:03.542Z",
 	"collection_id": "44967146-0302735a-bb02-40e2-b235-7beca73d3316",
 	"folder_id": 0,
 	"environment_id": "44967146-9f97856b-6424-43f6-a586-1305d69db72c",
-	"totalPass": 0,
+	"totalPass": 10,
 	"delay": 0,
 	"persist": true,
 	"status": "finished",
-	"startedAt": "2025-05-19T23:00:12.600Z",
-	"totalFail": 0,
+	"startedAt": "2025-05-19T23:16:59.711Z",
+	"totalFail": 1,
 	"results": [
 		{
 			"id": "49a06a91-12e9-4c98-bbe8-9a6d76bff87a",
 			"name": "Login Técnico",
 			"url": "http://localhost:8000/login/",
-			"time": 1105,
+			"time": 1123,
 			"responseCode": {
 				"code": 200,
 				"name": "OK"
 			},
-			"tests": {},
-			"testPassFailCounts": {},
+			"tests": {
+				"Status code is 200": true
+			},
+			"testPassFailCounts": {
+				"Status code is 200": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
 			"times": [
-				1105
+				1123
 			],
 			"allTests": [
-				{}
+				{
+					"Status code is 200": true
+				}
 			]
 		},
 		{
 			"id": "971f3984-f653-40a5-b457-5e87cdb756fd",
 			"name": "Consultar Horarios",
 			"url": "http://localhost:8000/schedules/",
-			"time": 326,
+			"time": 303,
 			"responseCode": {
 				"code": 200,
 				"name": "OK"
 			},
-			"tests": {},
-			"testPassFailCounts": {},
+			"tests": {
+				"Status code is 200": true,
+				"Debe retornar una lista de horarios": false
+			},
+			"testPassFailCounts": {
+				"Status code is 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Debe retornar una lista de horarios": {
+					"pass": 0,
+					"fail": 1
+				}
+			},
 			"times": [
-				326
+				303
 			],
 			"allTests": [
-				{}
+				{
+					"Status code is 200": true,
+					"Debe retornar una lista de horarios": false
+				}
 			]
 		},
 		{
 			"id": "9639863f-4c6f-4b8d-b7e3-1d9e1b60d74a",
 			"name": "Consultar Detalle de Horario",
 			"url": "http://localhost:8000/schedules/1",
-			"time": 106,
+			"time": 100,
 			"responseCode": {
 				"code": 200,
 				"name": "OK"
 			},
-			"tests": {},
-			"testPassFailCounts": {},
+			"tests": {
+				"Status code is 200": true
+			},
+			"testPassFailCounts": {
+				"Status code is 200": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
 			"times": [
-				106
+				100
 			],
 			"allTests": [
-				{}
+				{
+					"Status code is 200": true
+				}
 			]
 		},
 		{
 			"id": "b87f1c7e-ed02-4044-98b3-1e5040e91195",
 			"name": "Registrar Mantenimiento",
 			"url": "http://localhost:8000/maintainance/create",
-			"time": 211,
+			"time": 215,
 			"responseCode": {
 				"code": 200,
 				"name": "OK"
 			},
-			"tests": {},
-			"testPassFailCounts": {},
+			"tests": {
+				"Status code is 200": true,
+				"Mensaje de confirmación de mantenimiento": true
+			},
+			"testPassFailCounts": {
+				"Status code is 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Mensaje de confirmación de mantenimiento": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
 			"times": [
-				211
+				215
 			],
 			"allTests": [
-				{}
+				{
+					"Status code is 200": true,
+					"Mensaje de confirmación de mantenimiento": true
+				}
 			]
 		},
 		{
 			"id": "72121c48-3441-4b9a-ab73-6975db002379",
 			"name": "Actualizar Mantenimiento",
 			"url": "http://localhost:8000/maintainance/update",
-			"time": 308,
+			"time": 326,
 			"responseCode": {
 				"code": 200,
 				"name": "OK"
 			},
-			"tests": {},
-			"testPassFailCounts": {},
+			"tests": {
+				"Status code is 200": true,
+				"Mensaje de actualización exitosa": true
+			},
+			"testPassFailCounts": {
+				"Status code is 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Mensaje de actualización exitosa": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
 			"times": [
-				308
+				326
 			],
 			"allTests": [
-				{}
+				{
+					"Status code is 200": true,
+					"Mensaje de actualización exitosa": true
+				}
 			]
 		},
 		{
 			"id": "1f76143d-5c76-47eb-a9e5-f6aaef50520f",
 			"name": "Eliminar Mantenimiento",
 			"url": "http://localhost:8000/maintainance/delete",
-			"time": 412,
+			"time": 396,
 			"responseCode": {
 				"code": 200,
 				"name": "OK"
 			},
-			"tests": {},
-			"testPassFailCounts": {},
+			"tests": {
+				"Status code is 200": true,
+				"Mensaje de eliminación exitosa": true
+			},
+			"testPassFailCounts": {
+				"Status code is 200": {
+					"pass": 1,
+					"fail": 0
+				},
+				"Mensaje de eliminación exitosa": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
 			"times": [
-				412
+				396
 			],
 			"allTests": [
-				{}
+				{
+					"Status code is 200": true,
+					"Mensaje de eliminación exitosa": true
+				}
 			]
 		},
 		{
 			"id": "f74c001b-cba1-4538-a969-d8fdf9402612",
 			"name": "Reporte Supervisor",
 			"url": "http://localhost:8000/reporte/supervisor",
-			"time": 294,
+			"time": 293,
 			"responseCode": {
 				"code": 200,
 				"name": "OK"
 			},
-			"tests": {},
-			"testPassFailCounts": {},
+			"tests": {
+				"Status code is 200": true
+			},
+			"testPassFailCounts": {
+				"Status code is 200": {
+					"pass": 1,
+					"fail": 0
+				}
+			},
 			"times": [
-				294
+				293
 			],
 			"allTests": [
-				{}
+				{
+					"Status code is 200": true
+				}
 			]
 		}
 	],
 	"count": 1,
-	"totalTime": 2762,
+	"totalTime": 2756,
 	"collection": {
 		"requests": [
 			{
