@@ -1,7 +1,6 @@
 import logging
 from fastapi import APIRouter, Form, Request, HTTPException
 from fastapi.responses import HTMLResponse
-from fastapi.templating import Jinja2Templates
 from backend.app.models.type_card import TypeCardOut, TypeCardCreate
 from backend.app.logic.universal_controller_instance import universal_controller as controller
 from backend.app.core.auth import get_current_user
@@ -22,7 +21,11 @@ logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(
 @app.post("/create")
 async def create_typecard(
     ID: int = Form(...),
-    Tipo: str = Form(...)
+    Tipo: str = Form(...),
+    current_user: dict = Security(
+        get_current_user,
+        scopes=["system", "administrador"]
+    )    
     
 ):
     """
@@ -52,6 +55,10 @@ async def create_typecard(
 async def update_typecard(
     ID: int = Form(...),
     Tipo: str = Form(...),
+    current_user: dict = Security(
+        get_current_user,
+        scopes=["system", "administrador"]
+    )    
     
 ):
     """
@@ -85,6 +92,10 @@ async def update_typecard(
 @app.post("/delete")
 async def delete_typecard(
     ID: int = Form(...),
+    current_user: dict = Security(
+        get_current_user,
+        scopes=["system", "administrador"]
+    )    
     
 ):
     """

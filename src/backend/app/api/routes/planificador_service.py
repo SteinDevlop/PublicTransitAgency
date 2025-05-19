@@ -4,7 +4,7 @@ from fastapi import (
 )
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse
-
+import base64
 from backend.app.models.card import CardCreate, CardOut
 from backend.app.logic.universal_controller_instance import universal_controller as controller
 from backend.app.core.auth import get_current_user
@@ -16,17 +16,24 @@ logging.basicConfig(level=logging.INFO)
 app = APIRouter(prefix="/planificador", tags=["Planificador"])
 
 @app.post("/ubicaciones")
-def planificador(request: Request, ubicacion_entrada: str = Form(...), ubicacion_final: str = Form(...)):
+async def get_route_plan(request: Request, ubicacion_entrada: str = Form(...), ubicacion_final: str = Form(...),current_user: dict = Security(get_current_user,scopes=["system", "administrador","pasajero"])):
     try:
-        # Intentamos obtener el resultado de la interconexión
+        # Log seguro de los datos de entrada ANTES de usarlos
+        for label, value in [("ubicacion_entrada", ubicacion_entrada), ("ubicacion_final", ubicacion_final)]:
+            if value.isalnum():
+                logger.log(logging.CRITICAL, "%s: %s", label, value)
+            else:
+                logger.log(
+                    logging.CRITICAL,
+                    "%s (Invalid Input, base64): %s",
+                    label,
+                    base64.b64encode(value.encode('UTF-8')).decode()
+                )
+
         resultado = controller.obtener_ruta_con_interconexion(ubicacion_entrada, ubicacion_final)
         
-        # Verificamos si el resultado es vacío o None, y gestionamos el error
         if not resultado:
-            logger.error(f"No se encontraron interconexiones para {ubicacion_entrada} y {ubicacion_final}.")
-        # Si todo está bien, retornamos el resultado a la plantilla
+            logger.log(logging.CRITICAL, "Resultado vacío o inválido")
         return resultado
     except Exception as e:
-        # Logueamos el error si algo falla
-        logger.error(f"Error al obtener las rutas con interconexión: {str(e)}")
-        # Retornamos un mensaje de error al usuario
+        logger.error("Error al obtener las rutas con interconexión: %s", str(e))

@@ -4,7 +4,6 @@ from fastapi.responses import HTMLResponse
 from backend.app.logic.universal_controller_instance import universal_controller as controller
 from backend.app.core.auth import get_current_user
 from backend.app.models.maintainance import MaintenanceOut
-from fastapi.templating import Jinja2Templates
 
 # Initialize the maintenance controller
 
@@ -14,10 +13,13 @@ app = APIRouter(prefix="/maintainance", tags=["maintainance"])
 # Set up logging
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
-templates = Jinja2Templates(directory="src/backend/app/templates")
 
 @app.get("/maintainancements", response_model=list[dict])
-def read_all():
+def read_all(
+    current_user: dict = Security(
+        get_current_user,
+        scopes=["system", "administrador", "mantenimiento"]
+    )    ):
     """
     Returns all maintenance records.
 
@@ -39,7 +41,11 @@ def read_all():
 
 @app.get("/id/{ID}")
 def get_by_id(
-    ID: int
+    ID: int,
+    current_user: dict = Security(
+        get_current_user,
+        scopes=["system", "administrador", "mantenimiento"]
+    )    
     
 ):
     """
@@ -66,7 +72,11 @@ def get_by_id(
 
 
 @app.get("/unit/")
-def get_by_unit(idunidad: int):
+def get_by_unit(idunidad: int,
+    current_user: dict = Security(
+        get_current_user,
+        scopes=["system", "administrador", "mantenimiento"]
+    )    ):
         records = controller.get_by_unit(MaintenanceOut,idunidad)
         if not records:
             logger.warning(f"[GET /{idunidad}] Mantenimiento con ID {idunidad} no encontrado.")
@@ -75,7 +85,11 @@ def get_by_unit(idunidad: int):
         logger.info(f"[GET /{idunidad}] Se ha encontrado el mantenimiento con ID {idunidad}.")
         return records.to_dict()
 @app.get("/listar")
-async def listar_mantenimientos(request: Request):
+async def listar_mantenimientos(request: Request,
+    current_user: dict = Security(
+        get_current_user,
+        scopes=["system", "administrador", "mantenimiento"]
+    )    ):
     """
     Muestra la lista de registros de mantenimiento en formato HTML.
     """
