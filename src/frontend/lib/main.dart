@@ -1,23 +1,22 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:jwt_decoder/jwt_decoder.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import '/pages/login.dart';
 import '/pages/administrador.dart';
 import '/pages/operario.dart';
 import '/pages/pasajero.dart';
 import '/pages/supervisor.dart';
 import '/pages/tecnico.dart';
-
 void main() {
   runApp(MaterialApp(
-    initialRoute: '/',
+    initialRoute: '/home', // Cambia la ruta inicial a HomePage
     routes: {
       '/': (context) => LoginPage(),
-      '/pasajero': (context) => PasajeroPage(),
-      '/operario': (context) => OperarioPage(),
-      '/supervisor': (context) => SupervisorPage(),
-      '/administrador': (context) => AdministradorPage(),
-      '/mantenimiento': (context) => MantenimientoPage(),
+      '/home': (context) => HomePage(),
+      // Elimina los tokens vacíos de las rutas
     },
   ));
 }
@@ -48,7 +47,8 @@ class HomePage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.blue[800],
-        title: Text('Public Transit Agency', style: TextStyle(color: Colors.white)),
+        title: Text('Public Transit Agency',
+            style: TextStyle(color: Colors.white)),
         actions: [
           IconButton(
             icon: Icon(Icons.notifications, color: Colors.white),
@@ -109,16 +109,14 @@ class HomePage extends StatelessWidget {
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.white,
                           foregroundColor: Colors.blue[700],
-                          padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                          padding: EdgeInsets.symmetric(
+                              horizontal: 24, vertical: 12),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(24),
                           ),
                         ),
                         onPressed: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(builder: (_) => LoginPage()),
-                          );
+                          Navigator.pushNamed(context, '/');
                         },
                       ),
                     ),
@@ -146,17 +144,20 @@ class HomePage extends StatelessWidget {
                       ),
                       child: Column(
                         children: [
-                          Icon(Icons.account_balance_wallet, color: Colors.blue[700], size: 36),
+                          Icon(Icons.account_balance_wallet,
+                              color: Colors.blue[700], size: 36),
                           SizedBox(height: 12),
                           Text(
                             'Consultar saldo',
-                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold, fontSize: 16),
                             textAlign: TextAlign.center,
                           ),
                           SizedBox(height: 6),
                           Text(
                             'Verifica el saldo de tu tarjeta de transporte en tiempo real',
-                            style: TextStyle(fontSize: 12, color: Colors.black54),
+                            style:
+                                TextStyle(fontSize: 12, color: Colors.black54),
                             textAlign: TextAlign.center,
                           ),
                           SizedBox(height: 12),
@@ -199,13 +200,15 @@ class HomePage extends StatelessWidget {
                           SizedBox(height: 12),
                           Text(
                             'Rutas y horarios',
-                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold, fontSize: 16),
                             textAlign: TextAlign.center,
                           ),
                           SizedBox(height: 6),
                           Text(
                             'Consulta las rutas disponibles y los horarios de servicio',
-                            style: TextStyle(fontSize: 12, color: Colors.black54),
+                            style:
+                                TextStyle(fontSize: 12, color: Colors.black54),
                             textAlign: TextAlign.center,
                           ),
                           SizedBox(height: 12),
@@ -244,17 +247,20 @@ class HomePage extends StatelessWidget {
                       ),
                       child: Column(
                         children: [
-                          Icon(Icons.announcement, color: Colors.amber[800], size: 36),
+                          Icon(Icons.announcement,
+                              color: Colors.amber[800], size: 36),
                           SizedBox(height: 12),
                           Text(
                             'Avisos y noticias',
-                            style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                            style: TextStyle(
+                                fontWeight: FontWeight.bold, fontSize: 16),
                             textAlign: TextAlign.center,
                           ),
                           SizedBox(height: 6),
                           Text(
                             'Mantente informado sobre cambios y noticias importantes',
-                            style: TextStyle(fontSize: 12, color: Colors.black54),
+                            style:
+                                TextStyle(fontSize: 12, color: Colors.black54),
                             textAlign: TextAlign.center,
                           ),
                           SizedBox(height: 12),
@@ -300,14 +306,14 @@ class HomePage extends StatelessWidget {
             _buildDrawerItem(context, Icons.announcement, 'Avisos'),
             Divider(),
             _buildDrawerItem(context, Icons.admin_panel_settings,
-                'Administrador', AdminPanel()),
-            _buildDrawerItem(context, Icons.build, 'Operario', OperarioPanel()),
+                'Administrador', AdminPanel(token: ''),),
+            _buildDrawerItem(context, Icons.build, 'Operario', OperarioPanel(token: ''),),
             _buildDrawerItem(
-                context, Icons.directions_bus, 'Pasajero', PassengerPanel()),
+                context, Icons.directions_bus, 'Pasajero', PassengerPanel(token: ''),),
             _buildDrawerItem(context, Icons.supervisor_account, 'Supervisor',
-                SupervisorDashboard()),
+                SupervisorDashboard(token: ''),),
             _buildDrawerItem(
-                context, Icons.engineering, 'Técnico', TecnicoPanel()),
+                context, Icons.engineering, 'Técnico', TecnicoPanel(token: ''),),
           ],
         ),
       ),
@@ -327,5 +333,4 @@ class HomePage extends StatelessWidget {
           : null,
     );
   }
-
 }

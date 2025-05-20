@@ -2,11 +2,13 @@ import logging
 from starlette.responses import HTMLResponse, RedirectResponse
 from jose import jwt, JWTError
 from fastapi.security import OAuth2PasswordRequestForm
-from fastapi import Depends, Request, HTTPException, status, APIRouter, Form
+from fastapi import Depends, Request, HTTPException, status, APIRouter, Form, Security
 from fastapi.templating import Jinja2Templates
 from backend.app.core.auth import encode_token, settings
 from backend.app.logic.universal_controller_instance import universal_controller as controller
 from backend.app.models.user import UserCreate, UserOut
+from fastapi.responses import JSONResponse
+from backend.app.core.auth import get_current_user
 
 # Configurar logging
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(levelname)s - %(message)s")
@@ -45,8 +47,9 @@ async def login_for_access_token(form_data: OAuth2PasswordRequestForm = Depends(
         scope = map_role_to_scope(user.IDRolUsuario)
         logger.info("[POST /token] User scope: %s", scope)
 
+        # Generar el token con el campo 'sub' como el ID único del usuario
         payload = {
-            "sub": user.Nombre,
+            "sub": str(user.ID),  # <-- Asegúrate de que sea string
             "scope": scope
         }
 
@@ -119,7 +122,46 @@ async def get_scope_page(request: Request, scope: str):
         print(f"[SCOPE GET] ERROR: {e}")
         return HTMLResponse(f"<h1>Template error: {e}</h1>", status_code=500)
 
+@app.get("/dashboard")
+async def general_dashboard(
+    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "supervisor", "operario", "pasajero", "mantenimiento"])
+):
+        logger.info("[DASHBOARD] Iniciando solicitud para el dashboard")
 
+        # Obtener el ID del usuario desde el token
+        user_id = current_user.get("sub")
+        logger.info(f"[DASHBOARD] user_id (tipo: {type(user_id)}): {user_id}")
+        try:
+            user_id_int = int(user_id)
+        except Exception as e:
+            logger.error(f"[DASHBOARD] No se pudo convertir user_id a int: {e}")
+            raise HTTPException(status_code=400, detail="ID de usuario inválido")
+
+        user = controller.get_by_column(UserOut, "ID", user_id_int)
+        if not user:
+            logger.warning("[DASHBOARD] Usuario no encontrado en la base de datos para ID: %s", user_id)
+            raise HTTPException(status_code=404, detail="Usuario no encontrado")
+
+        logger.info("[DASHBOARD] Usuario encontrado en la base de datos: %s", user.Nombre)
+
+        # Construir la respuesta del dashboard
+        response_data = {
+            "user": user.model_dump(),
+            "id": user.ID,
+            "total_vehiculos": controller.total_unidades(),
+            "total_passanger": controller.total_pasajeros(),
+            "total_operative": controller.total_operarios(),
+            "total_supervisors": controller.total_supervisores(),
+            "type_card": controller.last_card_used(user.ID),
+            "buses_mantenimiento": controller.total_unidades(),
+            "registros_mantenimiento": controller.total_mantenimiento(),
+            "proximo_mantenimiento": controller.proximos_mantenimientos(),
+            "ultimo_uso_tarjeta": controller.last_card_used(user.ID),
+            "turno": controller.get_turno_usuario(user.ID)
+        }
+
+        logger.info("[DASHBOARD] Respuesta del dashboard generada correctamente")
+        return JSONResponse(response_data)
 def map_role_to_scope(role_id: int) -> str:
     role_scope_map = {
         1: "pasajero",
@@ -129,3 +171,4 @@ def map_role_to_scope(role_id: int) -> str:
         5: "mantenimiento"
     }
     return role_scope_map.get(role_id, "guest")
+

@@ -3,6 +3,9 @@ from fastapi.security import OAuth2PasswordBearer, SecurityScopes
 from jose import jwt, JWTError
 from backend.app.core.config import settings
 from typing import Dict, List
+import logging
+
+logger = logging.getLogger(__name__)
 
 oauth2_scheme = OAuth2PasswordBearer(
     tokenUrl="/login/token",  # must match your actual token generation endpoint
@@ -12,7 +15,7 @@ oauth2_scheme = OAuth2PasswordBearer(
         "pasajero": "Passenger permission",
         "supervisor": "Supervisor permission",
         "mantenimiento": "Maintenance permission",
-        "operador": "Operator permission",
+        "operario": "Operator permission",
     }
 )
 
@@ -61,17 +64,14 @@ def get_current_user(
 
     try:
         payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
-        user_id = payload.get("sub")
-        scope_string = payload.get("scope", "")
-        token_scopes = scope_string.split()
-
-        return {
-            "user_id": user_id,
-            "scopes": token_scopes
-        }
-
-    except JWTError:
-        raise HTTPException(status_code=401, detail="Invalid token")
+        user_id: str = payload.get("sub")
+        scope: str = payload.get("scope")
+        if user_id is None or scope is None:
+            raise HTTPException(status_code=401, detail="Token inválido o falta el campo 'sub'")
+        return {"sub": user_id, "scope": scope}
+    except JWTError as e:
+        logger.error(f"Error decoding token: {e}")
+        raise HTTPException(status_code=401, detail="Token inválido")
 
 
 def verify_role(allowed_roles: List[str]):
