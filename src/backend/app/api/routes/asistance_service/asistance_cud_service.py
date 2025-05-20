@@ -6,7 +6,7 @@ from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse
 
 from backend.app.models.asistance import AsistanceCreate, AsistanceOut
-from backend.app.logic.universal_controller_sqlserver import UniversalController
+from backend.app.logic.universal_controller_instance import universal_controller as controller
 from backend.app.core.auth import get_current_user
 
 # Configuración de logging
@@ -14,7 +14,6 @@ logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
 app = APIRouter(prefix="/asistance", tags=["asistance"])
-controller = UniversalController()
 templates = Jinja2Templates(directory="src/backend/app/templates")
 
 
@@ -61,13 +60,13 @@ async def create_asistance(
 
     try:
         # Verificar si el asistencia ya existe
-        existing_asistance = controller.get_by_column(AsistanceOut, "id", id)  
+        existing_asistance = controller.get_by_column(AsistanceOut,"ID" ,id)  
         if existing_asistance:
             logger.warning(f"[POST /create] Error de validación: El asistencia ya existe con identificación {id}")
             raise HTTPException(400, detail="El asistencia ya existe con la misma identificación.")
         if existing_asistance is None or not existing_asistance:
             # Crear asistencia
-            new_asistance = AsistanceCreate(id=id, iduser=iduser,horainicio=horainicio,horafinal=horafinal,fecha=fecha)
+            new_asistance = AsistanceCreate(ID=id, iduser=iduser,horainicio=horainicio,horafinal=horafinal,fecha=fecha)
             logger.info(f"Intentando insertar asistencia con datos: {new_asistance.model_dump()}")
             controller.add(new_asistance)
             logger.info(f"Asistencia insertado con id: {new_asistance.id}")  # Verifica si el ID se asigna
@@ -75,7 +74,7 @@ async def create_asistance(
             return {
                 "operation": "create",
                 "success": True,
-                "data": AsistanceOut(id=new_asistance.id,iduser=new_asistance.iduser,
+                "data": AsistanceOut(ID=new_asistance.ID,iduser=new_asistance.iduser,
                                     horainicio=new_asistance.horainicio,
                                     horafinal=new_asistance.horafinal,
                                     fecha=new_asistance.fecha).model_dump(),
@@ -101,12 +100,12 @@ async def update_asistance(
 ):
     logger.info(f"[POST /update] Asistencia: {current_user['user_id']} - Actualizando asistencia id={id}")
     try:
-        existing = controller.get_by_column(AsistanceOut,"id" ,id)
+        existing = controller.get_by_column(AsistanceOut,"ID" ,id)
         if existing is None or not existing:
             logger.warning(f"[POST /update] Asistencia no encontrada: id={id}")
             raise HTTPException(404, detail="Asistance not found")
 
-        updated_asistance = AsistanceOut(id=id, iduser=iduser,
+        updated_asistance = AsistanceOut(ID=id, iduser=iduser,
                                          horainicio=horainicio,
                                          horafinal=horafinal,
                                          fecha=fecha)
@@ -115,7 +114,7 @@ async def update_asistance(
         return {
             "operation": "update",
             "success": True,
-            "data": AsistanceOut(id=id, iduser=updated_asistance.iduser,
+            "data": AsistanceOut(ID=id, iduser=updated_asistance.iduser,
                                  horainicio=updated_asistance.horainicio, 
                                  horafinal=updated_asistance.horafinal,
                                  fecha=updated_asistance.fecha).model_dump(),
@@ -136,7 +135,7 @@ async def delete_asistance(
 ):
     logger.info(f"[POST /delete] Asistencia: {current_user['user_id']} - Eliminando asistencia id={id}")
     try:
-        existing = controller.get_by_column(AsistanceOut,"id" ,id)
+        existing = controller.get_by_column(AsistanceOut,"ID" ,id)
         if not existing:
             logger.warning(f"[POST /delete] Asistencia no encontrado en la base de datos: id={id}")
             raise HTTPException(404, detail="Asistance not found")
