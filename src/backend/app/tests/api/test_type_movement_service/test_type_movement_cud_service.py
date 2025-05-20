@@ -14,24 +14,24 @@ app_for_test.mount("/static", StaticFiles(directory="src/frontend/static"), name
 client = TestClient(app_for_test)
 
 def test_create_user():
-    response = client.post("/typemovement/create", data={"id":1,"type":"ingreso_sistema"},headers=headers)
+    response = client.post("/typemovement/create", data={"ID":1,"TipoMovimiento":"ingreso_sistema"},headers=headers)
     assert response.status_code == 200
 
 def test_update_user_existing():
-    response = client.post("/typemovement/update", data={"id":1,"type":"recarga"},headers=headers)
+    response = client.post("/typemovement/update", data={"ID":1,"TipoMovimiento":"recarga"},headers=headers)
     assert response.status_code == 200
 
 def test_update_user_not_found():
-    response = client.post("/typemovement/update", data={"id": 99, "type":"ninguno"},headers=headers)
+    response = client.post("/typemovement/update", data={"ID": 99, "TipoMovimiento":"ninguno"},headers=headers)
     assert response.status_code == 404
     assert response.json()["detail"] == "TypeMovement not found"
 
 def test_delete_user_existing():
-    response = client.post("/typemovement/delete", data={"id": 1},headers=headers)
+    response = client.post("/typemovement/delete", data={"ID": 1},headers=headers)
     assert response.status_code == 200
 
 def test_delete_user_not_found():
-    response = client.post("/typemovement/delete", data={"id": 999},headers=headers)
+    response = client.post("/typemovement/delete", data={"ID": 999},headers=headers)
     assert response.status_code == 404
     assert response.json()["detail"] == "TypeMovement not found"
 

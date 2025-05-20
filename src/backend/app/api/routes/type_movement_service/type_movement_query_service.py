@@ -3,6 +3,7 @@ import json
 from fastapi import Request, Query, APIRouter, Security
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
+from fastapi import HTTPException
 
 from backend.app.core.auth import get_current_user
 from backend.app.models.type_movement import TypeMovementOut
@@ -30,7 +31,7 @@ def consultar(
     """
     Render the 'ConsultarTipoMovimiento.html' template for the user consultation page.
     """
-    logger.info(f"[GET /consultar] Usuario: {current_user['user_id']} - Mostrando página de consulta de tipo de movimiento")
+    #logger.info(f"[GET /consultar] Usuario: {current_user['user_id']} - Mostrando página de consulta de tipo de movimiento")
     return templates.TemplateResponse("ConsultarTipoMovimiento.html", {"request": request})
 
 
@@ -42,7 +43,7 @@ async def get_typemovement(
     """
     Retrieve and return all typemovements records from the database.
     """
-    logger.info(f"[GET /typemovements] Usuario: {current_user['user_id']} - Consultando todas los tipos de movimiento.")
+    #logger.info(f"[GET /typemovements] Usuario: {current_user['user_id']} - Consultando todas los tipos de movimiento.")
     typemovements = controller.read_all(TypeMovementOut)
     if typemovements:
         # Si hay varias asistencias, iterar sobre ellas
@@ -57,7 +58,7 @@ async def get_typemovement(
             "tiposmovimientos": typemovements  # Si no se encontraron usuarios
         }
 
-    return templates.TemplateResponse("tiposmovimientos.html", context)
+    return templates.TemplateResponse("tipomovimientos.html", context)
 
 
 @app.get("/tipomovimiento", response_class=HTMLResponse)
@@ -67,16 +68,18 @@ def typemovement(
     current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
 ):
     """
-    Retrieve a user by its ID and render the 'typetransport.html' template with its details.
-    If the user is not found, display 'None' for all fields.
+    Retrieve a movement type by its ID and render the 'tipomovimiento.html' template with its details.
+    If the movement type is not found, display 'None' for all fields.
     """
-    logger.info(f"[GET /typemovement] Usuario: {current_user['user_id']} - Consultando tipo de movimiento con ID={id}")
-    unit_typemovement= controller.get_by_id(TypeMovementOut, id)
+
+    #logger.info(f"[GET /typemovement] Usuario: {current_user['user_id']} - Consultando tipo de movimiento con ID={id}")
+    unit_typemovement= controller.get_by_column(TypeMovementOut,"ID" ,id)
 
     if unit_typemovement:
         logger.info(f"[GET /typemovement] Tipo de Movimiento encontrado: {unit_typemovement.ID}, {unit_typemovement.TipoMovimiento}")
     else:
         logger.warning(f"[GET /typemovement] No se encontró tipo de movimientos con id={id}")
+        raise HTTPException(status_code=404, detail="Tipo de movimiento no encontrado")
         
     context = {
         "request": request,
@@ -84,4 +87,4 @@ def typemovement(
         "TipoMovimiento": unit_typemovement.TipoMovimiento if unit_typemovement else "None"
     }
 
-    return templates.TemplateResponse(request,"tipomovimiento.html", context)
+    return templates.TemplateResponse("tipomovimiento.html", context)
