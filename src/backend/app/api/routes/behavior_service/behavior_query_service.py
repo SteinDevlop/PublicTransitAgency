@@ -23,36 +23,36 @@ templates = Jinja2Templates(directory="src/backend/app/templates")
 @app.get("/administrador/consultar", response_class=HTMLResponse)
 def consultar(
     request: Request,
-    #current_user: dict = Security(get_current_user, scopes=["system", "administrador"
-    #])
+    current_user: dict = Security(get_current_user, scopes=["system", "administrador"
+    ])
 ):
     """
     Render the 'ConsultarRendimiento.html' template for the behavior consultation page.
     """
-    #logger.info(f"[GET /consultar] Usuario: {current_user['user_id']} - Mostrando página de consulta de rendimiento")
+    logger.info(f"[GET /consultar] Usuario: {current_user['user_id']} - Mostrando página de consulta de rendimiento")
     return templates.TemplateResponse(request,"ConsultarRendimientoViaAdministrador.html", {"request": request})
 
 @app.get("/supervisor/consultar", response_class=HTMLResponse)
 def consultar(
     request: Request,
-    #current_user: dict = Security(get_current_user, scopes=[
-        #"system", "administrador"])
+    current_user: dict = Security(get_current_user, scopes=[
+        "system", "administrador"])
 ):
     """
     Render the 'ConsultarPQR.html' template for the pqr consultation page.
     """
-    #logger.info(f"[GET /consultar] Usuario: {current_user['user_id']} - Mostrando página de consulta de pqr")
+    logger.info(f"[GET /consultar] Usuario: {current_user['user_id']} - Mostrando página de consulta de pqr")
     return templates.TemplateResponse(request,"ConsultarRendimientoViaSupervisor.html", {"request": request})
 
 @app.get("/supervisor/behaviors")
 async def get_behaviors(
-    request:Request
-    #current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
+    request:Request,
+    current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
 ):
     """
     Retrieve and return all behaviors records from the database.
     """
-    #logger.info(f"[GET /pqrs] Usuario: {current_user['user_id']} - Consultando todas las behaviors.")
+    logger.info(f"[GET /pqrs] Usuario: {current_user['user_id']} - Consultando todas las behaviors.")
     behaviors = controller.read_all(BehaviorOut)
     if behaviors:
         # Si hay varias asistencias, iterar sobre ellas
@@ -70,13 +70,13 @@ async def get_behaviors(
 
 @app.get("/administrador/behaviors")
 async def get_behaviors(
-    request:Request
-    #current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
+    request:Request,
+    current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
 ):
     """
     Retrieve and return all behaviors records from the database.
     """
-    #logger.info(f"[GET /pqrs] Usuario: {current_user['user_id']} - Consultando todas las behaviors.")
+    logger.info(f"[GET /pqrs] Usuario: {current_user['user_id']} - Consultando todas las behaviors.")
     behaviors = controller.read_all(BehaviorOut)
     if behaviors:
         # Si hay varias asistencias, iterar sobre ellas
@@ -95,12 +95,12 @@ async def get_behaviors(
 @app.get("/rendimientos")
 async def get_rendimientos(
     request:Request,
-    #current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
+    current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
 ):
     """
     Retrieve and return all behavior records from the database.
     """
-    #logger.info(f"[GET /rendimientos] Usuario: {current_user['user_id']} - Consultando todas las rendimientos.")
+    logger.info(f"[GET /rendimientos] Usuario: {current_user['user_id']} - Consultando todas las rendimientos.")
     rendimientos = controller.read_all(BehaviorOut)
     logger.info(f"[GET /rendimientos] Número de rendimientos encontradas: {len(rendimientos)}")
     if rendimientos:
@@ -122,13 +122,13 @@ async def get_rendimientos(
 def rendimiento_by_id(
     request: Request,
     ID: int =Query(...),
-    #current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
+    current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
 ):
     """
     Retrieve a behavior by its ID and render the 'rendimiento.html' template with its details.
     If the behavior is not found, display 'None' for all fields.
     """
-    #logger.info(f"[GET /rendimiento] Usuario: {current_user['user_id']} - Consultando rendimiento con ID={ID}")
+    logger.info(f"[GET /rendimiento] Usuario: {current_user['user_id']} - Consultando rendimiento con ID={ID}")
     unit_rendimiento = controller.get_by_id(BehaviorOut, ID)
 
     if unit_rendimiento:
@@ -153,13 +153,13 @@ def rendimiento_by_id(
 def rendimiento_by_user(
     request: Request,
     iduser: int = Query(...),
-    #current_user: dict = Security(get_current_user, scopes=["system", "administrador","supervisor"])
+    current_user: dict = Security(get_current_user, scopes=["system", "administrador","supervisor"])
 ):
     """
     Retrieve a behavior by its ID and render the 'rendimiento.html' template with its details.
     If the behavior is not found, display 'None' for all fields.
     """
-    #logger.info(f"[GET /rendimiento] Usuario: {current_user['user_id']} - Consultando rendimiento con ID={iduser}")
+    logger.info(f"[GET /rendimiento] Usuario: {current_user['user_id']} - Consultando rendimiento con ID={iduser}")
     unit_rendimiento = controller.get_by_column(BehaviorOut, column_name="iduser", value = iduser)
 
     if unit_rendimiento:

@@ -19,9 +19,9 @@ templates = Jinja2Templates(directory="src/backend/app/templates")
 @app.get("/administrador/crear", response_class=HTMLResponse)
 def index_create(
     request: Request,
-    #current_user: dict = Security(get_current_user,scopes=["system", "administrador"])
+    current_user: dict = Security(get_current_user,scopes=["system", "administrador"])
 ):
-    #logger.info(f"[GET /crear] Movimiento: {current_user['user_id']} - Mostrando formulario de creación de movimiento")
+    logger.info(f"[GET /crear] Movimiento: {current_user['user_id']} - Mostrando formulario de creación de movimiento")
     try:
         typemovements = controller.read_all(TypeMovementOut)
         movements = controller.read_all(MovementOut)
@@ -41,18 +41,18 @@ def index_create(
 @app.get("/administrador/actualizar", response_class=HTMLResponse)
 def index_update(
     request: Request,
-    #current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
+    current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
 ):
-    #logger.info(f"[GET /actualizar] Movimiento: {current_user['user_id']} - Mostrando formulario de actualización de movimiento")
+    logger.info(f"[GET /actualizar] Movimiento: {current_user['user_id']} - Mostrando formulario de actualización de movimiento")
     return templates.TemplateResponse("ActualizarAdministradorMovimiento.html", {"request": request})
 
 
 @app.get("/administrador/eliminar", response_class=HTMLResponse)
 def index_delete(
     request: Request,
-    #current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
+    current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
 ):
-    #logger.info(f"[GET /eliminar] Movimiento: {current_user['user_id']} - Mostrando formulario de eliminación de movimiento")
+    logger.info(f"[GET /eliminar] Movimiento: {current_user['user_id']} - Mostrando formulario de eliminación de movimiento")
     return templates.TemplateResponse("EliminarAdministradorMovimiento.html", {"request": request})
 
 
@@ -62,9 +62,9 @@ async def create_movement(
     ID: int = Form(...),
     IDTipoMovimiento:int= Form(...),
     Monto:float=Form(...),
-    #current_movement: dict = Security(get_current_user, scopes=["system", "administrador"])
+    current_movement: dict = Security(get_current_user, scopes=["system", "administrador"])
 ):
-    #logger.info(f"[POST /create] Movimiento: {current_movement['user_id']} - Intentando crear movimiento con id: {ID}")
+    logger.info(f"[POST /create] Movimiento: {current_movement['user_id']} - Intentando crear movimiento con id: {ID}")
 
     try:
         # Verificar si el movimiento ya existe
@@ -100,9 +100,9 @@ async def update_movement(
     ID: int = Form(...),
     IDTipoMovimiento:int=Form(...),
     Monto:float=Form(...),
-    #current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
+    current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
 ):
-    #logger.info(f"[POST /update] Movimiento: {current_user['user_id']} - Actualizando movimiento id={ID}")
+    logger.info(f"[POST /update] Movimiento: {current_user['user_id']} - Actualizando movimiento id={ID}")
     try:
         existing = controller.get_by_column(MovementOut, "ID",ID)
         if existing is None:
@@ -130,9 +130,9 @@ async def update_movement(
 async def delete_movement(
     request:Request,
     ID: int = Form(...),
-    #current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
+    current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
 ):
-    #logger.info(f"[POST /delete] Movimiento: {current_user['user_id']} - Eliminando movimiento id={ID}")
+    logger.info(f"[POST /delete] Movimiento: {current_user['user_id']} - Eliminando movimiento id={ID}")
     try:
         existing = controller.get_by_column(MovementOut, "ID",ID)
         if not existing:

@@ -25,24 +25,24 @@ templates = Jinja2Templates(directory="src/backend/app/templates")
 @app.get("/pasajero/consultar", response_class=HTMLResponse)
 def consultar(
     request: Request,
-    #current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
+    current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
 ):
     """
     Render the 'ConsultarPrecio.html' template for the user consultation page.
     """
-    #logger.info(f"[GET /consultar] Usuario: {current_user['user_id']} - Mostrando página de consulta de precio")
+    logger.info(f"[GET /consultar] Usuario: {current_user['user_id']} - Mostrando página de consulta de precio")
     return templates.TemplateResponse("ConsultarPasajeroPrecio.html", {"request": request})
 
 
 @app.get("/pasajero/prices")
 async def get_price(
     request:Request,
-    #current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
+    current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
 ):
     """
     Retrieve and return all prices records from the database.
     """
-    #logger.info(f"[GET /prices] Usuario: {current_user['user_id']} - Consultando todas los precios.")
+    logger.info(f"[GET /prices] Usuario: {current_user['user_id']} - Consultando todas los precios.")
     prices = controller.read_all(PriceOut)
     logger.info(f"[GET /prices] Número de precios encontrados: {len(prices)}")
     if prices:
@@ -63,24 +63,24 @@ async def get_price(
 @app.get("/administrador/consultar", response_class=HTMLResponse)
 def consultar(
     request: Request,
-    #current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
+    current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
 ):
     """
     Render the 'ConsultarPrecio.html' template for the user consultation page.
     """
-    #logger.info(f"[GET /consultar] Usuario: {current_user['user_id']} - Mostrando página de consulta de precio")
+    logger.info(f"[GET /consultar] Usuario: {current_user['user_id']} - Mostrando página de consulta de precio")
     return templates.TemplateResponse("ConsultarAdministradorPrecio.html", {"request": request})
 
 
 @app.get("/administrador/prices")
 async def get_price(
     request:Request,
-    #current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
+    current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
 ):
     """
     Retrieve and return all prices records from the database.
     """
-    #logger.info(f"[GET /prices] Usuario: {current_user['user_id']} - Consultando todas los precios.")
+    logger.info(f"[GET /prices] Usuario: {current_user['user_id']} - Consultando todas los precios.")
     prices = controller.read_all(PriceOut)
     logger.info(f"[GET /prices] Número de precios encontrados: {len(prices)}")
     if prices:
@@ -102,13 +102,13 @@ async def get_price(
 def price(
     request: Request,
     id: int = Query(...),
-    #current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
+    current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
 ):
     """
     Retrieve a user by its ID and render the 'price.html' template with its details.
     If the user is not found, display 'None' for all fields.
     """
-    #logger.info(f"[GET /price] Usuario: {current_user['user_id']} - Consultando precio con id={id}")
+    logger.info(f"[GET /price] Usuario: {current_user['user_id']} - Consultando precio con id={id}")
     unit_price= controller.get_by_column(PriceOut, "ID", id)
 
     if unit_price:

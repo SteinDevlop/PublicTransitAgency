@@ -4,83 +4,109 @@ from fastapi import (
 )
 from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse
-
 from backend.app.models.pqr import PQRCreate, PQROut
-from backend.app.logic.universal_controller_sqlserver import UniversalController
+from backend.app.logic.universal_controller_instance import universal_controller as controller
 from backend.app.core.auth import get_current_user
 
 # Configuración de logging
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
-app = APIRouter(prefix="/pqr", tags=["pqr"])
-controller = UniversalController()
+app = APIRouter(prefix="/user", tags=["user"])
 templates = Jinja2Templates(directory="src/backend/app/templates")
 
 
-@app.get("/crear", response_class=HTMLResponse)
+@app.get("/administrador/crear", response_class=HTMLResponse)
 def index_create(
     request: Request,
-    current_user: dict = Security(
-        get_current_user,
-        scopes=["system", "administrador", "pasajero"]
-    )
+    #current_user: dict = Security(
+        #get_current_user,
+        #scopes=["system", "administrador", "pasajero"])
 ):
-    logger.info(f"[GET /crear] PQR: {current_user['user_id']} - Mostrando formulario de creación de pqr")
-    return templates.TemplateResponse("CrearPQR.html", {"request": request})
+    #logger.info(f"[GET /crear] Usuario: {current_user['user_id']} - Mostrando formulario de creación de PQR")
+    try:
+        pqrs = controller.read_all(PQROut)
+        ultimo_id = max(p["ID"] for p in pqrs) if pqrs else 0
+        nuevo_id = ultimo_id + 1
+    except Exception as e:
+        logger.error(f"Error al obtener el último ID: {str(e)}")
+        nuevo_id = 1  # Por defecto
 
+    return templates.TemplateResponse("CrearAdministradorPQR.html", {
+        "request": request,
+        "nuevo_id": nuevo_id
+    })
 
-@app.get("/actualizar", response_class=HTMLResponse)
+@app.get("/pasajero/crear", response_class=HTMLResponse)
+def index_create(
+    request: Request,
+    #current_user: dict = Security(
+        #get_current_user,
+        #scopes=["system", "administrador", "pasajero"])
+):
+    #logger.info(f"[GET /crear] Usuario: {current_user['user_id']} - Mostrando formulario de creación de PQR")
+    try:
+        pqrs = controller.read_all(PQROut)
+        ultimo_id = max(p["ID"] for p in pqrs) if pqrs else 0
+        nuevo_id = ultimo_id + 1
+    except Exception as e:
+        logger.error(f"Error al obtener el último ID: {str(e)}")
+        nuevo_id = 1  # Por defecto
+
+    return templates.TemplateResponse("CrearPasajeroPQR.html", {
+        "request": request,
+        "nuevo_id": nuevo_id
+    })
+
+@app.get("/administrador/actualizar", response_class=HTMLResponse)
 def index_update(
     request: Request,
-    current_user: dict = Security(get_current_user, scopes=["system", "administrador","supervisor"])
+    #current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
 ):
-    logger.info(f"[GET /actualizar] PQR: {current_user['user_id']} - Mostrando formulario de actualización de pqr")
-    return templates.TemplateResponse("ActualizarPQR.html", {"request": request})
+    #logger.info(f"[GET /actualizar] Usuario: {current_user['user_id']} - Mostrando formulario de actualización de PQR")
+    return templates.TemplateResponse("ActualizarAdministradorPQR.html", {"request": request})
 
 
-@app.get("/eliminar", response_class=HTMLResponse)
+@app.get("/administrador/eliminar", response_class=HTMLResponse)
 def index_delete(
     request: Request,
-    current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
+    #current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
 ):
-    logger.info(f"[GET /eliminar] PQR: {current_user['user_id']} - Mostrando formulario de eliminación de pqr")
-    return templates.TemplateResponse("EliminarPQR.html", {"request": request})
+    #logger.info(f"[GET /eliminar] Usuario: {current_user['user_id']} - Mostrando formulario de eliminación de PQR")
+    return templates.TemplateResponse("EliminarAdministradorPQR.html", {"request": request})
 
 
 @app.post("/create")
 async def create_pqr(
-    id: int = Form(...),
-    type: str = Form(...),
-    description: str= Form(...),
-    fecha: str= Form(...),
-    iduser:int= Form(...),
-    codigogenerado:str= Form(...),
-    current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
+    request:Request,
+    ID: int = Form(...),
+    type: str  = Form(...),
+    description: str  = Form(...),
+    fecha: str = Form(...),
+    identificationuser: int  = Form(...),
+    #current_user: dict = Security(get_current_user, scopes=["system", "administrador", "pasajero"])
 ):
-    logger.info(f"[POST /create] PQR: {current_user['user_id']} - Intentando crear pqr con id: {id}")
+    #logger.info(f"[POST /create] Usuario: {current_user['user_id']} - Intentando crear PQR con identificación {ID}")
 
     try:
-        # Verificar si el pqr ya existe
-        existing_pqr = controller.get_by_column(PQROut, "id", id)  
-        if existing_pqr:
-            logger.warning(f"[POST /create] Error de validación: El pqr ya existe con id {id}")
-            raise HTTPException(400, detail="El pqr ya existe con la misma id. {id}")
+        existing_user = controller.get_by_column(PQROut, "ID", ID)  
+        if existing_user:
+            logger.warning(f"[POST /create] Error de validación: El PQR ya existe con ID {ID}")
+            raise HTTPException(400, detail="El PQR ya existe con la misma identificación.")
 
-        # Crear pqr
-        new_pqr = PQRCreate(id=id, iduser=iduser,type=type, description=description,codigogenerado=codigogenerado,fecha=fecha)
-        logger.info(f"Intentando insertar pqr con datos: {new_pqr.model_dump()}")
+        # Crear PQR
+        new_pqr = PQRCreate(ID=ID, type=type, description=description, fecha=fecha,identificationuser=identificationuser)
         controller.add(new_pqr)
-        logger.info(f"PQR insertado con ID: {new_pqr.id}")  # Verifica si el ID se asigna
-        logger.info(f"[POST /create] PQR creado exitosamente con identificación {id}")
-        return {
+        logger.info(f"[POST /create] Usuario creado exitosamente con ID {ID}")
+        context ={
+            "request":request,
             "operation": "create",
             "success": True,
-            "data": PQROut(id=new_pqr.id,iduser=new_pqr.iduser,type=new_pqr.type,
-                            description=new_pqr.description, 
-                           codigogenerado=new_pqr.codigogenerado, fecha=new_pqr.fecha).model_dump(),
+            "data": PQROut(ID=new_pqr.ID, type=new_pqr.type, description=new_pqr.description,
+                            fecha=new_pqr.fecha,identificationuser=new_pqr.identificationuser).model_dump(),
             "message": "PQR created successfully."
         }
+        return templates.TemplateResponse("Confirmacion.html", context)
         
     except ValueError as e:
         logger.warning(f"[POST /create] Error de validación: {str(e)}")
@@ -88,37 +114,38 @@ async def create_pqr(
     except Exception as e:
         logger.error(f"[POST /create] Error interno: {str(e)}")
         raise HTTPException(500, detail=f"Internal server error: {str(e)}")
-
+    
+    
 
 @app.post("/update")
 async def update_pqr(
-    id: int = Form(...),
-    type: str = Form(...),
-    description: str= Form(...),
-    fecha: str= Form(...),
-    iduser:int= Form(...),
-    codigogenerado:str= Form(...),
-    current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
+    request:Request,
+    ID: int = Form(...),
+    type: str  = Form(...),
+    description: str  = Form(...),
+    fecha: str = Form(...),
+    identificationuser: int  = Form(...),
+    #current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
 ):
-    logger.info(f"[POST /update] PQR: {current_user['user_id']} - Actualizando pqr id={id}")
+    #logger.info(f"[POST /update] Usuario: {current_user['user_id']} - Actualizando PQR ID={ID}")
     try:
-        existing = controller.get_by_id(PQROut, id)
+        existing = controller.get_by_id(PQROut, ID)
         if existing is None:
-            logger.warning(f"[POST /update] PQR no encontrada: id={id}")
+            logger.warning(f"[POST /update] PQR no encontrada: ID={ID}")
             raise HTTPException(404, detail="PQR not found")
 
-        updated_pqr = PQROut(id=id, iduser=iduser,type=type,codigogenerado=codigogenerado, description=description,fecha=fecha)
+        updated_pqr = PQROut(ID=ID, type=type,description=description,fecha=fecha,identificationuser=identificationuser)
         controller.update(updated_pqr)
         logger.info(f"[POST /update] PQR actualizada exitosamente: {updated_pqr}")
-        return {
+        context = {
+            "request":request,
             "operation": "update",
             "success": True,
-            "data": PQROut(id=id, iduser=updated_pqr.iduser,type=updated_pqr.type, 
-                                description=updated_pqr.description,
-                                codigogenerado =updated_pqr.codigogenerado,
-                                fecha=updated_pqr.fecha).model_dump(),
-            "message": f"PQR {id} updated successfully."
+            "data": PQROut(ID=updated_pqr.ID, type=updated_pqr.type, description=updated_pqr.description,
+                            fecha=updated_pqr.fecha,identificationuser=updated_pqr.identificationuser).model_dump(),
+            "message": f"PQR {ID} updated successfully."
         }
+        return templates.TemplateResponse("Confirmacion.html", context)
     except ValueError as e:
         logger.warning(f"[POST /update] Error de validación: {str(e)}")
         raise HTTPException(400, detail=str(e))
@@ -127,24 +154,25 @@ async def update_pqr(
 
 @app.post("/delete")
 async def delete_pqr(
-    id: int = Form(...),
-    current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
+    request:Request,
+    ID: int = Form(...),
+    #current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
 ):
-    logger.info(f"[POST /delete] PQR: {current_user['user_id']} - Eliminando pqr id={id}")
+    #logger.info(f"[POST /delete] Usuario: {current_user['user_id']} - Eliminando PQR ID={ID}")
     try:
-        existing = controller.get_by_id(PQROut, id)
+        existing = controller.get_by_column(PQROut,"ID" ,ID)
         if not existing:
-            logger.warning(f"[POST /delete] PQR no encontrado en la base de datos: id={id}")
+            logger.warning(f"[POST /delete] PQR no encontrado en la base de datos")
             raise HTTPException(404, detail="PQR not found")
-
-        logger.info(f"[POST /delete] Eliminando pqr con id={id}")
         controller.delete(existing) 
-        logger.info(f"[POST /delete] PQR eliminada exitosamente: id={id}")
-        return {
+        logger.info(f"[POST /delete] PQR eliminada exitosamente:")
+        context = {
+            "request":request,
             "operation": "delete",
             "success": True,
-            "message": f"PQR {id} deleted successfully."
+            "message": f"PQR {ID} deleted successfully."
         }
+        return templates.TemplateResponse("Confirmacion.html", context)
     except HTTPException as e:
         raise e
     except Exception as e:

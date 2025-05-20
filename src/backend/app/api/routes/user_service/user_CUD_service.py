@@ -66,7 +66,7 @@ async def create_user(
     Contrasena: str = Form(...),
     IDRolUsuario: int = Form(...),
     IDTurno: int = Form(...),
-    IDTarjeta: int = Form(...)
+    IDTarjeta: int = Form(...),
 ):
 
     try:

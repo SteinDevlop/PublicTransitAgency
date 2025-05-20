@@ -9,7 +9,7 @@ from fastapi.templating import Jinja2Templates
 from fastapi.middleware.cors import CORSMiddleware
 import uvicorn
 
-#from backend.app.core.auth import get_current_user
+from backend.app.core.auth import get_current_user
 from backend.app.models.movement import MovementOut
 from backend.app.logic.universal_controller_instance import universal_controller as controller
 from backend.app.core.auth import get_current_user
@@ -40,7 +40,7 @@ async def get_all( request:Request):
     Returns all the movement records from the database.
     """
     movimientos = controller.read_all(MovementOut)
-    #logger.info(f"[GET /movements] Número de Movimientos encontradas: {len(movimientos)}")
+    logger.info(f"[GET /movements] Número de Movimientos encontradas: {len(movimientos)}")
     if movimientos:
         # Si hay varias asistencias, iterar sobre ellas
         context = {
@@ -63,7 +63,7 @@ async def get_all(request: Request):
     Returns all the movement records from the database.
     """
     movimientos = controller.read_all(MovementOut)
-    #logger.info(f"[GET /movements] Número de Movimientos encontradas: {len(movimientos)}")
+    logger.info(f"[GET /movements] Número de Movimientos encontradas: {len(movimientos)}")
     if movimientos:
         # Si hay varias asistencias, iterar sobre ellas
         context = {
@@ -85,13 +85,13 @@ async def get_all(request: Request):
 def get_by_id(
     request: Request,
     ID: int=Query(...),
-    #current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
+    current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
 ):
     """
     Fetches a price by its ID and renders its details on 'movimiento.html'.
     If no price is found, returns 'None' for the details.
     """
-    #logger.info(f"[GET /movement] Usuario: {current_user['user_id']} - Consultando movimiento con id={ID}")
+    logger.info(f"[GET /movement] Usuario: {current_user['user_id']} - Consultando movimiento con id={ID}")
     result = controller.get_by_column(MovementOut,"ID", ID)
 
     if result:

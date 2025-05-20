@@ -24,56 +24,56 @@ templates = Jinja2Templates(directory="src/backend/app/templates")
 @app.get("/consultar/administrador", response_class=HTMLResponse)
 def consultar(
     request: Request,
-    #current_user: dict = Security(get_current_user, scopes=["system", "administrador", "conductor", "supervisor", "mantenimiento"])
+    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "conductor", "supervisor", "mantenimiento"])
 ):
     """
     Render the 'ConsultarAsistencia.html' template for the asistance consultation page.
     """
-    #logger.info(f"[GET /consultar] Usuario: {current_user['user_id']} - Mostrando página de consulta de asistencia")
+    logger.info(f"[GET /consultar] Usuario: {current_user['user_id']} - Mostrando página de consulta de asistencia")
     return templates.TemplateResponse(request,"ConsultarAsistencia.html", {"request": request})
 
 @app.get("/consultar/conductor", response_class=HTMLResponse)
 def consultar(
     request: Request,
-    #current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
+    current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
 ):
     """
     Render the 'ConsultarPQR.html' template for the pqr consultation page.
     """
-    #logger.info(f"[GET /consultar] Usuario: {current_user['user_id']} - Mostrando página de consulta de pqr")
+    logger.info(f"[GET /consultar] Usuario: {current_user['user_id']} - Mostrando página de consulta de pqr")
     return templates.TemplateResponse(request,"ConsultarAsistenciaConductor.html", {"request": request})
 
 @app.get("/consultar/supervisor", response_class=HTMLResponse)
 def consultar(
     request: Request,
-    #current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
+    current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
 ):
     """
     Render the 'ConsultarPQR.html' template for the pqr consultation page.
     """
-    #logger.info(f"[GET /consultar] Usuario: {current_user['user_id']} - Mostrando página de consulta de pqr")
+    logger.info(f"[GET /consultar] Usuario: {current_user['user_id']} - Mostrando página de consulta de pqr")
     return templates.TemplateResponse(request,"ConsultarAsistenciaSupervisor.html", {"request": request})
 
 @app.get("/consultar/tecnico", response_class=HTMLResponse)
 def consultar(
     request: Request,
-    #current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
+    current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
 ):
     """
     Render the 'ConsultarPQR.html' template for the pqr consultation page.
     """
-    #logger.info(f"[GET /consultar] Usuario: {current_user['user_id']} - Mostrando página de consulta de pqr")
+    logger.info(f"[GET /consultar] Usuario: {current_user['user_id']} - Mostrando página de consulta de pqr")
     return templates.TemplateResponse(request,"ConsultarAsistenciaTecnico.html", {"request": request})
 
 @app.get("/asistencias")
 async def get_asistencias(
     request: Request,
-    #current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
+    current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
 ):
     """
     Retrieve and return all asistance records from the database.
     """
-    #logger.info(f"[GET /asistencias] Usuario: {current_user['user_id']} - Consultando todas las asistencias.")
+    logger.info(f"[GET /asistencias] Usuario: {current_user['user_id']} - Consultando todas las asistencias.")
     asistencias = controller.read_all(AsistanceOut)
     logger.info(f"[GET /asistencias] Número de asistencias encontradas: {len(asistencias)}")
     context ={
@@ -87,13 +87,13 @@ async def get_asistencias(
 def asistencia_by_id(
     request: Request,
     id: int = Query(...),
-    #current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
+    current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
 ):
     """
     Retrieve a asistance by its ID and render the 'asistencia.html' template with its details.
     If the asistance is not found, display 'None' for all fields.
     """
-    #logger.info(f"[GET /asistencia] Usuario: {current_user['user_id']} - Consultando asistencia con id={id}")
+    logger.info(f"[GET /asistencia] Usuario: {current_user['user_id']} - Consultando asistencia con id={id}")
     unit_asistencia = controller.get_by_id(AsistanceOut,id)
 
     if unit_asistencia:
@@ -117,13 +117,13 @@ def asistencia_by_id(
 def asistencia_by_user(
     request: Request,
     iduser: int = Query(...),
-    #current_user: dict = Security(get_current_user, scopes=["system", "administrador","conductor","tecnico","supervisor"])
+    current_user: dict = Security(get_current_user, scopes=["system", "administrador","conductor","tecnico","supervisor"])
 ):
     """
     Retrieve a asistance by its ID and render the 'asistencia.html' template with its details.
     If the asistance is not found, display 'None' for all fields.
     """
-    #logger.info(f"[GET /asistencia] Usuario: {current_user['user_id']} - Consultando asistencia con id={iduser}")
+    logger.info(f"[GET /asistencia] Usuario: {current_user['user_id']} - Consultando asistencia con id={iduser}")
     asistencias = controller.get_by_column(AsistanceOut, column_name="iduser", value = iduser)
 
     if asistencias:

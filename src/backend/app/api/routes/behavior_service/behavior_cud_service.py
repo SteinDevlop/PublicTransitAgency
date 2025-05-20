@@ -20,11 +20,11 @@ templates = Jinja2Templates(directory="src/backend/app/templates")
 @app.get("/supervisor/crear", response_class=HTMLResponse)
 def index_create(
     request: Request,
-    #current_user: dict = Security(
-        #get_current_user,
-        #scopes=["system", "administrador", "pasajero"])
+    current_user: dict = Security(
+        get_current_user,
+        scopes=["system", "administrador", "pasajero"])
 ):
-    #logger.info(f"[GET /crear] Usuario: {current_user['user_id']} - Mostrando formulario de creación de PQR")
+    logger.info(f"[GET /crear] Usuario: {current_user['user_id']} - Mostrando formulario de creación de PQR")
     try:
         behaviors = controller.read_all(BehaviorOut)
         ultimo_id = max(p["ID"] for p in behaviors) if behaviors else 0
@@ -41,11 +41,11 @@ def index_create(
 @app.get("/administrador/crear", response_class=HTMLResponse)
 def index_create(
     request: Request,
-    #current_user: dict = Security(
-        #get_current_user,
-        #scopes=["system", "administrador", "pasajero"])
+    current_user: dict = Security(
+        get_current_user,
+        scopes=["system", "administrador", "pasajero"])
 ):
-    #logger.info(f"[GET /crear] Usuario: {current_user['user_id']} - Mostrando formulario de creación de PQR")
+    logger.info(f"[GET /crear] Usuario: {current_user['user_id']} - Mostrando formulario de creación de PQR")
     try:
         behaviors = controller.read_all(BehaviorOut)
         ultimo_id = max(p["ID"] for p in behaviors) if behaviors else 0
@@ -62,18 +62,18 @@ def index_create(
 @app.get("/administrador/actualizar", response_class=HTMLResponse)
 def index_update(
     request: Request,
-    #current_user: dict = Security(get_current_user, scopes=["system", "administrador","supervisor"])
+    current_user: dict = Security(get_current_user, scopes=["system", "administrador","supervisor"])
 ):
-    #logger.info(f"[GET /actualizar] Rendimiento: {current_user['user_id']} - Mostrando formulario de actualización de rendimiento")
+    logger.info(f"[GET /actualizar] Rendimiento: {current_user['user_id']} - Mostrando formulario de actualización de rendimiento")
     return templates.TemplateResponse("ActualizarRendimiento.html", {"request": request})
 
 
 @app.get("/administrador/eliminar", response_class=HTMLResponse)
 def index_delete(
     request: Request,
-    #current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
+    current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
 ):
-    #logger.info(f"[GET /eliminar] Rendimiento: {current_user['user_id']} - Mostrando formulario de eliminación de rendimiento")
+    logger.info(f"[GET /eliminar] Rendimiento: {current_user['user_id']} - Mostrando formulario de eliminación de rendimiento")
     return templates.TemplateResponse("EliminarRendimiento.html", {"request": request})
 
 
@@ -86,9 +86,9 @@ async def create_behavior(
     horastrabajadas: int=Form(...),
     observaciones:str=Form(...),
     fecha: str = Form(...),
-    #current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
+    current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
 ):
-    #logger.info(f"[POST /create] Behavior: {current_user['user_id']} - Intentando crear rendimiento con ID: {ID}")
+    logger.info(f"[POST /create] Behavior: {current_user['user_id']} - Intentando crear rendimiento con ID: {ID}")
 
     try:
         # Verificar si el rendimiento ya existe
@@ -128,9 +128,9 @@ async def update_behavior(
     horastrabajadas: int=Form(...),
     observaciones:str=Form(...),
     fecha: str = Form(...),
-    #current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
+    current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
 ):
-    #logger.info(f"[POST /update] Rendimiento: {current_user['user_id']} - Actualizando rendimiento ID={ID}")
+    logger.info(f"[POST /update] Rendimiento: {current_user['user_id']} - Actualizando rendimiento ID={ID}")
     try:
         existing = controller.get_by_column(BehaviorOut,"ID" ,ID)
         if existing is None:
@@ -163,9 +163,9 @@ async def update_behavior(
 async def delete_behavior(
     request:Request,
     ID: int = Form(...),
-    #current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
+    current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
 ):
-    #logger.info(f"[POST /delete] Rendimiento: {current_user['user_id']} - Eliminando rendimiento ID={ID}")
+    logger.info(f"[POST /delete] Rendimiento: {current_user['user_id']} - Eliminando rendimiento ID={ID}")
     try:
         existing = controller.get_by_column(BehaviorOut,"ID",ID)
         if not existing:

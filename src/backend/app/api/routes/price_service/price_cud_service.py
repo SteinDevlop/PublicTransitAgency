@@ -21,9 +21,9 @@ templates = Jinja2Templates(directory="src/backend/app/templates")
 @app.get("/administrador/crear", response_class=HTMLResponse)
 def index_create(
     request: Request,
-    #current_user: dict = Security(get_current_user,scopes=["system", "administrador"])
+    current_user: dict = Security(get_current_user,scopes=["system", "administrador"])
 ):
-    #logger.info(f"[GET /crear] Precio: {current_user['user_id']} - Mostrando formulario de creación de precio")
+    logger.info(f"[GET /crear] Precio: {current_user['user_id']} - Mostrando formulario de creación de precio")
     try:
         prices = controller.read_all(PriceOut)
         ultimo_id = max(p["ID"] for p in prices) if prices else 0
@@ -41,18 +41,18 @@ def index_create(
 @app.get("/administrador/actualizar", response_class=HTMLResponse)
 def index_update(
     request: Request,
-    #current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
+    current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
 ):
-    #logger.info(f"[GET /actualizar] Precio: {current_user['user_id']} - Mostrando formulario de actualización de precio")
+    logger.info(f"[GET /actualizar] Precio: {current_user['user_id']} - Mostrando formulario de actualización de precio")
     return templates.TemplateResponse("ActualizarAdministradorPrecio.html", {"request": request})
 
 
 @app.get("/administrador/eliminar", response_class=HTMLResponse)
 def index_delete(
     request: Request,
-    #current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
+    current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
 ):
-    #logger.info(f"[GET /eliminar] Precio: {current_user['user_id']} - Mostrando formulario de eliminación de precio")
+    logger.info(f"[GET /eliminar] Precio: {current_user['user_id']} - Mostrando formulario de eliminación de precio")
     return templates.TemplateResponse("EliminarAdministradorPrecio.html", {"request": request})
 
 
@@ -62,9 +62,9 @@ async def create_price(
     ID: int = Form(...),
     IDTipoTransporte:int= Form(...),
     Monto:float=Form(...),
-    #current_movement: dict = Security(get_current_user, scopes=["system", "administrador"])
+    current_movement: dict = Security(get_current_user, scopes=["system", "administrador"])
 ):
-    #logger.info(f"[POST /create] Precio: {current_movement['user_id']} - Intentando crear precio con ID: {ID}")
+    logger.info(f"[POST /create] Precio: {current_movement['user_id']} - Intentando crear precio con ID: {ID}")
 
     try:
         # Verificar si el precio ya existe
@@ -101,9 +101,9 @@ async def update_price(
     ID: int = Form(...),
     IDTipoTransporte:int=Form(...),
     Monto:float=Form(...),
-    #current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
+    current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
 ):
-    #logger.info(f"[POST /update] Precio: {current_user['user_id']} - Actualizando precio id={ID}")
+    logger.info(f"[POST /update] Precio: {current_user['user_id']} - Actualizando precio id={ID}")
     try:
         existing = controller.get_by_column(PriceOut,"ID",ID)
         if existing is None:
@@ -132,9 +132,9 @@ async def update_price(
 async def delete_price(
     request:Request,
     ID: int = Form(...),
-    #current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
+    current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
 ):
-    #logger.info(f"[POST /delete] Precio: {current_user['user_id']} - Eliminando precio id={ID}")
+    logger.info(f"[POST /delete] Precio: {current_user['user_id']} - Eliminando precio id={ID}")
     try:
         existing = controller.get_by_column(PriceOut,"ID",ID)
         if not existing:
