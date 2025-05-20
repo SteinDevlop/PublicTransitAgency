@@ -5,22 +5,22 @@ from backend.app.models.movement import MovementCreate, MovementOut
 @pytest.fixture
 def sample_movement_data():
     return {
-        "id": 1,
-        "idtype": 1,
-        "amount": 2000.75
+        "ID": 1,
+        "IDTipoMovimiento": 1,
+        "Monto": 2000.75
     }
 
 def test_movement_create_initialization(sample_movement_data):
     """Verifica que MovementCreate se inicialice correctamente."""
     movement = MovementCreate(**sample_movement_data)
-    assert movement.id == sample_movement_data["id"]
-    assert movement.idtype == sample_movement_data["idtype"]
-    assert movement.amount == sample_movement_data["amount"]
+    assert movement.ID == sample_movement_data["ID"]
+    assert movement.IDTipoMovimiento == sample_movement_data["IDTipoMovimiento"]
+    assert movement.Monto == sample_movement_data["Monto"]
 
 def test_movement_create_invalid_data():
     """Verifica que MovementCreate genere un error con datos inválidos."""
     with pytest.raises(ValidationError):
-        MovementCreate(id="invalid", type="wrong", amount="not_a_float")
+        MovementCreate(ID="invalid", type="wrong", Monto="not_a_float")
 
 def test_movement_to_dict(sample_movement_data):
     """Verifica que to_dict devuelve el diccionario correcto."""
@@ -30,24 +30,24 @@ def test_movement_to_dict(sample_movement_data):
 def test_movement_get_fields():
     """Verifica que get_fields devuelve la estructura esperada."""
     expected_fields = {
-        "id": "INTEGER PRIMARY KEY",
-        "idtype": "INTEGER",
-        "amount": "FLOAT"
+        "ID": "INTEGER PRIMARY KEY",
+        "IDTipoMovimiento": "INTEGER",
+        "Monto": "FLOAT"
     }
     assert MovementCreate.get_fields() == expected_fields
 
 def test_movement_out_initialization(sample_movement_data):
     """Verifica que MovementOut se inicialice correctamente."""
     movement_out = MovementOut(**sample_movement_data)
-    assert movement_out.id == sample_movement_data["id"]
-    assert movement_out.idtype == sample_movement_data["idtype"]
-    assert movement_out.amount == sample_movement_data["amount"]
+    assert movement_out.ID == sample_movement_data["ID"]
+    assert movement_out.IDTipoMovimiento == sample_movement_data["IDTipoMovimiento"]
+    assert movement_out.Monto == sample_movement_data["Monto"]
 
 def test_movement_out_from_dict():
     """Verifica que from_dict inicializa correctamente un objeto MovementOut."""
-    data = {"id": 2, "idtype": 2, "amount": 3500.50}
+    data = {"ID": 2, "IDTipoMovimiento": 2, "Monto": 3500.50}
     movement_out = MovementOut.from_dict(data)
     assert isinstance(movement_out, MovementOut)
-    assert movement_out.id == 2
-    assert movement_out.idtype == 2
-    assert movement_out.amount == 3500.50
+    assert movement_out.ID == 2
+    assert movement_out.IDTipoMovimiento == 2
+    assert movement_out.Monto == 3500.50
