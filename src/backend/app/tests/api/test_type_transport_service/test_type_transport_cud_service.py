@@ -14,25 +14,25 @@ app_for_test.mount("/static", StaticFiles(directory="src/frontend/static"), name
 client = TestClient(app_for_test)
 
 def test_create_transport():
-    response = client.post("/typetransport/create", data={"id":1,"type":"aaaaa"},headers=headers)
+    response = client.post("/typetransport/create", data={"ID":1,"TipoTransporte":"aaaaa"},headers=headers)
     assert response.status_code == 200
 
 def test_update_transport_existing():
     # Luego actualizarlo
-    response = client.post("/typetransport/update", data={"id":2,"type":"railway"},headers=headers)
+    response = client.post("/typetransport/update", data={"ID":2,"TipoTransporte":"railway"},headers=headers)
     assert response.status_code == 200
 
 def test_update_transport_not_found():
-    response = client.post("/typetransport/update", data={"id": 99, "type":"ninguno"},headers=headers)
+    response = client.post("/typetransport/update", data={"ID": 99, "TipoTransporte":"ninguno"},headers=headers)
     assert response.status_code == 404
     assert response.json()["detail"] == "TypeTransport not found"
 
 def test_delete_transport_existing():
-    response = client.post("/typetransport/delete", data={"id": 1},headers=headers)
+    response = client.post("/typetransport/delete", data={"ID": 1},headers=headers)
     assert response.status_code == 200
 
 def test_delete_transport_not_found():
-    response = client.post("/typetransport/delete", data={"id": 999},headers=headers)
+    response = client.post("/typetransport/delete", data={"ID": 999},headers=headers)
     assert response.status_code == 404
     assert response.json()["detail"] == "TypeTransport not found"
 

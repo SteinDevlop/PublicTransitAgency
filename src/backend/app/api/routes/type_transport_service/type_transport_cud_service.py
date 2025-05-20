@@ -24,7 +24,7 @@ def index_create(
     current_user: dict = Security(get_current_user,
         scopes=["system", "administrador"])
 ):
-    logger.info(f"[GET /crear] Usuario: {current_user['user_ID']} - Mostrando formulario de creación de tipo de transporte")
+    #logger.info(f"[GET /crear] Usuario: {current_user['user_ID']} - Mostrando formulario de creación de tipo de transporte")
     return templates.TemplateResponse("CrearTipoTransporte.html", {"request": request})
 
 @app.get("/actualizar", response_class=HTMLResponse)
@@ -32,7 +32,7 @@ def index_update(
     request: Request,
     current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
 ):
-    logger.info(f"[GET /actualizar] Usuario: {current_user['user_ID']} - Mostrando formulario de actualización de tipo de transporte")
+    #logger.info(f"[GET /actualizar] Usuario: {current_user['user_ID']} - Mostrando formulario de actualización de tipo de transporte")
     return templates.TemplateResponse("ActualizarTipoTransporte.html", {"request": request})
 
 
@@ -41,7 +41,7 @@ def index_delete(
     request: Request,
     current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
 ):
-    logger.info(f"[GET /eliminar] Usuario: {current_user['user_ID']} - Mostrando formulario de eliminación de tipo de transporte")
+    #logger.info(f"[GET /eliminar] Usuario: {current_user['user_ID']} - Mostrando formulario de eliminación de tipo de transporte")
     return templates.TemplateResponse("EliminarTipoTransporte.html", {"request": request})
 
 #
@@ -51,7 +51,7 @@ async def create_typetransport(
     TipoTransporte: str = Form(...),
     current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
 ):
-    logger.info(f"[POST /create] Usuario: {current_user['user_ID']} - Intentando crear tipo de transporte {TipoTransporte}")
+    #logger.info(f"[POST /create] Usuario: {current_user['user_ID']} - Intentando crear tipo de transporte {TipoTransporte}")
 
     try:
         # Verificar si el tipo de transporte ya existe
@@ -87,7 +87,7 @@ async def update_typetransport(
     TipoTransporte: str = Form(...),
     current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
 ):
-    logger.info(f"[POST /update] Usuario: {current_user['user_ID']} - Actualizando tipo de transporte ID={ID}")
+    #logger.info(f"[POST /update] Usuario: {current_user['user_ID']} - Actualizando tipo de transporte ID={ID}")
     try:
         existing = controller.get_by_id(TypeTransportOut, ID)
         if existing is None:
@@ -114,7 +114,7 @@ async def delete_typetransport(
     ID: int = Form(...),
     current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
 ):
-    logger.info(f"[POST /delete] Usuario: {current_user['user_ID']} - Eliminando tipo de transporte con ID={ID}")
+    #logger.info(f"[POST /delete] Usuario: {current_user['user_ID']} - Eliminando tipo de transporte con ID={ID}")
     try:
         existing = controller.get_by_id(TypeTransportOut, ID)
         if not existing:
