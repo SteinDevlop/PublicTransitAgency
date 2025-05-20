@@ -84,7 +84,6 @@ async def create_user(
             logger.info(f"Usuario insertado con ID: {new_user.ID}")  # Verifica si el ID se asigna
             logger.info(f"[POST /create] Usuario creado exitosamente con identificación {Identificacion}")
             return {
-                "request": request,
                 "operation": "create",
                 "success": True,
                 "data": UserOut(ID=new_user.ID, Identificacion=new_user.Identificacion, Nombre=new_user.Nombre,
@@ -125,7 +124,6 @@ async def update_user(
         controller.update(updated_user)
         logger.info(f"[POST /update] Usuario actualizada exitosamente: {updated_user}")
         return {
-            "request":request,
             "operation": "update",
             "success": True,
             "data": UserOut(ID=ID, Identificacion=updated_user.Identificacion, Nombre=updated_user.Nombre,

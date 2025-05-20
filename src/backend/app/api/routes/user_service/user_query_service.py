@@ -22,9 +22,7 @@ templates = Jinja2Templates(directory="src/backend/app/templates")
 
 
 @app.get("/consultar", response_class=HTMLResponse)
-def consultar(
-    request: Request
-):
+def consultar(request: Request):
     """
     Render the 'ConsultarUsuario.html' template for the user consultation page.
     """
@@ -65,7 +63,7 @@ def usuario(
     Retrieve a user by its ID and render the 'usuario.html' template with its details.
     If the user is not found, display 'None' for all fields.
     """
-    logger.info(f"[GET /user] Usuario: {current_user['user_id']} - Consultando usuario con id={id}")
+    #logger.info(f"[GET /user] Usuario: {current_user['user_id']} - Consultando usuario con id={id}")
     unit_usuario= controller.get_by_column(UserOut, "ID",id)
 
     if unit_usuario:
