@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <title>Panel del Administrador</title>
   <link rel="stylesheet" href="{{ url_for('static', path='css/administrador.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', path='css/administrador2.css') }}">
 </head>
 <body>
   <div class="container">
@@ -14,7 +15,10 @@
       <button class="menu-btn" onclick="location.href='/transport_units/create'">Actualizar Flota</button>
       <button class="menu-btn" onclick="location.href='/maintainance/crear'" >Agendar Mantenimiento</button>
       <button class="menu-btn" onclick="location.href='/routes/create'">Asignar Ruta Vehículo</button>
-
+      <button class="menu-btn" onclick="location.href='/user/crear'">Crear Usuario</button>
+      <button class="menu-btn" onclick="location.href='/pqr/consultar/administrador'">Gestion de PQR</button>
+      <button class="menu-btn" onclick="location.href='/behavior/consultar/administrador'">Gestion de Rendimiento</button>
+      <button class="menu-btn" onclick="location.href='/asistance/consultar/administrador'">Gestion de Asistencia</button>
       <div class="sublist-title">Gestión CRUD</div>
 
       <!-- CRUD: Rutas -->
@@ -32,8 +36,7 @@
       <div class="crud-section">
         <button class="crud-toggle">▶ Usuarios</button>
         <div class="crud-options">
-          <button class="crud-btn" onclick="location.href='/user/crear'">➕ Añadir Usuario</button>
-          <button class="crud-btn" onclick="location.href='/user/users'">📄 Leer Usuarios</button>
+          <button class="crud-btn" onclick="location.href='/user/consultar'">📄 Leer Usuarios</button>
           <button class="crud-btn" onclick="location.href='/user/actualizar'">🖊️ Actualizar Usuario</button>
           <button class="crud-btn" onclick="location.href='/user/eliminar'">🗑️ Eliminar Usuario</button>
         </div>
@@ -43,10 +46,9 @@
       <div class="crud-section">
         <button class="crud-toggle">▶ Operarios</button>
         <div class="crud-options">
-          <button class="crud-btn" onclick="location.href='/user/crear'">➕ Añadir Usuario</button>
-          <button class="crud-btn" onclick="location.href='/user/users'">📄 Leer Usuarios</button>
-          <button class="crud-btn" onclick="location.href='/user/actualizar'">🖊️ Actualizar Usuario</button>
-          <button class="crud-btn" onclick="location.href='/user/eliminar'">🗑️ Eliminar Usuario</button>
+          <button class="crud-btn" onclick="location.href='/user/consultar'">📄 Leer Operarios</button>
+          <button class="crud-btn" onclick="location.href='/user/actualizar'">🖊️ Actualizar Operarios</button>
+          <button class="crud-btn" onclick="location.href='/user/eliminar'">🗑️ Eliminar Operarios</button>
         </div>
       </div>
 
@@ -55,7 +57,7 @@
         <button class="crud-toggle">▶ Mantenimiento</button>
         <div class="crud-options">
           <button class="crud-btn" onclick="location.href='/maintainance/crear'">➕ Añadir Mantenimiento</button>
-          <button class="crud-btn" onclick="location.href='/maintainance/maintainancements'">📄 Leer Mantenimientos</button>
+          <button class="crud-btn" onclick="location.href='/maintainance/listar'">📄 Leer Mantenimientos</button>
           <button class="crud-btn" onclick="location.href='/maintainance/actualizar'">🖊️ Actualizar Mantenimiento</button>
           <button class="crud-btn" onclick="location.href='/maintainance/eliminar'">🗑️ Eliminar Mantenimiento</button>
         </div>
@@ -65,10 +67,9 @@
       <div class="crud-section">
         <button class="crud-toggle">▶ Supervisores</button>
         <div class="crud-options">
-          <button class="crud-btn" onclick="location.href='/user/crear'">➕ Añadir Usuario</button>
-          <button class="crud-btn" onclick="location.href='/user/users'">📄 Leer Usuarios</button>
-          <button class="crud-btn" onclick="location.href='/user/actualizar'">🖊️ Actualizar Usuario</button>
-          <button class="crud-btn" onclick="location.href='/user/eliminar'">🗑️ Eliminar Usuario</button>
+          <button class="crud-btn" onclick="location.href='/user/consultar'">📄 Leer Supervisores</button>
+          <button class="crud-btn" onclick="location.href='/user/actualizar'">🖊️ Actualizar Supervisores</button>
+          <button class="crud-btn" onclick="location.href='/user/eliminar'">🗑️ Eliminar Supervisores</button>
         </div>
       </div>
           <!-- CRUD: Horario -->
@@ -85,12 +86,22 @@
           <div class="crud-section">
             <button class="crud-toggle">▶ Tarifa</button>
             <div class="crud-options">
-              <button class="crud-btn">➕ Añadir Tarifa</button>
-              <button class="crud-btn">📄 Leer Tarifa</button>
-              <button class="crud-btn">🖊️ Actualizar Tarifa</button>
-              <button class="crud-btn">🗑️ Eliminar Tarifa</button>
+              <button class="crud-btn"onclick="location.href='/price/crear'">➕ Añadir Tarifa</button>
+              <button class="crud-btn"onclick="location.href='/price/consultar'">📄 Leer Tarifa</button>
+              <button class="crud-btn"onclick="location.href='/price/actualizar'">🖊️ Actualizar Tarifa</button>
+              <button class="crud-btn"onclick="location.href='/price/eliminar'">🗑️ Eliminar Tarifa</button>
             </div>
           </div>
+                    <!-- CRUD: TipoTransporte, TipoMovimientos, TipoUsuarios-->
+          <div class="crud-section">
+            <button class="crud-toggle">▶ Otros</button>
+            <div class="crud-options">
+              <button class="crud-btn"onclick="location.href='/roluser/consultar'">📄 Extraer Tipo de Usuario </button>
+              <button class="crud-btn"onclick="location.href='/typemovement/consultar'">📄 Extraer Tipo de Movimiento</button>
+              <button class="crud-btn"onclick="location.href='/typetransport/consultar'">📄 Extraer Servicios de Transporte</button>
+            </div>
+          </div>
+          
     </aside>
 
     <!-- Contenido principal -->
@@ -102,19 +113,19 @@
       <div class="dashboard">
         <div class="dashboard-card">
           <h3>Total de Vehículos</h3>
-          <p>150</p>
+          <p>{{total_vehiculos}}</p>
         </div>
         <div class="dashboard-card">
           <h3>Usuarios Registrados</h3>
-          <p>1,245</p>
+          <p>{{total_passanger}}</p>
         </div>
         <div class="dashboard-card">
           <h3>Operarios Activos</h3>
-          <p>73</p>
+          <p>{{total_operative}}</p>
         </div>
         <div class="dashboard-card">
           <h3>Supervisores</h3>
-          <p>15</p>
+          <p>{{total_supervisors}}</p>
         </div>
       </div>
     </main>

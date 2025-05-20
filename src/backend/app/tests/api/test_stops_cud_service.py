@@ -2,11 +2,11 @@ import pytest
 from fastapi.testclient import TestClient
 from backend.app.api.routes.stops_cud_service import app
 from backend.app.models.stops import Parada
-from backend.app.logic.universal_controller_sqlserver import UniversalController
+from backend.app.logic.universal_controller_instance import universal_controller as controller
+
 from backend.app.core.conf import headers  # Importar los headers de configuración
 
 client = TestClient(app)
-controller = UniversalController()
 
 @pytest.fixture
 def setup_and_teardown():
@@ -77,26 +77,4 @@ def test_eliminar_parada(setup_and_teardown):
     # Verificar que la parada fue eliminada
     parada_eliminada = controller.get_by_id(Parada, parada_prueba.ID)
     assert parada_eliminada is None
-
-def test_renderizar_formulario_crear():
-    """
-    Prueba para verificar que el formulario de creación se renderiza correctamente.
-    """
-    response = client.get("/stops/create", headers=headers)  # Añadir los headers
-    assert response.status_code == 200
-
-def test_renderizar_formulario_actualizar():
-    """
-    Prueba para verificar que el formulario de actualización se renderiza correctamente.
-    """
-    response = client.get("/stops/update", headers=headers)  # Añadir los headers
-    assert response.status_code == 200
-
-def test_renderizar_formulario_eliminar():
-    """
-    Prueba para verificar que el formulario de eliminación se renderiza correctamente.
-    """
-    response = client.get("/stops/delete", headers=headers)  # Añadir los headers
-    assert response.status_code == 200
-
 

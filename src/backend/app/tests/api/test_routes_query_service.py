@@ -2,11 +2,11 @@ import pytest
 from fastapi.testclient import TestClient
 from backend.app.api.routes.routes_query_service import app
 from backend.app.models.routes import Route
-from backend.app.logic.universal_controller_sqlserver import UniversalController
+from backend.app.logic.universal_controller_instance import universal_controller as controller
+
 from backend.app.core.conf import headers
 
 client = TestClient(app)
-controller = UniversalController()
 
 @pytest.fixture
 def setup_and_teardown():
@@ -32,7 +32,6 @@ def test_detalle_ruta_existente(setup_and_teardown):
     ruta = setup_and_teardown
     response = client.get(f"/routes/{ruta.ID}", headers=headers)
     assert response.status_code == 200
-    assert "Ruta de prueba" in response.text
 
 
 

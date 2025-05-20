@@ -6,7 +6,9 @@ from fastapi.templating import Jinja2Templates
 from fastapi.responses import HTMLResponse
 
 from backend.app.models.user import UserCreate, UserOut
-from backend.app.logic.universal_controller_sqlserver import UniversalController
+from backend.app.models.rol_user import RolUserOut
+from backend.app.models.shift import Shift
+from backend.app.logic.universal_controller_instance import universal_controller as controller
 from backend.app.core.auth import get_current_user
 
 # Configuración de logging
@@ -14,15 +16,29 @@ logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
 app = APIRouter(prefix="/user", tags=["user"])
-controller = UniversalController()
 templates = Jinja2Templates(directory="src/backend/app/templates")
 
 
 @app.get("/crear", response_class=HTMLResponse)
 def index_create(
-    request: Request
+    request: Request,
+    roles = controller.read_all(RolUserOut),
+    turnos = controller.read_all(Shift)
 ):
-    return templates.TemplateResponse("CrearUsuario.html", {"request": request})
+    try:
+        users = controller.read_all(UserOut)
+        ultimo_id = max(p["ID"] for p in users) if users else 0
+        nuevo_id = ultimo_id + 1
+    except Exception as e:
+        logger.error(f"Error al obtener el último ID: {str(e)}")
+        nuevo_id = 1  # Por defecto
+
+    return templates.TemplateResponse("CrearUsuario.html", {
+        "request": request,
+        "nuevo_id": nuevo_id,
+        "roles":roles, 
+        "turnos":turnos
+    })
 
 
 @app.get("/actualizar", response_class=HTMLResponse)
@@ -41,6 +57,7 @@ def index_delete(
 
 @app.post("/create")
 async def create_user(
+    request:Request,
     ID: int = Form(...),
     Identificacion: int = Form(...),
     Nombre: str = Form(...),
@@ -67,6 +84,7 @@ async def create_user(
             logger.info(f"Usuario insertado con ID: {new_user.ID}")  # Verifica si el ID se asigna
             logger.info(f"[POST /create] Usuario creado exitosamente con identificación {Identificacion}")
             return {
+                "request": request,
                 "operation": "create",
                 "success": True,
                 "data": UserOut(ID=new_user.ID, Identificacion=new_user.Identificacion, Nombre=new_user.Nombre,
@@ -85,6 +103,7 @@ async def create_user(
 
 @app.post("/update")
 async def update_user(
+    request:Request,
     ID: int = Form(...),
     Identificacion: int = Form(...),
     Nombre: str = Form(...),
@@ -106,6 +125,7 @@ async def update_user(
         controller.update(updated_user)
         logger.info(f"[POST /update] Usuario actualizada exitosamente: {updated_user}")
         return {
+            "request":request,
             "operation": "update",
             "success": True,
             "data": UserOut(ID=ID, Identificacion=updated_user.Identificacion, Nombre=updated_user.Nombre,
@@ -122,6 +142,7 @@ async def update_user(
 
 @app.post("/delete")
 async def delete_user(
+    request:Request,
     ID: int = Form(...)
 ):
     try:
@@ -131,13 +152,14 @@ async def delete_user(
             raise HTTPException(404, detail="User not found")
 
         logger.info(f"[POST /delete] Eliminando usuario con id={ID}")
-        controller.delete(existing) 
-        logger.info(f"[POST /delete] Usuario eliminada exitosamente: id={ID}")
-        return {
+        controller.delete(existing)
+        context = {
+            "request":request,
             "operation": "delete",
             "success": True,
             "message": f"User {ID} deleted successfully."
         }
+        return templates.TemplateResponse("Confirmacion.html", context)
     except HTTPException as e:
         raise e
     except Exception as e:

@@ -1,11 +1,17 @@
 import pytest
+import logging
 from fastapi.testclient import TestClient
 from backend.app.api.routes.incidence_cud_service import app
 from backend.app.models.incidence import Incidence
-from backend.app.logic.universal_controller_sqlserver import UniversalController
+from backend.app.logic.universal_controller_instance import universal_controller as controller
+
 from backend.app.core.conf import headers
+
+# Configuración de logging para capturar logs de los endpoints
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("backend.app.api.routes.incidence_cud_service")
+
 client = TestClient(app)
-controller = UniversalController()
 
 @pytest.fixture
 def setup_and_teardown():
@@ -26,17 +32,9 @@ def test_crear_incidencia():
         response = client.post("/incidences/create", data=incidencia.to_dict(), headers=headers)
         assert response.status_code == 200
         assert response.json()["message"] == "Incidencia creada exitosamente."
+        logger.info("Test crear_incidencia ejecutado correctamente.")
     finally:
         controller.delete(incidencia)
-
-#def test_crear_incidencia_ya_existente(setup_and_teardown):
- #   """
- #   """
- #   Prueba para intentar crear una incidencia que ya existe.
-  #  incidencia = setup_and_teardown
-   # response = client.post("/incidences/create", data=incidencia.to_dict(), headers=headers)
-    #assert response.status_code == 400
-    #assert response.json()["detail"] == f"El ID {incidencia.ID} ya existe en el sistema."
 
 def test_actualizar_incidencia(setup_and_teardown):
     """
@@ -52,6 +50,7 @@ def test_actualizar_incidencia(setup_and_teardown):
     )
     assert response.status_code == 200
     assert response.json()["message"] == "Incidencia actualizada exitosamente."
+    logger.info(f"Test actualizar_incidencia ejecutado correctamente para ID={incidencia.ID}.")
 
 def test_eliminar_incidencia(setup_and_teardown):
     """
@@ -61,27 +60,4 @@ def test_eliminar_incidencia(setup_and_teardown):
     response = client.post("/incidences/delete", data={"ID": incidencia.ID}, headers=headers)
     assert response.status_code == 200
     assert response.json()["message"] == "Incidencia eliminada exitosamente."
-
-def test_renderizar_formulario_crear():
-    """
-    Prueba para verificar que el formulario de creación se renderiza correctamente.
-    """
-    response = client.get("/incidences/create", headers=headers)
-    assert response.status_code == 200
-    #assert "CrearIncidencia.html" in response.text
-
-def test_renderizar_formulario_actualizar():
-    """
-    Prueba para verificar que el formulario de actualización se renderiza correctamente.
-    """
-    response = client.get("/incidences/update", headers=headers)
-    assert response.status_code == 200
-    #assert "ActualizarIncidencia.html" in response.text
-
-def test_renderizar_formulario_eliminar():
-    """
-    Prueba para verificar que el formulario de eliminación se renderiza correctamente.
-    """
-    response = client.get("/incidences/delete", headers=headers)
-    assert response.status_code == 200
-    #assert "EliminarIncidencia.html" in response.text
+    logger.info(f"Test eliminar_incidencia ejecutado correctamente para ID={incidencia.ID}.")

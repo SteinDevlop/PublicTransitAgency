@@ -3,7 +3,6 @@ from backend.app.core.config import Settings
 from typing import Any
 import os
 import logging
-import platform
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG)
@@ -12,13 +11,9 @@ class UniversalController:
         try:
             settings = Settings()
             # Detectar si está en un entorno Railway o local
+# Detectar si está en un entorno Railway o local
             is_railway = os.getenv("RAILWAY_ENV", "false") == "true"
-
-            # Detectar sistema operativo
-            if is_railway or platform.system().lower() != "windows":
-                driver = "ODBC Driver 18 for SQL Server"
-            else:
-                driver = "SQL Server"
+            driver = "ODBC Driver 18 for SQL Server" if is_railway else "SQL Server"
 
             self.conn = pyodbc.connect(
                 f"DRIVER={{{driver}}};SERVER={settings.db_config['host']},1435;DATABASE={settings.db_config['dbname']};UID={settings.db_config['user']};PWD={settings.db_config['password']};TrustServerCertificate=yes"
@@ -330,19 +325,34 @@ class UniversalController:
             # Convertir cada fila en un diccionario utilizando los nombres de las columnas
             return [dict(zip([column[0] for column in self.cursor.description], row)) for row in rows]
         except pyodbc.Error as e:
-            raise RuntimeError(f"Error al obtener registros de Ruta-Parada: {e}")
-    def get_turno_usuario(self, user_id: int) -> dict:
+            raise RuntimeError(f"Error al obtener registros de la unidad {unit_id}: {e}")
+
+    def get_ruta_parada(self, id_ruta: int = None, id_parada: int = None) -> list[dict]:
         """
-        Obtiene el turno de un usuario según su ID.
+        Obtiene las relaciones Ruta-Parada según el ID de Ruta, ID de Parada o todos los registros.
         """
-        query = """
-        SELECT t.TipoTurno
-        FROM Usuario u
-        JOIN Turno t ON u.IDTurno = t.ID
-        WHERE u.ID=?
-        """
+        sql = "SELECT rp.IDRuta, rp.IDParada, r.Nombre AS NombreRuta, p.Nombre AS NombreParada " \
+              "FROM RutaParada rp " \
+              "JOIN Ruta r ON rp.IDRuta = r.ID " \
+              "JOIN Parada p ON rp.IDParada = p.ID"
+
+        conditions = []
+        params = []
+
+        if id_ruta:
+            conditions.append("rp.IDRuta = ?")
+            params.append(id_ruta)
+        if id_parada:
+            conditions.append("rp.IDParada = ?")
+            params.append(id_parada)
+
+        if conditions:
+            sql += " WHERE " + " AND ".join(conditions)
+
         try:
-            result = self._execute_query(query, (user_id,))
-            return result[0] if result else 0.0
+            self.cursor.execute(sql, tuple(params))
+            rows = self.cursor.fetchall()
+            # Convertir cada fila en un diccionario utilizando los nombres de las columnas
+            return [dict(zip([column[0] for column in self.cursor.description], row)) for row in rows]
         except pyodbc.Error as e:
-            raise RuntimeError(f"Error al obtener el turno del usuario con ID {user_id}: {e}")
+            raise RuntimeError(f"Error al obtener registros de Ruta-Parada: {e}")

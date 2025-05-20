@@ -2,11 +2,11 @@ import pytest
 from fastapi.testclient import TestClient
 from backend.app.api.routes.stops_query_service import app
 from backend.app.models.stops import Parada
-from backend.app.logic.universal_controller_sqlserver import UniversalController
+from backend.app.logic.universal_controller_instance import universal_controller as controller
+
 from backend.app.core.conf import headers
 
 client = TestClient(app)
-controller = UniversalController()
 
 @pytest.fixture
 def setup_and_teardown():

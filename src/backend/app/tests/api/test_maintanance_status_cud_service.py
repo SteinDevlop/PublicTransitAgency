@@ -2,11 +2,10 @@ import pytest
 from fastapi.testclient import TestClient
 from backend.app.api.routes.maintainance_status_cud_service import app
 from backend.app.models.maintainance_status import MaintainanceStatus
-from backend.app.logic.universal_controller_sqlserver import UniversalController
+from backend.app.logic.universal_controller_instance import universal_controller as controller
 from backend.app.core.conf import headers
 
 client = TestClient(app)
-controller = UniversalController()
 
 @pytest.fixture
 def setup_and_teardown():
@@ -32,7 +31,7 @@ def test_crear_estado():
     """
     estado_prueba = MaintainanceStatus(ID=9998, TipoEstado="Nuevo Estado")
     try:
-        response = client.post("/maintainance_status/create", data={"id": estado_prueba.ID, "TipoEstado": estado_prueba.TipoEstado}, headers=headers)
+        response = client.post("/maintainance_status/create", data={"ID": estado_prueba.ID, "TipoEstado": estado_prueba.TipoEstado}, headers=headers)
         assert response.status_code == 200
         assert response.json()["message"] == "Estado de mantenimiento creado exitosamente."
     finally:
@@ -64,5 +63,3 @@ def test_eliminar_estado(setup_and_teardown):
     # Verificar que el estado fue eliminado
     estado_eliminado = controller.get_by_id(MaintainanceStatus, estado_prueba.ID)
     assert estado_eliminado is None
-
-

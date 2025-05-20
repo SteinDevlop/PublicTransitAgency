@@ -1,24 +1,14 @@
-from fastapi import APIRouter, Form, HTTPException, Security, Request
-from fastapi.responses import HTMLResponse
-from fastapi.templating import Jinja2Templates
-from backend.app.logic.universal_controller_sqlserver import UniversalController
+import logging
+from fastapi import APIRouter, Form, HTTPException, Security
+
+from backend.app.logic.universal_controller_instance import universal_controller as controller
 from backend.app.models.incidence import Incidence
-from backend.app.models.transport import UnidadTransporte
 from backend.app.core.auth import get_current_user
 
-app = APIRouter(prefix="/incidences", tags=["incidences"])
-controller = UniversalController()
-templates = Jinja2Templates(directory="src/backend/app/templates")
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
 
-@app.get("/create", response_class=HTMLResponse)
-def crear_incidencia_form(
-    request: Request,
-    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "supervisor"])
-):
-    """
-    Renderiza el formulario para crear una nueva incidencia.
-    """
-    return templates.TemplateResponse("CrearIncidencia.html", {"request": request})
+app = APIRouter(prefix="/incidences", tags=["incidences"])
 
 @app.post("/create")
 def crear_incidencia(
@@ -26,30 +16,20 @@ def crear_incidencia(
     IDTicket: int = Form(...),
     Descripcion: str = Form(...),
     Tipo: str = Form(...),
-    IDUnidad: str = Form(...),  # Cambiado a str
-    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "supervisor"])
+    IDUnidad: str = Form(...),
+   #current_user: dict  = Security(get_current_user, scopes=["system", "administrador", "supervisor"])
 ):
     """
     Crea una nueva incidencia.
     """
-    # Validar si la unidad de transporte existe
-
     incidencia = Incidence(ID=ID, IDTicket=IDTicket, Descripcion=Descripcion, Tipo=Tipo, IDUnidad=IDUnidad)
     try:
         controller.add(incidencia)
+        logger.info(f"[POST /incidences/create] Incidencia creada exitosamente: {incidencia}")
         return {"message": "Incidencia creada exitosamente.", "data": incidencia.to_dict()}
     except ValueError as e:
+        logger.warning(f"[POST /incidences/create] Error de validación: {str(e)}")
         raise HTTPException(status_code=400, detail=str(e))
-
-@app.get("/update", response_class=HTMLResponse)
-def actualizar_incidencia_form(
-    request: Request,
-    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "supervisor"])
-):
-    """
-    Renderiza el formulario para actualizar una incidencia.
-    """
-    return templates.TemplateResponse("ActualizarIncidencia.html", {"request": request})
 
 @app.post("/update")
 def actualizar_incidencia(
@@ -57,49 +37,38 @@ def actualizar_incidencia(
     IDTicket: int = Form(...),
     Descripcion: str = Form(...),
     Tipo: str = Form(...),
-    IDUnidad: str = Form(...),  # Cambiado a str
-    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "supervisor"])
+    IDUnidad: str = Form(...),
+   #current_user: dict  = Security(get_current_user, scopes=["system", "administrador", "supervisor"])
 ):
     """
     Actualiza una incidencia existente.
     """
-    # Validar si la incidencia existe
-    #existing_incidencia = controller.get_by_id(Incidence, ID)
-    #if not existing_incidencia:
-    #    raise HTTPException(status_code=404, detail="Incidencia no encontrada.")
-
     incidencia_actualizada = Incidence(ID=ID, IDTicket=IDTicket, Descripcion=Descripcion, Tipo=Tipo, IDUnidad=IDUnidad)
     try:
         controller.update(incidencia_actualizada)
+        logger.info(f"[POST /incidences/update] Incidencia actualizada exitosamente: {incidencia_actualizada}")
         return {"message": "Incidencia actualizada exitosamente.", "data": incidencia_actualizada.to_dict()}
     except ValueError as e:
+        logger.warning(f"[POST /incidences/update] Error de validación: {str(e)}")
         raise HTTPException(status_code=400, detail=str(e))
-
-@app.get("/delete", response_class=HTMLResponse)
-def eliminar_incidencia_form(
-    request: Request,
-    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "supervisor"])
-):
-    """
-    Renderiza el formulario para eliminar una incidencia.
-    """
-    return templates.TemplateResponse("EliminarIncidencia.html", {"request": request})
 
 @app.post("/delete")
 def eliminar_incidencia(
     ID: int = Form(...),
-    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "supervisor"])
+   #current_user: dict  = Security(get_current_user, scopes=["system", "administrador", "supervisor"])
 ):
     """
     Elimina una incidencia por su ID.
     """
-    # Validar si la incidencia existe
     existing_incidencia = controller.get_by_id(Incidence, ID)
     if not existing_incidencia:
+        logger.warning(f"[POST /incidences/delete] Incidencia no encontrada: ID={ID}")
         raise HTTPException(status_code=404, detail="Incidencia no encontrada.")
 
     try:
         controller.delete(existing_incidencia)
+        logger.info(f"[POST /incidences/delete] Incidencia eliminada exitosamente: ID={ID}")
         return {"message": "Incidencia eliminada exitosamente."}
     except ValueError as e:
+        logger.warning(f"[POST /incidences/delete] Error al eliminar: {str(e)}")
         raise HTTPException(status_code=400, detail=str(e))

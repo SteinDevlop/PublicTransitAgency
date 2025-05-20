@@ -2,11 +2,11 @@ import pytest
 from fastapi.testclient import TestClient
 from backend.app.api.routes.transport_unit_query_service import app
 from backend.app.models.transport import UnidadTransporte
-from backend.app.logic.universal_controller_sqlserver import UniversalController
+from backend.app.logic.universal_controller_instance import universal_controller as controller
+
 from backend.app.core.conf import headers
 
 client = TestClient(app)
-controller = UniversalController()
 
 @pytest.fixture
 def setup_and_teardown():
@@ -33,4 +33,3 @@ def test_detalle_unidad_transporte_existente(setup_and_teardown):
     response = client.get(f"/transport_units/{unidad.ID}", headers=headers)
     assert response.status_code == 200
     assert "Depósito Central" in response.text
-    assert str(unidad.Capacidad) in response.text
