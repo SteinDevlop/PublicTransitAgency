@@ -195,19 +195,6 @@ class SupervisorDashboard extends StatelessWidget {
                       child: ListView(
                         padding: EdgeInsets.zero,
                         children: [
-                          const Padding(
-                            padding:
-                                EdgeInsets.only(left: 16, top: 16, bottom: 8),
-                            child: Text(
-                              'SUPERVISIÓN',
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w500,
-                                color: Color(0xFF5F6368),
-                                letterSpacing: 1.2,
-                              ),
-                            ),
-                          ),
                           _buildMenuItem(
                             icon: Icons.dashboard_outlined,
                             title: 'Panel Principal',
@@ -215,74 +202,32 @@ class SupervisorDashboard extends StatelessWidget {
                             isActive: true,
                           ),
                           _buildMenuItem(
-                            icon: Icons.people_outline,
-                            title: 'Equipo de Operarios',
-                            color: primaryColor,
-                          ),
-                          _buildMenuItem(
                             icon: Icons.schedule_outlined,
                             title: 'Asignar Turnos',
                             color: primaryColor,
                           ),
                           _buildMenuItem(
-                            icon: Icons.directions_bus_outlined,
-                            title: 'Estado de Unidades',
+                            icon: Icons.assessment_outlined,
+                            title: 'Reporte de desempeño',
                             color: primaryColor,
-                          ),
-                          const Padding(
-                            padding:
-                                EdgeInsets.only(left: 16, top: 16, bottom: 8),
-                            child: Text(
-                              'REPORTES',
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w500,
-                                color: Color(0xFF5F6368),
-                                letterSpacing: 1.2,
-                              ),
-                            ),
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) =>
+                                      SupervisorReportScreen(token: token),
+                                ),
+                              );
+                            },
                           ),
                           _buildMenuItem(
-                            icon: Icons.assessment_outlined,
-                            title: 'Desempeño del Equipo',
+                            icon: Icons.directions_bus_outlined,
+                            title: 'Obtener Información de Unidad',
                             color: primaryColor,
                           ),
                           _buildMenuItem(
                             icon: Icons.warning_amber_outlined,
-                            title: 'Incidencias',
-                            color: primaryColor,
-                          ),
-                          _buildMenuItem(
-                            icon: Icons.bar_chart_outlined,
-                            title: 'Estadísticas',
-                            color: primaryColor,
-                          ),
-                          const Padding(
-                            padding:
-                                EdgeInsets.only(left: 16, top: 16, bottom: 8),
-                            child: Text(
-                              'HERRAMIENTAS',
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w500,
-                                color: Color(0xFF5F6368),
-                                letterSpacing: 1.2,
-                              ),
-                            ),
-                          ),
-                          _buildMenuItem(
-                            icon: Icons.message_outlined,
-                            title: 'Comunicaciones',
-                            color: primaryColor,
-                          ),
-                          _buildMenuItem(
-                            icon: Icons.calendar_today_outlined,
-                            title: 'Calendario',
-                            color: primaryColor,
-                          ),
-                          _buildMenuItem(
-                            icon: Icons.settings_outlined,
-                            title: 'Configuración',
+                            title: 'Consultar Incidencias',
                             color: primaryColor,
                           ),
                         ],
@@ -491,17 +436,6 @@ class SupervisorDashboard extends StatelessWidget {
                                         color: warningColor,
                                       ),
                                       const SizedBox(height: 12),
-                                      _buildQuickActionButton(
-                                        label: 'Generar Reporte',
-                                        icon: Icons.assessment,
-                                        color: secondaryColor,
-                                      ),
-                                      const SizedBox(height: 12),
-                                      _buildQuickActionButton(
-                                        label: 'Enviar Comunicado',
-                                        icon: Icons.message,
-                                        color: accentColor,
-                                      ),
                                     ],
                                   ),
                                 ),
@@ -545,6 +479,7 @@ class SupervisorDashboard extends StatelessWidget {
     required String title,
     required Color color,
     bool isActive = false,
+    VoidCallback? onTap,
   }) {
     return ListTile(
       leading: Icon(
@@ -561,7 +496,7 @@ class SupervisorDashboard extends StatelessWidget {
       ),
       dense: true,
       horizontalTitleGap: 8,
-      onTap: () {},
+      onTap: onTap,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(8),
       ),
@@ -1004,6 +939,140 @@ class SupervisorDashboard extends StatelessWidget {
               ],
             ),
           ),
+        ],
+      ),
+    );
+  }
+}
+
+class SupervisorReportScreen extends StatefulWidget {
+  final String token;
+  const SupervisorReportScreen({Key? key, required this.token})
+      : super(key: key);
+
+  @override
+  State<SupervisorReportScreen> createState() => _SupervisorReportScreenState();
+}
+
+class _SupervisorReportScreenState extends State<SupervisorReportScreen> {
+  bool _loading = false;
+  String? _error;
+  Map<String, dynamic>? _data;
+
+  Future<void> _fetchReport() async {
+    setState(() {
+      _loading = true;
+      _error = null;
+      _data = null;
+    });
+    try {
+      final response = await http.get(
+        Uri.parse('${AppConfig.baseUrl}/reporte/supervisor'),
+        headers: {
+          'Authorization': 'Bearer ${widget.token}',
+          'accept': 'application/json',
+        },
+      );
+      if (response.statusCode == 200) {
+        setState(() {
+          _data = json.decode(response.body);
+        });
+      } else {
+        setState(() {
+          _error = 'No se pudo obtener el reporte.';
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _error = 'Error de conexión.';
+      });
+    } finally {
+      setState(() {
+        _loading = false;
+      });
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchReport();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Reporte de Desempeño'),
+        backgroundColor: SupervisorDashboard.primaryColor,
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: _loading
+            ? Center(child: CircularProgressIndicator())
+            : _error != null
+                ? Center(
+                    child: Text(_error!, style: TextStyle(color: Colors.red)))
+                : _data == null
+                    ? const Center(child: Text('Sin datos'))
+                    : Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Card(
+                            elevation: 2,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: Padding(
+                              padding: const EdgeInsets.all(24.0),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    children: [
+                                      Icon(Icons.bar_chart,
+                                          color:
+                                              SupervisorDashboard.primaryColor,
+                                          size: 32),
+                                      const SizedBox(width: 12),
+                                      const Text('Resumen de Desempeño',
+                                          style: TextStyle(
+                                              fontSize: 20,
+                                              fontWeight: FontWeight.bold)),
+                                    ],
+                                  ),
+                                  const SizedBox(height: 20),
+                                  _buildReportRow(
+                                      'Total de Movimientos',
+                                      _data!['total_movimientos']?.toString() ??
+                                          '-'),
+                                  _buildReportRow(
+                                      'Total de Usuarios',
+                                      _data!['total_usuarios']?.toString() ??
+                                          '-'),
+                                  _buildReportRow(
+                                      'Promedio de Horas Trabajadas',
+                                      _data!['promedio_horas_trabajadas']
+                                              ?.toString() ??
+                                          '-'),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+      ),
+    );
+  }
+
+  Widget _buildReportRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Row(
+        children: [
+          Text('$label:', style: const TextStyle(fontWeight: FontWeight.bold)),
+          const SizedBox(width: 8),
+          Text(value, style: const TextStyle(fontSize: 16)),
         ],
       ),
     );

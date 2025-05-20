@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:jwt_decoder/jwt_decoder.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '/pages/login.dart';
@@ -10,6 +9,8 @@ import '/pages/operario.dart';
 import '/pages/pasajero.dart';
 import '/pages/supervisor.dart';
 import '/pages/tecnico.dart';
+import '../config/config.dart';
+
 void main() {
   runApp(MaterialApp(
     initialRoute: '/home', // Cambia la ruta inicial a HomePage
@@ -163,7 +164,11 @@ class HomePage extends StatelessWidget {
                           SizedBox(height: 12),
                           ElevatedButton(
                             onPressed: () {
-                              // Acción para consultar saldo
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                    builder: (_) => CardBalanceScreen()),
+                              );
                             },
                             child: Text('Consultar'),
                             style: ElevatedButton.styleFrom(
@@ -305,15 +310,36 @@ class HomePage extends StatelessWidget {
                 context, Icons.person, 'Portal de usuario', LoginPage()),
             _buildDrawerItem(context, Icons.announcement, 'Avisos'),
             Divider(),
-            _buildDrawerItem(context, Icons.admin_panel_settings,
-                'Administrador', AdminPanel(token: ''),),
-            _buildDrawerItem(context, Icons.build, 'Operario', OperarioPanel(token: ''),),
             _buildDrawerItem(
-                context, Icons.directions_bus, 'Pasajero', PassengerPanel(token: ''),),
-            _buildDrawerItem(context, Icons.supervisor_account, 'Supervisor',
-                SupervisorDashboard(token: ''),),
+              context,
+              Icons.admin_panel_settings,
+              'Administrador',
+              AdminPanel(token: ''),
+            ),
             _buildDrawerItem(
-                context, Icons.engineering, 'Técnico', TecnicoPanel(token: ''),),
+              context,
+              Icons.build,
+              'Operario',
+              OperarioPanel(token: ''),
+            ),
+            _buildDrawerItem(
+              context,
+              Icons.directions_bus,
+              'Pasajero',
+              PassengerPanel(token: ''),
+            ),
+            _buildDrawerItem(
+              context,
+              Icons.supervisor_account,
+              'Supervisor',
+              SupervisorDashboard(token: ''),
+            ),
+            _buildDrawerItem(
+              context,
+              Icons.engineering,
+              'Técnico',
+              TecnicoPanel(token: ''),
+            ),
           ],
         ),
       ),
@@ -331,6 +357,155 @@ class HomePage extends StatelessWidget {
                 MaterialPageRoute(builder: (_) => page),
               )
           : null,
+    );
+  }
+}
+
+class CardBalanceScreen extends StatefulWidget {
+  @override
+  _CardBalanceScreenState createState() => _CardBalanceScreenState();
+}
+
+class _CardBalanceScreenState extends State<CardBalanceScreen> {
+  final TextEditingController _idController = TextEditingController();
+  bool _loading = false;
+  String? _error;
+  Map<String, dynamic>? _cardData;
+
+  Future<void> _consultarSaldo() async {
+    setState(() {
+      _loading = true;
+      _error = null;
+      _cardData = null;
+    });
+    final id = _idController.text.trim();
+    if (id.isEmpty) {
+      setState(() {
+        _loading = false;
+        _error = 'Por favor ingresa el ID de la tarjeta';
+      });
+      return;
+    }
+    try {
+      final response = await http.get(
+        Uri.parse('${AppConfig.baseUrl}/card/tarjeta?ID=$id'),
+        headers: {'accept': 'application/json'},
+      );
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        setState(() {
+          _cardData = data;
+        });
+      } else {
+        setState(() {
+          _error = 'No se encontró la tarjeta o error en la consulta';
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _error = 'Error de conexión';
+      });
+    } finally {
+      setState(() {
+        _loading = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Consultar Saldo de Tarjeta'),
+        backgroundColor: Colors.blue[700],
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            TextField(
+              controller: _idController,
+              keyboardType: TextInputType.number,
+              decoration: InputDecoration(
+                labelText: 'ID de la tarjeta',
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.credit_card),
+              ),
+            ),
+            const SizedBox(height: 20),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: _loading ? null : _consultarSaldo,
+                child: _loading
+                    ? SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                            strokeWidth: 2, color: Colors.white),
+                      )
+                    : Text('Consultar saldo'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue[700],
+                  foregroundColor: Colors.white,
+                  padding: EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+            ),
+            if (_error != null) ...[
+              const SizedBox(height: 16),
+              Text(_error!, style: TextStyle(color: Colors.red)),
+            ],
+            if (_cardData != null) ...[
+              const SizedBox(height: 32),
+              Card(
+                elevation: 4,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(24.0),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    children: [
+                      Icon(Icons.credit_card,
+                          color: Colors.blue[700], size: 48),
+                      const SizedBox(height: 12),
+                      Text('ID Tarjeta',
+                          style:
+                              TextStyle(fontSize: 16, color: Colors.black54)),
+                      Text(
+                        _cardData!['ID']?.toString() ?? '-',
+                        style: TextStyle(
+                            fontSize: 28,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.blue[800]),
+                      ),
+                      const SizedBox(height: 16),
+                      Text('Saldo disponible',
+                          style:
+                              TextStyle(fontSize: 16, color: Colors.black54)),
+                      Text(
+                        _cardData!['Saldo']?.toString() ?? '-',
+                        style: TextStyle(
+                            fontSize: 32,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.green[700]),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
     );
   }
 }

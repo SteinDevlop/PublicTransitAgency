@@ -30,11 +30,7 @@ async def get_tarjetas(
 
 
 @app.get("/tarjeta")
-def tarjeta(request: Request, ID: int = Query(...),
-    current_user: dict = Security(
-        get_current_user,
-        scopes=["system", "administrador", "pasajero"]
-    )):
+def tarjeta(request: Request, ID: int = Query(...)):
     """
     Retrieve a card by its ID and render the 'tarjeta.html' template with its details.
     If the card is not found, display 'None' for all fields.

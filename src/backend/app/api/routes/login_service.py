@@ -126,42 +126,50 @@ async def get_scope_page(request: Request, scope: str):
 async def general_dashboard(
     current_user: dict = Security(get_current_user, scopes=["system", "administrador", "supervisor", "operario", "pasajero", "mantenimiento"])
 ):
-        logger.info("[DASHBOARD] Iniciando solicitud para el dashboard")
+    logger.info("[DASHBOARD] Iniciando solicitud para el dashboard")
 
-        # Obtener el ID del usuario desde el token
-        user_id = current_user.get("sub")
-        logger.info(f"[DASHBOARD] user_id (tipo: {type(user_id)}): {user_id}")
-        try:
-            user_id_int = int(user_id)
-        except Exception as e:
-            logger.error(f"[DASHBOARD] No se pudo convertir user_id a int: {e}")
-            raise HTTPException(status_code=400, detail="ID de usuario inválido")
-
+    user_id = current_user.get("sub")
+    logger.info(f"[DASHBOARD] user_id (tipo: {type(user_id)}): {user_id}")
+    try:
+        user_id_int = int(user_id)
         user = controller.get_by_column(UserOut, "ID", user_id_int)
         if not user:
             logger.warning("[DASHBOARD] Usuario no encontrado en la base de datos para ID: %s", user_id)
             raise HTTPException(status_code=404, detail="Usuario no encontrado")
-
         logger.info("[DASHBOARD] Usuario encontrado en la base de datos: %s", user.Nombre)
 
         # Construir la respuesta del dashboard
-        response_data = {
-            "user": user.model_dump(),
-            "id": user.ID,
-            "total_vehiculos": controller.total_unidades(),
-            "total_passanger": controller.total_pasajeros(),
-            "total_operative": controller.total_operarios(),
-            "total_supervisors": controller.total_supervisores(),
-            "type_card": controller.last_card_used(user.ID),
-            "buses_mantenimiento": controller.total_unidades(),
-            "registros_mantenimiento": controller.total_mantenimiento(),
-            "proximo_mantenimiento": controller.proximos_mantenimientos(),
-            "ultimo_uso_tarjeta": controller.last_card_used(user.ID),
-            "turno": controller.get_turno_usuario(user.ID)
-        }
+        try:
+            user_data = user.dict() if hasattr(user, 'dict') else user.__dict__
+        except Exception as e:
+            logger.error(f"[DASHBOARD] Error al serializar usuario: {e}")
+            user_data = {}
+        try:
+            response_data = {
+                "user": user_data,
+                "id": user.ID,
+                "total_vehiculos": controller.total_unidades(),
+                "total_passanger": controller.total_pasajeros(),
+                "total_operative": controller.total_operarios(),
+                "total_supervisors": controller.total_supervisores(),
+                "type_card": controller.last_card_used(user.ID),
+                "buses_mantenimiento": controller.total_unidades(),
+                "registros_mantenimiento": controller.total_mantenimiento(),
+                "proximo_mantenimiento": controller.proximos_mantenimientos(),
+                "ultimo_uso_tarjeta": controller.last_card_used(user.ID),
+                #"turno": controller.get_turno_usuario(user.ID)
+            }
+        except Exception as e:
+            logger.error(f"[DASHBOARD] Error al construir datos del dashboard: {e}")
+            raise HTTPException(status_code=500, detail=f"Error interno al construir dashboard: {e}")
 
         logger.info("[DASHBOARD] Respuesta del dashboard generada correctamente")
         return JSONResponse(response_data)
+    except HTTPException as http_exc:
+        raise http_exc
+    except Exception as e:
+        logger.error(f"[DASHBOARD] Error inesperado: {e}", exc_info=True)
+        raise HTTPException(status_code=500, detail=f"Error interno inesperado: {e}")
 def map_role_to_scope(role_id: int) -> str:
     role_scope_map = {
         1: "pasajero",

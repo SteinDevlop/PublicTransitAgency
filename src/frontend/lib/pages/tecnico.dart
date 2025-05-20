@@ -39,6 +39,63 @@ class TecnicoPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Estado para la sección seleccionada
+    final ValueNotifier<String> selectedSection = ValueNotifier('dashboard');
+    final ValueNotifier<List<List<dynamic>>> mantenimientosAtrasados =
+        ValueNotifier([]);
+    final ValueNotifier<List<List<dynamic>>> mantenimientosProximos =
+        ValueNotifier([]);
+    final ValueNotifier<bool> loadingAlertas = ValueNotifier(false);
+    final ValueNotifier<String?> errorAlertas = ValueNotifier(null);
+
+    void fetchAlertas() async {
+      loadingAlertas.value = true;
+      errorAlertas.value = null;
+      try {
+        final response = await http.get(
+          Uri.parse('${AppConfig.baseUrl}/reporte/alert-tec'),
+          headers: {
+            'Authorization': 'Bearer $token',
+            'accept': 'application/json',
+          },
+        );
+        if (response.statusCode == 200) {
+          final data = json.decode(response.body);
+          // Adaptar para aceptar lista plana o lista de listas
+          final atrasadosRaw = data['mantenimientos_atrasados'] as List?;
+          final proximosRaw = data['mantenimientos_proximos'] as List?;
+          if (atrasadosRaw != null &&
+              atrasadosRaw.isNotEmpty &&
+              atrasadosRaw[0] is! List) {
+            mantenimientosAtrasados.value = [List<dynamic>.from(atrasadosRaw)];
+          } else if (atrasadosRaw != null) {
+            mantenimientosAtrasados.value = atrasadosRaw
+                .map<List<dynamic>>((e) => List<dynamic>.from(e))
+                .toList();
+          } else {
+            mantenimientosAtrasados.value = [];
+          }
+          if (proximosRaw != null &&
+              proximosRaw.isNotEmpty &&
+              proximosRaw[0] is! List) {
+            mantenimientosProximos.value = [List<dynamic>.from(proximosRaw)];
+          } else if (proximosRaw != null) {
+            mantenimientosProximos.value = proximosRaw
+                .map<List<dynamic>>((e) => List<dynamic>.from(e))
+                .toList();
+          } else {
+            mantenimientosProximos.value = [];
+          }
+        } else {
+          errorAlertas.value = 'No se pudo obtener las alertas.';
+        }
+      } catch (e) {
+        errorAlertas.value = 'Error de conexión.';
+      } finally {
+        loadingAlertas.value = false;
+      }
+    }
+
     return Scaffold(
       appBar: AppBar(
         elevation: 0,
@@ -76,7 +133,7 @@ class TecnicoPanel extends StatelessWidget {
                 children: [
                   const Icon(Icons.error_outline, color: Colors.red, size: 60),
                   const SizedBox(height: 16),
-                  Text('Error: ${snapshot.error}',
+                  Text('Error: \\${snapshot.error}',
                       style: const TextStyle(color: Colors.red)),
                 ],
               ),
@@ -139,13 +196,11 @@ class TecnicoPanel extends StatelessWidget {
                                     color: secondaryColor,
                                     borderRadius: BorderRadius.circular(12),
                                   ),
-                                  child: const Text(
-                                    'Técnico de Mantenimiento',
-                                    style: TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 10,
-                                        fontWeight: FontWeight.w500),
-                                  ),
+                                  child: const Text('Técnico de Mantenimiento',
+                                      style: TextStyle(
+                                          color: Colors.white,
+                                          fontSize: 10,
+                                          fontWeight: FontWeight.w500)),
                                 ),
                               ],
                             ),
@@ -154,105 +209,165 @@ class TecnicoPanel extends StatelessWidget {
                       ),
                     ),
                     const Divider(height: 1),
-
                     // Menu items
                     Expanded(
-                      child: ListView(
-                        padding: EdgeInsets.zero,
-                        children: [
-                          _buildMenuItem(
-                              icon: Icons.build_outlined,
-                              title: 'Revisar Mantenimientos',
-                              isActive: true),
-                          _buildMenuItem(
-                              icon: Icons.handyman_outlined,
-                              title: 'Registrar Reparación'),
-                          _buildMenuItem(
-                              icon: Icons.history_outlined,
-                              title: 'Historial de Unidades'),
-                          _buildMenuItem(
-                              icon: Icons.inventory_outlined,
-                              title: 'Inventario de Repuestos'),
-                          _buildMenuItem(
-                              icon: Icons.assignment_outlined,
-                              title: 'Órdenes de Trabajo'),
-                          _buildMenuItem(
-                              icon: Icons.report_outlined,
-                              title: 'Reportes Técnicos'),
-                        ],
+                      child: ValueListenableBuilder<String>(
+                        valueListenable: selectedSection,
+                        builder: (context, section, _) {
+                          return ListView(
+                            padding: EdgeInsets.zero,
+                            children: [
+                              _buildMenuItem(
+                                icon: Icons.history,
+                                title: 'Consultar historial de bus',
+                                isActive: section == 'historial',
+                                onTap: () =>
+                                    selectedSection.value = 'historial',
+                              ),
+                              _buildMenuItem(
+                                icon: Icons.event,
+                                title: 'Itinerario',
+                                isActive: section == 'itinerario',
+                                onTap: () =>
+                                    selectedSection.value = 'itinerario',
+                              ),
+                              _buildMenuItem(
+                                icon: Icons.build_circle_outlined,
+                                title: 'Registrar mantenimiento',
+                                isActive: section == 'registrar',
+                                onTap: () =>
+                                    selectedSection.value = 'registrar',
+                              ),
+                              _buildMenuItem(
+                                icon: Icons.warning_amber_outlined,
+                                title: 'Alertas',
+                                isActive: section == 'alertas',
+                                onTap: () {
+                                  selectedSection.value = 'alertas';
+                                  fetchAlertas();
+                                },
+                              ),
+                              _buildMenuItem(
+                                icon: Icons.assignment_turned_in_outlined,
+                                title: 'Marcar asistencia',
+                                isActive: section == 'asistencia',
+                                onTap: () =>
+                                    selectedSection.value = 'asistencia',
+                              ),
+                            ],
+                          );
+                        },
                       ),
                     ),
                   ],
                 ),
               ),
-
               // Main content
               Expanded(
-                child: Container(
-                  color: const Color(0xFFF5F7FA),
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.all(24),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Header
-                        Row(
+                child: ValueListenableBuilder<String>(
+                  valueListenable: selectedSection,
+                  builder: (context, section, _) {
+                    if (section == 'alertas') {
+                      return ValueListenableBuilder<bool>(
+                        valueListenable: loadingAlertas,
+                        builder: (context, loading, _) {
+                          if (loading) {
+                            return const Center(
+                                child: CircularProgressIndicator());
+                          }
+                          return ValueListenableBuilder<String?>(
+                            valueListenable: errorAlertas,
+                            builder: (context, error, _) {
+                              if (error != null) {
+                                return Center(
+                                    child: Text(error,
+                                        style: const TextStyle(
+                                            color: Colors.red)));
+                              }
+                              return ValueListenableBuilder<
+                                  List<List<dynamic>>>(
+                                valueListenable: mantenimientosAtrasados,
+                                builder: (context, atrasados, _) {
+                                  return ValueListenableBuilder<
+                                      List<List<dynamic>>>(
+                                    valueListenable: mantenimientosProximos,
+                                    builder: (context, proximos, _) {
+                                      return buildAlertasSection(
+                                          atrasados, proximos);
+                                    },
+                                  );
+                                },
+                              );
+                            },
+                          );
+                        },
+                      );
+                    } else if (section == 'registrar') {
+                      // Formulario de registrar mantenimiento (igual a admin)
+                      return AgendarMantenimientoScreen(token: token);
+                    } else {
+                      // Dashboard por defecto
+                      return SingleChildScrollView(
+                        padding: const EdgeInsets.all(24),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            const Icon(Icons.build,
-                                color: secondaryColor, size: 28),
-                            const SizedBox(width: 12),
-                            const Text(
-                              'Panel de Mantenimiento',
-                              style: TextStyle(
-                                  fontSize: 24,
-                                  fontWeight: FontWeight.bold,
-                                  color: Color(0xFF202124)),
+                            // Header
+                            Row(
+                              children: [
+                                const Icon(Icons.build,
+                                    color: secondaryColor, size: 28),
+                                const SizedBox(width: 12),
+                                const Text('Panel de Mantenimiento',
+                                    style: TextStyle(
+                                        fontSize: 24,
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFF202124))),
+                              ],
                             ),
+                            const SizedBox(height: 8),
+                            Text(
+                                'Bienvenido, \\${user['Nombre'] ?? 'Técnico'}. Aquí está el resumen de mantenimiento.',
+                                style: const TextStyle(
+                                    fontSize: 16, color: Color(0xFF5F6368))),
+                            const SizedBox(height: 24),
+                            // Stats cards
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: _buildStatCard(
+                                    title: 'Registros de Mantenimiento',
+                                    value: '$registrosMantenimiento',
+                                    icon: Icons.assignment,
+                                    color: primaryColor,
+                                  ),
+                                ),
+                                const SizedBox(width: 16),
+                                Expanded(
+                                  child: _buildStatCard(
+                                    title: 'Buses en Mantenimiento',
+                                    value: '$busesMantenimiento',
+                                    icon: Icons.directions_bus,
+                                    color: warningColor,
+                                  ),
+                                ),
+                                const SizedBox(width: 16),
+                                Expanded(
+                                  child: _buildStatCard(
+                                    title: 'Próximo Mantenimiento',
+                                    value: proximoMantenimiento,
+                                    icon: Icons.event,
+                                    color: accentColor,
+                                  ),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 24),
                           ],
                         ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Bienvenido, ${user['Nombre'] ?? 'Técnico'}. Aquí está el resumen de mantenimiento.',
-                          style: const TextStyle(
-                              fontSize: 16, color: Color(0xFF5F6368)),
-                        ),
-                        const SizedBox(height: 24),
-
-                        // Stats cards
-                        Row(
-                          children: [
-                            Expanded(
-                              child: _buildStatCard(
-                                title: 'Registros de Mantenimiento',
-                                value: '$registrosMantenimiento',
-                                icon: Icons.assignment,
-                                color: primaryColor,
-                              ),
-                            ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: _buildStatCard(
-                                title: 'Buses en Mantenimiento',
-                                value: '$busesMantenimiento',
-                                icon: Icons.directions_bus,
-                                color: warningColor,
-                              ),
-                            ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: _buildStatCard(
-                                title: 'Próximo Mantenimiento',
-                                value: proximoMantenimiento,
-                                icon: Icons.event,
-                                color: accentColor,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 24),
-                      ],
-                    ),
-                  ),
+                      );
+                    }
+                  },
                 ),
               ),
             ],
@@ -266,6 +381,7 @@ class TecnicoPanel extends StatelessWidget {
     required IconData icon,
     required String title,
     bool isActive = false,
+    VoidCallback? onTap,
   }) {
     return ListTile(
       leading: Icon(icon,
@@ -280,9 +396,89 @@ class TecnicoPanel extends StatelessWidget {
       ),
       dense: true,
       horizontalTitleGap: 8,
-      onTap: () {},
+      onTap: onTap,
       tileColor: isActive ? secondaryColor.withOpacity(0.1) : null,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+    );
+  }
+
+  Widget buildAlertasSection(
+      List<List<dynamic>> atrasados, List<List<dynamic>> proximos) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text('Alertas de Mantenimiento',
+              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 24),
+          Card(
+            color: warningColor.withOpacity(0.1),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('Mantenimientos Atrasados',
+                      style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18,
+                          color: warningColor)),
+                  const SizedBox(height: 12),
+                  if (atrasados.isEmpty)
+                    const Text('No hay mantenimientos atrasados.')
+                  else
+                    ...atrasados.map((m) => Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 6.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                  'ID: \\${m[0]} | Unidad: \\${m[1]} | Desc: \\${m[2]} | Fecha: \\${m[3]} | Técnico: \\${m[4]}'),
+                            ],
+                          ),
+                        )),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          Card(
+            color: accentColor.withOpacity(0.1),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+            child: Padding(
+              padding: const EdgeInsets.all(20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('Mantenimientos Próximos',
+                      style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18,
+                          color: accentColor)),
+                  const SizedBox(height: 12),
+                  if (proximos.isEmpty)
+                    const Text('No hay mantenimientos próximos.')
+                  else
+                    ...proximos.map((m) => Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 6.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                  'ID: \\${m[0]} | Unidad: \\${m[1]} | Desc: \\${m[2]} | Fecha: \\${m[3]} | Técnico: \\${m[4]}'),
+                            ],
+                          ),
+                        )),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -332,6 +528,228 @@ class TecnicoPanel extends StatelessWidget {
                   color: Color(0xFF202124)),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class AgendarMantenimientoScreen extends StatefulWidget {
+  final String token;
+  const AgendarMantenimientoScreen({Key? key, required this.token})
+      : super(key: key);
+
+  static const primaryColor = Color(0xFF1A73E8);
+
+  @override
+  State<AgendarMantenimientoScreen> createState() =>
+      _AgendarMantenimientoScreenState();
+}
+
+class _AgendarMantenimientoScreenState
+    extends State<AgendarMantenimientoScreen> {
+  final _formKey = GlobalKey<FormState>();
+  final TextEditingController _idController = TextEditingController();
+  final TextEditingController _idStatusController = TextEditingController();
+  final TextEditingController _typeController = TextEditingController();
+  final TextEditingController _fechaController = TextEditingController();
+  final TextEditingController _idUnidadController = TextEditingController();
+  bool _loading = false;
+  String? _response;
+  String? _error;
+
+  Future<void> _agendarMantenimiento() async {
+    if (!_formKey.currentState!.validate()) return;
+    setState(() {
+      _loading = true;
+      _response = null;
+      _error = null;
+    });
+    try {
+      final response = await http.post(
+        Uri.parse('${AppConfig.baseUrl}/maintainance/create'),
+        headers: {
+          'Authorization': 'Bearer ${widget.token}',
+          'accept': 'application/json',
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: {
+          'ID': _idController.text.trim(),
+          'id_status': _idStatusController.text.trim(),
+          'type': _typeController.text.trim(),
+          'fecha': _fechaController.text.trim(),
+          'idunidad': _idUnidadController.text.trim(),
+        },
+      );
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        setState(() {
+          _response = 'Mantenimiento agendado exitosamente.';
+        });
+      } else {
+        setState(() {
+          _error = 'No se pudo agendar el mantenimiento. (${response.body})';
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _error = 'Error de conexión.';
+      });
+    } finally {
+      setState(() {
+        _loading = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Agendar Mantenimiento'),
+        backgroundColor: AgendarMantenimientoScreen.primaryColor,
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(24.0),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Complete los datos para agendar un mantenimiento:',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 24),
+              TextFormField(
+                controller: _idController,
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(
+                  labelText: 'ID',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.confirmation_number),
+                ),
+                validator: (value) =>
+                    value == null || value.isEmpty ? 'Ingrese el ID' : null,
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _idStatusController,
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(
+                  labelText: 'ID Status',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.info_outline),
+                ),
+                validator: (value) => value == null || value.isEmpty
+                    ? 'Ingrese el ID Status'
+                    : null,
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _typeController,
+                decoration: InputDecoration(
+                  labelText: 'Tipo de Mantenimiento',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.build),
+                ),
+                validator: (value) =>
+                    value == null || value.isEmpty ? 'Ingrese el tipo' : null,
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _fechaController,
+                decoration: InputDecoration(
+                  labelText: 'Fecha (YYYY-MM-DD HH:MM:SS)',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.date_range),
+                ),
+                validator: (value) =>
+                    value == null || value.isEmpty ? 'Ingrese la fecha' : null,
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _idUnidadController,
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(
+                  labelText: 'ID Unidad',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.directions_bus),
+                ),
+                validator: (value) => value == null || value.isEmpty
+                    ? 'Ingrese el ID Unidad'
+                    : null,
+              ),
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: _loading ? null : _agendarMantenimiento,
+                  child: _loading
+                      ? SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                              strokeWidth: 2, color: Colors.white),
+                        )
+                      : Text('Agendar Mantenimiento'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AgendarMantenimientoScreen.primaryColor,
+                    foregroundColor: Colors.white,
+                    padding: EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                ),
+              ),
+              if (_response != null) ...[
+                const SizedBox(height: 24),
+                Card(
+                  color: Colors.green[50],
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Row(
+                      children: [
+                        Icon(Icons.check_circle, color: Colors.green[700]),
+                        const SizedBox(width: 12),
+                        Expanded(
+                            child: Text(_response!,
+                                style: TextStyle(
+                                    color: Colors.green[900],
+                                    fontWeight: FontWeight.bold))),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+              if (_error != null) ...[
+                const SizedBox(height: 24),
+                Card(
+                  color: Colors.red[50],
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Row(
+                      children: [
+                        Icon(Icons.error, color: Colors.red[700]),
+                        const SizedBox(width: 12),
+                        Expanded(
+                            child: Text(_error!,
+                                style: TextStyle(
+                                    color: Colors.red[900],
+                                    fontWeight: FontWeight.bold))),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
         ),
       ),
     );

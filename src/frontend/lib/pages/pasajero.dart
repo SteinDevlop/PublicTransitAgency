@@ -196,6 +196,15 @@ class PassengerPanel extends StatelessWidget {
                             icon: Icons.map_outlined,
                             title: 'Planificador de viaje',
                             color: primaryColor,
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) =>
+                                      PlanificadorViajeScreen(token: token),
+                                ),
+                              );
+                            },
                           ),
                           _buildMenuItem(
                             icon: Icons.schedule_outlined,
@@ -256,7 +265,7 @@ class PassengerPanel extends StatelessWidget {
                           ],
                         ),
                         const SizedBox(height: 24),
-                        
+
                         // User Info Card
                         Card(
                           elevation: 0,
@@ -312,7 +321,8 @@ class PassengerPanel extends StatelessWidget {
                                 ),
                                 _buildInfoRow(
                                   'Teléfono',
-                                  user['Telefono']?.toString() ?? 'No disponible',
+                                  user['Telefono']?.toString() ??
+                                      'No disponible',
                                   Icons.phone_outlined,
                                   primaryColor,
                                 ),
@@ -320,9 +330,9 @@ class PassengerPanel extends StatelessWidget {
                             ),
                           ),
                         ),
-                        
+
                         const SizedBox(height: 20),
-                        
+
                         // Card Info Card
                         Card(
                           elevation: 0,
@@ -374,9 +384,9 @@ class PassengerPanel extends StatelessWidget {
                             ),
                           ),
                         ),
-                        
+
                         const SizedBox(height: 20),
-                        
+
                         // Last Trip Card
                         Card(
                           elevation: 0,
@@ -450,6 +460,7 @@ class PassengerPanel extends StatelessWidget {
     required IconData icon,
     required String title,
     required Color color,
+    VoidCallback? onTap,
   }) {
     return ListTile(
       leading: Icon(icon, color: color),
@@ -463,7 +474,7 @@ class PassengerPanel extends StatelessWidget {
       ),
       dense: true,
       horizontalTitleGap: 8,
-      onTap: () {},
+      onTap: onTap ?? () {},
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(8),
       ),
@@ -511,6 +522,258 @@ class PassengerPanel extends StatelessWidget {
               ],
             ),
           ),
+        ],
+      ),
+    );
+  }
+}
+
+class PlanificadorViajeScreen extends StatefulWidget {
+  final String token;
+  const PlanificadorViajeScreen({Key? key, required this.token})
+      : super(key: key);
+
+  @override
+  State<PlanificadorViajeScreen> createState() =>
+      _PlanificadorViajeScreenState();
+}
+
+class _PlanificadorViajeScreenState extends State<PlanificadorViajeScreen> {
+  final TextEditingController _origenController = TextEditingController();
+  final TextEditingController _destinoController = TextEditingController();
+  bool _loading = false;
+  String? _error;
+  Map<String, dynamic>? _resultado;
+
+  Future<void> _planificar() async {
+    setState(() {
+      _loading = true;
+      _error = null;
+      _resultado = null;
+    });
+    final origen = _origenController.text.trim();
+    final destino = _destinoController.text.trim();
+    if (origen.isEmpty || destino.isEmpty) {
+      setState(() {
+        _loading = false;
+        _error = 'Completa ambos campos';
+      });
+      return;
+    }
+    try {
+      final response = await http.post(
+        Uri.parse('${AppConfig.baseUrl}/planificador/ubicaciones'),
+        headers: {
+          'Authorization': 'Bearer ${widget.token}',
+          'accept': 'application/json',
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: {
+          'ubicacion_entrada': origen,
+          'ubicacion_final': destino,
+        },
+      );
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        setState(() {
+          _resultado = data;
+        });
+      } else {
+        setState(() {
+          _error = 'No se encontró ruta o error en la consulta';
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _error = 'Error de conexión';
+      });
+    } finally {
+      setState(() {
+        _loading = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Planificador de Viaje'),
+        backgroundColor: Color(0xFF1A73E8),
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            TextField(
+              controller: _origenController,
+              decoration: InputDecoration(
+                labelText: 'Ubicación inicial',
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.location_on_outlined),
+              ),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: _destinoController,
+              decoration: InputDecoration(
+                labelText: 'Ubicación final',
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.flag_outlined),
+              ),
+            ),
+            const SizedBox(height: 20),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: _loading ? null : _planificar,
+                child: _loading
+                    ? SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                            strokeWidth: 2, color: Colors.white),
+                      )
+                    : Text('Planificar viaje'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Color(0xFF1A73E8),
+                  foregroundColor: Colors.white,
+                  padding: EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+            ),
+            if (_error != null) ...[
+              const SizedBox(height: 16),
+              Text(_error!, style: TextStyle(color: Colors.red)),
+            ],
+            if (_resultado != null) ...[
+              const SizedBox(height: 32),
+              Card(
+                elevation: 4,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(24.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(Icons.alt_route,
+                              color: Color(0xFF1A73E8), size: 32),
+                          const SizedBox(width: 12),
+                          const Text('Resultado de Planificación',
+                              style: TextStyle(
+                                  fontSize: 20, fontWeight: FontWeight.bold)),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+            // Mostrar solo si hay interconexiones (lista)
+            if (_resultado != null &&
+                _resultado!['interconexiones'] != null &&
+                (_resultado!['interconexiones'] as List).isNotEmpty) ...[
+              const SizedBox(height: 32),
+              ...(_resultado!['interconexiones'] as List)
+                  .map<Widget>((item) => Card(
+                        elevation: 4,
+                        margin: const EdgeInsets.only(bottom: 20),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(24.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Icon(Icons.alt_route,
+                                      color: Color(0xFF1A73E8), size: 32),
+                                  const SizedBox(width: 12),
+                                  const Text('Interconexión',
+                                      style: TextStyle(
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.bold)),
+                                ],
+                              ),
+                              const SizedBox(height: 20),
+                              _buildResultRow('Ruta Inicial',
+                                  item['ruta_inicio']?.toString() ?? '-'),
+                              _buildResultRow('Interconexión',
+                                  item['interconexion']?.toString() ?? '-'),
+                              _buildResultRow('Ruta Final',
+                                  item['ruta_final']?.toString() ?? '-'),
+                            ],
+                          ),
+                        ),
+                      ))
+                  .toList(),
+            ]
+            // Si no hay interconexiones pero sí resultado plano
+            else if (_resultado != null &&
+                _resultado!['ruta_inicial'] != null) ...[
+              const SizedBox(height: 32),
+              Card(
+                elevation: 4,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(24.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(Icons.alt_route,
+                              color: Color(0xFF1A73E8), size: 32),
+                          const SizedBox(width: 12),
+                          const Text('Resultado de Planificación',
+                              style: TextStyle(
+                                  fontSize: 20, fontWeight: FontWeight.bold)),
+                        ],
+                      ),
+                      const SizedBox(height: 20),
+                      _buildResultRow('Ruta Inicial',
+                          _resultado!['ruta_inicial']?.toString() ?? '-'),
+                      _buildResultRow('Interconexión',
+                          _resultado!['interconexion']?.toString() ?? '-'),
+                      _buildResultRow('Ruta Final',
+                          _resultado!['ruta_final']?.toString() ?? '-'),
+                    ],
+                  ),
+                ),
+              ),
+            ]
+            // Si no hay nada útil
+            else if (_resultado != null) ...[
+              const SizedBox(height: 32),
+              Text('No se encontraron rutas para la búsqueda.',
+                  style: TextStyle(color: Colors.red)),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildResultRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6.0),
+      child: Row(
+        children: [
+          Text('$label:', style: TextStyle(fontWeight: FontWeight.bold)),
+          const SizedBox(width: 8),
+          Expanded(child: Text(value, style: TextStyle(fontSize: 16))),
         ],
       ),
     );

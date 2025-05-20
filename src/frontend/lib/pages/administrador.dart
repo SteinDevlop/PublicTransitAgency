@@ -195,19 +195,6 @@ class AdminPanel extends StatelessWidget {
                       child: ListView(
                         padding: EdgeInsets.zero,
                         children: [
-                          const Padding(
-                            padding:
-                                EdgeInsets.only(left: 16, top: 16, bottom: 8),
-                            child: Text(
-                              'ADMINISTRACIÓN',
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w500,
-                                color: Color(0xFF5F6368),
-                                letterSpacing: 1.2,
-                              ),
-                            ),
-                          ),
                           _buildMenuItem(
                             icon: Icons.dashboard_outlined,
                             title: 'Panel Principal',
@@ -215,74 +202,47 @@ class AdminPanel extends StatelessWidget {
                             isActive: true,
                           ),
                           _buildMenuItem(
-                            icon: Icons.people_outline,
-                            title: 'Gestionar Usuarios',
+                            icon: Icons.directions_bus,
+                            title: 'Actualizar Flota',
                             color: primaryColor,
                           ),
                           _buildMenuItem(
-                            icon: Icons.directions_bus_outlined,
-                            title: 'Gestionar Vehículos',
+                            icon: Icons.build_circle_outlined,
+                            title: 'Agendar Mantenimiento',
+                            color: primaryColor,
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) =>
+                                      AgendarMantenimientoScreen(token: token),
+                                ),
+                              );
+                            },
+                          ),
+                          _buildMenuItem(
+                            icon: Icons.alt_route,
+                            title: 'Asignar Ruta Vehículo',
                             color: primaryColor,
                           ),
                           _buildMenuItem(
-                            icon: Icons.map_outlined,
-                            title: 'Gestionar Rutas',
+                            icon: Icons.person_add_alt_1,
+                            title: 'Crear Usuario',
                             color: primaryColor,
                           ),
-                          const Padding(
-                            padding:
-                                EdgeInsets.only(left: 16, top: 16, bottom: 8),
-                            child: Text(
-                              'REPORTES',
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w500,
-                                color: Color(0xFF5F6368),
-                                letterSpacing: 1.2,
-                              ),
-                            ),
+                          _buildMenuItem(
+                            icon: Icons.question_answer_outlined,
+                            title: 'Gestión de PQR',
+                            color: primaryColor,
                           ),
                           _buildMenuItem(
                             icon: Icons.bar_chart_outlined,
-                            title: 'Estadísticas',
+                            title: 'Gestión de Rendimiento',
                             color: primaryColor,
                           ),
                           _buildMenuItem(
-                            icon: Icons.description_outlined,
-                            title: 'Generar Reportes',
-                            color: primaryColor,
-                          ),
-                          _buildMenuItem(
-                            icon: Icons.history_outlined,
-                            title: 'Historial de Actividad',
-                            color: primaryColor,
-                          ),
-                          const Padding(
-                            padding:
-                                EdgeInsets.only(left: 16, top: 16, bottom: 8),
-                            child: Text(
-                              'SISTEMA',
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w500,
-                                color: Color(0xFF5F6368),
-                                letterSpacing: 1.2,
-                              ),
-                            ),
-                          ),
-                          _buildMenuItem(
-                            icon: Icons.settings_outlined,
-                            title: 'Configuración',
-                            color: primaryColor,
-                          ),
-                          _buildMenuItem(
-                            icon: Icons.security_outlined,
-                            title: 'Seguridad',
-                            color: primaryColor,
-                          ),
-                          _buildMenuItem(
-                            icon: Icons.backup_outlined,
-                            title: 'Respaldo y Restauración',
+                            icon: Icons.assignment_turned_in_outlined,
+                            title: 'Gestión de Asistencia',
                             color: primaryColor,
                           ),
                         ],
@@ -538,6 +498,7 @@ class AdminPanel extends StatelessWidget {
     required String title,
     required Color color,
     bool isActive = false,
+    VoidCallback? onTap,
   }) {
     return ListTile(
       leading: Icon(
@@ -554,7 +515,7 @@ class AdminPanel extends StatelessWidget {
       ),
       dense: true,
       horizontalTitleGap: 8,
-      onTap: () {},
+      onTap: onTap,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(8),
       ),
@@ -643,6 +604,229 @@ class AdminPanel extends StatelessWidget {
         ),
         elevation: 0,
         alignment: Alignment.centerLeft,
+      ),
+    );
+  }
+}
+
+// Agrego la pantalla para agendar mantenimiento
+class AgendarMantenimientoScreen extends StatefulWidget {
+  final String token;
+  const AgendarMantenimientoScreen({Key? key, required this.token})
+      : super(key: key);
+
+  static const primaryColor = Color(0xFF1A73E8);
+
+  @override
+  State<AgendarMantenimientoScreen> createState() =>
+      _AgendarMantenimientoScreenState();
+}
+
+class _AgendarMantenimientoScreenState
+    extends State<AgendarMantenimientoScreen> {
+  final _formKey = GlobalKey<FormState>();
+  final TextEditingController _idController = TextEditingController();
+  final TextEditingController _idStatusController = TextEditingController();
+  final TextEditingController _typeController = TextEditingController();
+  final TextEditingController _fechaController = TextEditingController();
+  final TextEditingController _idUnidadController = TextEditingController();
+  bool _loading = false;
+  String? _response;
+  String? _error;
+
+  Future<void> _agendarMantenimiento() async {
+    if (!_formKey.currentState!.validate()) return;
+    setState(() {
+      _loading = true;
+      _response = null;
+      _error = null;
+    });
+    try {
+      final response = await http.post(
+        Uri.parse('${AppConfig.baseUrl}/maintainance/create'),
+        headers: {
+          'Authorization': 'Bearer ${widget.token}',
+          'accept': 'application/json',
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: {
+          'ID': _idController.text.trim(),
+          'id_status': _idStatusController.text.trim(),
+          'type': _typeController.text.trim(),
+          'fecha': _fechaController.text.trim(),
+          'idunidad': _idUnidadController.text.trim(),
+        },
+      );
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        setState(() {
+          _response = 'Mantenimiento agendado exitosamente.';
+        });
+      } else {
+        setState(() {
+          _error = 'No se pudo agendar el mantenimiento. (${response.body})';
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _error = 'Error de conexión.';
+      });
+    } finally {
+      setState(() {
+        _loading = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Agendar Mantenimiento'),
+        backgroundColor: AgendarMantenimientoScreen.primaryColor,
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(24.0),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Complete los datos para agendar un mantenimiento:',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 24),
+              TextFormField(
+                controller: _idController,
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(
+                  labelText: 'ID',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.confirmation_number),
+                ),
+                validator: (value) =>
+                    value == null || value.isEmpty ? 'Ingrese el ID' : null,
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _idStatusController,
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(
+                  labelText: 'ID Status',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.info_outline),
+                ),
+                validator: (value) => value == null || value.isEmpty
+                    ? 'Ingrese el ID Status'
+                    : null,
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _typeController,
+                decoration: InputDecoration(
+                  labelText: 'Tipo de Mantenimiento',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.build),
+                ),
+                validator: (value) =>
+                    value == null || value.isEmpty ? 'Ingrese el tipo' : null,
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _fechaController,
+                decoration: InputDecoration(
+                  labelText: 'Fecha (YYYY-MM-DD HH:MM:SS)',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.date_range),
+                ),
+                validator: (value) =>
+                    value == null || value.isEmpty ? 'Ingrese la fecha' : null,
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _idUnidadController,
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(
+                  labelText: 'ID Unidad',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.directions_bus),
+                ),
+                validator: (value) => value == null || value.isEmpty
+                    ? 'Ingrese el ID Unidad'
+                    : null,
+              ),
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: _loading ? null : _agendarMantenimiento,
+                  child: _loading
+                      ? SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                              strokeWidth: 2, color: Colors.white),
+                        )
+                      : Text('Agendar Mantenimiento'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AgendarMantenimientoScreen.primaryColor,
+                    foregroundColor: Colors.white,
+                    padding: EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                ),
+              ),
+              if (_response != null) ...[
+                const SizedBox(height: 24),
+                Card(
+                  color: Colors.green[50],
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Row(
+                      children: [
+                        Icon(Icons.check_circle, color: Colors.green[700]),
+                        const SizedBox(width: 12),
+                        Expanded(
+                            child: Text(_response!,
+                                style: TextStyle(
+                                    color: Colors.green[900],
+                                    fontWeight: FontWeight.bold))),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+              if (_error != null) ...[
+                const SizedBox(height: 24),
+                Card(
+                  color: Colors.red[50],
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Row(
+                      children: [
+                        Icon(Icons.error, color: Colors.red[700]),
+                        const SizedBox(width: 12),
+                        Expanded(
+                            child: Text(_error!,
+                                style: TextStyle(
+                                    color: Colors.red[900],
+                                    fontWeight: FontWeight.bold))),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
       ),
     );
   }
