@@ -47,13 +47,13 @@ jobs:
           ALGORITHM: ${{ secrets.ALGORITHM }}
         run: |
           export PYTHONPATH=.
-          pytest src/backend/app/tests --cov=. --cov-report=xml --cov-report=term --cov-config .coveragerc || true
+          pytest ./src/backend/app/tests --cov=./src/backend/app --cov-report=xml:./coverage.xml --cov-report=term --cov-config=./.coveragerc || true
       
       - name: Upload coverage report
         uses: actions/upload-artifact@v4
         with:
           name: coverage-report
-          path: coverage.xml
+          path: ./coverage.xml
 
       - name: SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@v2
@@ -64,5 +64,5 @@ jobs:
             -Dsonar.projectKey=ISCODEVUTB_PublicTransitAgency
             -Dsonar.organization=deviscoutb
             -Dsonar.host.url=https://sonarcloud.io
-            -Dsonar.python.coverage.reportPaths=coverage.xml
+            -Dsonar.python.coverage.reportPaths=./coverage.xml
             -Dsonar.coverage.exclusions=**/__init__.py,**/tests/**,src/frontend/**
