@@ -52,8 +52,8 @@ def test_type_card_out_from_dict_invalid():
 
 # Prueba: Verificar el nombre de la entidad en TypeCardCreate
 def test_type_card_create_entity_name():
-    assert TypeCardCreate._entity_name_ == "tipotarjeta"
+    assert TypeCardCreate.__entity_name__ == "tipotarjeta"
 
 # Prueba: Verificar el nombre de la entidad en TypeCardOut
 def test_type_card_out_entity_name():
-    assert TypeCardOut._entity_name_ == "tipotarjeta"
+    assert TypeCardOut.__entity_name__ == "tipotarjeta"

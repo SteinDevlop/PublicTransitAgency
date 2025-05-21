@@ -245,6 +245,194 @@ class AdminPanel extends StatelessWidget {
                             title: 'Gestión de Asistencia',
                             color: primaryColor,
                           ),
+                          // CRUD: Rutas
+                          _buildCrudSection(
+                            title: 'Rutas',
+                            color: primaryColor,
+                            buttons: [
+                              _buildCrudButton(
+                                  '➕ Añadir Ruta',
+                                  () => Navigator.pushNamed(
+                                      context, '/routes/create')),
+                              _buildCrudButton(
+                                  '📄 Leer Rutas',
+                                  () => Navigator.pushNamed(
+                                      context, '/routes/list')),
+                              _buildCrudButton(
+                                  '🖊️ Actualizar Ruta',
+                                  () => Navigator.pushNamed(
+                                      context, '/routes/update')),
+                              _buildCrudButton(
+                                  '🗑️ Eliminar Ruta',
+                                  () => Navigator.pushNamed(
+                                      context, '/routes/delete')),
+                            ],
+                          ),
+                          // CRUD: Usuarios
+                          _buildCrudSection(
+                            title: 'Usuarios',
+                            color: primaryColor,
+                            buttons: [
+                              _buildCrudButton(
+                                  '📄 Leer Usuarios',
+                                  () => Navigator.pushNamed(
+                                      context, '/user/consultar')),
+                              _buildCrudButton(
+                                  '🖊️ Actualizar Usuario',
+                                  () => Navigator.pushNamed(
+                                      context, '/user/actualizar')),
+                              _buildCrudButton(
+                                  '🗑️ Eliminar Usuario',
+                                  () => Navigator.pushNamed(
+                                      context, '/user/eliminar')),
+                            ],
+                          ),
+                          // CRUD: Operarios
+                          _buildCrudSection(
+                            title: 'Operarios',
+                            color: primaryColor,
+                            buttons: [
+                              _buildCrudButton(
+                                  '📄 Leer Operarios',
+                                  () => Navigator.pushNamed(
+                                      context, '/user/consultar')),
+                              _buildCrudButton(
+                                  '🖊️ Actualizar Operarios',
+                                  () => Navigator.pushNamed(
+                                      context, '/user/actualizar')),
+                              _buildCrudButton(
+                                  '🗑️ Eliminar Operarios',
+                                  () => Navigator.pushNamed(
+                                      context, '/user/eliminar')),
+                            ],
+                          ),
+                          // CRUD: Mantenimiento
+                          _buildCrudSection(
+                            title: 'Mantenimiento',
+                            color: primaryColor,
+                            buttons: [
+                              _buildCrudButton(
+                                '➕ Añadir Mantenimiento',
+                                () => showDialog(
+                                  context: context,
+                                  builder: (_) => Dialog(
+                                      child: AgendarMantenimientoScreen(
+                                          token: token)),
+                                ),
+                              ),
+                              _buildCrudButton(
+                                '📄 Leer Mantenimientos',
+                                () => showDialog(
+                                  context: context,
+                                  builder: (_) => Dialog(
+                                      child: LeerMantenimientosWidget(
+                                          token: token)),
+                                ),
+                              ),
+                              _buildCrudButton(
+                                '🖊️ Actualizar Mantenimiento',
+                                () => showDialog(
+                                  context: context,
+                                  builder: (_) => Dialog(
+                                      child: ActualizarMantenimientoWidget(
+                                          token: token)),
+                                ),
+                              ),
+                              _buildCrudButton(
+                                '🗑️ Eliminar Mantenimiento',
+                                () => showDialog(
+                                  context: context,
+                                  builder: (_) => Dialog(
+                                      child: EliminarMantenimientoWidget(
+                                          token: token)),
+                                ),
+                              ),
+                            ],
+                          ),
+                          // CRUD: Supervisores
+                          _buildCrudSection(
+                            title: 'Supervisores',
+                            color: primaryColor,
+                            buttons: [
+                              _buildCrudButton(
+                                  '📄 Leer Supervisores',
+                                  () => Navigator.pushNamed(
+                                      context, '/user/consultar')),
+                              _buildCrudButton(
+                                  '🖊️ Actualizar Supervisores',
+                                  () => Navigator.pushNamed(
+                                      context, '/user/actualizar')),
+                              _buildCrudButton(
+                                  '🗑️ Eliminar Supervisores',
+                                  () => Navigator.pushNamed(
+                                      context, '/user/eliminar')),
+                            ],
+                          ),
+                          // CRUD: Horario
+                          _buildCrudSection(
+                            title: 'Horario',
+                            color: primaryColor,
+                            buttons: [
+                              _buildCrudButton(
+                                  '➕ Añadir horario',
+                                  () => Navigator.pushNamed(
+                                      context, '/schedules/create')),
+                              _buildCrudButton(
+                                  '📄 Leer horario',
+                                  () => Navigator.pushNamed(
+                                      context, '/schedules/')),
+                              _buildCrudButton(
+                                  '🖊️ Actualizar horario',
+                                  () => Navigator.pushNamed(
+                                      context, '/schedules/update')),
+                              _buildCrudButton(
+                                  '🗑️ Eliminar horario',
+                                  () => Navigator.pushNamed(
+                                      context, '/schedules/delete')),
+                            ],
+                          ),
+                          // CRUD: Tarifa
+                          _buildCrudSection(
+                            title: 'Tarifa',
+                            color: primaryColor,
+                            buttons: [
+                              _buildCrudButton(
+                                  '➕ Añadir Tarifa',
+                                  () => Navigator.pushNamed(
+                                      context, '/price/crear')),
+                              _buildCrudButton(
+                                  '📄 Leer Tarifa',
+                                  () => Navigator.pushNamed(
+                                      context, '/price/consultar')),
+                              _buildCrudButton(
+                                  '🖊️ Actualizar Tarifa',
+                                  () => Navigator.pushNamed(
+                                      context, '/price/actualizar')),
+                              _buildCrudButton(
+                                  '🗑️ Eliminar Tarifa',
+                                  () => Navigator.pushNamed(
+                                      context, '/price/eliminar')),
+                            ],
+                          ),
+                          // CRUD: Otros
+                          _buildCrudSection(
+                            title: 'Otros',
+                            color: primaryColor,
+                            buttons: [
+                              _buildCrudButton(
+                                  '📄 Extraer Tipo de Usuario',
+                                  () => Navigator.pushNamed(
+                                      context, '/roluser/consultar')),
+                              _buildCrudButton(
+                                  '📄 Extraer Tipo de Movimiento',
+                                  () => Navigator.pushNamed(
+                                      context, '/typemovement/consultar')),
+                              _buildCrudButton(
+                                  '📄 Extraer Servicios de Transporte',
+                                  () => Navigator.pushNamed(
+                                      context, '/typetransport/consultar')),
+                            ],
+                          ),
                         ],
                       ),
                     ),
@@ -607,6 +795,47 @@ class AdminPanel extends StatelessWidget {
       ),
     );
   }
+
+  Widget _buildCrudSection(
+      {required String title,
+      required Color color,
+      required List<Widget> buttons}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 8.0),
+      child: Card(
+        color: color.withOpacity(0.04),
+        elevation: 0,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        child: ExpansionTile(
+          title: Text(title,
+              style: TextStyle(fontWeight: FontWeight.bold, color: color)),
+          children: buttons,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCrudButton(String label, VoidCallback onPressed) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 2.0, horizontal: 16.0),
+      child: SizedBox(
+        width: double.infinity,
+        child: OutlinedButton(
+          onPressed: onPressed,
+          child: Align(
+            alignment: Alignment.centerLeft,
+            child: Text(label, style: const TextStyle(fontSize: 14)),
+          ),
+          style: OutlinedButton.styleFrom(
+            padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 12),
+            side: const BorderSide(color: Color(0xFFDFE1E5)),
+            shape:
+                RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 // Agrego la pantalla para agendar mantenimiento
@@ -823,6 +1052,343 @@ class _AgendarMantenimientoScreenState
                     ),
                   ),
                 ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// Nueva pantalla para leer mantenimientos
+class LeerMantenimientosWidget extends StatefulWidget {
+  final String token;
+  const LeerMantenimientosWidget({Key? key, required this.token})
+      : super(key: key);
+  @override
+  State<LeerMantenimientosWidget> createState() =>
+      _LeerMantenimientosWidgetState();
+}
+
+class _LeerMantenimientosWidgetState extends State<LeerMantenimientosWidget> {
+  bool _loading = true;
+  String? _error;
+  List<dynamic> _mantenimientos = [];
+  @override
+  void initState() {
+    super.initState();
+    _fetch();
+  }
+
+  Future<void> _fetch() async {
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+    try {
+      final response = await http.get(
+        Uri.parse('${AppConfig.baseUrl}/maintainance/listar'),
+        headers: {
+          'Authorization': 'Bearer ${widget.token}',
+          'accept': 'application/json'
+        },
+      );
+      if (response.statusCode == 200) {
+        setState(() {
+          _mantenimientos = json.decode(response.body);
+        });
+      } else {
+        setState(() {
+          _error = 'No se pudo obtener la lista.';
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _error = 'Error de conexión.';
+      });
+    } finally {
+      setState(() {
+        _loading = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 500,
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: _loading
+            ? Center(child: CircularProgressIndicator())
+            : _error != null
+                ? Center(
+                    child: Text(_error!, style: TextStyle(color: Colors.red)))
+                : _mantenimientos.isEmpty
+                    ? const Center(child: Text('No hay mantenimientos.'))
+                    : ListView.separated(
+                        shrinkWrap: true,
+                        itemCount: _mantenimientos.length,
+                        separatorBuilder: (_, __) => Divider(),
+                        itemBuilder: (_, i) {
+                          final m = _mantenimientos[i];
+                          return ListTile(
+                            title:
+                                Text('ID: \\${m['ID']} - Tipo: \\${m['type']}'),
+                            subtitle: Text(
+                                'Fecha: \\${m['fecha']} | Unidad: \\${m['idunidad']} | Estado: \\${m['id_status']}'),
+                          );
+                        },
+                      ),
+      ),
+    );
+  }
+}
+
+// Nueva pantalla para actualizar mantenimiento
+class ActualizarMantenimientoWidget extends StatefulWidget {
+  final String token;
+  const ActualizarMantenimientoWidget({Key? key, required this.token})
+      : super(key: key);
+  @override
+  State<ActualizarMantenimientoWidget> createState() =>
+      _ActualizarMantenimientoWidgetState();
+}
+
+class _ActualizarMantenimientoWidgetState
+    extends State<ActualizarMantenimientoWidget> {
+  final _formKey = GlobalKey<FormState>();
+  final _idController = TextEditingController();
+  final _idStatusController = TextEditingController();
+  final _typeController = TextEditingController();
+  final _fechaController = TextEditingController();
+  final _idUnidadController = TextEditingController();
+  bool _loading = false;
+  String? _response;
+  String? _error;
+  Future<void> _actualizar() async {
+    if (!_formKey.currentState!.validate()) return;
+    setState(() {
+      _loading = true;
+      _response = null;
+      _error = null;
+    });
+    try {
+      final response = await http.post(
+        Uri.parse('${AppConfig.baseUrl}/maintainance/update'),
+        headers: {
+          'Authorization': 'Bearer ${widget.token}',
+          'accept': 'application/json',
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: {
+          'ID': _idController.text.trim(),
+          'id_status': _idStatusController.text.trim(),
+          'type': _typeController.text.trim(),
+          'fecha': _fechaController.text.trim(),
+          'idunidad': _idUnidadController.text.trim(),
+        },
+      );
+      if (response.statusCode == 200) {
+        setState(() {
+          _response = 'Mantenimiento actualizado exitosamente.';
+        });
+      } else {
+        setState(() {
+          _error = 'No se pudo actualizar. (${response.body})';
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _error = 'Error de conexión.';
+      });
+    } finally {
+      setState(() {
+        _loading = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 400,
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text('Actualizar Mantenimiento',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _idController,
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(labelText: 'ID'),
+                validator: (v) =>
+                    v == null || v.isEmpty ? 'Ingrese el ID' : null,
+              ),
+              const SizedBox(height: 8),
+              TextFormField(
+                controller: _idStatusController,
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(labelText: 'ID Status'),
+                validator: (v) =>
+                    v == null || v.isEmpty ? 'Ingrese el ID Status' : null,
+              ),
+              const SizedBox(height: 8),
+              TextFormField(
+                controller: _typeController,
+                decoration: InputDecoration(labelText: 'Tipo de Mantenimiento'),
+                validator: (v) =>
+                    v == null || v.isEmpty ? 'Ingrese el tipo' : null,
+              ),
+              const SizedBox(height: 8),
+              TextFormField(
+                controller: _fechaController,
+                decoration:
+                    InputDecoration(labelText: 'Fecha (YYYY-MM-DD HH:MM:SS)'),
+                validator: (v) =>
+                    v == null || v.isEmpty ? 'Ingrese la fecha' : null,
+              ),
+              const SizedBox(height: 8),
+              TextFormField(
+                controller: _idUnidadController,
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(labelText: 'ID Unidad'),
+                validator: (v) =>
+                    v == null || v.isEmpty ? 'Ingrese el ID Unidad' : null,
+              ),
+              const SizedBox(height: 16),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: _loading ? null : _actualizar,
+                  child: _loading
+                      ? SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                              strokeWidth: 2, color: Colors.white))
+                      : Text('Actualizar'),
+                ),
+              ),
+              if (_response != null) ...[
+                const SizedBox(height: 16),
+                Text(_response!, style: TextStyle(color: Colors.green)),
+              ],
+              if (_error != null) ...[
+                const SizedBox(height: 16),
+                Text(_error!, style: TextStyle(color: Colors.red)),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+// Nueva pantalla para eliminar mantenimiento
+class EliminarMantenimientoWidget extends StatefulWidget {
+  final String token;
+  const EliminarMantenimientoWidget({Key? key, required this.token})
+      : super(key: key);
+  @override
+  State<EliminarMantenimientoWidget> createState() =>
+      _EliminarMantenimientoWidgetState();
+}
+
+class _EliminarMantenimientoWidgetState
+    extends State<EliminarMantenimientoWidget> {
+  final _formKey = GlobalKey<FormState>();
+  final _idController = TextEditingController();
+  bool _loading = false;
+  String? _response;
+  String? _error;
+  Future<void> _eliminar() async {
+    if (!_formKey.currentState!.validate()) return;
+    setState(() {
+      _loading = true;
+      _response = null;
+      _error = null;
+    });
+    try {
+      final response = await http.post(
+        Uri.parse('${AppConfig.baseUrl}/maintainance/delete'),
+        headers: {
+          'Authorization': 'Bearer ${widget.token}',
+          'accept': 'application/json',
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: {'ID': _idController.text.trim()},
+      );
+      if (response.statusCode == 200) {
+        setState(() {
+          _response = 'Mantenimiento eliminado exitosamente.';
+        });
+      } else {
+        setState(() {
+          _error = 'No se pudo eliminar. (${response.body})';
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _error = 'Error de conexión.';
+      });
+    } finally {
+      setState(() {
+        _loading = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 350,
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text('Eliminar Mantenimiento',
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _idController,
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(labelText: 'ID'),
+                validator: (v) =>
+                    v == null || v.isEmpty ? 'Ingrese el ID' : null,
+              ),
+              const SizedBox(height: 16),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: _loading ? null : _eliminar,
+                  child: _loading
+                      ? SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                              strokeWidth: 2, color: Colors.white))
+                      : Text('Eliminar'),
+                  style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+                ),
+              ),
+              if (_response != null) ...[
+                const SizedBox(height: 16),
+                Text(_response!, style: TextStyle(color: Colors.green)),
+              ],
+              if (_error != null) ...[
+                const SizedBox(height: 16),
+                Text(_error!, style: TextStyle(color: Colors.red)),
               ],
             ],
           ),

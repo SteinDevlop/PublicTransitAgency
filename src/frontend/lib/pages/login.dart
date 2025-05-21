@@ -68,15 +68,17 @@ class _LoginPageState extends State<LoginPage> {
 
       if (response.statusCode == 200) {
         final responseData = json.decode(response.body);
-        final token = responseData['access_token']; // Obtén el token de la respuesta
-        final scope = JwtDecoder.decode(token)['scope']; // Decodifica el token para obtener el scope
+        final token =
+            responseData['access_token']; // Obtén el token de la respuesta
+        final scope = JwtDecoder.decode(
+            token)['scope']; // Decodifica el token para obtener el scope
 
         print('Token obtenido: $token');
         print('Scope obtenido: $scope');
 
         // Navega a la página correspondiente según el scope
         if (!mounted) return;
-        
+
         if (scope == 'pasajero') {
           Navigator.pushReplacement(
             context,
@@ -159,7 +161,7 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
-    
+
     return Scaffold(
       extendBodyBehindAppBar: true,
       appBar: AppBar(
@@ -176,7 +178,7 @@ class _LoginPageState extends State<LoginPage> {
             height: double.infinity,
             decoration: const BoxDecoration(
               image: DecorationImage(
-                image: AssetImage('assets/images/bus.web'),
+                image: AssetImage('/images/bus.webp'),
                 fit: BoxFit.cover,
               ),
             ),
@@ -193,7 +195,7 @@ class _LoginPageState extends State<LoginPage> {
               ),
             ),
           ),
-          
+
           // Login Content
           SafeArea(
             child: Center(
@@ -227,7 +229,7 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                       ),
                       const SizedBox(height: 40),
-                      
+
                       // Login Card
                       Container(
                         width: min(size.width * 0.9, 400),
@@ -264,7 +266,7 @@ class _LoginPageState extends State<LoginPage> {
                                 ),
                               ),
                               const SizedBox(height: 24),
-                              
+
                               // Username Field
                               TextField(
                                 controller: _usernameController,
@@ -285,7 +287,8 @@ class _LoginPageState extends State<LoginPage> {
                                     vertical: 16,
                                     horizontal: 16,
                                   ),
-                                  floatingLabelBehavior: FloatingLabelBehavior.never,
+                                  floatingLabelBehavior:
+                                      FloatingLabelBehavior.never,
                                 ),
                                 style: const TextStyle(
                                   fontSize: 16,
@@ -295,7 +298,7 @@ class _LoginPageState extends State<LoginPage> {
                                 textInputAction: TextInputAction.next,
                               ),
                               const SizedBox(height: 16),
-                              
+
                               // Password Field
                               TextField(
                                 controller: _passwordController,
@@ -331,7 +334,8 @@ class _LoginPageState extends State<LoginPage> {
                                     vertical: 16,
                                     horizontal: 16,
                                   ),
-                                  floatingLabelBehavior: FloatingLabelBehavior.never,
+                                  floatingLabelBehavior:
+                                      FloatingLabelBehavior.never,
                                   counterText: '',
                                 ),
                                 style: const TextStyle(
@@ -341,7 +345,7 @@ class _LoginPageState extends State<LoginPage> {
                                 onSubmitted: (_) => _login(),
                               ),
                               const SizedBox(height: 24),
-                              
+
                               // Login Button
                               SizedBox(
                                 width: double.infinity,
@@ -374,7 +378,7 @@ class _LoginPageState extends State<LoginPage> {
                                         ),
                                 ),
                               ),
-                              
+
                               // Forgot Password Link
                               Align(
                                 alignment: Alignment.centerRight,
@@ -385,16 +389,17 @@ class _LoginPageState extends State<LoginPage> {
                                   style: TextButton.styleFrom(
                                     foregroundColor: primaryColor,
                                   ),
-                                  child: const Text('¿Olvidaste tu contraseña?'),
+                                  child:
+                                      const Text('¿Olvidaste tu contraseña?'),
                                 ),
                               ),
                             ],
                           ),
                         ),
                       ),
-                      
+
                       const SizedBox(height: 24),
-                      
+
                       // Footer Text
                       const Text(
                         '© 2025 Sistema de Transporte',
@@ -413,7 +418,7 @@ class _LoginPageState extends State<LoginPage> {
       ),
     );
   }
-  
+
   double min(double a, double b) {
     return a < b ? a : b;
   }
