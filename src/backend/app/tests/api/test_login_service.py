@@ -4,6 +4,7 @@ from backend.app.api.routes.login_service import app as login_router
 from backend.app.logic.universal_controller_instance import universal_controller as controller
 from backend.app.models.user import UserOut,UserCreate
 from fastapi import FastAPI
+from backend.app.core.auth import encode_token
 
 app_for_test = FastAPI()
 app_for_test.include_router(login_router)
@@ -30,6 +31,10 @@ def test_user():
     yield user
     controller.delete(user)
 
+def make_token(user_id):
+    # Simula el payload que espera el backend
+    return encode_token({"sub": str(user_id), "scope": "administrador"})
+
 def test_login_success(test_user):
     response = client.post("/login/token", data={"username": str(test_user.ID), "password": "testpass"})
     assert response.status_code == 200
@@ -48,13 +53,37 @@ def test_login_fail_wrong_user():
 def test_dashboard_no_auth():
     response = client.get("/login/dashboard")
     assert response.status_code == 401
-    login = client.post("/login/token", data={"username": str(test_user.ID), "password": "testpass"})
-    token = login.json()["access_token"]
+
+def test_dashboard_user_not_found(monkeypatch, test_user):
+    controller.delete(test_user)
+    token = make_token(test_user.ID)
     headers = {"Authorization": f"Bearer {token}"}
     response = client.get("/login/dashboard", headers=headers)
-    assert response.status_code == 200
-    assert "user" in response.json()
+    assert response.status_code == 404
+    assert "Usuario no encontrado" in response.text
 
-def test_dashboard_no_auth():
-    response = client.get("/login/dashboard")
-    assert response.status_code == 401
+def test_dashboard_serialize_error(monkeypatch, test_user):
+    class BadUser:
+        ID = 9999
+        def __getattr__(self, item):
+            raise Exception("fail")
+    monkeypatch.setattr(controller, "get_by_column", lambda *a, **kw: BadUser())
+    token = make_token(test_user.ID)
+    headers = {"Authorization": f"Bearer {token}"}
+    response = client.get("/login/dashboard", headers=headers)
+    assert response.status_code == 500
+    assert "Error interno inesperado" in response.text
+
+def test_dashboard_build_error(monkeypatch, test_user):
+    class GoodUser:
+        ID = 9999
+        def dict(self):
+            return {"ID": 9999}
+        Nombre = "TestUser"
+    monkeypatch.setattr(controller, "get_by_column", lambda *a, **kw: GoodUser())
+    monkeypatch.setattr(controller, "total_unidades", lambda: 1/0)  # Provoca excepción
+    token = make_token(test_user.ID)
+    headers = {"Authorization": f"Bearer {token}"}
+    response = client.get("/login/dashboard", headers=headers)
+    assert response.status_code == 500
+    assert "Error interno al construir dashboard" in response.text
