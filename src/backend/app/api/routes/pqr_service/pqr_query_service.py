@@ -1,154 +1,88 @@
 import logging
-from fastapi import Request, Query, APIRouter, Security
-from fastapi.responses import HTMLResponse
-from fastapi.templating import Jinja2Templates
-from fastapi import HTTPException
+from fastapi import APIRouter, Security, Query, HTTPException
+from fastapi.responses import JSONResponse
 
 from backend.app.core.auth import get_current_user
 from backend.app.models.pqr import PQROut
 from backend.app.logic.universal_controller_instance import universal_controller as controller
 
-# Configuración del logger
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
-# Create the router for pqr-related endpoints
-app = APIRouter(prefix="/pqr", tags=["pqr"])
+router = APIRouter(prefix="/pqr", tags=["pqr"])
 
-# Initialize universal controller instance
-
-# Setup Jinja2 template engine
-templates = Jinja2Templates(directory="src/backend/app/templates")
-
-
-@app.get("/consultar/administrador", response_class=HTMLResponse)
-def consultar(
-    request: Request,
-    current_user: dict = Security(get_current_user, scopes=[
-        "system", "administrador", "pasajero"])
+@router.get("/consultar/administrador", response_class=JSONResponse)
+def consultar_admin(
+    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "pasajero"])
 ):
     """
-    Render the 'ConsultarPQR.html' template for the pqr consultation page.
+    Mensaje de consulta de PQR para administrador.
     """
-    #logger.info(f"[GET /consultar] Usuario: {current_user['user_id']} - Mostrando página de consulta de pqr")
-    return templates.TemplateResponse(request,"ConsultarPQRViaAdministrador.html", {"request": request})
+    return JSONResponse(content={"message": "Consulta de PQR vía administrador habilitada."})
 
-
-@app.get("/consultar/pasajero", response_class=HTMLResponse)
-def consultar(
-    request: Request,
-    current_user: dict = Security(get_current_user, scopes=[
-        "system", "administrador"])
-):
-    """
-    Render the 'ConsultarPQR.html' template for the pqr consultation page.
-    """
-    #logger.info(f"[GET /consultar] Usuario: {current_user['user_id']} - Mostrando página de consulta de pqr")
-    return templates.TemplateResponse(request,"ConsultarPQRViaPasajero.html", {"request": request})
-
-
-@app.get("/pasajero/pqrs")
-async def get_pqrs(
-    request:Request,
+@router.get("/consultar/pasajero", response_class=JSONResponse)
+def consultar_pasajero(
     current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
 ):
     """
-    Retrieve and return all pqr records from the database.
+    Mensaje de consulta de PQR para pasajero.
     """
-    #logger.info(f"[GET /pqrs] Usuario: {current_user['user_id']} - Consultando todas las pqrs.")
-    pqrs = controller.read_all(PQROut)
-    if pqrs:
-        # Si hay varias asistencias, iterar sobre ellas
-        context = {
-            "request": request,
-            "pqrs": pqrs,  # Lista de asistencias
-        }
-    else:
-        logger.warning(f"[GET /pqrs] No se encontraron usuarios registrados")
-        context = {
-            "request": request,
-            "pqrs": pqrs  # Si no se encontraron usuarios
-        }
-    return templates.TemplateResponse("Pasajeropqrs.html", context)
+    return JSONResponse(content={"message": "Consulta de PQR vía pasajero habilitada."})
 
-@app.get("/administrador/pqrs")
-async def get_pqrs(
-    request:Request,
+@router.get("/pasajero/pqrs", response_class=JSONResponse)
+def get_pqrs_pasajero(
     current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
 ):
     """
-    Retrieve and return all pqr records from the database.
+    Devuelve todos los registros de PQR para pasajero.
     """
-    #logger.info(f"[GET /pqrs] Usuario: {current_user['user_id']} - Consultando todas las pqrs.")
     pqrs = controller.read_all(PQROut)
-    if pqrs:
-        # Si hay varias asistencias, iterar sobre ellas
-        context = {
-            "request": request,
-            "pqrs": pqrs,  # Lista de asistencias
-        }
-    else:
-        logger.warning(f"[GET /pqrs] No se encontraron usuarios registrados")
-        context = {
-            "request": request,
-            "pqrs": pqrs  # Si no se encontraron usuarios
-        }
-    return templates.TemplateResponse("Administradorpqrs.html", context)
+    logger.info(f"[GET /pasajero/pqrs] Número de PQRs encontrados: {len(pqrs) if pqrs else 0}")
+    return JSONResponse(content={"pqrs": pqrs or []})
 
-#pqr by codigogenerado pqr
-@app.get("/find", response_class=HTMLResponse)
+@router.get("/administrador/pqrs", response_class=JSONResponse)
+def get_pqrs_admin(
+    current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
+):
+    """
+    Devuelve todos los registros de PQR para administrador.
+    """
+    pqrs = controller.read_all(PQROut)
+    logger.info(f"[GET /administrador/pqrs] Número de PQRs encontrados: {len(pqrs) if pqrs else 0}")
+    return JSONResponse(content={"pqrs": pqrs or []})
+
+@router.get("/find", response_class=JSONResponse)
 def pqr_by_id(
-    request: Request,
     ID: int = Query(...),
     current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
 ):
     """
-    Retrieve a pqr by its ID and render the 'pqr.html' template with its details.
-    If the pqr is not found, display 'None' for all fields.
+    Devuelve un PQR por su ID.
     """
-    #logger.info(f"[GET /pqr] Usuario: {current_user['user_id']} - Consultando pqr con ID={ID}")
-    unit_pqr = controller.get_by_column(PQROut, "ID",ID)
-
+    unit_pqr = controller.get_by_column(PQROut, "ID", ID)
     if unit_pqr:
-        logger.info(f"[GET /pqr] PQR encontrada: {unit_pqr.ID}")    
-        context = {
-        "request": request,
-        "ID": unit_pqr.ID if unit_pqr else "None",
-        "iduser": unit_pqr.identificationuser if unit_pqr else "None",
-        "type": unit_pqr.type if unit_pqr else "None",
-        "description": unit_pqr.description if unit_pqr else "None",
-        "fecha": unit_pqr.fecha if unit_pqr else "None",
-        }
-
-        return templates.TemplateResponse(request,"pqr.html", context)
+        logger.info(f"[GET /find] PQR encontrada: {unit_pqr.ID}")
+        return JSONResponse(content=unit_pqr.model_dump())
     else:
-        logger.warning(f"[GET /pqr] No se encontró pqr con ID={ID}")
+        logger.warning(f"[GET /find] No se encontró PQR con ID={ID}")
         raise HTTPException(status_code=404, detail="PQR not found")
-        
 
-
-
-#pqr by user ID
-@app.get("/user", response_class=HTMLResponse)
+@router.get("/user", response_class=JSONResponse)
 def pqr_by_user(
-    request: Request,
     iduser: int = Query(...),
-    current_user: dict = Security(get_current_user, scopes=["system", "administrador","pasajero"])
+    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "pasajero"])
 ):
     """
-    Retrieve a pqr by its ID and render the 'pqr.html' template with its details.
-    If the pqr is not found, display 'None' for all fields.
+    Devuelve la(s) PQR(s) por ID de usuario.
     """
-    #logger.info(f"[GET /pqr] Usuario: {current_user['user_id']} - Consultando pqr con ID={iduser}")
-    unit_pqr = controller.get_by_column(PQROut, column_name="identificationuser", value = iduser)
-
-    if unit_pqr:
-        logger.info(f"[GET /pqr] PQR encontrada: {unit_pqr.ID}, iduser: {unit_pqr.identificationuser}")
-        context = {
-            "request": request,
-            "pqrs": unit_pqr,  # Lista de asistencias
-        }
-        return templates.TemplateResponse(request,"pqrs.html", context)
+    pqrs = controller.get_by_column(PQROut, column_name="identificationuser", value=iduser)
+    if pqrs:
+        logger.info(f"[GET /user] PQR encontrada(s) para iduser: {iduser}")
+        # Si trae un solo resultado, lo devolvemos como objeto, si es lista, como lista
+        if isinstance(pqrs, list):
+            return JSONResponse(content={"pqrs": [p.model_dump() for p in pqrs]})
+        else:
+            return JSONResponse(content=pqrs.model_dump())
     else:
-        logger.warning(f"[GET /pqr] No se encontró pqr con iduser={iduser}")
+        logger.warning(f"[GET /user] No se encontró PQR con iduser={iduser}")
         raise HTTPException(status_code=404, detail="PQR not found")
