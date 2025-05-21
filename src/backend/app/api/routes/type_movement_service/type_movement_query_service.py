@@ -1,90 +1,46 @@
 import logging
-import json
-from fastapi import Request, Query, APIRouter, Security
-from fastapi.responses import HTMLResponse, JSONResponse
-from fastapi.templating import Jinja2Templates
-from fastapi import HTTPException
+from fastapi import APIRouter, Security, Query, HTTPException
+from fastapi.responses import JSONResponse
 
 from backend.app.core.auth import get_current_user
 from backend.app.models.type_movement import TypeMovementOut
 from backend.app.logic.universal_controller_instance import universal_controller as controller
-from backend.app.core.auth import get_current_user
-# Configuración del logger
+
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
-# Create the router for user-related endpoints
-app = APIRouter(prefix="/typemovement", tags=["typemovement"])
+router = APIRouter(prefix="/typemovement", tags=["typemovement"])
 
-# Initialize universal controller instance
-
-
-# Setup Jinja2 template engine
-templates = Jinja2Templates(directory="src/backend/app/templates")
-
-
-@app.get("/consultar", response_class=HTMLResponse)
+@router.get("/consultar", response_class=JSONResponse)
 def consultar(
-    request: Request,
     current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
 ):
     """
-    Render the 'ConsultarTipoMovimiento.html' template for the user consultation page.
+    Mensaje para consulta de tipo de movimiento.
     """
-    #logger.info(f"[GET /consultar] Usuario: {current_user['user_id']} - Mostrando página de consulta de tipo de movimiento")
-    return templates.TemplateResponse("ConsultarTipoMovimiento.html", {"request": request})
+    return JSONResponse(content={"message": "Consulta de tipo de movimiento habilitada."})
 
-
-@app.get("/typemovements")
-async def get_typemovement(
-    request:Request,
+@router.get("/typemovements", response_class=JSONResponse)
+def get_typemovement(
     current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
 ):
     """
-    Retrieve and return all typemovements records from the database.
+    Devuelve todos los tipos de movimiento registrados.
     """
-    #logger.info(f"[GET /typemovements] Usuario: {current_user['user_id']} - Consultando todas los tipos de movimiento.")
     typemovements = controller.read_all(TypeMovementOut)
-    if typemovements:
-        # Si hay varias asistencias, iterar sobre ellas
-        context = {
-            "request": request,
-            "tiposmovimientos": typemovements,  # Lista de asistencias
-        }
-    else:
-        logger.warning(f"[GET /users] No se encontraron usuarios registrados")
-        context = {
-            "request": request,
-            "tiposmovimientos": typemovements  # Si no se encontraron usuarios
-        }
+    logger.info(f"[GET /typemovements] Número de tipos de movimiento encontrados: {len(typemovements) if typemovements else 0}")
+    return JSONResponse(content={"typemovements": typemovements or []})
 
-    return templates.TemplateResponse("tipomovimientos.html", context)
-
-
-@app.get("/tipomovimiento", response_class=HTMLResponse)
+@router.get("/tipomovimiento", response_class=JSONResponse)
 def typemovement(
-    request: Request,
     id: int = Query(...),
     current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
 ):
     """
-    Retrieve a movement type by its ID and render the 'tipomovimiento.html' template with its details.
-    If the movement type is not found, display 'None' for all fields.
+    Devuelve un tipo de movimiento por su ID.
     """
-
-    #logger.info(f"[GET /typemovement] Usuario: {current_user['user_id']} - Consultando tipo de movimiento con ID={id}")
-    unit_typemovement= controller.get_by_column(TypeMovementOut,"ID" ,id)
-
-    if unit_typemovement:
-        logger.info(f"[GET /typemovement] Tipo de Movimiento encontrado: {unit_typemovement.ID}, {unit_typemovement.TipoMovimiento}")
-    else:
-        logger.warning(f"[GET /typemovement] No se encontró tipo de movimientos con id={id}")
+    unit_typemovement = controller.get_by_column(TypeMovementOut, "ID", id)
+    if not unit_typemovement:
+        logger.warning(f"[GET /tipomovimiento] No se encontró tipo de movimiento con id={id}")
         raise HTTPException(status_code=404, detail="Tipo de movimiento no encontrado")
-        
-    context = {
-        "request": request,
-        "ID": unit_typemovement.ID if unit_typemovement else "None",
-        "TipoMovimiento": unit_typemovement.TipoMovimiento if unit_typemovement else "None"
-    }
-
-    return templates.TemplateResponse("tipomovimiento.html", context)
+    return JSONResponse(content=unit_typemovement.model_dump())
