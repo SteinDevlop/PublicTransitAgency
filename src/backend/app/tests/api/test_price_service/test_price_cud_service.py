@@ -35,13 +35,13 @@ def test_delete_price_not_found():
     assert response.json()["detail"] == "Price not found"
 
 def test_index_create_form():
-    response = client.get("/price/crear",headers=headers)
+    response = client.get("/price/administrador/crear",headers=headers)
     assert response.status_code == 200
 
 def test_index_update_form():
-    response = client.get("/price/actualizar",headers=headers)
+    response = client.get("/price/administrador/actualizar",headers=headers)
     assert response.status_code == 200
 
 def test_index_delete_form():
-    response = client.get("/price/eliminar",headers=headers)
+    response = client.get("/price/administrador/eliminar",headers=headers)
     assert response.status_code == 200
