@@ -157,7 +157,7 @@ async def general_dashboard(
                 "registros_mantenimiento": controller.total_mantenimiento(),
                 "proximo_mantenimiento": controller.proximos_mantenimientos(),
                 "ultimo_uso_tarjeta": controller.last_card_used(user.ID),
-                #"turno": controller.get_turno_usuario(user.ID)
+                "turno": controller.get_turno_usuario(user.ID)
             }
         except Exception as e:
             logger.error(f"[DASHBOARD] Error al construir datos del dashboard: {e}")
