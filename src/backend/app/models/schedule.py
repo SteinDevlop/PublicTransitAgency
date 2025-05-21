@@ -17,7 +17,7 @@ class Schedule(BaseModel):
     Salida: str = Field(..., description="Hora de salida (formato TIME)")
 
     def to_dict(self):
-        return self.dict()
+        return self.model_dump()
 
     @classmethod
     def from_dict(cls, data: dict):

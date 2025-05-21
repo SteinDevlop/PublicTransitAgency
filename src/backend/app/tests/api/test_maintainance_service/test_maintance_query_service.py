@@ -51,3 +51,40 @@ def test_get_maintainments_by_unit_no_results():
     response = client.get("/maintainance/unit/?idunidad=999", headers=headers)
     assert response.status_code == 404
     assert response.json() == {"detail": "Not found"}
+
+def test_read_all_success():
+    test_controller.add(MaintenanceCreate(ID=2, idunidad=2, id_status=1, type="Corrective", fecha=datetime.fromisoformat("2024-01-02T00:00:00")))
+    response = client.get("/maintainance/maintainancements", headers=headers)
+    assert response.status_code == 200
+    data = response.json()
+    assert isinstance(data, list)
+    assert any(m["ID"] == 2 for m in data)
+
+def test_read_all_exception(monkeypatch):
+    def raise_exc(*a, **kw):
+        raise Exception("fail")
+    monkeypatch.setattr(test_controller, "read_all", raise_exc)
+    response = client.get("/maintainance/maintainancements", headers=headers)
+    assert response.status_code == 500
+    assert response.json()["detail"] == "Internal server error"
+
+def test_get_by_id_not_found():
+    response = client.get("/maintainance/id/999", headers=headers)
+    assert response.status_code == 404
+    assert response.json() == {"detail": "Not found"}
+
+def test_listar_mantenimientos_success():
+    test_controller.add(MaintenanceCreate(ID=3, idunidad=3, id_status=1, type="Preventive", fecha=datetime.fromisoformat("2024-01-03T00:00:00")))
+    response = client.get("/maintainance/listar", headers=headers)
+    assert response.status_code == 200
+    data = response.json()
+    assert isinstance(data, list)
+    assert any(m["ID"] == 3 for m in data)
+
+def test_listar_mantenimientos_exception(monkeypatch):
+    def raise_exc(*a, **kw):
+        raise Exception("fail")
+    monkeypatch.setattr(test_controller, "read_all", raise_exc)
+    response = client.get("/maintainance/listar", headers=headers)
+    assert response.status_code == 500
+    assert "Error al listar mantenimientos" in response.json()["detail"]
