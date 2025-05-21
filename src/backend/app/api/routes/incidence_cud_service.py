@@ -38,29 +38,36 @@ def actualizar_incidencia(
     Descripcion: str = Form(...),
     Tipo: str = Form(...),
     IDUnidad: str = Form(...),
-   #current_user: dict  = Security(get_current_user, scopes=["system", "administrador", "supervisor"])
 ):
-    """
-    Actualiza una incidencia existente.
-    """
-    incidencia_actualizada = Incidence(ID=ID, IDTicket=IDTicket, Descripcion=Descripcion, Tipo=Tipo, IDUnidad=IDUnidad)
     try:
+        existing_incidencia = controller.get_by_id(Incidence, ID)
+    except Exception:
+        logger.error(f"[POST /incidences/update] Error al buscar incidencia ID={ID}")
+        raise HTTPException(status_code=404, detail="Incidencia no encontrada.")
+
+    if not existing_incidencia:
+        logger.warning(f"[POST /incidences/update] Incidencia no encontrada: ID={ID}")
+        raise HTTPException(status_code=404, detail="Incidencia no encontrada.")
+
+    try:
+        incidencia_actualizada = Incidence(ID=ID, IDTicket=IDTicket, Descripcion=Descripcion, Tipo=Tipo, IDUnidad=IDUnidad)
         controller.update(incidencia_actualizada)
         logger.info(f"[POST /incidences/update] Incidencia actualizada exitosamente: {incidencia_actualizada}")
         return {"message": "Incidencia actualizada exitosamente.", "data": incidencia_actualizada.to_dict()}
-    except ValueError as e:
-        logger.warning(f"[POST /incidences/update] Error de validación: {str(e)}")
+    except Exception as e:
+        logger.error(f"[POST /incidences/update] Error al actualizar incidencia: {str(e)}")
         raise HTTPException(status_code=400, detail=str(e))
 
 @app.post("/delete")
 def eliminar_incidencia(
     ID: int = Form(...),
-   #current_user: dict  = Security(get_current_user, scopes=["system", "administrador", "supervisor"])
 ):
-    """
-    Elimina una incidencia por su ID.
-    """
-    existing_incidencia = controller.get_by_id(Incidence, ID)
+    try:
+        existing_incidencia = controller.get_by_id(Incidence, ID)
+    except Exception:
+        logger.error(f"[POST /incidences/delete] Error al buscar incidencia ID={ID}")
+        raise HTTPException(status_code=404, detail="Incidencia no encontrada.")
+
     if not existing_incidencia:
         logger.warning(f"[POST /incidences/delete] Incidencia no encontrada: ID={ID}")
         raise HTTPException(status_code=404, detail="Incidencia no encontrada.")
@@ -69,6 +76,6 @@ def eliminar_incidencia(
         controller.delete(existing_incidencia)
         logger.info(f"[POST /incidences/delete] Incidencia eliminada exitosamente: ID={ID}")
         return {"message": "Incidencia eliminada exitosamente."}
-    except ValueError as e:
-        logger.warning(f"[POST /incidences/delete] Error al eliminar: {str(e)}")
+    except Exception as e:
+        logger.error(f"[POST /incidences/delete] Error al eliminar incidencia: {str(e)}")
         raise HTTPException(status_code=400, detail=str(e))

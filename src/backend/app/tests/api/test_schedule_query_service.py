@@ -13,7 +13,8 @@ def setup_and_teardown():
     """
     Fixture para configurar y limpiar los datos de prueba.
     """
-    schedule = Schedule(ID=9999, Llegada="08:00:00", Salida="17:00:00")
+    # Usar strings en formato HH:MM
+    schedule = Schedule(ID=9999, Llegada="08:00", Salida="17:00")
     # Asegurarse de que el horario no exista antes de crearlo
     existing_schedule = controller.get_by_id(Schedule, schedule.ID)
     if existing_schedule:
@@ -40,5 +41,3 @@ def test_detalle_horario_existente(setup_and_teardown):
     schedule = setup_and_teardown
     response = client.get(f"/schedules/{schedule.ID}", headers=headers)
     assert response.status_code == 200
-
-

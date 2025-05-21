@@ -1,4 +1,5 @@
 import pytest
+import logging
 from fastapi.testclient import TestClient
 from backend.app.api.routes.ticket_query_service import app as tickets_router
 from backend.app.logic.universal_controller_instance import universal_controller as controller
@@ -7,79 +8,60 @@ from backend.app.models.ticket import Ticket
 from backend.app.core.conf import headers
 from fastapi import FastAPI
 
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("backend.app.api.routes.ticket_query_service")
+
 app_for_test = FastAPI()
 app_for_test.include_router(tickets_router)
-client = TestClient(app_for_test)
+client = TestClient(app_for_test, raise_server_exceptions=False)
 
 def test_listar_tickets():
-    """
-    Prueba para listar todos los tickets.
-    """
-    # Usar un ID muy alto para evitar conflictos con datos existentes
     ticket_id = 9999
-
     try:
-        # Agregamos un ticket a la base de datos
         ticket = Ticket(ID=ticket_id, EstadoIncidencia="Abierto Test")
         controller.add(ticket)
-
-        # Realizamos un GET para listar los tickets
         response = client.get("/tickets/", headers=headers)
-
-        # Verificamos el código de respuesta
         assert response.status_code == 200
-        # Verificamos que el ticket agregado aparece en la respuesta
+        assert "Abierto Test" in response.text or str(ticket_id) in response.text
+        logger.info("Test listar_tickets ejecutado correctamente.")
     finally:
-        # Limpiar: eliminar el ticket creado para la prueba
         ticket = controller.get_by_id(Ticket, ticket_id)
         if ticket:
             controller.delete(ticket)
 
 def test_detalle_ticket_existente():
-    """
-    Prueba para ver detalles de un ticket existente.
-    """
-    # Usar un ID muy alto para evitar conflictos con datos existentes
     ticket_id = 9999
-
     try:
-        # Agregamos un ticket a la base de datos
         ticket = Ticket(ID=ticket_id, EstadoIncidencia="Abierto Test")
         controller.add(ticket)
-
-        # Realizamos un GET para obtener el detalle del ticket por ID
         response = client.get(f"/tickets/{ticket_id}", headers=headers)
-
-        # Verificamos el código de respuesta
         assert response.status_code == 200
-        # Verificamos que el detalle incluye el ticket agregado
+        assert "Abierto Test" in response.text or str(ticket_id) in response.text
+        logger.info(f"Test detalle_ticket_existente ejecutado correctamente para ID={ticket_id}.")
     finally:
-        # Limpiar: eliminar el ticket creado para la prueba
         ticket = controller.get_by_id(Ticket, ticket_id)
         if ticket:
             controller.delete(ticket)
 
 def test_listar_tickets_sin_datos():
-    """
-    Prueba para listar tickets cuando no hay datos de prueba.
-    """
-    # Usar un ID muy alto para evitar conflictos con datos existentes
     ticket_id = 9999
-
     try:
-        # Aseguramos que no existe el ticket de prueba
         ticket = controller.get_by_id(Ticket, ticket_id)
         if ticket:
             controller.delete(ticket)
-
-        # Realizamos un GET para listar tickets
         response = client.get("/tickets/", headers=headers)
-
-        # Verificamos que el código de respuesta es 200
         assert response.status_code == 200
-        # Verificamos que no está nuestro ticket de prueba en la respuesta
+        assert "Abierto Test" not in response.text and str(ticket_id) not in response.text
+        logger.info("Test listar_tickets_sin_datos ejecutado correctamente.")
     finally:
-        # Aseguramos que no queda ningún ticket de prueba
         ticket = controller.get_by_id(Ticket, ticket_id)
         if ticket:
             controller.delete(ticket)
+
+def test_detalle_ticket_no_existente():
+    ticket_id = 99999
+    response = client.get(f"/tickets/{ticket_id}", headers=headers)
+    assert response.status_code in (404, 500)
+    logger.warning(
+        f"Test detalle_ticket_no_existente ejecutado: status={response.status_code}, body={response.text}"
+    )

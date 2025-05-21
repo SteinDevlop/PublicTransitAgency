@@ -13,6 +13,7 @@ def setup_and_teardown():
     """
     Fixture para configurar y limpiar los datos de prueba.
     """
+    # Usar strings en formato HH:MM
     horario = Schedule(ID=9999, Llegada="08:00", Salida="18:00")
     controller.add(horario)
     yield horario
@@ -51,5 +52,3 @@ def test_eliminar_horario(setup_and_teardown):
     response = client.post("/schedules/delete", data={"id": horario.ID}, headers=headers)
     assert response.status_code == 200
     assert response.json()["message"] == "Horario eliminado exitosamente."
-
-

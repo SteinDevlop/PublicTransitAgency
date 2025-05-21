@@ -20,9 +20,9 @@ def listar_unidades_transporte(
     try:
         unidades = controller.read_all(UnidadTransporte)
         logger.info("[GET /transport_units/] Unidades de transporte listadas.")
-        return templates.TemplateResponse("ListarUnidadesTransporte.html", {"request": request, "unidades": unidades})
-    except Exception:
-        logger.error("[GET /transport_units/] Error al listar unidades de transporte.")
+        return templates.TemplateResponse(request, "ListarTransports.html", {"unidades": unidades})
+    except Exception as e:
+        logger.error(f"[GET /transport_units/] Error al listar unidades de transporte: {e}")
         raise HTTPException(status_code=500, detail="Error al listar unidades de transporte.")
 
 @app.get("/{ID}", response_class=HTMLResponse)
@@ -31,9 +31,14 @@ def detalle_unidad_transporte(
     request: Request,
 ):
     try:
-        unidad = controller.read_one(UnidadTransporte, ID)
+        unidad = controller.get_by_id(UnidadTransporte, ID)
+        if not unidad:
+            logger.warning(f"[GET /transport_units/{ID}] Unidad de transporte no encontrada.")
+            raise HTTPException(status_code=404, detail="Unidad de transporte no encontrada.")
         logger.info("[GET /transport_units/{ID}] Detalle de unidad de transporte consultado.")
-        return templates.TemplateResponse("DetalleUnidadTransporte.html", {"request": request, "unidad": unidad})
-    except Exception:
-        logger.error("[GET /transport_units/{ID}] Error al consultar detalle de unidad de transporte.")
+        return templates.TemplateResponse(request, "DetalleTransport.html", {"unidad": unidad})
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"[GET /transport_units/{ID}] Error al consultar detalle de unidad de transporte: {e}")
         raise HTTPException(status_code=500, detail="Error al consultar detalle de unidad de transporte.")
