@@ -1,9 +1,8 @@
-import logging, datetime
+import logging
 from fastapi import (
-    Form, HTTPException, APIRouter, Request, Security
+    Form, HTTPException, APIRouter, Security, status
 )
-from fastapi.templating import Jinja2Templates
-from fastapi.responses import HTMLResponse
+from fastapi.responses import JSONResponse
 
 from backend.app.models.behavior import BehaviorCreate, BehaviorOut
 from backend.app.logic.universal_controller_instance import universal_controller as controller
@@ -13,104 +12,122 @@ from backend.app.core.auth import get_current_user
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
-app = APIRouter(prefix="/behavior", tags=["behavior"])
-templates = Jinja2Templates(directory="src/backend/app/templates")
+router = APIRouter(prefix="/behavior", tags=["behavior"])
 
-
-@app.get("/supervisor/crear", response_class=HTMLResponse)
-def index_create(
-    request: Request,
+@router.get("/supervisor/crear", response_class=JSONResponse)
+def index_create_supervisor(
     current_user: dict = Security(
         get_current_user,
         scopes=["system", "administrador", "pasajero"])
 ):
-    logger.info(f"[GET /crear] Usuario: {current_user['user_id']} - Mostrando formulario de creación de PQR")
+    """
+    Devuelve el próximo ID disponible para supervisor y la lista de behaviors.
+    """
     try:
         behaviors = controller.read_all(BehaviorOut)
         ultimo_id = max(p["ID"] for p in behaviors) if behaviors else 0
         nuevo_id = ultimo_id + 1
+        return JSONResponse(
+            content={
+                "nuevo_id": nuevo_id,
+                "behaviors": behaviors
+            }
+        )
     except Exception as e:
         logger.error(f"Error al obtener el último ID: {str(e)}")
-        nuevo_id = 1  # Por defecto
+        return JSONResponse(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            content={"detail": f"Error al obtener el último ID: {str(e)}"}
+        )
 
-    return templates.TemplateResponse("CrearSupervisorRendimiento.html", {
-        "request": request,
-        "nuevo_id": nuevo_id
-    })
-
-@app.get("/administrador/crear", response_class=HTMLResponse)
-def index_create(
-    request: Request,
+@router.get("/administrador/crear", response_class=JSONResponse)
+def index_create_admin(
     current_user: dict = Security(
         get_current_user,
         scopes=["system", "administrador", "pasajero"])
 ):
-    logger.info(f"[GET /crear] Usuario: {current_user['user_id']} - Mostrando formulario de creación de PQR")
+    """
+    Devuelve el próximo ID disponible para administrador y la lista de behaviors.
+    """
     try:
         behaviors = controller.read_all(BehaviorOut)
         ultimo_id = max(p["ID"] for p in behaviors) if behaviors else 0
         nuevo_id = ultimo_id + 1
+        return JSONResponse(
+            content={
+                "nuevo_id": nuevo_id,
+                "behaviors": behaviors
+            }
+        )
     except Exception as e:
         logger.error(f"Error al obtener el último ID: {str(e)}")
-        nuevo_id = 1  # Por defecto
+        return JSONResponse(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            content={"detail": f"Error al obtener el último ID: {str(e)}"}
+        )
 
-    return templates.TemplateResponse("CrearAdministradorRendimiento.html", {
-        "request": request,
-        "nuevo_id": nuevo_id
-    })
-
-@app.get("/administrador/actualizar", response_class=HTMLResponse)
+@router.get("/administrador/actualizar", response_class=JSONResponse)
 def index_update(
-    request: Request,
-    current_user: dict = Security(get_current_user, scopes=["system", "administrador","supervisor"])
+    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "supervisor"])
 ):
-    logger.info(f"[GET /actualizar] Rendimiento: {current_user['user_id']} - Mostrando formulario de actualización de rendimiento")
-    return templates.TemplateResponse("ActualizarRendimiento.html", {"request": request})
+    """
+    Devuelve un mensaje indicando que se debe mostrar el formulario de actualización (JSON).
+    """
+    return JSONResponse(content={"message": "Mostrar formulario de actualización de rendimiento."})
 
-
-@app.get("/administrador/eliminar", response_class=HTMLResponse)
+@router.get("/administrador/eliminar", response_class=JSONResponse)
 def index_delete(
-    request: Request,
     current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
 ):
-    logger.info(f"[GET /eliminar] Rendimiento: {current_user['user_id']} - Mostrando formulario de eliminación de rendimiento")
-    return templates.TemplateResponse("EliminarRendimiento.html", {"request": request})
+    """
+    Devuelve un mensaje indicando que se debe mostrar el formulario de eliminación (JSON).
+    """
+    return JSONResponse(content={"message": "Mostrar formulario de eliminación de rendimiento."})
 
-
-@app.post("/create")
+@router.post("/create", response_class=JSONResponse)
 async def create_behavior(
-    request: Request,
     ID: int = Form(...),
-    iduser:int= Form(...),
-    cantidadrutas: int=Form(...),
-    horastrabajadas: int=Form(...),
-    observaciones:str=Form(...),
+    iduser: int = Form(...),
+    cantidadrutas: int = Form(...),
+    horastrabajadas: int = Form(...),
+    observaciones: str = Form(...),
     fecha: str = Form(...),
     current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
 ):
-    logger.info(f"[POST /create] Behavior: {current_user['user_id']} - Intentando crear rendimiento con ID: {ID}")
+    #logger.info(f"[POST /create] Behavior: {current_user['user_id']} - Intentando crear rendimiento con ID: {ID}")
 
     try:
-        # Verificar si el rendimiento ya existe
-        existing_behavior = controller.get_by_id(BehaviorOut, ID)  
+        existing_behavior = controller.get_by_id(BehaviorOut, ID)
         if existing_behavior:
             logger.warning(f"[POST /create] Error de validación: El rendimiento ya existe con identificación {ID}")
             raise HTTPException(400, detail="El rendimiento ya existe con la misma identificación.")
 
-        # Crear rendimiento
-        new_behavior = BehaviorCreate(ID=ID, iduser=iduser,cantidadrutas=cantidadrutas, horastrabajadas=horastrabajadas,observaciones=observaciones,fecha=fecha)
+        new_behavior = BehaviorCreate(
+            ID=ID,
+            iduser=iduser,
+            cantidadrutas=cantidadrutas,
+            horastrabajadas=horastrabajadas,
+            observaciones=observaciones,
+            fecha=fecha
+        )
         controller.add(new_behavior)
-        logger.info(f"Rendimiento insertado con ID: {new_behavior.ID}")  # Verifica si el ID se asigna
         logger.info(f"[POST /create] Rendimiento creado exitosamente con identificación {ID}")
-        context =  {
-            "request":request,
-            "operation": "create",
-            "success": True,
-            "data": BehaviorOut(ID=new_behavior.ID,iduser=new_behavior.iduser,cantidadrutas=new_behavior.cantidadrutas,horastrabajadas=new_behavior.horastrabajadas,observaciones=new_behavior.observaciones,fecha=new_behavior.fecha).model_dump(),
-            "message": "Behavior created successfully."
-        }
-        return templates.TemplateResponse("Confirmacion.html", context)
-        
+        return JSONResponse(
+            status_code=status.HTTP_201_CREATED,
+            content={
+                "operation": "create",
+                "success": True,
+                "data": BehaviorOut(
+                    ID=new_behavior.ID,
+                    iduser=new_behavior.iduser,
+                    cantidadrutas=new_behavior.cantidadrutas,
+                    horastrabajadas=new_behavior.horastrabajadas,
+                    observaciones=new_behavior.observaciones,
+                    fecha=new_behavior.fecha
+                ).model_dump(),
+                "message": "Behavior created successfully."
+            }
+        )
     except ValueError as e:
         logger.warning(f"[POST /create] Error de validación: {str(e)}")
         raise HTTPException(400, detail=str(e))
@@ -118,71 +135,66 @@ async def create_behavior(
         logger.error(f"[POST /create] Error interno: {str(e)}")
         raise HTTPException(500, detail=f"Internal server error: {str(e)}")
 
-
-@app.post("/update")
+@router.post("/update", response_class=JSONResponse)
 async def update_behavior(
-    request: Request,
     ID: int = Form(...),
-    iduser:int= Form(...),
-    cantidadrutas: int=Form(...),
-    horastrabajadas: int=Form(...),
-    observaciones:str=Form(...),
+    iduser: int = Form(...),
+    cantidadrutas: int = Form(...),
+    horastrabajadas: int = Form(...),
+    observaciones: str = Form(...),
     fecha: str = Form(...),
     current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
 ):
-    logger.info(f"[POST /update] Rendimiento: {current_user['user_id']} - Actualizando rendimiento ID={ID}")
+    #logger.info(f"[POST /update] Rendimiento: {current_user['user_id']} - Actualizando rendimiento ID={ID}")
     try:
-        existing = controller.get_by_column(BehaviorOut,"ID" ,ID)
+        existing = controller.get_by_column(BehaviorOut, "ID", ID)
         if existing is None:
             logger.warning(f"[POST /update] Rendimiento no encontrada: ID={ID}")
             raise HTTPException(404, detail="Behavior not found")
 
-        updated_behavior = BehaviorOut(ID=ID, iduser=iduser,cantidadrutas=cantidadrutas,
-                                       horastrabajadas=horastrabajadas,
-                                       observaciones=observaciones,fecha=fecha)
+        updated_behavior = BehaviorOut(
+            ID=ID,
+            iduser=iduser,
+            cantidadrutas=cantidadrutas,
+            horastrabajadas=horastrabajadas,
+            observaciones=observaciones,
+            fecha=fecha
+        )
         controller.update(updated_behavior)
         logger.info(f"[POST /update] Rendimiento actualizada exitosamente: {updated_behavior}")
-        context = {
-            "request":request,
-            "operation": "update",
-            "success": True,
-            "data": BehaviorOut(ID=ID, iduser=updated_behavior.iduser,horastrabajadas=updated_behavior.horastrabajadas, 
-                                cantidadrutas=updated_behavior.cantidadrutas,
-                                observaciones=updated_behavior.observaciones,
-                                fecha=updated_behavior.fecha).model_dump(),
-            "message": f"Behavior {ID} updated successfully."
-        }
-        return templates.TemplateResponse("Confirmacion.html", context)
+        return JSONResponse(
+            content={
+                "operation": "update",
+                "success": True,
+                "data": updated_behavior.model_dump(),
+                "message": f"Behavior {ID} updated successfully."
+            }
+        )
     except ValueError as e:
         logger.warning(f"[POST /update] Error de validación: {str(e)}")
         raise HTTPException(400, detail=str(e))
 
-
-
-@app.post("/delete")
+@router.post("/delete", response_class=JSONResponse)
 async def delete_behavior(
-    request:Request,
     ID: int = Form(...),
     current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
 ):
-    logger.info(f"[POST /delete] Rendimiento: {current_user['user_id']} - Eliminando rendimiento ID={ID}")
+    #logger.info(f"[POST /delete] Rendimiento: {current_user['user_id']} - Eliminando rendimiento ID={ID}")
     try:
-        existing = controller.get_by_column(BehaviorOut,"ID",ID)
+        existing = controller.get_by_column(BehaviorOut, "ID", ID)
         if not existing:
             logger.warning(f"[POST /delete] Rendimiento no encontrado en la base de datos: ID={ID}")
             raise HTTPException(404, detail="Behavior not found")
 
-        logger.info(f"[POST /delete] Eliminando rendimiento con ID={ID}")
-        controller.delete(existing) 
+        controller.delete(existing)
         logger.info(f"[POST /delete] Rendimiento eliminada exitosamente: ID={ID}")
-        context= {
-            "request":request,
-            "operation": "delete",
-            "success": True,
-            "message": f"Behavior {ID} deleted successfully."
-        }
-        return templates.TemplateResponse("Confirmacion.html", context)
-    
+        return JSONResponse(
+            content={
+                "operation": "delete",
+                "success": True,
+                "message": f"Behavior {ID} deleted successfully."
+            }
+        )
     except HTTPException as e:
         raise e
     except Exception as e:
