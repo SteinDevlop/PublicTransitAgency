@@ -164,7 +164,11 @@ Each system component is modeled using Python classes to reflect real-world enti
 - `validate_ticket(self)`: Validates a transport ticket.
 
 ---
+### SALIO EL COVERAGE
 
+![image](https://github.com/user-attachments/assets/9e09b3e5-b986-43a2-b490-1d2e49f8d986)
+
+---
 ## 👥 Development Team
 
 - **Mario Alberto Julio Wilches**  
