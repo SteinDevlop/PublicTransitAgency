@@ -3,6 +3,7 @@ import json
 from fastapi import Request, Query, APIRouter, Security
 from fastapi.responses import HTMLResponse, JSONResponse
 from fastapi.templating import Jinja2Templates
+from fastapi import HTTPException
 
 from backend.app.core.auth import get_current_user
 from backend.app.models.rol_user import RolUserOut
@@ -70,11 +71,11 @@ def roluser(
     #logger.info(f"[GET /roluser] Usuario: {current_user['user_id']} - Consultando tipo de usuario con id={ID}")
     unit_roluser= controller.get_by_id(RolUserOut, ID)
 
-    if unit_roluser:
-        logger.info(f"[GET /roluser] Tipo de Usuario encontrado: {unit_roluser.ID}, {unit_roluser.Rol}")
+    if not unit_roluser:
+        raise HTTPException(status_code=404, detail="Rol Usuario no encontrado")
 
     else:
-        logger.warning(f"[GET /roluser] No se encontró tipo de usuario con id={ID}")
+        logger.info(f"[GET /roluser] Tipo de Usuario encontrado: {unit_roluser.ID}, {unit_roluser.Rol}")
 
     context = {
         "request": request,

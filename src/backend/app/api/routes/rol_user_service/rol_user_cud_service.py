@@ -24,7 +24,7 @@ def index_create(
     current_user: dict = Security(get_current_user,
         scopes=["system", "administrador"])
 ):
-    logger.info(f"[GET /crear] Usuario: {current_user['user_id']} - Mostrando formulario de creación de rol de usuario")
+    #logger.info(f"[GET /crear] Usuario: {current_user['user_id']} - Mostrando formulario de creación de rol de usuario")
     try:
         rolusers = controller.read_all(RolUserOut)
         ultimo_id = max(p["ID"] for p in rolusers) if rolusers else 0
@@ -43,7 +43,7 @@ def index_update(
     request: Request,
     current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
 ):
-    logger.info(f"[GET /actualizar] Usuario: {current_user['user_id']} - Mostrando formulario de actualización de rol de usuario")
+    #logger.info(f"[GET /actualizar] Usuario: {current_user['user_id']} - Mostrando formulario de actualización de rol de usuario")
     return templates.TemplateResponse("ActualizarRolUsuario.html", {"request": request})
 
 
@@ -52,7 +52,7 @@ def index_delete(
     request: Request,
     current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
 ):
-    logger.info(f"[GET /eliminar] Usuario: {current_user['user_id']} - Mostrando formulario de eliminación de rol de usuario")
+    #logger.info(f"[GET /eliminar] Usuario: {current_user['user_id']} - Mostrando formulario de eliminación de rol de usuario")
     return templates.TemplateResponse("EliminarRolUsuario.html", {"request": request})
 
 #
@@ -63,7 +63,7 @@ async def create_roluser(
     Rol: str = Form(...),
     current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
 ):
-    logger.info(f"[POST /create] Usuario: {current_user['user_id']} - Intentando crear usuario de tipo {Rol}")
+    #logger.info(f"[POST /create] Usuario: {current_user['user_id']} - Intentando crear usuario de tipo {Rol}")
 
     try:
         # Verificar si el rol de usuario ya existe
@@ -102,7 +102,7 @@ async def update_roluser(
     Rol: str = Form(...),
     current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
 ):
-    logger.info(f"[POST /update] Usuario: {current_user['user_id']} - Actualizando rol de usuario ID={ID}")
+    #logger.info(f"[POST /update] Usuario: {current_user['user_id']} - Actualizando rol de usuario ID={ID}")
     try:
         existing = controller.get_by_column(RolUserOut, "ID",ID)
         if existing is None:
@@ -131,7 +131,7 @@ async def delete_roluser(
     ID: int = Form(...),
     current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
 ):
-    logger.info(f"[POST /delete] Usuario: {current_user['user_id']} - Eliminando rol de usuario ID={ID}")
+    #logger.info(f"[POST /delete] Usuario: {current_user['user_id']} - Eliminando rol de usuario ID={ID}")
     try:
         existing = controller.get_by_column(RolUserOut,"ID",ID)
         if not existing or existing is None:

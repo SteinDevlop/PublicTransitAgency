@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Detalles del Tipo de Usuario</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #eef2f7;
+            padding: 2em;
+        }
+        .roluser-container {
+            background-color: #ffffff;
+            max-width: 400px;
+            margin: auto;
+            padding: 2em;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+            text-align: center;
+        }
+        .roluser-container h2 {
+            color: #333;
+        }
+        .roluser-detail {
+            margin: 1em 0;
+            font-size: 1.1em;
+        }
+        .label {
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="roluser-container">
+        <h2>Tipo de Usuario</h2>
+        <div class="roluser-detail">
+            <span class="label">ID:</span> {{ ID }}
+        </div>
+        <div class="roluser-detail">
+            <span class="label">Tipo de Usuario:</span> {{Rol}}
+        </div>
+        <button style="padding: 10px;margin-top: 10px;"  onclick = "location.href='/roluser/consultar'">Regresar a la Pagina de Consulta</button>
+    </div>
+</body>
+</html>
