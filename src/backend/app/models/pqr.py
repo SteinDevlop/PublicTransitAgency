@@ -2,12 +2,11 @@ from pydantic import BaseModel
 import datetime
 class PQRCreate(BaseModel):
     __entity_name__ = "PQR"  # <- Aquí se define el nombre general de la entidad
-    id: int
+    ID: int
     type: str
     description: str
     fecha: str
-    iduser:int
-    codigogenerado:str
+    identificationuser:int
 
     def to_dict(self):
         return self.model_dump()
@@ -15,12 +14,11 @@ class PQRCreate(BaseModel):
     @classmethod
     def get_fields(cls) -> dict:
         return {
-            "id": "INTEGER PRIMARY KEY",
-            "iduser": "INTEGER",
+            "ID": "INTEGER PRIMARY KEY",
+            "identificationuser": "INTEGER",
             "type": "VARCHAR",
             "description": "VARCHAR",
-            "fecha": "DATE",
-            "codigogenerado":"VARCHAR"
+            "fecha": "VARCHAR",
         }
 class PQROut(PQRCreate):
     __entity_name__ = "PQR"  # <- También aquí, porque se usa para lectura

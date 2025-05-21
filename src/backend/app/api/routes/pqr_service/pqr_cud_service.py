@@ -12,7 +12,7 @@ from backend.app.core.auth import get_current_user
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
-app = APIRouter(prefix="/user", tags=["user"])
+app = APIRouter(prefix="/pqr", tags=["pqr"])
 templates = Jinja2Templates(directory="src/backend/app/templates")
 
 
@@ -32,7 +32,7 @@ def index_create(
         logger.error(f"Error al obtener el último ID: {str(e)}")
         nuevo_id = 1  # Por defecto
 
-    return templates.TemplateResponse("CrearAdministradorPQR.html", {
+    return templates.TemplateResponse("CrearPQR.html", {
         "request": request,
         "nuevo_id": nuevo_id
     })
@@ -53,7 +53,7 @@ def index_create(
         logger.error(f"Error al obtener el último ID: {str(e)}")
         nuevo_id = 1  # Por defecto
 
-    return templates.TemplateResponse("CrearPasajeroPQR.html", {
+    return templates.TemplateResponse("CrearPQR.html", {
         "request": request,
         "nuevo_id": nuevo_id
     })
@@ -64,7 +64,7 @@ def index_update(
     #current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
 ):
     #logger.info(f"[GET /actualizar] Usuario: {current_user['user_id']} - Mostrando formulario de actualización de PQR")
-    return templates.TemplateResponse("ActualizarAdministradorPQR.html", {"request": request})
+    return templates.TemplateResponse("ActualizarPQR.html", {"request": request})
 
 
 @app.get("/administrador/eliminar", response_class=HTMLResponse)
@@ -73,7 +73,7 @@ def index_delete(
     #current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
 ):
     #logger.info(f"[GET /eliminar] Usuario: {current_user['user_id']} - Mostrando formulario de eliminación de PQR")
-    return templates.TemplateResponse("EliminarAdministradorPQR.html", {"request": request})
+    return templates.TemplateResponse("EliminarPQR.html", {"request": request})
 
 
 @app.post("/create")
@@ -84,6 +84,7 @@ async def create_pqr(
     description: str  = Form(...),
     fecha: str = Form(...),
     identificationuser: int  = Form(...),
+    
     #current_user: dict = Security(get_current_user, scopes=["system", "administrador", "pasajero"])
 ):
     #logger.info(f"[POST /create] Usuario: {current_user['user_id']} - Intentando crear PQR con identificación {ID}")
@@ -129,7 +130,7 @@ async def update_pqr(
 ):
     #logger.info(f"[POST /update] Usuario: {current_user['user_id']} - Actualizando PQR ID={ID}")
     try:
-        existing = controller.get_by_id(PQROut, ID)
+        existing = controller.get_by_column(PQROut, "ID",ID)
         if existing is None:
             logger.warning(f"[POST /update] PQR no encontrada: ID={ID}")
             raise HTTPException(404, detail="PQR not found")
