@@ -16,35 +16,24 @@ templates = Jinja2Templates(directory="src/backend/app/templates")
 @app.get("/", response_class=HTMLResponse)
 def listar_unidades_transporte(
     request: Request,
-   #current_user: dict  = Security(get_current_user, scopes=["system", "administrador", "supervisor", "operador"])
 ):
-    """
-    Lista todas las unidades de transporte.
-    """
     try:
         unidades = controller.read_all(UnidadTransporte)
-        logger.info(f"[GET /transport_units/] Se listaron {len(unidades)} unidades de transporte.")
-        return templates.TemplateResponse("ListarTransports.html", {"request": request, "unidades": unidades})
-    except Exception as e:
-        logger.error(f"[GET /transport_units/] Error al listar unidades: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.info("[GET /transport_units/] Unidades de transporte listadas.")
+        return templates.TemplateResponse("ListarUnidadesTransporte.html", {"request": request, "unidades": unidades})
+    except Exception:
+        logger.error("[GET /transport_units/] Error al listar unidades de transporte.")
+        raise HTTPException(status_code=500, detail="Error al listar unidades de transporte.")
 
 @app.get("/{ID}", response_class=HTMLResponse)
 def detalle_unidad_transporte(
     ID: str,
     request: Request,
-   #current_user: dict  = Security(get_current_user, scopes=["system", "administrador", "supervisor", "operador"])
 ):
-    """
-    Obtiene el detalle de una unidad de transporte por su ID.
-    """
     try:
-        unidad = controller.get_by_id(UnidadTransporte, ID)
-        if not unidad:
-            logger.warning(f"[GET /transport_units/{ID}] Unidad de transporte no encontrada.")
-            raise HTTPException(status_code=404, detail="Unidad de transporte no encontrada.")
-        logger.info(f"[GET /transport_units/{ID}] Se consultó la unidad con ID={ID}.")
-        return templates.TemplateResponse("DetalleTransport.html", {"request": request, "unidad": unidad.to_dict()})
-    except Exception as e:
-        logger.error(f"[GET /transport_units/{ID}] Error al consultar unidad: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
+        unidad = controller.read_one(UnidadTransporte, ID)
+        logger.info("[GET /transport_units/{ID}] Detalle de unidad de transporte consultado.")
+        return templates.TemplateResponse("DetalleUnidadTransporte.html", {"request": request, "unidad": unidad})
+    except Exception:
+        logger.error("[GET /transport_units/{ID}] Error al consultar detalle de unidad de transporte.")
+        raise HTTPException(status_code=500, detail="Error al consultar detalle de unidad de transporte.")

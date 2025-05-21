@@ -7,7 +7,6 @@ from backend.app.logic.universal_controller_instance import universal_controller
 
 from backend.app.core.conf import headers
 
-# Configuración de logging para capturar logs de los endpoints
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("backend.app.api.routes.incidence_cud_service")
 
