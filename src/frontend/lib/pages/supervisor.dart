@@ -4,12 +4,11 @@ import 'dart:convert';
 import 'package:flutter/services.dart';
 import '../config/config.dart';
 
-class SupervisorDashboard extends StatelessWidget {
+class SupervisorDashboard extends StatefulWidget {
   final String token;
 
   const SupervisorDashboard({Key? key, required this.token}) : super(key: key);
 
-  // Define our color scheme
   static const primaryColor = Color(0xFF1A73E8); // Blue
   static const secondaryColor = Color(0xFF34A853); // Green accent
   static const accentColor = Color(0xFFFBBC05); // Yellow accent
@@ -17,23 +16,86 @@ class SupervisorDashboard extends StatelessWidget {
   static const backgroundColor = Colors.white;
   static const cardColor = Color(0xFFF8F9FA); // Light gray/white
 
-  Future<Map<String, dynamic>> fetchDashboardData() async {
-    print('Token enviado: $token');
+  @override
+  State<SupervisorDashboard> createState() => _SupervisorDashboardState();
+}
+
+class _SupervisorDashboardState extends State<SupervisorDashboard> {
+  String selectedSection = 'dashboard';
+
+  // Microservicios
+  Future<List<dynamic>> fetchShifts() async {
     final response = await http.get(
-      Uri.parse('${AppConfig.baseUrl}/login/dashboard'),
+      Uri.parse('${AppConfig.baseUrl}/shifts/'),
       headers: {
-        'Authorization': 'Bearer $token',
+        'Authorization': 'Bearer ${widget.token}',
         'accept': 'application/json',
       },
     );
-
     if (response.statusCode == 200) {
-      final dashboardData = json.decode(response.body);
-      print('Datos del dashboard: $dashboardData');
-      return dashboardData;
+      return json.decode(response.body);
     } else {
-      print('Error al obtener el dashboard: ${response.body}');
-      throw Exception('Error al cargar datos del dashboard: ${response.body}');
+      throw Exception('Error al cargar turnos');
+    }
+  }
+
+  Future<Map<String, dynamic>> fetchReport() async {
+    final response = await http.get(
+      Uri.parse('${AppConfig.baseUrl}/reporte/supervisor'),
+      headers: {
+        'Authorization': 'Bearer ${widget.token}',
+        'accept': 'application/json',
+      },
+    );
+    if (response.statusCode == 200) {
+      return json.decode(response.body);
+    } else {
+      throw Exception('Error al cargar reporte');
+    }
+  }
+
+  Future<List<dynamic>> fetchTransportUnits() async {
+    final response = await http.get(
+      Uri.parse('${AppConfig.baseUrl}/transport_units/'),
+      headers: {
+        'Authorization': 'Bearer ${widget.token}',
+        'accept': 'application/json',
+      },
+    );
+    if (response.statusCode == 200) {
+      return json.decode(response.body);
+    } else {
+      throw Exception('Error al cargar unidades');
+    }
+  }
+
+  Future<List<dynamic>> fetchIncidences() async {
+    final response = await http.get(
+      Uri.parse('${AppConfig.baseUrl}/incidences/'),
+      headers: {
+        'Authorization': 'Bearer ${widget.token}',
+        'accept': 'application/json',
+      },
+    );
+    if (response.statusCode == 200) {
+      return json.decode(response.body);
+    } else {
+      throw Exception('Error al cargar incidencias');
+    }
+  }
+
+  Future<Map<String, dynamic>> fetchDashboardData() async {
+    final response = await http.get(
+      Uri.parse('${AppConfig.baseUrl}/login/dashboard'),
+      headers: {
+        'Authorization': 'Bearer ${widget.token}',
+        'accept': 'application/json',
+      },
+    );
+    if (response.statusCode == 200) {
+      return json.decode(response.body);
+    } else {
+      throw Exception('Error al cargar datos del dashboard');
     }
   }
 
@@ -42,7 +104,7 @@ class SupervisorDashboard extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         elevation: 0,
-        backgroundColor: primaryColor,
+        backgroundColor: SupervisorDashboard.primaryColor,
         title: const Text(
           'Panel de Supervisor',
           style: TextStyle(
@@ -69,409 +131,507 @@ class SupervisorDashboard extends StatelessWidget {
         ],
         systemOverlayStyle: SystemUiOverlayStyle.light,
       ),
-      body: FutureBuilder<Map<String, dynamic>>(
-        future: fetchDashboardData(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  CircularProgressIndicator(
-                    color: primaryColor,
-                    strokeWidth: 3,
-                  ),
-                  const SizedBox(height: 16),
-                  const Text(
-                    'Cargando información...',
-                    style: TextStyle(
-                      color: Color(0xFF5F6368),
-                      fontSize: 16,
-                    ),
-                  ),
-                ],
-              ),
-            );
-          } else if (snapshot.hasError) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(
-                    Icons.error_outline,
-                    color: Colors.red,
-                    size: 60,
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Error: ${snapshot.error}',
-                    style: const TextStyle(color: Colors.red),
-                    textAlign: TextAlign.center,
-                  ),
-                ],
-              ),
-            );
-          } else if (!snapshot.hasData) {
-            return const Center(
-              child: Text(
-                'Sin datos disponibles',
-                style: TextStyle(fontSize: 18),
-              ),
-            );
-          }
-
-          final data = snapshot.data!;
-          final user = data['user'] ?? {};
-          final totalVehiculos = data['total_vehiculos'] ?? 0;
-          final totalPasajeros = data['total_passanger'] ?? 0;
-          final totalOperarios = data['total_operative'] ?? 0;
-          final totalSupervisores = data['total_supervisors'] ?? 0;
-
-          return Row(
-            children: [
-              // Sidebar
-              Container(
-                width: 250,
-                color: const Color(0xFFF8F9FA),
-                child: Column(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                          vertical: 24, horizontal: 16),
-                      color: primaryColor.withOpacity(0.05),
-                      child: Row(
-                        children: [
-                          CircleAvatar(
-                            backgroundColor: accentColor,
-                            radius: 24,
-                            child: Text(
-                              user['Nombre']?.toString().substring(0, 1) ?? 'S',
-                              style: const TextStyle(
-                                color: Color(0xFF202124),
+      body: Row(
+        children: [
+          // Sidebar
+          Container(
+            width: 250,
+            color: const Color(0xFFF8F9FA),
+            child: Column(
+              children: [
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                      vertical: 24, horizontal: 16),
+                  color: SupervisorDashboard.primaryColor.withOpacity(0.05),
+                  child: Row(
+                    children: [
+                      CircleAvatar(
+                        backgroundColor: SupervisorDashboard.accentColor,
+                        radius: 24,
+                        child: const Text(
+                          'S',
+                          style: TextStyle(
+                            color: Color(0xFF202124),
+                            fontWeight: FontWeight.bold,
+                            fontSize: 18,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Supervisor',
+                              style: TextStyle(
                                 fontWeight: FontWeight.bold,
-                                fontSize: 18,
+                                fontSize: 16,
+                                color: Color(0xFF202124),
+                              ),
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                            const SizedBox(height: 4),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                  horizontal: 8, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: SupervisorDashboard.accentColor,
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: const Text(
+                                'Supervisor',
+                                style: TextStyle(
+                                  color: Color(0xFF202124),
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w500,
+                                ),
                               ),
                             ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                const Divider(height: 1),
+                Expanded(
+                  child: ListView(
+                    padding: EdgeInsets.zero,
+                    children: [
+                      _buildMenuItem(
+                        icon: Icons.dashboard_outlined,
+                        title: 'Panel Principal',
+                        color: SupervisorDashboard.primaryColor,
+                        isActive: selectedSection == 'dashboard',
+                        onTap: () {
+                          setState(() {
+                            selectedSection = 'dashboard';
+                          });
+                        },
+                      ),
+                      _buildMenuItem(
+                        icon: Icons.schedule_outlined,
+                        title: 'Asignar Turnos',
+                        color: SupervisorDashboard.primaryColor,
+                        isActive: selectedSection == 'shifts',
+                        onTap: () {
+                          setState(() {
+                            selectedSection = 'shifts';
+                          });
+                        },
+                      ),
+                      _buildMenuItem(
+                        icon: Icons.assessment_outlined,
+                        title: 'Reporte de desempeño',
+                        color: SupervisorDashboard.primaryColor,
+                        isActive: selectedSection == 'report',
+                        onTap: () {
+                          setState(() {
+                            selectedSection = 'report';
+                          });
+                        },
+                      ),
+                      _buildMenuItem(
+                        icon: Icons.directions_bus_outlined,
+                        title: 'Obtener Información de Unidad',
+                        color: SupervisorDashboard.primaryColor,
+                        isActive: selectedSection == 'units',
+                        onTap: () {
+                          setState(() {
+                            selectedSection = 'units';
+                          });
+                        },
+                      ),
+                      _buildMenuItem(
+                        icon: Icons.warning_amber_outlined,
+                        title: 'Consultar Incidencias',
+                        color: SupervisorDashboard.primaryColor,
+                        isActive: selectedSection == 'incidences',
+                        onTap: () {
+                          setState(() {
+                            selectedSection = 'incidences';
+                          });
+                        },
+                      ),
+                    ],
+                  ),
+                ),
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.all(16),
+                  child: ElevatedButton.icon(
+                    onPressed: () {},
+                    icon: const Icon(Icons.logout, size: 18),
+                    label: const Text('Cerrar Sesión'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.white,
+                      foregroundColor: SupervisorDashboard.primaryColor,
+                      elevation: 0,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        side: BorderSide(
+                            color: SupervisorDashboard.primaryColor),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          // Main content
+          Expanded(
+            child: Container(
+              color: const Color(0xFFF5F7FA),
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(24),
+                child: _buildSectionContent(),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSectionContent() {
+    switch (selectedSection) {
+      case 'shifts':
+        return FutureBuilder<List<dynamic>>(
+          future: fetchShifts(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return _loadingWidget('Cargando turnos...');
+            } else if (snapshot.hasError) {
+              return _errorWidget('Error al cargar turnos');
+            } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+              return _emptyWidget('No hay turnos disponibles.');
+            }
+            final shifts = snapshot.data!;
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('Turnos Asignados',
+                    style:
+                        TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 24),
+                DataTable(
+                  headingRowColor: MaterialStateProperty.all(
+                      SupervisorDashboard.primaryColor.withOpacity(0.1)),
+                  columns: const [
+                    DataColumn(label: Text('ID')),
+                    DataColumn(label: Text('Tipo')),
+                    DataColumn(label: Text('Inicio')),
+                    DataColumn(label: Text('Fin')),
+                  ],
+                  rows: shifts.map((shift) {
+                    return DataRow(
+                      cells: [
+                        DataCell(Text(shift['ID']?.toString() ?? '-')),
+                        DataCell(Text(shift['TipoTurno']?.toString() ?? '-')),
+                        DataCell(Text(shift['HoraInicio']?.toString() ?? '-')),
+                        DataCell(Text(shift['HoraFin']?.toString() ?? '-')),
+                      ],
+                    );
+                  }).toList(),
+                ),
+              ],
+            );
+          },
+        );
+      case 'report':
+        return FutureBuilder<Map<String, dynamic>>(
+          future: fetchReport(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return _loadingWidget('Cargando reporte...');
+            } else if (snapshot.hasError) {
+              return _errorWidget('Error al cargar reporte');
+            } else if (!snapshot.hasData) {
+              return _emptyWidget('No hay datos de reporte.');
+            }
+            final data = snapshot.data!;
+            return Card(
+              elevation: 2,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(24.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Icon(Icons.bar_chart,
+                            color: SupervisorDashboard.primaryColor, size: 32),
+                        const SizedBox(width: 12),
+                        const Text('Resumen de Desempeño',
+                            style: TextStyle(
+                                fontSize: 20, fontWeight: FontWeight.bold)),
+                      ],
+                    ),
+                    const SizedBox(height: 20),
+                    _buildReportRow('Total de Movimientos',
+                        data['total_movimientos']?.toString() ?? '-'),
+                    _buildReportRow('Total de Usuarios',
+                        data['total_usuarios']?.toString() ?? '-'),
+                    _buildReportRow(
+                        'Promedio de Horas Trabajadas',
+                        data['promedio_horas_trabajadas']?.toString() ?? '-'),
+                  ],
+                ),
+              ),
+            );
+          },
+        );
+      case 'units':
+        return FutureBuilder<List<dynamic>>(
+          future: fetchTransportUnits(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return _loadingWidget('Cargando unidades...');
+            } else if (snapshot.hasError) {
+              return _errorWidget('Error al cargar unidades');
+            } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+              return _emptyWidget('No hay unidades disponibles.');
+            }
+            final units = snapshot.data!;
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('Unidades de Transporte',
+                    style:
+                        TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 24),
+                DataTable(
+                  headingRowColor: MaterialStateProperty.all(
+                      SupervisorDashboard.secondaryColor.withOpacity(0.1)),
+                  columns: const [
+                    DataColumn(label: Text('ID')),
+                    DataColumn(label: Text('Ubicación')),
+                    DataColumn(label: Text('Capacidad')),
+                    DataColumn(label: Text('Ruta')),
+                    DataColumn(label: Text('Tipo')),
+                  ],
+                  rows: units.map((unit) {
+                    return DataRow(
+                      cells: [
+                        DataCell(Text(unit['ID']?.toString() ?? '-')),
+                        DataCell(Text(unit['Ubicacion']?.toString() ?? '-')),
+                        DataCell(Text(unit['Capacidad']?.toString() ?? '-')),
+                        DataCell(Text(unit['IDRuta']?.toString() ?? '-')),
+                        DataCell(Text(unit['IDTipo']?.toString() ?? '-')),
+                      ],
+                    );
+                  }).toList(),
+                ),
+              ],
+            );
+          },
+        );
+      case 'incidences':
+        return FutureBuilder<List<dynamic>>(
+          future: fetchIncidences(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return _loadingWidget('Cargando incidencias...');
+            } else if (snapshot.hasError) {
+              return _errorWidget('Error al cargar incidencias');
+            } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+              return _emptyWidget('No hay incidencias registradas.');
+            }
+            final incidences = snapshot.data!;
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text('Incidencias',
+                    style:
+                        TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+                const SizedBox(height: 24),
+                DataTable(
+                  headingRowColor: MaterialStateProperty.all(
+                      SupervisorDashboard.warningColor.withOpacity(0.1)),
+                  columns: const [
+                    DataColumn(label: Text('ID')),
+                    DataColumn(label: Text('Ticket')),
+                    DataColumn(label: Text('Descripción')),
+                    DataColumn(label: Text('Tipo')),
+                    DataColumn(label: Text('Unidad')),
+                  ],
+                  rows: incidences.map((inc) {
+                    return DataRow(
+                      cells: [
+                        DataCell(Text(inc['ID']?.toString() ?? '-')),
+                        DataCell(Text(inc['IDTicket']?.toString() ?? '-')),
+                        DataCell(Text(inc['Descripcion']?.toString() ?? '-')),
+                        DataCell(Text(inc['Tipo']?.toString() ?? '-')),
+                        DataCell(Text(inc['IDUnidad']?.toString() ?? '-')),
+                      ],
+                    );
+                  }).toList(),
+                ),
+              ],
+            );
+          },
+        );
+      default:
+        // Dashboard principal
+        return FutureBuilder<Map<String, dynamic>>(
+          future: fetchDashboardData(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return _loadingWidget('Cargando información...');
+            } else if (snapshot.hasError) {
+              return _errorWidget('Error al cargar dashboard');
+            } else if (!snapshot.hasData) {
+              return _emptyWidget('Sin datos disponibles');
+            }
+            final data = snapshot.data!;
+            final totalVehiculos = data['total_vehiculos'] ?? 0;
+            final totalPasajeros = data['total_passanger'] ?? 0;
+            final totalOperarios = data['total_operative'] ?? 0;
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            const Icon(
+                              Icons.supervisor_account,
+                              color: SupervisorDashboard.accentColor,
+                              size: 28,
+                            ),
+                            const SizedBox(width: 12),
+                            const Text(
+                              'Panel de Supervisión',
+                              style: TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF202124),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 8),
+                        Text(
+                          'Bienvenido, Supervisor. Aquí está el resumen de tu equipo.',
+                          style: const TextStyle(
+                            fontSize: 16,
+                            color: Color(0xFF5F6368),
                           ),
-                          const SizedBox(width: 12),
-                          Expanded(
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Text(
-                                  user['Nombre']?.toString() ?? 'Supervisor',
-                                  style: const TextStyle(
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 16,
-                                    color: Color(0xFF202124),
-                                  ),
-                                  overflow: TextOverflow.ellipsis,
-                                ),
-                                const SizedBox(height: 4),
-                                Container(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 8, vertical: 2),
-                                  decoration: BoxDecoration(
-                                    color: accentColor,
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: const Text(
-                                    'Supervisor',
-                                    style: TextStyle(
-                                      color: Color(0xFF202124),
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.w500,
-                                    ),
-                                  ),
-                                ),
-                              ],
+                        ),
+                      ],
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 8,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(
+                          color: const Color(0xFFDFE1E5),
+                          width: 1,
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(
+                            Icons.calendar_today,
+                            size: 18,
+                            color: SupervisorDashboard.accentColor,
+                          ),
+                          const SizedBox(width: 8),
+                          Text(
+                            _getCurrentDate(),
+                            style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w500,
+                              color: Color(0xFF202124),
                             ),
                           ),
                         ],
                       ),
                     ),
-                    const Divider(height: 1),
+                  ],
+                ),
+                const SizedBox(height: 24),
+                Row(
+                  children: [
                     Expanded(
-                      child: ListView(
-                        padding: EdgeInsets.zero,
-                        children: [
-                          _buildMenuItem(
-                            icon: Icons.dashboard_outlined,
-                            title: 'Panel Principal',
-                            color: primaryColor,
-                            isActive: true,
-                          ),
-                          _buildMenuItem(
-                            icon: Icons.schedule_outlined,
-                            title: 'Asignar Turnos',
-                            color: primaryColor,
-                          ),
-                          _buildMenuItem(
-                            icon: Icons.assessment_outlined,
-                            title: 'Reporte de desempeño',
-                            color: primaryColor,
-                            onTap: () {
-                              Navigator.push(
-                                context,
-                                MaterialPageRoute(
-                                  builder: (_) =>
-                                      SupervisorReportScreen(token: token),
-                                ),
-                              );
-                            },
-                          ),
-                          _buildMenuItem(
-                            icon: Icons.directions_bus_outlined,
-                            title: 'Obtener Información de Unidad',
-                            color: primaryColor,
-                          ),
-                          _buildMenuItem(
-                            icon: Icons.warning_amber_outlined,
-                            title: 'Consultar Incidencias',
-                            color: primaryColor,
-                          ),
-                        ],
+                      child: _buildStatCard(
+                        title: 'Solicitudes Abiertas',
+                        value: '8',
+                        icon: Icons.assignment,
+                        color: SupervisorDashboard.primaryColor,
+                        subtitle: 'Total en curso',
                       ),
                     ),
-
-                    // Logout Button
-                    Container(
-                      width: double.infinity,
-                      padding: const EdgeInsets.all(16),
-                      child: ElevatedButton.icon(
-                        onPressed: () {},
-                        icon: const Icon(Icons.logout, size: 18),
-                        label: const Text('Cerrar Sesión'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.white,
-                          foregroundColor: primaryColor,
-                          elevation: 0,
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8),
-                            side: BorderSide(color: primaryColor),
-                          ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: _buildStatCard(
+                        title: 'Solicitudes Atrasadas',
+                        value: '0',
+                        icon: Icons.assignment_late,
+                        color: SupervisorDashboard.warningColor,
+                        subtitle: 'Sin resolver',
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: _buildStatCard(
+                        title: 'Tareas Vencidas',
+                        value: '7',
+                        icon: Icons.assignment_turned_in,
+                        color: SupervisorDashboard.accentColor,
+                        subtitle: 'Supervisión requerida',
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 24),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildChartBox(
+                        title: 'Distribución por Regulación',
+                        child: const Center(
+                          child: Text('[Gráfico circular aquí]'),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: _buildChartBox(
+                        title: 'Distribución por Actividad',
+                        child: const Center(
+                          child: Text('[Gráfico circular aquí]'),
                         ),
                       ),
                     ),
                   ],
                 ),
-              ),
-
-              // Main content
-              Expanded(
-                child: Container(
-                  color: const Color(0xFFF5F7FA),
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.all(24),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Header with date and welcome message
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  children: [
-                                    const Icon(
-                                      Icons.supervisor_account,
-                                      color: accentColor,
-                                      size: 28,
-                                    ),
-                                    const SizedBox(width: 12),
-                                    const Text(
-                                      'Panel de Supervisión',
-                                      style: TextStyle(
-                                        fontSize: 24,
-                                        fontWeight: FontWeight.bold,
-                                        color: Color(0xFF202124),
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 8),
-                                Text(
-                                  'Bienvenido, ${user['Nombre'] ?? 'Supervisor'}. Aquí está el resumen de tu equipo.',
-                                  style: const TextStyle(
-                                    fontSize: 16,
-                                    color: Color(0xFF5F6368),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 16,
-                                vertical: 8,
-                              ),
-                              decoration: BoxDecoration(
-                                color: Colors.white,
-                                borderRadius: BorderRadius.circular(8),
-                                border: Border.all(
-                                  color: const Color(0xFFDFE1E5),
-                                  width: 1,
-                                ),
-                              ),
-                              child: Row(
-                                children: [
-                                  const Icon(
-                                    Icons.calendar_today,
-                                    size: 18,
-                                    color: accentColor,
-                                  ),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    _getCurrentDate(),
-                                    style: const TextStyle(
-                                      fontSize: 14,
-                                      fontWeight: FontWeight.w500,
-                                      color: Color(0xFF202124),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 24),
-
-                        // Stats Overview
-                        Row(
-                          children: [
-                            Expanded(
-                              child: _buildStatCard(
-                                title: 'Operarios Activos',
-                                value: '${totalOperarios}',
-                                icon: Icons.engineering,
-                                color: primaryColor,
-                              ),
-                            ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: _buildStatCard(
-                                title: 'Vehículos en Ruta',
-                                value: '${totalVehiculos - 3}',
-                                icon: Icons.directions_bus,
-                                color: secondaryColor,
-                              ),
-                            ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: _buildStatCard(
-                                title: 'Incidencias Hoy',
-                                value: '2',
-                                icon: Icons.warning_amber,
-                                color: warningColor,
-                              ),
-                            ),
-                            const SizedBox(width: 16),
-                            Expanded(
-                              child: _buildStatCard(
-                                title: 'Pasajeros Hoy',
-                                value:
-                                    '${totalPasajeros > 1000 ? (totalPasajeros / 1000).toStringAsFixed(1) + 'K' : totalPasajeros}',
-                                icon: Icons.people,
-                                color: accentColor,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 24),
-
-                        // Quick Actions
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Expanded(
-                              flex: 1,
-                              child: Card(
-                                elevation: 0,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                  side: BorderSide(
-                                    color: secondaryColor.withOpacity(0.1),
-                                    width: 1,
-                                  ),
-                                ),
-                                color: cardColor,
-                                child: Padding(
-                                  padding: const EdgeInsets.all(20),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Row(
-                                        children: [
-                                          Icon(
-                                            Icons.flash_on,
-                                            color: secondaryColor,
-                                            size: 22,
-                                          ),
-                                          const SizedBox(width: 8),
-                                          const Text(
-                                            'Acciones Rápidas',
-                                            style: TextStyle(
-                                              fontSize: 18,
-                                              fontWeight: FontWeight.bold,
-                                              color: Color(0xFF202124),
-                                            ),
-                                          ),
-                                        ],
-                                      ),
-                                      const SizedBox(height: 16),
-                                      const Divider(),
-                                      const SizedBox(height: 16),
-                                      _buildQuickActionButton(
-                                        label: 'Asignar Turno',
-                                        icon: Icons.schedule,
-                                        color: primaryColor,
-                                      ),
-                                      const SizedBox(height: 12),
-                                      _buildQuickActionButton(
-                                        label: 'Reportar Incidencia',
-                                        icon: Icons.warning_amber,
-                                        color: warningColor,
-                                      ),
-                                      const SizedBox(height: 12),
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
-                    ),
+                const SizedBox(height: 16),
+                _buildChartBox(
+                  title: 'Solicitudes en el tiempo',
+                  full: true,
+                  child: const Center(
+                    child: Text('[Gráfico de líneas aquí]'),
                   ),
                 ),
-              ),
-            ],
-          );
-        },
-      ),
-    );
-  }
-
-  String _getCurrentDate() {
-    final now = DateTime.now();
-    final months = [
-      'Enero',
-      'Febrero',
-      'Marzo',
-      'Abril',
-      'Mayo',
-      'Junio',
-      'Julio',
-      'Agosto',
-      'Septiembre',
-      'Octubre',
-      'Noviembre',
-      'Diciembre'
-    ];
-    return '${now.day} de ${months[now.month - 1]}, ${now.year}';
+              ],
+            );
+          },
+        );
+    }
   }
 
   Widget _buildMenuItem({
@@ -510,6 +670,7 @@ class SupervisorDashboard extends StatelessWidget {
     required String value,
     required IconData icon,
     required Color color,
+    String? subtitle,
   }) {
     return Card(
       elevation: 0,
@@ -520,7 +681,7 @@ class SupervisorDashboard extends StatelessWidget {
           width: 1,
         ),
       ),
-      color: cardColor,
+      color: SupervisorDashboard.cardColor,
       child: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
@@ -561,506 +722,109 @@ class SupervisorDashboard extends StatelessWidget {
                 color: Color(0xFF202124),
               ),
             ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTeamMemberRow({
-    required String name,
-    required String role,
-    required String status,
-    required double performance,
-    required Color avatarColor,
-  }) {
-    return Row(
-      children: [
-        CircleAvatar(
-          backgroundColor: avatarColor,
-          radius: 20,
-          child: Text(
-            name.substring(0, 1),
-            style: const TextStyle(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-              fontSize: 14,
-            ),
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                name,
-                style: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.w500,
-                  color: Color(0xFF202124),
-                ),
-              ),
+            if (subtitle != null) ...[
               const SizedBox(height: 4),
-              Row(
-                children: [
-                  Text(
-                    role,
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: Color(0xFF5F6368),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                    decoration: BoxDecoration(
-                      color: status == 'En ruta' ? secondaryColor : accentColor,
-                      borderRadius: BorderRadius.circular(4),
-                    ),
-                    child: Text(
-                      status,
-                      style: const TextStyle(
-                        fontSize: 10,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            Text(
-              '${(performance * 100).toInt()}%',
-              style: TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-                color: _getPerformanceColor(performance),
-              ),
-            ),
-            const SizedBox(height: 4),
-            SizedBox(
-              width: 80,
-              height: 6,
-              child: ClipRRect(
-                borderRadius: BorderRadius.circular(3),
-                child: LinearProgressIndicator(
-                  value: performance,
-                  backgroundColor: const Color(0xFFEEEEEE),
-                  valueColor: AlwaysStoppedAnimation<Color>(
-                      _getPerformanceColor(performance)),
+              Text(
+                subtitle,
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: Color(0xFF5F6368),
                 ),
               ),
-            ),
+            ]
           ],
-        ),
-      ],
-    );
-  }
-
-  Color _getPerformanceColor(double performance) {
-    if (performance >= 0.9) return secondaryColor;
-    if (performance >= 0.7) return accentColor;
-    return warningColor;
-  }
-
-  Widget _buildQuickActionButton({
-    required String label,
-    required IconData icon,
-    required Color color,
-  }) {
-    return SizedBox(
-      width: double.infinity,
-      child: ElevatedButton.icon(
-        onPressed: () {},
-        icon: Icon(icon, size: 18),
-        label: Text(label),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: color,
-          foregroundColor: Colors.white,
-          padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
-          elevation: 0,
-          alignment: Alignment.centerLeft,
         ),
       ),
     );
   }
 
-  Widget _buildScheduleItem({
-    required String time,
+  Widget _buildChartBox({
     required String title,
-    required String location,
+    required Widget child,
+    bool full = false,
   }) {
-    return Row(
-      children: [
-        Container(
-          width: 40,
-          height: 40,
-          decoration: BoxDecoration(
-            color: accentColor.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(8),
-          ),
-          child: Center(
-            child: Text(
-              time.split(' ')[0],
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w600,
-                color: accentColor,
-              ),
-            ),
+    return Expanded(
+      flex: full ? 2 : 1,
+      child: Card(
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: BorderSide(
+            color: SupervisorDashboard.primaryColor.withOpacity(0.05),
+            width: 1,
           ),
         ),
-        const SizedBox(width: 12),
-        Expanded(
+        color: Colors.white,
+        child: Padding(
+          padding: const EdgeInsets.all(20),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 title,
                 style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w500,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
                   color: Color(0xFF202124),
                 ),
               ),
-              const SizedBox(height: 2),
-              Row(
-                children: [
-                  Icon(
-                    Icons.location_on,
-                    size: 12,
-                    color: const Color(0xFF5F6368),
-                  ),
-                  const SizedBox(width: 4),
-                  Text(
-                    location,
-                    style: const TextStyle(
-                      fontSize: 12,
-                      color: Color(0xFF5F6368),
-                    ),
-                  ),
-                ],
-              ),
+              const SizedBox(height: 16),
+              SizedBox(height: 120, child: child),
             ],
           ),
         ),
-      ],
+      ),
     );
   }
 
-  Widget _buildIncidentItem({
-    required String time,
-    required String title,
-    required String description,
-    required String severity,
-    required Color severityColor,
-    required String status,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: severityColor.withOpacity(0.05),
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: severityColor.withOpacity(0.2),
-          width: 1,
-        ),
-      ),
+  Widget _loadingWidget(String text) {
+    return Center(
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                decoration: BoxDecoration(
-                  color: severityColor.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(4),
-                ),
-                child: Text(
-                  'Severidad: $severity',
-                  style: TextStyle(
-                    fontSize: 10,
-                    fontWeight: FontWeight.w500,
-                    color: severityColor,
-                  ),
-                ),
-              ),
-              Text(
-                time,
-                style: const TextStyle(
-                  fontSize: 12,
-                  color: Color(0xFF5F6368),
-                ),
-              ),
-            ],
+          CircularProgressIndicator(
+            color: SupervisorDashboard.primaryColor,
+            strokeWidth: 3,
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 16),
           Text(
-            title,
+            text,
             style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w600,
-              color: Color(0xFF202124),
-            ),
-          ),
-          const SizedBox(height: 4),
-          Text(
-            description,
-            style: const TextStyle(
-              fontSize: 14,
               color: Color(0xFF5F6368),
+              fontSize: 16,
             ),
-          ),
-          const SizedBox(height: 8),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Estado: $status',
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w500,
-                  color: status == 'Pendiente' ? warningColor : secondaryColor,
-                ),
-              ),
-              TextButton(
-                onPressed: () {},
-                style: TextButton.styleFrom(
-                  foregroundColor: primaryColor,
-                  padding: EdgeInsets.zero,
-                  minimumSize: const Size(0, 0),
-                  tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                ),
-                child: const Text(
-                  'Ver Detalles',
-                  style: TextStyle(fontSize: 12),
-                ),
-              ),
-            ],
           ),
         ],
       ),
     );
   }
 
-  Widget _buildVehicleStatusItem({
-    required String id,
-    required String route,
-    required String driver,
-    required String status,
-    required Color statusColor,
-  }) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(
-          color: const Color(0xFFEEEEEE),
-          width: 1,
-        ),
-      ),
-      child: Row(
+  Widget _errorWidget(String text) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Container(
-            width: 40,
-            height: 40,
-            decoration: BoxDecoration(
-              color: secondaryColor.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(8),
-            ),
-            child: Icon(
-              Icons.directions_bus,
-              color: secondaryColor,
-              size: 20,
-            ),
+          const Icon(
+            Icons.error_outline,
+            color: Colors.red,
+            size: 60,
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  'Vehículo $id - $route',
-                  style: const TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: Color(0xFF202124),
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  'Operario: $driver',
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: Color(0xFF5F6368),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            decoration: BoxDecoration(
-              color: statusColor.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(4),
-            ),
-            child: Row(
-              children: [
-                Container(
-                  width: 6,
-                  height: 6,
-                  decoration: BoxDecoration(
-                    color: statusColor,
-                    shape: BoxShape.circle,
-                  ),
-                ),
-                const SizedBox(width: 4),
-                Text(
-                  status,
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                    color: statusColor,
-                  ),
-                ),
-              ],
-            ),
+          const SizedBox(height: 16),
+          Text(
+            text,
+            style: const TextStyle(color: Colors.red),
+            textAlign: TextAlign.center,
           ),
         ],
       ),
     );
   }
-}
 
-class SupervisorReportScreen extends StatefulWidget {
-  final String token;
-  const SupervisorReportScreen({Key? key, required this.token})
-      : super(key: key);
-
-  @override
-  State<SupervisorReportScreen> createState() => _SupervisorReportScreenState();
-}
-
-class _SupervisorReportScreenState extends State<SupervisorReportScreen> {
-  bool _loading = false;
-  String? _error;
-  Map<String, dynamic>? _data;
-
-  Future<void> _fetchReport() async {
-    setState(() {
-      _loading = true;
-      _error = null;
-      _data = null;
-    });
-    try {
-      final response = await http.get(
-        Uri.parse('${AppConfig.baseUrl}/reporte/supervisor'),
-        headers: {
-          'Authorization': 'Bearer ${widget.token}',
-          'accept': 'application/json',
-        },
-      );
-      if (response.statusCode == 200) {
-        setState(() {
-          _data = json.decode(response.body);
-        });
-      } else {
-        setState(() {
-          _error = 'No se pudo obtener el reporte.';
-        });
-      }
-    } catch (e) {
-      setState(() {
-        _error = 'Error de conexión.';
-      });
-    } finally {
-      setState(() {
-        _loading = false;
-      });
-    }
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    _fetchReport();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Reporte de Desempeño'),
-        backgroundColor: SupervisorDashboard.primaryColor,
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(24.0),
-        child: _loading
-            ? Center(child: CircularProgressIndicator())
-            : _error != null
-                ? Center(
-                    child: Text(_error!, style: TextStyle(color: Colors.red)))
-                : _data == null
-                    ? const Center(child: Text('Sin datos'))
-                    : Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Card(
-                            elevation: 2,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16),
-                            ),
-                            child: Padding(
-                              padding: const EdgeInsets.all(24.0),
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Row(
-                                    children: [
-                                      Icon(Icons.bar_chart,
-                                          color:
-                                              SupervisorDashboard.primaryColor,
-                                          size: 32),
-                                      const SizedBox(width: 12),
-                                      const Text('Resumen de Desempeño',
-                                          style: TextStyle(
-                                              fontSize: 20,
-                                              fontWeight: FontWeight.bold)),
-                                    ],
-                                  ),
-                                  const SizedBox(height: 20),
-                                  _buildReportRow(
-                                      'Total de Movimientos',
-                                      _data!['total_movimientos']?.toString() ??
-                                          '-'),
-                                  _buildReportRow(
-                                      'Total de Usuarios',
-                                      _data!['total_usuarios']?.toString() ??
-                                          '-'),
-                                  _buildReportRow(
-                                      'Promedio de Horas Trabajadas',
-                                      _data!['promedio_horas_trabajadas']
-                                              ?.toString() ??
-                                          '-'),
-                                ],
-                              ),
-                            ),
-                          ),
-                        ],
-                      ),
+  Widget _emptyWidget(String text) {
+    return Center(
+      child: Text(
+        text,
+        style: const TextStyle(fontSize: 18),
       ),
     );
   }
@@ -1076,5 +840,24 @@ class _SupervisorReportScreenState extends State<SupervisorReportScreen> {
         ],
       ),
     );
+  }
+
+  String _getCurrentDate() {
+    final now = DateTime.now();
+    final months = [
+      'Enero',
+      'Febrero',
+      'Marzo',
+      'Abril',
+      'Mayo',
+      'Junio',
+      'Julio',
+      'Agosto',
+      'Septiembre',
+      'Octubre',
+      'Noviembre',
+      'Diciembre'
+    ];
+    return '${now.day} de ${months[now.month - 1]}, ${now.year}';
   }
 }
