@@ -1,9 +1,9 @@
 from typing import Optional
 from pydantic import BaseModel
 
-class Route(BaseModel):
+class Ruta(BaseModel):
     __entity_name__ = "Rutas"  # Nombre de la tabla en la base de datos
-
+    __table_name__ = "Rutas"  # Nombre de la tabla en la base de datos
     ID: Optional[int] = None  # Clave primaria
     IDHorario: int  # Clave foránea a la tabla Horario
     Nombre: str  # Nombre de la ruta

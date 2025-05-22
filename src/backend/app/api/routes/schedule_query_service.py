@@ -1,7 +1,6 @@
 import logging
-from fastapi import APIRouter, HTTPException, Request, Security
-from fastapi.responses import HTMLResponse
-from fastapi.templating import Jinja2Templates
+from fastapi import APIRouter, HTTPException, Security
+from fastapi.responses import JSONResponse
 from backend.app.logic.universal_controller_instance import universal_controller as controller
 
 from backend.app.models.schedule import Schedule
@@ -11,30 +10,28 @@ logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
 app = APIRouter(prefix="/schedules", tags=["schedules"])
-templates = Jinja2Templates(directory="src/backend/app/templates")
 
-@app.get("/", response_class=HTMLResponse)
-def listar_horarios(
-    request: Request,
-   #current_user: dict  = Security(get_current_user, scopes=["system", "administrador", "planificador", "operador"])
-):
+@app.get("/", response_class=JSONResponse)
+def listar_horarios():
     """
-    Lista todos los horarios y los renderiza en una plantilla HTML.
+    Lista todos los horarios.
     """
     try:
         horarios = controller.read_all(Schedule)
         logger.info(f"[GET /schedules/] Se listaron {len(horarios)} horarios.")
-        return templates.TemplateResponse("ListarHorarios.html", {"request": request, "horarios": horarios})
+        horarios_json = [
+            h.model_dump() if hasattr(h, "model_dump")
+            else h.dict() if hasattr(h, "dict")
+            else h
+            for h in horarios
+        ]
+        return horarios_json
     except Exception as e:
         logger.error(f"[GET /schedules/] Error al listar los horarios: {str(e)}")
         raise HTTPException(status_code=500, detail=f"Error al listar los horarios: {str(e)}")
 
-@app.get("/{id}", response_class=HTMLResponse)
-def obtener_detalle_horario(
-    id: int,
-    request: Request,
-   #current_user: dict  = Security(get_current_user, scopes=["system", "administrador", "planificador", "operador"])
-):
+@app.get("/{id}", response_class=JSONResponse)
+def obtener_detalle_horario(id: int):
     """
     Obtiene el detalle de un horario por su ID.
     """
@@ -43,4 +40,9 @@ def obtener_detalle_horario(
         logger.warning(f"[GET /schedules/{id}] Horario no encontrado.")
         raise HTTPException(status_code=404, detail="Horario no encontrado")
     logger.info(f"[GET /schedules/{id}] Se consultó el horario con ID={id}.")
-    return templates.TemplateResponse("DetalleHorario.html", {"request": request, "horario": horario.to_dict()})
+    if hasattr(horario, "model_dump"):
+        return horario.model_dump()
+    elif hasattr(horario, "dict"):
+        return horario.dict()
+    else:
+        return horario

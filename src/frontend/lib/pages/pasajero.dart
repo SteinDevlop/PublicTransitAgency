@@ -210,6 +210,57 @@ class PassengerPanel extends StatelessWidget {
                             icon: Icons.schedule_outlined,
                             title: 'Líneas, horarios y medios',
                             color: primaryColor,
+                            onTap: () {
+                              showDialog(
+                                context: context,
+                                builder: (_) => Dialog(
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(24),
+                                    child: SizedBox(
+                                      width: 400,
+                                      child: FutureBuilder<List<dynamic>>(
+                                        future: _fetchHorarios(token),
+                                        builder: (context, snapshot) {
+                                          if (snapshot.connectionState ==
+                                              ConnectionState.waiting) {
+                                            return Center(
+                                                child:
+                                                    CircularProgressIndicator());
+                                          } else if (snapshot.hasError) {
+                                            return Center(
+                                                child: Text(
+                                                    'Error al cargar horarios'));
+                                          } else if (!snapshot.hasData ||
+                                              snapshot.data!.isEmpty) {
+                                            return Center(
+                                                child: Text(
+                                                    'No hay horarios disponibles.'));
+                                          }
+                                          final horarios = snapshot.data!;
+                                          return ListView.separated(
+                                            shrinkWrap: true,
+                                            itemCount: horarios.length,
+                                            separatorBuilder: (_, __) =>
+                                                Divider(),
+                                            itemBuilder: (_, i) {
+                                              final h = horarios[i];
+                                              return ListTile(
+                                                leading: Icon(
+                                                    Icons.access_time,
+                                                    color: primaryColor),
+                                                title: Text('ID: ${h['ID']}'),
+                                                subtitle: Text(
+                                                    'Llegada: ${h['Llegada']} | Salida: ${h['Salida']}'),
+                                              );
+                                            },
+                                          );
+                                        },
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              );
+                            },
                           ),
                           _buildMenuItem(
                             icon: Icons.attach_money_outlined,
@@ -525,6 +576,21 @@ class PassengerPanel extends StatelessWidget {
         ],
       ),
     );
+  }
+
+  Future<List<dynamic>> _fetchHorarios(String token) async {
+    final response = await http.get(
+      Uri.parse('${AppConfig.baseUrl}/schedules/'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'accept': 'application/json',
+      },
+    );
+    if (response.statusCode == 200) {
+      return json.decode(response.body);
+    } else {
+      throw Exception('Error al cargar horarios');
+    }
   }
 }
 

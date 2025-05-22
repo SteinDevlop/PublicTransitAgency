@@ -178,14 +178,14 @@ class UniversalController:
         except pyodbc.Error as e:
             raise RuntimeError(f"Error al ejecutar la consulta: {e}")
 
-    def obtener_ruta_con_interconexion(self, ubicacion_llegada: str, ubicacion_final: str) -> dict:
+    def ruta_interconexion(self, ubicacion_llegada: str, ubicacion_final: str) -> dict:
         response = {"interconexiones": []}  # Inicializar la respuesta en formato JSON
 
         try:
             # Obtener rutas desde la ubicación de llegada
             query_llegada = '''
             SELECT r.ID, r.Nombre, p.ID, p.Ubicacion
-            FROM DB_PUBLIC_TRANSIT_AGENCY.dbo.Ruta r
+            FROM DB_PUBLIC_TRANSIT_AGENCY.dbo.Rutas r
             JOIN DB_PUBLIC_TRANSIT_AGENCY.dbo.RutaParada rp ON r.ID = rp.IDRuta
             JOIN DB_PUBLIC_TRANSIT_AGENCY.dbo.Parada p ON rp.IDParada = p.ID
             WHERE p.Ubicacion = ?;
@@ -200,7 +200,7 @@ class UniversalController:
                 # Obtener rutas que lleguen a la ubicación final
                 query_final = '''
                 SELECT r.ID, r.Nombre, p.ID, p.Ubicacion
-                FROM DB_PUBLIC_TRANSIT_AGENCY.dbo.Ruta r
+                FROM DB_PUBLIC_TRANSIT_AGENCY.dbo.Rutas r
                 JOIN DB_PUBLIC_TRANSIT_AGENCY.dbo.RutaParada rp ON r.ID = rp.IDRuta
                 JOIN DB_PUBLIC_TRANSIT_AGENCY.dbo.Parada p ON rp.IDParada = p.ID
                 WHERE p.Ubicacion = ?;
@@ -311,7 +311,7 @@ class UniversalController:
         """
         sql = "SELECT rp.IDRuta, rp.IDParada, r.Nombre AS NombreRuta, p.Nombre AS NombreParada " \
               "FROM RutaParada rp " \
-              "JOIN Ruta r ON rp.IDRuta = r.ID " \
+              "JOIN Rutas r ON rp.IDRuta = r.ID " \
               "JOIN Parada p ON rp.IDParada = p.ID"
 
         conditions = []

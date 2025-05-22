@@ -37,6 +37,25 @@ class TecnicoPanel extends StatelessWidget {
     }
   }
 
+  Future<List<Map<String, dynamic>>> fetchItinerario() async {
+    final response = await http.get(
+      Uri.parse('${AppConfig.baseUrl}/schedules/'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'accept': 'application/json',
+      },
+    );
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      if (data is List) {
+        return List<Map<String, dynamic>>.from(data);
+      }
+      return [];
+    } else {
+      throw Exception('Error al cargar itinerario: ${response.body}');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     // Estado para la sección seleccionada
@@ -133,7 +152,7 @@ class TecnicoPanel extends StatelessWidget {
                 children: [
                   const Icon(Icons.error_outline, color: Colors.red, size: 60),
                   const SizedBox(height: 16),
-                  Text('Error: \\${snapshot.error}',
+                  Text('Error: ${snapshot.error}',
                       style: const TextStyle(color: Colors.red)),
                 ],
               ),
@@ -267,7 +286,84 @@ class TecnicoPanel extends StatelessWidget {
                 child: ValueListenableBuilder<String>(
                   valueListenable: selectedSection,
                   builder: (context, section, _) {
-                    if (section == 'alertas') {
+                    if (section == 'itinerario') {
+                      // ITINERARIO: Mostrar los schedules
+                      return FutureBuilder<List<Map<String, dynamic>>>(
+                        future: fetchItinerario(),
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState == ConnectionState.waiting) {
+                            return const Center(
+                              child: CircularProgressIndicator(),
+                            );
+                          } else if (snapshot.hasError) {
+                            return Center(
+                              child: Text(
+                                'Error al cargar el itinerario: ${snapshot.error}',
+                                style: const TextStyle(color: Colors.red),
+                              ),
+                            );
+                          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                            return const Center(
+                              child: Text('No hay itinerarios disponibles.'),
+                            );
+                          }
+                          final itinerarios = snapshot.data!;
+                          return SingleChildScrollView(
+                            padding: const EdgeInsets.all(24),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                const Text(
+                                  'Itinerario de Buses',
+                                  style: TextStyle(
+                                    fontSize: 22,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(height: 24),
+                                Container(
+                                  decoration: BoxDecoration(
+                                    color: Colors.white,
+                                    borderRadius: BorderRadius.circular(16),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: Colors.black12,
+                                        blurRadius: 8,
+                                        offset: Offset(0, 2),
+                                      ),
+                                    ],
+                                  ),
+                                  child: DataTable(
+                                    headingRowColor: MaterialStateProperty.all(
+                                        primaryColor.withOpacity(0.1)),
+                                    columns: const [
+                                      DataColumn(label: Text('ID')),
+                                      DataColumn(label: Text('Unidad')),
+                                      DataColumn(label: Text('Ruta')),
+                                      DataColumn(label: Text('Parada')),
+                                      DataColumn(label: Text('Llegada')),
+                                      DataColumn(label: Text('Salida')),
+                                    ],
+                                    rows: itinerarios.map((item) {
+                                      return DataRow(
+                                        cells: [
+                                          DataCell(Text(item['ID']?.toString() ?? '-')),
+                                          DataCell(Text(item['IDUnidad']?.toString() ?? '-')),
+                                          DataCell(Text(item['IDRuta']?.toString() ?? '-')),
+                                          DataCell(Text(item['IDParada']?.toString() ?? '-')),
+                                          DataCell(Text(item['Llegada']?.toString() ?? '-')),
+                                          DataCell(Text(item['Salida']?.toString() ?? '-')),
+                                        ],
+                                      );
+                                    }).toList(),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                      );
+                    } else if (section == 'alertas') {
                       return ValueListenableBuilder<bool>(
                         valueListenable: loadingAlertas,
                         builder: (context, loading, _) {
@@ -327,7 +423,7 @@ class TecnicoPanel extends StatelessWidget {
                             ),
                             const SizedBox(height: 8),
                             Text(
-                                'Bienvenido, \\${user['Nombre'] ?? 'Técnico'}. Aquí está el resumen de mantenimiento.',
+                                'Bienvenido, ${user['Nombre'] ?? 'Técnico'}. Aquí está el resumen de mantenimiento.',
                                 style: const TextStyle(
                                     fontSize: 16, color: Color(0xFF5F6368))),
                             const SizedBox(height: 24),
@@ -436,7 +532,7 @@ class TecnicoPanel extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                  'ID: \\${m[0]} | Unidad: \\${m[1]} | Desc: \\${m[2]} | Fecha: \\${m[3]} | Técnico: \\${m[4]}'),
+                                  'ID: ${m[0]} | Unidad: ${m[1]} | Desc: ${m[2]} | Fecha: ${m[3]} | Técnico: ${m[4]}'),
                             ],
                           ),
                         )),
@@ -469,7 +565,7 @@ class TecnicoPanel extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                  'ID: \\${m[0]} | Unidad: \\${m[1]} | Desc: \\${m[2]} | Fecha: \\${m[3]} | Técnico: \\${m[4]}'),
+                                  'ID: ${m[0]} | Unidad: ${m[1]} | Desc: ${m[2]} | Fecha: ${m[3]} | Técnico: ${m[4]}'),
                             ],
                           ),
                         )),

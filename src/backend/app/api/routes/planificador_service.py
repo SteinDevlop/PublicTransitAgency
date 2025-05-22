@@ -30,7 +30,7 @@ async def get_route_plan(request: Request, ubicacion_entrada: str = Form(...), u
                     base64.b64encode(value.encode('UTF-8')).decode()
                 )
 
-        resultado = controller.obtener_ruta_con_interconexion(ubicacion_entrada, ubicacion_final)
+        resultado = controller.ruta_interconexion(ubicacion_entrada, ubicacion_final)
         
         if not resultado:
             logger.log(logging.CRITICAL, "Resultado vacío o inválido")

@@ -38,8 +38,8 @@ async def get_supervisor_report(request: Request,current_user: dict = Security(g
 async def get_technical_alert_report(request: Request,current_user: dict = Security(get_current_user,scopes=["system", "administrador","mantenimiento"])):
     try:
         # Obtener datos desde el controlador
-        atrasados = controller.alerta_mantenimiento_atrasados()
-        proximos = controller.alerta_mantenimiento_proximos()
+        atrasados = controller.alerta_mantenimiento_atrasados() or []
+        proximos = controller.alerta_mantenimiento_proximos() or []
 
         # Convertir los datos a un formato serializable
         def serialize(obj):

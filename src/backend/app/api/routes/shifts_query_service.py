@@ -1,7 +1,6 @@
 import logging
-from fastapi import APIRouter, HTTPException, Request, Security
-from fastapi.responses import HTMLResponse
-from fastapi.templating import Jinja2Templates
+from fastapi import APIRouter, HTTPException, Security
+from fastapi.responses import JSONResponse
 from backend.app.logic.universal_controller_instance import universal_controller as controller
 
 from backend.app.models.shift import Shift
@@ -11,30 +10,28 @@ logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
 app = APIRouter(prefix="/shifts", tags=["shifts"])
-templates = Jinja2Templates(directory="src/backend/app/templates")
 
-@app.get("/", response_class=HTMLResponse)
-def listar_turnos(
-    request: Request,
-   #current_user: dict  = Security(get_current_user, scopes=["system", "administrador", "supervisor"])
-):
+@app.get("/", response_class=JSONResponse)
+def listar_turnos():
     """
     Consulta la lista de todos los turnos.
     """
     try:
         turnos = controller.read_all(Shift)
         logger.info(f"[GET /shifts/] Se listaron {len(turnos)} turnos.")
-        return templates.TemplateResponse("ListarTurno.html", {"request": request, "turnos": turnos})
+        turnos_json = [
+            t.model_dump() if hasattr(t, "model_dump")
+            else t.dict() if hasattr(t, "dict")
+            else t
+            for t in turnos
+        ]
+        return turnos_json
     except Exception as e:
         logger.error(f"[GET /shifts/] Error al listar turnos: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
-@app.get("/{id}", response_class=HTMLResponse)
-def detalle_turno(
-    id: int,
-    request: Request,
-   #current_user: dict  = Security(get_current_user, scopes=["system", "administrador", "supervisor"])
-):
+@app.get("/{id}", response_class=JSONResponse)
+def detalle_turno(id: int):
     """
     Consulta el detalle de un turno en específico por su ID.
     """
@@ -44,7 +41,12 @@ def detalle_turno(
             logger.warning(f"[GET /shifts/{id}] Turno no encontrado.")
             raise HTTPException(status_code=404, detail="Turno no encontrado")
         logger.info(f"[GET /shifts/{id}] Se consultó el turno con ID={id}.")
-        return templates.TemplateResponse("DetalleTurno.html", {"request": request, "turno": turno.to_dict()})
+        if hasattr(turno, "model_dump"):
+            return turno.model_dump()
+        elif hasattr(turno, "dict"):
+            return turno.dict()
+        else:
+            return turno
     except Exception as e:
         logger.error(f"[GET /shifts/{id}] Error al consultar turno: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))

@@ -14,7 +14,7 @@ client = TestClient(app)
 
 @pytest.fixture
 def setup_and_teardown():
-    incidencia = Incidence(ID=9999, IDTicket=1, Descripcion="Prueba de incidencia", Tipo="Error", IDUnidad="1")
+    incidencia = Incidence(ID=99999, IDTicket=1, Descripcion="Prueba de incidencia", Tipo="Error", IDUnidad="1")
     controller.add(incidencia)
     yield incidencia
     controller.delete(incidencia)

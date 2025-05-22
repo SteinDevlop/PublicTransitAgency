@@ -37,6 +37,60 @@ class AdminPanel extends StatelessWidget {
     }
   }
 
+  Future<List<dynamic>> fetchTransportUnits() async {
+    final response = await http.get(
+      Uri.parse('${AppConfig.baseUrl}/transport_units/'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'accept': 'application/json',
+      },
+    );
+    if (response.statusCode == 200) {
+      return json.decode(response.body);
+    } else {
+      throw Exception('Error al cargar unidades de transporte');
+    }
+  }
+
+  Future<bool> createTransportUnit(Map<String, dynamic> data) async {
+    final response = await http.post(
+      Uri.parse('${AppConfig.baseUrl}/transport_units/create'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'accept': 'application/json',
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: data,
+    );
+    return response.statusCode == 200 || response.statusCode == 201;
+  }
+
+  Future<bool> updateTransportUnit(Map<String, dynamic> data) async {
+    final response = await http.post(
+      Uri.parse('${AppConfig.baseUrl}/transport_units/update'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'accept': 'application/json',
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: data,
+    );
+    return response.statusCode == 200;
+  }
+
+  Future<bool> deleteTransportUnit(String id) async {
+    final response = await http.post(
+      Uri.parse('${AppConfig.baseUrl}/transport_units/delete'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'accept': 'application/json',
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: {'ID': id},
+    );
+    return response.statusCode == 200;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -251,21 +305,64 @@ class AdminPanel extends StatelessWidget {
                             color: primaryColor,
                             buttons: [
                               _buildCrudButton(
-                                  '➕ Añadir Ruta',
-                                  () => Navigator.pushNamed(
-                                      context, '/routes/create')),
+                                '➕ Añadir Ruta',
+                                () => showDialog(
+                                  context: context,
+                                  builder: (_) => Dialog(
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(24),
+                                      child: _RutaFormWidget(
+                                        token: token,
+                                        mode: RutaFormMode.create,
+                                        onSuccess: () => Navigator.pop(context),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
                               _buildCrudButton(
-                                  '📄 Leer Rutas',
-                                  () => Navigator.pushNamed(
-                                      context, '/routes/list')),
+                                '📄 Leer Rutas',
+                                () => showDialog(
+                                  context: context,
+                                  builder: (_) => Dialog(
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(24),
+                                      child: _RutaListWidget(token: token),
+                                    ),
+                                  ),
+                                ),
+                              ),
                               _buildCrudButton(
-                                  '🖊️ Actualizar Ruta',
-                                  () => Navigator.pushNamed(
-                                      context, '/routes/update')),
+                                '🖊️ Actualizar Ruta',
+                                () => showDialog(
+                                  context: context,
+                                  builder: (_) => Dialog(
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(24),
+                                      child: _RutaFormWidget(
+                                        token: token,
+                                        mode: RutaFormMode.update,
+                                        onSuccess: () => Navigator.pop(context),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
                               _buildCrudButton(
-                                  '🗑️ Eliminar Ruta',
-                                  () => Navigator.pushNamed(
-                                      context, '/routes/delete')),
+                                '🗑️ Eliminar Ruta',
+                                () => showDialog(
+                                  context: context,
+                                  builder: (_) => Dialog(
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(24),
+                                      child: _RutaDeleteWidget(
+                                        token: token,
+                                        onSuccess: () => Navigator.pop(context),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
                             ],
                           ),
                           // CRUD: Usuarios
@@ -374,21 +471,64 @@ class AdminPanel extends StatelessWidget {
                             color: primaryColor,
                             buttons: [
                               _buildCrudButton(
-                                  '➕ Añadir horario',
-                                  () => Navigator.pushNamed(
-                                      context, '/schedules/create')),
+                                '➕ Añadir horario',
+                                () => showDialog(
+                                  context: context,
+                                  builder: (_) => Dialog(
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(24),
+                                      child: _HorarioFormWidget(
+                                        token: token,
+                                        mode: HorarioFormMode.create,
+                                        onSuccess: () => Navigator.pop(context),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
                               _buildCrudButton(
-                                  '📄 Leer horario',
-                                  () => Navigator.pushNamed(
-                                      context, '/schedules/')),
+                                '📄 Leer horario',
+                                () => showDialog(
+                                  context: context,
+                                  builder: (_) => Dialog(
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(24),
+                                      child: _HorarioListWidget(token: token),
+                                    ),
+                                  ),
+                                ),
+                              ),
                               _buildCrudButton(
-                                  '🖊️ Actualizar horario',
-                                  () => Navigator.pushNamed(
-                                      context, '/schedules/update')),
+                                '🖊️ Actualizar horario',
+                                () => showDialog(
+                                  context: context,
+                                  builder: (_) => Dialog(
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(24),
+                                      child: _HorarioFormWidget(
+                                        token: token,
+                                        mode: HorarioFormMode.update,
+                                        onSuccess: () => Navigator.pop(context),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
                               _buildCrudButton(
-                                  '🗑️ Eliminar horario',
-                                  () => Navigator.pushNamed(
-                                      context, '/schedules/delete')),
+                                '🗑️ Eliminar horario',
+                                () => showDialog(
+                                  context: context,
+                                  builder: (_) => Dialog(
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(24),
+                                      child: _HorarioDeleteWidget(
+                                        token: token,
+                                        onSuccess: () => Navigator.pop(context),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
                             ],
                           ),
                           // CRUD: Tarifa
@@ -637,6 +777,16 @@ class AdminPanel extends StatelessWidget {
                                       label: 'Añadir Vehículo',
                                       icon: Icons.add_circle_outline,
                                       color: secondaryColor,
+                                      onPressed: () => showDialog(
+                                        context: context,
+                                        builder: (_) => Dialog(
+                                          child: CrearUnidadWidget(
+                                            token: token,
+                                            onCreated: () =>
+                                                Navigator.pop(context),
+                                          ),
+                                        ),
+                                      ),
                                     ),
                                     _buildActionButton(
                                       label: 'Generar Reporte',
@@ -650,6 +800,46 @@ class AdminPanel extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(height: 24),
+
+                        // Transport Units Management
+                        const SizedBox(height: 32),
+                        Text('Gestión de Flota',
+                            style: TextStyle(
+                                fontSize: 22, fontWeight: FontWeight.bold)),
+                        const SizedBox(height: 16),
+                        Row(
+                          children: [
+                            ElevatedButton.icon(
+                              icon: Icon(Icons.add),
+                              label: Text('Añadir Unidad'),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AdminPanel.primaryColor,
+                                foregroundColor: Colors.white,
+                              ),
+                              onPressed: () {
+                                showDialog(
+                                  context: context,
+                                  builder: (_) => Dialog(
+                                    child: CrearUnidadWidget(
+                                      token: token,
+                                      onCreated: () => Navigator.pop(context),
+                                    ),
+                                  ),
+                                );
+                              },
+                            ),
+                            const SizedBox(width: 16),
+                            ElevatedButton.icon(
+                              icon: Icon(Icons.refresh),
+                              label: Text('Actualizar Tabla'),
+                              onPressed: () {
+                                (context as Element).markNeedsBuild();
+                              },
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: 24),
+                        _buildTransportUnitsSection(),
                       ],
                     ),
                   ),
@@ -659,6 +849,95 @@ class AdminPanel extends StatelessWidget {
           );
         },
       ),
+    );
+  }
+
+  Widget _buildTransportUnitsSection() {
+    return FutureBuilder<List<dynamic>>(
+      future: fetchTransportUnits(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Center(child: CircularProgressIndicator());
+        } else if (snapshot.hasError) {
+          return Center(
+              child: Text('Error al cargar unidades de transporte'));
+        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          return Center(child: Text('No hay unidades registradas.'));
+        }
+        final units = snapshot.data!;
+        return DataTable(
+          columns: const [
+            DataColumn(label: Text('ID')),
+            DataColumn(label: Text('Ubicación')),
+            DataColumn(label: Text('Capacidad')),
+            DataColumn(label: Text('Ruta')),
+            DataColumn(label: Text('Tipo')),
+            DataColumn(label: Text('Acciones')),
+          ],
+          rows: units.map<DataRow>((unit) {
+            return DataRow(
+              cells: [
+                DataCell(Text(unit['ID']?.toString() ?? '-')),
+                DataCell(Text(unit['Ubicacion']?.toString() ?? '-')),
+                DataCell(Text(unit['Capacidad']?.toString() ?? '-')),
+                DataCell(Text(unit['IDRuta']?.toString() ?? '-')),
+                DataCell(Text(unit['IDTipo']?.toString() ?? '-')),
+                DataCell(Row(
+                  children: [
+                    IconButton(
+                      icon: Icon(Icons.edit, color: Colors.blue),
+                      tooltip: 'Editar',
+                      onPressed: () {
+                        showDialog(
+                          context: context,
+                          builder: (_) => Dialog(
+                            child: EditarUnidadWidget(
+                              token: token,
+                              unidad: unit,
+                              onUpdated: () =>
+                                  (context as Element).markNeedsBuild(),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                    IconButton(
+                      icon: Icon(Icons.delete, color: Colors.red),
+                      tooltip: 'Eliminar',
+                      onPressed: () async {
+                        final confirm = await showDialog<bool>(
+                          context: context,
+                          builder: (_) => AlertDialog(
+                            title: Text('Eliminar unidad'),
+                            content: Text(
+                                '¿Seguro que deseas eliminar esta unidad?'),
+                            actions: [
+                              TextButton(
+                                onPressed: () =>
+                                    Navigator.pop(context, false),
+                                child: Text('Cancelar'),
+                              ),
+                              TextButton(
+                                onPressed: () =>
+                                    Navigator.pop(context, true),
+                                child: Text('Eliminar'),
+                              ),
+                            ],
+                          ),
+                        );
+                        if (confirm == true) {
+                          await deleteTransportUnit(unit['ID'].toString());
+                          (context as Element).markNeedsBuild();
+                        }
+                      },
+                    ),
+                  ],
+                )),
+              ],
+            );
+          }).toList(),
+        );
+      },
     );
   }
 
@@ -778,9 +1057,10 @@ class AdminPanel extends StatelessWidget {
     required String label,
     required IconData icon,
     required Color color,
+    VoidCallback? onPressed,
   }) {
     return ElevatedButton.icon(
-      onPressed: () {},
+      onPressed: onPressed,
       icon: Icon(icon, size: 18),
       label: Text(label),
       style: ElevatedButton.styleFrom(
@@ -1392,6 +1672,778 @@ class _EliminarMantenimientoWidgetState
               ],
             ],
           ),
+        ),
+      ),
+    );
+  }
+}
+
+// Widget para crear unidad de transporte
+class CrearUnidadWidget extends StatefulWidget {
+  final String token;
+  final VoidCallback onCreated;
+  const CrearUnidadWidget({required this.token, required this.onCreated, Key? key}) : super(key: key);
+
+  @override
+  State<CrearUnidadWidget> createState() => _CrearUnidadWidgetState();
+}
+
+class _CrearUnidadWidgetState extends State<CrearUnidadWidget> {
+  final _formKey = GlobalKey<FormState>();
+  final _idController = TextEditingController(); // <-- Nuevo controlador para ID
+  final _ubicacionController = TextEditingController();
+  final _capacidadController = TextEditingController();
+  final _rutaController = TextEditingController();
+  final _tipoController = TextEditingController();
+  bool _loading = false;
+  String? _error;
+
+  Future<void> _submit() async {
+    if (!_formKey.currentState!.validate()) return;
+    setState(() => _loading = true);
+    final data = {
+      'ID': _idController.text.trim(), // <-- Incluye el ID manual
+      'Ubicacion': _ubicacionController.text.trim(),
+      'Capacidad': _capacidadController.text.trim(),
+      'IDRuta': _rutaController.text.trim(),
+      'IDTipo': _tipoController.text.trim(),
+    };
+    final response = await http.post(
+      Uri.parse('${AppConfig.baseUrl}/transport_units/create'),
+      headers: {
+        'Authorization': 'Bearer ${widget.token}',
+        'accept': 'application/json',
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: data,
+    );
+    setState(() => _loading = false);
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      widget.onCreated();
+    } else {
+      setState(() => _error = 'No se pudo crear la unidad.');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(24),
+      child: Form(
+        key: _formKey,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('Crear Unidad de Transporte', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: _idController,
+              decoration: InputDecoration(labelText: 'ID'),
+              keyboardType: TextInputType.number,
+              validator: (v) => v == null || v.isEmpty ? 'Ingrese el ID' : null,
+            ),
+            const SizedBox(height: 8),
+            TextFormField(
+              controller: _ubicacionController,
+              decoration: InputDecoration(labelText: 'Ubicación'),
+              validator: (v) => v == null || v.isEmpty ? 'Ingrese la ubicación' : null,
+            ),
+            const SizedBox(height: 8),
+            TextFormField(
+              controller: _capacidadController,
+              decoration: InputDecoration(labelText: 'Capacidad'),
+              keyboardType: TextInputType.number,
+              validator: (v) => v == null || v.isEmpty ? 'Ingrese la capacidad' : null,
+            ),
+            const SizedBox(height: 8),
+            TextFormField(
+              controller: _rutaController,
+              decoration: InputDecoration(labelText: 'ID Ruta'),
+              keyboardType: TextInputType.number,
+              validator: (v) => v == null || v.isEmpty ? 'Ingrese el ID de ruta' : null,
+            ),
+            const SizedBox(height: 8),
+            TextFormField(
+              controller: _tipoController,
+              decoration: InputDecoration(labelText: 'ID Tipo'),
+              keyboardType: TextInputType.number,
+              validator: (v) => v == null || v.isEmpty ? 'Ingrese el ID de tipo' : null,
+            ),
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: _loading ? null : _submit,
+                child: _loading
+                    ? SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                    : Text('Crear'),
+              ),
+            ),
+            if (_error != null) ...[
+              const SizedBox(height: 8),
+              Text(_error!, style: TextStyle(color: Colors.red)),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// Widget para editar unidad de transporte
+class EditarUnidadWidget extends StatefulWidget {
+  final String token;
+  final Map<String, dynamic> unidad;
+  final VoidCallback onUpdated;
+  const EditarUnidadWidget({required this.token, required this.unidad, required this.onUpdated, Key? key}) : super(key: key);
+
+  @override
+  State<EditarUnidadWidget> createState() => _EditarUnidadWidgetState();
+}
+
+class _EditarUnidadWidgetState extends State<EditarUnidadWidget> {
+  final _formKey = GlobalKey<FormState>();
+  late TextEditingController _idController;
+  late TextEditingController _ubicacionController;
+  late TextEditingController _capacidadController;
+  late TextEditingController _rutaController;
+  late TextEditingController _tipoController;
+  bool _loading = false;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _idController = TextEditingController(text: widget.unidad['ID']?.toString() ?? '');
+    _ubicacionController = TextEditingController(text: widget.unidad['Ubicacion']?.toString() ?? '');
+    _capacidadController = TextEditingController(text: widget.unidad['Capacidad']?.toString() ?? '');
+    _rutaController = TextEditingController(text: widget.unidad['IDRuta']?.toString() ?? '');
+    _tipoController = TextEditingController(text: widget.unidad['IDTipo']?.toString() ?? '');
+  }
+
+  Future<void> _submit() async {
+    if (!_formKey.currentState!.validate()) return;
+    setState(() => _loading = true);
+    final data = {
+      'ID': _idController.text.trim(),
+      'Ubicacion': _ubicacionController.text.trim(),
+      'Capacidad': _capacidadController.text.trim(),
+      'IDRuta': _rutaController.text.trim(),
+      'IDTipo': _tipoController.text.trim(),
+    };
+    final response = await http.post(
+      Uri.parse('${AppConfig.baseUrl}/transport_units/update'),
+      headers: {
+        'Authorization': 'Bearer ${widget.token}',
+        'accept': 'application/json',
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: data,
+    );
+    setState(() => _loading = false);
+    if (response.statusCode == 200) {
+      widget.onUpdated();
+      Navigator.pop(context);
+    } else {
+      setState(() => _error = 'No se pudo actualizar la unidad.');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(24),
+      child: Form(
+        key: _formKey,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('Editar Unidad de Transporte', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: _idController,
+              decoration: InputDecoration(labelText: 'ID'),
+              enabled: false,
+            ),
+            const SizedBox(height: 8),
+            TextFormField(
+              controller: _ubicacionController,
+              decoration: InputDecoration(labelText: 'Ubicación'),
+              validator: (v) => v == null || v.isEmpty ? 'Ingrese la ubicación' : null,
+            ),
+            const SizedBox(height: 8),
+            TextFormField(
+              controller: _capacidadController,
+              decoration: InputDecoration(labelText: 'Capacidad'),
+              keyboardType: TextInputType.number,
+              validator: (v) => v == null || v.isEmpty ? 'Ingrese la capacidad' : null,
+            ),
+            const SizedBox(height: 8),
+            TextFormField(
+              controller: _rutaController,
+              decoration: InputDecoration(labelText: 'ID Ruta'),
+              keyboardType: TextInputType.number,
+              validator: (v) => v == null || v.isEmpty ? 'Ingrese el ID de ruta' : null,
+            ),
+            const SizedBox(height: 8),
+            TextFormField(
+              controller: _tipoController,
+              decoration: InputDecoration(labelText: 'ID Tipo'),
+              keyboardType: TextInputType.number,
+              validator: (v) => v == null || v.isEmpty ? 'Ingrese el ID de tipo' : null,
+            ),
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: _loading ? null : _submit,
+                child: _loading
+                    ? SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                    : Text('Actualizar'),
+              ),
+            ),
+            if (_error != null) ...[
+              const SizedBox(height: 8),
+              Text(_error!, style: TextStyle(color: Colors.red)),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// Widgets auxiliares para CRUD de Horarios
+
+enum HorarioFormMode { create, update }
+
+class _HorarioFormWidget extends StatefulWidget {
+  final String token;
+  final HorarioFormMode mode;
+  final VoidCallback onSuccess;
+  const _HorarioFormWidget({
+    required this.token,
+    required this.mode,
+    required this.onSuccess,
+    Key? key,
+  }) : super(key: key);
+
+  @override
+  State<_HorarioFormWidget> createState() => _HorarioFormWidgetState();
+}
+
+class _HorarioFormWidgetState extends State<_HorarioFormWidget> {
+  final _formKey = GlobalKey<FormState>();
+  final _idController = TextEditingController();
+  final _llegadaController = TextEditingController();
+  final _salidaController = TextEditingController();
+  bool _loading = false;
+  String? _error;
+  String? _success;
+
+  Future<void> _submit() async {
+    if (!_formKey.currentState!.validate()) return;
+    setState(() {
+      _loading = true;
+      _error = null;
+      _success = null;
+    });
+    final data = {
+      'id': _idController.text.trim(),
+      'Llegada': _llegadaController.text.trim(),
+      'Salida': _salidaController.text.trim(),
+    };
+    final url = widget.mode == HorarioFormMode.create
+        ? '${AppConfig.baseUrl}/schedules/create'
+        : '${AppConfig.baseUrl}/schedules/update';
+    final response = await http.post(
+      Uri.parse(url),
+      headers: {
+        'Authorization': 'Bearer ${widget.token}',
+        'accept': 'application/json',
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: data,
+    );
+    setState(() => _loading = false);
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      setState(() => _success = widget.mode == HorarioFormMode.create
+          ? 'Horario creado exitosamente.'
+          : 'Horario actualizado exitosamente.');
+      widget.onSuccess();
+    } else {
+      setState(() => _error = 'Error: ${response.body}');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 350,
+      child: Form(
+        key: _formKey,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              widget.mode == HorarioFormMode.create
+                  ? 'Añadir Horario'
+                  : 'Actualizar Horario',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+            ),
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: _idController,
+              decoration: InputDecoration(labelText: 'ID'),
+              keyboardType: TextInputType.number,
+              validator: (v) =>
+                  v == null || v.isEmpty ? 'Ingrese el ID' : null,
+              enabled: widget.mode == HorarioFormMode.create,
+            ),
+            const SizedBox(height: 8),
+            TextFormField(
+              controller: _llegadaController,
+              decoration: InputDecoration(labelText: 'Llegada'),
+              validator: (v) =>
+                  v == null || v.isEmpty ? 'Ingrese la llegada' : null,
+            ),
+            const SizedBox(height: 8),
+            TextFormField(
+              controller: _salidaController,
+              decoration: InputDecoration(labelText: 'Salida'),
+              validator: (v) =>
+                  v == null || v.isEmpty ? 'Ingrese la salida' : null,
+            ),
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: _loading ? null : _submit,
+                child: _loading
+                    ? SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                            strokeWidth: 2, color: Colors.white))
+                    : Text(widget.mode == HorarioFormMode.create
+                        ? 'Crear'
+                        : 'Actualizar'),
+              ),
+            ),
+            if (_success != null) ...[
+              const SizedBox(height: 8),
+              Text(_success!, style: TextStyle(color: Colors.green)),
+            ],
+            if (_error != null) ...[
+              const SizedBox(height: 8),
+              Text(_error!, style: TextStyle(color: Colors.red)),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _HorarioListWidget extends StatelessWidget {
+  final String token;
+  const _HorarioListWidget({required this.token, Key? key}) : super(key: key);
+
+  Future<List<dynamic>> fetchHorarios() async {
+    final response = await http.get(
+      Uri.parse('${AppConfig.baseUrl}/schedules/'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'accept': 'application/json',
+      },
+    );
+    if (response.statusCode == 200) {
+      return json.decode(response.body);
+    } else {
+      throw Exception('Error al cargar horarios');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 400,
+      child: FutureBuilder<List<dynamic>>(
+        future: fetchHorarios(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError) {
+            return Center(child: Text('Error al cargar horarios'));
+          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            return Center(child: Text('No hay horarios registrados.'));
+          }
+          final horarios = snapshot.data!;
+          return ListView.separated(
+            shrinkWrap: true,
+            itemCount: horarios.length,
+            separatorBuilder: (_, __) => Divider(),
+            itemBuilder: (_, i) {
+              final h = horarios[i];
+              return ListTile(
+                title: Text('ID: ${h['ID']}'),
+                subtitle: Text('Llegada: ${h['Llegada']} | Salida: ${h['Salida']}'),
+              );
+            },
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _HorarioDeleteWidget extends StatefulWidget {
+  final String token;
+  final VoidCallback onSuccess;
+  const _HorarioDeleteWidget({required this.token, required this.onSuccess, Key? key}) : super(key: key);
+
+  @override
+  State<_HorarioDeleteWidget> createState() => _HorarioDeleteWidgetState();
+}
+
+class _HorarioDeleteWidgetState extends State<_HorarioDeleteWidget> {
+  final _formKey = GlobalKey<FormState>();
+  final _idController = TextEditingController();
+  bool _loading = false;
+  String? _error;
+  String? _success;
+
+  Future<void> _delete() async {
+    if (!_formKey.currentState!.validate()) return;
+    setState(() {
+      _loading = true;
+      _error = null;
+      _success = null;
+    });
+    final response = await http.post(
+      Uri.parse('${AppConfig.baseUrl}/schedules/delete'),
+      headers: {
+        'Authorization': 'Bearer ${widget.token}',
+        'accept': 'application/json',
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: {'id': _idController.text.trim()},
+    );
+    setState(() => _loading = false);
+    if (response.statusCode == 200) {
+      setState(() => _success = 'Horario eliminado exitosamente.');
+      widget.onSuccess();
+    } else {
+      setState(() => _error = 'Error: ${response.body}');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 300,
+      child: Form(
+        key: _formKey,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('Eliminar Horario', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: _idController,
+              decoration: InputDecoration(labelText: 'ID'),
+              keyboardType: TextInputType.number,
+              validator: (v) => v == null || v.isEmpty ? 'Ingrese el ID' : null,
+            ),
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: _loading ? null : _delete,
+                child: _loading
+                    ? SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                    : Text('Eliminar'),
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+              ),
+            ),
+            if (_success != null) ...[
+              const SizedBox(height: 8),
+              Text(_success!, style: TextStyle(color: Colors.green)),
+            ],
+            if (_error != null) ...[
+              const SizedBox(height: 8),
+              Text(_error!, style: TextStyle(color: Colors.red)),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+// Widgets auxiliares para CRUD de Rutas
+
+enum RutaFormMode { create, update }
+
+class _RutaFormWidget extends StatefulWidget {
+  final String token;
+  final RutaFormMode mode;
+  final VoidCallback onSuccess;
+  const _RutaFormWidget({
+    required this.token,
+    required this.mode,
+    required this.onSuccess,
+    Key? key,
+  }) : super(key: key);
+
+  @override
+  State<_RutaFormWidget> createState() => _RutaFormWidgetState();
+}
+
+class _RutaFormWidgetState extends State<_RutaFormWidget> {
+  final _formKey = GlobalKey<FormState>();
+  final _idController = TextEditingController();
+  final _idHorarioController = TextEditingController();
+  final _nombreController = TextEditingController();
+  bool _loading = false;
+  String? _error;
+  String? _success;
+
+  Future<void> _submit() async {
+    if (!_formKey.currentState!.validate()) return;
+    setState(() {
+      _loading = true;
+      _error = null;
+      _success = null;
+    });
+    final data = {
+      'ID': _idController.text.trim(),
+      'IDHorario': _idHorarioController.text.trim(),
+      'Nombre': _nombreController.text.trim(),
+    };
+    final url = widget.mode == RutaFormMode.create
+        ? '${AppConfig.baseUrl}/routes/create'
+        : '${AppConfig.baseUrl}/routes/update';
+    final response = await http.post(
+      Uri.parse(url),
+      headers: {
+        'Authorization': 'Bearer ${widget.token}',
+        'accept': 'application/json',
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: data,
+    );
+    setState(() => _loading = false);
+    if (response.statusCode == 200 || response.statusCode == 201) {
+      setState(() => _success = widget.mode == RutaFormMode.create
+          ? 'Ruta creada exitosamente.'
+          : 'Ruta actualizada exitosamente.');
+      widget.onSuccess();
+    } else {
+      setState(() => _error = 'Error: ${response.body}');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 350,
+      child: Form(
+        key: _formKey,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              widget.mode == RutaFormMode.create
+                  ? 'Añadir Ruta'
+                  : 'Actualizar Ruta',
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+            ),
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: _idController,
+              decoration: InputDecoration(labelText: 'ID'),
+              keyboardType: TextInputType.number,
+              validator: (v) =>
+                  v == null || v.isEmpty ? 'Ingrese el ID' : null,
+              enabled: widget.mode == RutaFormMode.create,
+            ),
+            const SizedBox(height: 8),
+            TextFormField(
+              controller: _idHorarioController,
+              decoration: InputDecoration(labelText: 'ID Horario'),
+              keyboardType: TextInputType.number,
+              validator: (v) =>
+                  v == null || v.isEmpty ? 'Ingrese el ID Horario' : null,
+            ),
+            const SizedBox(height: 8),
+            TextFormField(
+              controller: _nombreController,
+              decoration: InputDecoration(labelText: 'Nombre'),
+              validator: (v) =>
+                  v == null || v.isEmpty ? 'Ingrese el nombre' : null,
+            ),
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: _loading ? null : _submit,
+                child: _loading
+                    ? SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                            strokeWidth: 2, color: Colors.white))
+                    : Text(widget.mode == RutaFormMode.create
+                        ? 'Crear'
+                        : 'Actualizar'),
+              ),
+            ),
+            if (_success != null) ...[
+              const SizedBox(height: 8),
+              Text(_success!, style: TextStyle(color: Colors.green)),
+            ],
+            if (_error != null) ...[
+              const SizedBox(height: 8),
+              Text(_error!, style: TextStyle(color: Colors.red)),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _RutaListWidget extends StatelessWidget {
+  final String token;
+  const _RutaListWidget({required this.token, Key? key}) : super(key: key);
+
+  Future<List<dynamic>> fetchRutas() async {
+    final response = await http.get(
+      Uri.parse('${AppConfig.baseUrl}/routes/'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'accept': 'application/json',
+      },
+    );
+    if (response.statusCode == 200) {
+      return json.decode(response.body);
+    } else {
+      throw Exception('Error al cargar rutas');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 400,
+      child: FutureBuilder<List<dynamic>>(
+        future: fetchRutas(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError) {
+            return Center(child: Text('Error al cargar rutas'));
+          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            return Center(child: Text('No hay rutas registradas.'));
+          }
+          final rutas = snapshot.data!;
+          return ListView.separated(
+            shrinkWrap: true,
+            itemCount: rutas.length,
+            separatorBuilder: (_, __) => Divider(),
+            itemBuilder: (_, i) {
+              final r = rutas[i];
+              return ListTile(
+                title: Text('ID: ${r['ID']}'),
+                subtitle: Text('Horario: ${r['IDHorario']} | Nombre: ${r['Nombre']}'),
+              );
+            },
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _RutaDeleteWidget extends StatefulWidget {
+  final String token;
+  final VoidCallback onSuccess;
+  const _RutaDeleteWidget({required this.token, required this.onSuccess, Key? key}) : super(key: key);
+
+  @override
+  State<_RutaDeleteWidget> createState() => _RutaDeleteWidgetState();
+}
+
+class _RutaDeleteWidgetState extends State<_RutaDeleteWidget> {
+  final _formKey = GlobalKey<FormState>();
+  final _idController = TextEditingController();
+  bool _loading = false;
+  String? _error;
+  String? _success;
+
+  Future<void> _delete() async {
+    if (!_formKey.currentState!.validate()) return;
+    setState(() {
+      _loading = true;
+      _error = null;
+      _success = null;
+    });
+    final response = await http.post(
+      Uri.parse('${AppConfig.baseUrl}/routes/delete'),
+      headers: {
+        'Authorization': 'Bearer ${widget.token}',
+        'accept': 'application/json',
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: {'ID': _idController.text.trim()},
+    );
+    setState(() => _loading = false);
+    if (response.statusCode == 200) {
+      setState(() => _success = 'Ruta eliminada exitosamente.');
+      widget.onSuccess();
+    } else {
+      setState(() => _error = 'Error: ${response.body}');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: 300,
+      child: Form(
+        key: _formKey,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('Eliminar Ruta', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: _idController,
+              decoration: InputDecoration(labelText: 'ID'),
+              keyboardType: TextInputType.number,
+              validator: (v) => v == null || v.isEmpty ? 'Ingrese el ID' : null,
+            ),
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: _loading ? null : _delete,
+                child: _loading
+                    ? SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                    : Text('Eliminar'),
+                style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+              ),
+            ),
+            if (_success != null) ...[
+              const SizedBox(height: 8),
+              Text(_success!, style: TextStyle(color: Colors.green)),
+            ],
+            if (_error != null) ...[
+              const SizedBox(height: 8),
+              Text(_error!, style: TextStyle(color: Colors.red)),
+            ],
+          ],
         ),
       ),
     );

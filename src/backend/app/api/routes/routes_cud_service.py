@@ -1,7 +1,7 @@
 import logging
 from fastapi import APIRouter, Form, HTTPException, Security
 from backend.app.logic.universal_controller_instance import universal_controller as controller
-from backend.app.models.routes import Route
+from backend.app.models.routes import Ruta
 from backend.app.core.auth import get_current_user
 
 logger = logging.getLogger(__name__)
@@ -19,7 +19,7 @@ def crear_ruta(
     """
     Crea una nueva ruta.
     """
-    ruta = Route(ID=ID, IDHorario=IDHorario, Nombre=Nombre)
+    ruta = Ruta(ID=ID, IDHorario=IDHorario, Nombre=Nombre)
     try:
         controller.add(ruta)
         logger.info(f"[POST /routes/create] Ruta creada exitosamente: {ruta}")
@@ -38,12 +38,12 @@ def actualizar_ruta(
     """
     Actualiza una ruta existente.
     """
-    existing_route = controller.get_by_id(Route, ID)
+    existing_route = controller.get_by_id(Ruta, ID)
     if not existing_route:
         logger.warning(f"[POST /routes/update] Ruta no encontrada: ID={ID}")
         raise HTTPException(status_code=404, detail="Ruta no encontrada")
 
-    ruta_actualizada = Route(ID=ID, IDHorario=IDHorario, Nombre=Nombre)
+    ruta_actualizada = Ruta(ID=ID, IDHorario=IDHorario, Nombre=Nombre)
     try:
         controller.update(ruta_actualizada)
         logger.info(f"[POST /routes/update] Ruta actualizada exitosamente: {ruta_actualizada}")
@@ -60,7 +60,7 @@ def eliminar_ruta(
     """
     Elimina una ruta por su ID.
     """
-    existing_route = controller.get_by_id(Route, ID)
+    existing_route = controller.get_by_id(Ruta, ID)
     if not existing_route:
         logger.warning(f"[POST /routes/delete] Ruta no encontrada: ID={ID}")
         raise HTTPException(status_code=404, detail="Ruta no encontrada")
