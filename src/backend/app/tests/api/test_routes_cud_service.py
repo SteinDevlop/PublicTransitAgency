@@ -2,7 +2,7 @@ import pytest
 import logging
 from fastapi.testclient import TestClient
 from backend.app.api.routes.routes_cud_service import app
-from backend.app.models.routes import Route
+from backend.app.models.routes import Ruta
 from backend.app.logic.universal_controller_instance import universal_controller as controller
 
 from backend.app.core.conf import headers
@@ -14,13 +14,13 @@ client = TestClient(app, raise_server_exceptions=False)
 
 @pytest.fixture
 def setup_and_teardown():
-    ruta = Route(ID=9999, IDHorario=1, Nombre="Ruta de Prueba")
+    ruta = Ruta(ID=9999, IDHorario=1, Nombre="Ruta de Prueba")
     controller.add(ruta)
     yield ruta
     controller.delete(ruta)
 
 def test_crear_ruta():
-    ruta = Route(ID=9998, IDHorario=2, Nombre="Nueva Ruta")
+    ruta = Ruta(ID=9998, IDHorario=2, Nombre="Nueva Ruta")
     try:
         response = client.post("/routes/create", data=ruta.to_dict(), headers=headers)
         assert response.status_code == 200

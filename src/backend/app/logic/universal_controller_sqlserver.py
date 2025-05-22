@@ -311,7 +311,7 @@ class UniversalController:
         """
         sql = "SELECT rp.IDRuta, rp.IDParada, r.Nombre AS NombreRuta, p.Nombre AS NombreParada " \
               "FROM RutaParada rp " \
-              "JOIN Ruta r ON rp.IDRuta = r.ID " \
+              "JOIN Rutas r ON rp.IDRuta = r.ID " \
               "JOIN Parada p ON rp.IDParada = p.ID"
 
         conditions = []

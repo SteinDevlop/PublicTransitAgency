@@ -2,7 +2,7 @@ import logging
 from fastapi import APIRouter, HTTPException, Security
 from fastapi.responses import JSONResponse
 from backend.app.logic.universal_controller_instance import universal_controller as controller
-from backend.app.models.routes import Route
+from backend.app.models.routes import Ruta
 from backend.app.core.auth import get_current_user
 
 logger = logging.getLogger(__name__)
@@ -18,7 +18,7 @@ def listar_rutas(
     Lista todas las rutas.
     """
     try:
-        rutas = controller.read_all(Route)
+        rutas = controller.read_all(Ruta)
         logger.info(f"[GET /routes/] Se listaron {len(rutas)} rutas.")
         rutas_json = [
             r.model_dump() if hasattr(r, "model_dump")
@@ -40,7 +40,7 @@ def detalle_ruta(
     Obtiene el detalle de una ruta por su ID.
     """
     try:
-        ruta = controller.get_by_id(Route, ID)
+        ruta = controller.get_by_id(Ruta, ID)
         if not ruta:
             logger.warning(f"[GET /routes/{ID}] Ruta no encontrada.")
             raise HTTPException(status_code=404, detail="Ruta no encontrada")

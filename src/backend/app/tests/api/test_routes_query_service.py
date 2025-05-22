@@ -2,7 +2,7 @@ import pytest
 import logging
 from fastapi.testclient import TestClient
 from backend.app.api.routes.routes_query_service import app
-from backend.app.models.routes import Route
+from backend.app.models.routes import Ruta
 from backend.app.logic.universal_controller_instance import universal_controller as controller
 
 from backend.app.core.conf import headers
@@ -14,7 +14,7 @@ client = TestClient(app, raise_server_exceptions=False)
 
 @pytest.fixture
 def setup_and_teardown():
-    ruta = Route(ID=9999, IDHorario=1, Nombre="Ruta de Prueba")
+    ruta = Ruta(ID=9999, IDHorario=1, Nombre="Ruta de Prueba")
     controller.add(ruta)
     yield ruta
     controller.delete(ruta)
