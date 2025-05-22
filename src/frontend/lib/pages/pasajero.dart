@@ -4,60 +4,27 @@ import 'dart:convert';
 import '../config/config.dart';
 import 'package:flutter/services.dart';
 
-class PassengerPanel extends StatefulWidget {
+class PassengerPanel extends StatelessWidget {
   final String token;
 
   const PassengerPanel({Key? key, required this.token}) : super(key: key);
 
-  @override
-  State<PassengerPanel> createState() => _PassengerPanelState();
-}
-
-class _PassengerPanelState extends State<PassengerPanel> {
-  String selectedSection = 'info';
-
-  Future<Map<String, dynamic>> fetchDashboardData() async {
+  Future<Map<String, dynamic>> fetchDashboardData(BuildContext context) async {
+    print('Token enviado: $token');
     final response = await http.get(
       Uri.parse('${AppConfig.baseUrl}/login/dashboard'),
       headers: {
-        'Authorization': 'Bearer ${widget.token}',
+        'Authorization': 'Bearer $token',
         'accept': 'application/json',
       },
     );
     if (response.statusCode == 200) {
-      return json.decode(response.body);
+      final dashboardData = json.decode(response.body);
+      print('Datos del dashboard: $dashboardData');
+      return dashboardData;
     } else {
-      throw Exception('Error al cargar datos del dashboard');
-    }
-  }
-
-  Future<List<dynamic>> fetchSchedules() async {
-    final response = await http.get(
-      Uri.parse('${AppConfig.baseUrl}/schedules/'),
-      headers: {
-        'Authorization': 'Bearer ${widget.token}',
-        'accept': 'application/json',
-      },
-    );
-    if (response.statusCode == 200) {
-      return json.decode(response.body);
-    } else {
-      throw Exception('Error al cargar horarios');
-    }
-  }
-
-  Future<List<dynamic>> fetchIncidences() async {
-    final response = await http.get(
-      Uri.parse('${AppConfig.baseUrl}/incidences/'),
-      headers: {
-        'Authorization': 'Bearer ${widget.token}',
-        'accept': 'application/json',
-      },
-    );
-    if (response.statusCode == 200) {
-      return json.decode(response.body);
-    } else {
-      throw Exception('Error al cargar noticias y alertas');
+      print('Error al obtener el dashboard: ${response.body}');
+      throw Exception('Error al cargar datos del dashboard: ${response.body}');
     }
   }
 
@@ -95,349 +62,465 @@ class _PassengerPanelState extends State<PassengerPanel> {
         ],
         systemOverlayStyle: SystemUiOverlayStyle.light,
       ),
-      body: Row(
-        children: [
-          // Sidebar
-          Container(
-            width: 250,
-            color: const Color(0xFFF8F9FA),
-            child: Column(
-              children: [
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                      vertical: 24, horizontal: 16),
-                  color: primaryColor.withOpacity(0.05),
-                  child: Row(
-                    children: [
-                      CircleAvatar(
-                        backgroundColor: primaryColor,
-                        radius: 24,
-                        child: const Icon(Icons.person, color: Colors.white),
-                      ),
-                      const SizedBox(width: 12),
-                      const Expanded(
-                        child: Text(
-                          'Pasajero',
-                          style: TextStyle(
-                            fontWeight: FontWeight.bold,
-                            fontSize: 16,
-                            color: Color(0xFF202124),
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
+      body: FutureBuilder<Map<String, dynamic>>(
+        future: fetchDashboardData(context),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CircularProgressIndicator(
+                    color: primaryColor,
+                    strokeWidth: 3,
                   ),
-                ),
-                const Divider(height: 1),
-                Expanded(
-                  child: ListView(
-                    padding: EdgeInsets.zero,
-                    children: [
-                      _buildMenuItem(
-                        icon: Icons.info_outline,
-                        title: 'Información general',
-                        color: primaryColor,
-                        isActive: selectedSection == 'info',
-                        onTap: () {
-                          setState(() {
-                            selectedSection = 'info';
-                          });
-                        },
-                      ),
-                      _buildMenuItem(
-                        icon: Icons.schedule_outlined,
-                        title: 'Líneas, horarios y medios',
-                        color: primaryColor,
-                        isActive: selectedSection == 'schedules',
-                        onTap: () {
-                          setState(() {
-                            selectedSection = 'schedules';
-                          });
-                        },
-                      ),
-                      _buildMenuItem(
-                        icon: Icons.notifications_active_outlined,
-                        title: 'Noticias y Alertas',
-                        color: primaryColor,
-                        isActive: selectedSection == 'incidences',
-                        onTap: () {
-                          setState(() {
-                            selectedSection = 'incidences';
-                          });
-                        },
-                      ),
-                      // Los demás botones pueden agregarse igual si tienes los endpoints
-                    ],
+                  const SizedBox(height: 16),
+                  const Text(
+                    'Cargando información...',
+                    style: TextStyle(
+                      color: Color(0xFF5F6368),
+                      fontSize: 16,
+                    ),
                   ),
-                ),
-              ],
-            ),
-          ),
-          // Main content
-          Expanded(
-            child: Container(
-              color: const Color(0xFFF5F7FA),
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(24),
-                child: _buildSectionContent(
-                  selectedSection,
-                  primaryColor,
-                  secondaryColor,
-                  accentColor,
-                  cardColor,
-                ),
+                ],
               ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildSectionContent(
-    String section,
-    Color primaryColor,
-    Color secondaryColor,
-    Color accentColor,
-    Color cardColor,
-  ) {
-    switch (section) {
-      case 'schedules':
-        return FutureBuilder<List<dynamic>>(
-          future: fetchSchedules(),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return _loadingWidget('Cargando horarios...');
-            } else if (snapshot.hasError) {
-              return _errorWidget('Error al cargar horarios');
-            } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-              return _emptyWidget('No hay horarios disponibles.');
-            }
-            final schedules = snapshot.data!;
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text('Líneas, horarios y medios',
-                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
-                const SizedBox(height: 24),
-                DataTable(
-                  headingRowColor: MaterialStateProperty.all(
-                      primaryColor.withOpacity(0.1)),
-                  columns: const [
-                    DataColumn(label: Text('ID')),
-                    DataColumn(label: Text('Unidad')),
-                    DataColumn(label: Text('Ruta')),
-                    DataColumn(label: Text('Parada')),
-                    DataColumn(label: Text('Llegada')),
-                    DataColumn(label: Text('Salida')),
-                  ],
-                  rows: schedules.map((item) {
-                    return DataRow(
-                      cells: [
-                        DataCell(Text(item['ID']?.toString() ?? '-')),
-                        DataCell(Text(item['IDUnidad']?.toString() ?? '-')),
-                        DataCell(Text(item['IDRuta']?.toString() ?? '-')),
-                        DataCell(Text(item['IDParada']?.toString() ?? '-')),
-                        DataCell(Text(item['Llegada']?.toString() ?? '-')),
-                        DataCell(Text(item['Salida']?.toString() ?? '-')),
-                      ],
-                    );
-                  }).toList(),
-                ),
-              ],
             );
-          },
-        );
-      case 'incidences':
-        return FutureBuilder<List<dynamic>>(
-          future: fetchIncidences(),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return _loadingWidget('Cargando noticias y alertas...');
-            } else if (snapshot.hasError) {
-              return _errorWidget('Error al cargar noticias y alertas');
-            } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-              return _emptyWidget('No hay noticias ni alertas.');
-            }
-            final incidences = snapshot.data!;
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text('Noticias y Alertas',
-                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
-                const SizedBox(height: 24),
-                ...incidences.map((inc) => Card(
-                      elevation: 0,
-                      margin: const EdgeInsets.only(bottom: 16),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        side: BorderSide(
-                          color: accentColor.withOpacity(0.2),
-                          width: 1,
-                        ),
-                      ),
-                      color: cardColor,
-                      child: Padding(
-                        padding: const EdgeInsets.all(20),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
+          } else if (snapshot.hasError) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(
+                    Icons.error_outline,
+                    color: Colors.red,
+                    size: 60,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Error: ${snapshot.error}',
+                    style: const TextStyle(color: Colors.red),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+            );
+          } else if (!snapshot.hasData) {
+            return const Center(
+              child: Text(
+                'Sin datos disponibles',
+                style: TextStyle(fontSize: 18),
+              ),
+            );
+          }
+
+          final data = snapshot.data!;
+          final user = data['user'] ?? {};
+          final typeCard = data['type_card'] ?? 'No disponible';
+          final lastCardUse = data['ultimo_uso_tarjeta'] ?? {};
+          final saldo = user['Saldo']?.toString() ?? '0.00';
+
+          // Ejemplo de último viaje (ajusta según tu backend)
+          final lastTripDay = lastCardUse['day'] ?? 'N/A';
+          final lastTripRoute = lastCardUse['route'] ?? 'N/A';
+          final lastTripTime = lastCardUse['time'] ?? 'N/A';
+
+          return Row(
+            children: [
+              // Sidebar
+              Container(
+                width: 250,
+                color: const Color(0xFFF8F9FA),
+                child: Column(
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                          vertical: 24, horizontal: 16),
+                      color: primaryColor.withOpacity(0.05),
+                      child: Row(
+                        children: [
+                          CircleAvatar(
+                            backgroundColor: primaryColor,
+                            radius: 24,
+                            child: Text(
+                              user['Nombre']?.toString().substring(0, 1) ?? 'P',
+                              style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 18,
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Icon(Icons.announcement,
-                                    color: accentColor, size: 22),
-                                const SizedBox(width: 8),
                                 Text(
-                                  inc['Tipo']?.toString() ?? 'Alerta',
+                                  user['Nombre']?.toString() ?? 'Pasajero',
                                   style: const TextStyle(
-                                    fontSize: 16,
                                     fontWeight: FontWeight.bold,
+                                    fontSize: 16,
                                     color: Color(0xFF202124),
+                                  ),
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                const SizedBox(height: 4),
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 8, vertical: 2),
+                                  decoration: BoxDecoration(
+                                    color: secondaryColor,
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Text(
+                                    'Saldo: \$$saldo',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w500,
+                                    ),
                                   ),
                                 ),
                               ],
                             ),
-                            const SizedBox(height: 12),
-                            Text(
-                              inc['Descripcion']?.toString() ?? '',
-                              style: const TextStyle(
-                                fontSize: 15,
-                                color: Color(0xFF202124),
-                              ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    const Divider(height: 1),
+                    Expanded(
+                      child: ListView(
+                        padding: EdgeInsets.zero,
+                        children: [
+                          _buildMenuItem(
+                            icon: Icons.map_outlined,
+                            title: 'Planificador de viaje',
+                            color: primaryColor,
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) =>
+                                      PlanificadorViajeScreen(token: token),
+                                ),
+                              );
+                            },
+                          ),
+                          _buildMenuItem(
+                            icon: Icons.schedule_outlined,
+                            title: 'Líneas, horarios y medios',
+                            color: primaryColor,
+                            onTap: () {
+                              showDialog(
+                                context: context,
+                                builder: (_) => Dialog(
+                                  child: Padding(
+                                    padding: const EdgeInsets.all(24),
+                                    child: SizedBox(
+                                      width: 400,
+                                      child: FutureBuilder<List<dynamic>>(
+                                        future: _fetchHorarios(token),
+                                        builder: (context, snapshot) {
+                                          if (snapshot.connectionState ==
+                                              ConnectionState.waiting) {
+                                            return Center(
+                                                child:
+                                                    CircularProgressIndicator());
+                                          } else if (snapshot.hasError) {
+                                            return Center(
+                                                child: Text(
+                                                    'Error al cargar horarios'));
+                                          } else if (!snapshot.hasData ||
+                                              snapshot.data!.isEmpty) {
+                                            return Center(
+                                                child: Text(
+                                                    'No hay horarios disponibles.'));
+                                          }
+                                          final horarios = snapshot.data!;
+                                          return ListView.separated(
+                                            shrinkWrap: true,
+                                            itemCount: horarios.length,
+                                            separatorBuilder: (_, __) =>
+                                                Divider(),
+                                            itemBuilder: (_, i) {
+                                              final h = horarios[i];
+                                              return ListTile(
+                                                leading: Icon(
+                                                    Icons.access_time,
+                                                    color: primaryColor),
+                                                title: Text('ID: ${h['ID']}'),
+                                                subtitle: Text(
+                                                    'Llegada: ${h['Llegada']} | Salida: ${h['Salida']}'),
+                                              );
+                                            },
+                                          );
+                                        },
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                          _buildMenuItem(
+                            icon: Icons.attach_money_outlined,
+                            title: 'Tarifas y peajes',
+                            color: primaryColor,
+                          ),
+                          _buildMenuItem(
+                            icon: Icons.notifications_active_outlined,
+                            title: 'Noticias y Alertas',
+                            color: primaryColor,
+                          ),
+                          _buildMenuItem(
+                            icon: Icons.history_outlined,
+                            title: 'Movimientos',
+                            color: primaryColor,
+                          ),
+                          _buildMenuItem(
+                            icon: Icons.feedback_outlined,
+                            title: 'Sugerencias y Quejas',
+                            color: primaryColor,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              // Main content
+              Expanded(
+                child: Container(
+                  color: const Color(0xFFF5F7FA),
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            const Icon(
+                              Icons.dashboard_outlined,
+                              color: primaryColor,
+                              size: 28,
                             ),
-                            const SizedBox(height: 8),
-                            Text(
-                              'Unidad: ${inc['IDUnidad']?.toString() ?? '-'}',
-                              style: const TextStyle(
-                                fontSize: 13,
-                                color: Color(0xFF5F6368),
+                            const SizedBox(width: 12),
+                            const Text(
+                              'Información general del pasajero',
+                              style: TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFF202124),
                               ),
                             ),
                           ],
                         ),
-                      ),
-                    )),
-              ],
-            );
-          },
-        );
-      default:
-        // Información general
-        return FutureBuilder<Map<String, dynamic>>(
-          future: fetchDashboardData(),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return _loadingWidget('Cargando información...');
-            } else if (snapshot.hasError) {
-              return _errorWidget('Error al cargar información');
-            } else if (!snapshot.hasData) {
-              return _emptyWidget('Sin datos disponibles');
-            }
-            final data = snapshot.data!;
-            final user = data['user'] ?? {};
-            final typeCard = data['type_card'] ?? 'No disponible';
-            final lastCardUse = data['ultimo_uso_tarjeta'] ?? {};
-            final saldo = user['Saldo']?.toString() ?? '0.00';
-            final lastTripDay = lastCardUse['day'] ?? 'N/A';
-            final lastTripRoute = lastCardUse['route'] ?? 'N/A';
-            final lastTripTime = lastCardUse['time'] ?? 'N/A';
+                        const SizedBox(height: 24),
 
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'Información general del pasajero',
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: Color(0xFF202124),
-                  ),
-                ),
-                const SizedBox(height: 24),
-                Card(
-                  elevation: 0,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                    side: BorderSide(
-                      color: primaryColor.withOpacity(0.1),
-                      width: 1,
-                    ),
-                  ),
-                  color: cardColor,
-                  child: Padding(
-                    padding: const EdgeInsets.all(20),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        _buildInfoRow(
-                          'Nombre',
-                          user['Nombre']?.toString() ?? 'No disponible',
-                          Icons.badge_outlined,
-                          primaryColor,
+                        // User Info Card
+                        Card(
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            side: BorderSide(
+                              color: primaryColor.withOpacity(0.1),
+                              width: 1,
+                            ),
+                          ),
+                          color: cardColor,
+                          child: Padding(
+                            padding: const EdgeInsets.all(20),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Icon(
+                                      Icons.person_outline,
+                                      color: primaryColor,
+                                      size: 22,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    const Text(
+                                      'Datos Personales',
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFF202124),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 16),
+                                _buildInfoRow(
+                                  'Nombre',
+                                  user['Nombre']?.toString() ?? 'No disponible',
+                                  Icons.badge_outlined,
+                                  primaryColor,
+                                ),
+                                _buildInfoRow(
+                                  'ID',
+                                  user['ID']?.toString() ?? 'No disponible',
+                                  Icons.credit_card_outlined,
+                                  primaryColor,
+                                ),
+                                _buildInfoRow(
+                                  'Correo',
+                                  user['Correo']?.toString() ?? 'No disponible',
+                                  Icons.email_outlined,
+                                  primaryColor,
+                                ),
+                                _buildInfoRow(
+                                  'Teléfono',
+                                  user['Telefono']?.toString() ??
+                                      'No disponible',
+                                  Icons.phone_outlined,
+                                  primaryColor,
+                                ),
+                              ],
+                            ),
+                          ),
                         ),
-                        _buildInfoRow(
-                          'ID',
-                          user['ID']?.toString() ?? 'No disponible',
-                          Icons.credit_card_outlined,
-                          primaryColor,
+
+                        const SizedBox(height: 20),
+
+                        // Card Info Card
+                        Card(
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            side: BorderSide(
+                              color: secondaryColor.withOpacity(0.1),
+                              width: 1,
+                            ),
+                          ),
+                          color: cardColor,
+                          child: Padding(
+                            padding: const EdgeInsets.all(20),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Icon(
+                                      Icons.credit_card,
+                                      color: secondaryColor,
+                                      size: 22,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    const Text(
+                                      'Información de Tarjeta',
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFF202124),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 16),
+                                _buildInfoRow(
+                                  'Tipo de tarjeta',
+                                  typeCard?.toString() ?? 'No disponible',
+                                  Icons.style_outlined,
+                                  secondaryColor,
+                                ),
+                                _buildInfoRow(
+                                  'Saldo disponible',
+                                  '\$$saldo',
+                                  Icons.account_balance_wallet_outlined,
+                                  secondaryColor,
+                                ),
+                              ],
+                            ),
+                          ),
                         ),
-                        _buildInfoRow(
-                          'Correo',
-                          user['Correo']?.toString() ?? 'No disponible',
-                          Icons.email_outlined,
-                          primaryColor,
-                        ),
-                        _buildInfoRow(
-                          'Teléfono',
-                          user['Telefono']?.toString() ?? 'No disponible',
-                          Icons.phone_outlined,
-                          primaryColor,
-                        ),
-                        _buildInfoRow(
-                          'Tipo de tarjeta',
-                          typeCard?.toString() ?? 'No disponible',
-                          Icons.style_outlined,
-                          secondaryColor,
-                        ),
-                        _buildInfoRow(
-                          'Saldo disponible',
-                          '\$$saldo',
-                          Icons.account_balance_wallet_outlined,
-                          secondaryColor,
-                        ),
-                        _buildInfoRow(
-                          'Último viaje',
-                          '$lastTripDay - $lastTripRoute - $lastTripTime',
-                          Icons.history,
-                          accentColor,
+
+                        const SizedBox(height: 20),
+
+                        // Last Trip Card
+                        Card(
+                          elevation: 0,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                            side: BorderSide(
+                              color: accentColor.withOpacity(0.2),
+                              width: 1,
+                            ),
+                          ),
+                          color: cardColor,
+                          child: Padding(
+                            padding: const EdgeInsets.all(20),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Icon(
+                                      Icons.history,
+                                      color: accentColor,
+                                      size: 22,
+                                    ),
+                                    const SizedBox(width: 8),
+                                    const Text(
+                                      'Último Viaje',
+                                      style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold,
+                                        color: Color(0xFF202124),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 16),
+                                _buildInfoRow(
+                                  'Día',
+                                  lastTripDay,
+                                  Icons.calendar_today_outlined,
+                                  accentColor,
+                                ),
+                                _buildInfoRow(
+                                  'Ruta',
+                                  lastTripRoute,
+                                  Icons.route_outlined,
+                                  accentColor,
+                                ),
+                                _buildInfoRow(
+                                  'Hora',
+                                  lastTripTime,
+                                  Icons.access_time_outlined,
+                                  accentColor,
+                                ),
+                              ],
+                            ),
+                          ),
                         ),
                       ],
                     ),
                   ),
                 ),
-              ],
-            );
-          },
-        );
-    }
+              ),
+            ],
+          );
+        },
+      ),
+    );
   }
 
   Widget _buildMenuItem({
     required IconData icon,
     required String title,
     required Color color,
-    bool isActive = false,
     VoidCallback? onTap,
   }) {
     return ListTile(
-      leading: Icon(icon, color: isActive ? color : const Color(0xFF5F6368)),
+      leading: Icon(icon, color: color),
       title: Text(
         title,
-        style: TextStyle(
+        style: const TextStyle(
           fontSize: 14,
-          fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
-          color: isActive ? color : const Color(0xFF202124),
+          fontWeight: FontWeight.w500,
+          color: Color(0xFF202124),
         ),
       ),
       dense: true,
@@ -446,7 +529,6 @@ class _PassengerPanelState extends State<PassengerPanel> {
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(8),
       ),
-      tileColor: isActive ? color.withOpacity(0.1) : null,
       hoverColor: color.withOpacity(0.05),
     );
   }
@@ -496,54 +578,269 @@ class _PassengerPanelState extends State<PassengerPanel> {
     );
   }
 
-  Widget _loadingWidget(String text) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const CircularProgressIndicator(
-            color: Color(0xFF1A73E8),
-            strokeWidth: 3,
-          ),
-          const SizedBox(height: 16),
-          Text(
-            text,
-            style: const TextStyle(
-              color: Color(0xFF5F6368),
-              fontSize: 16,
+  Future<List<dynamic>> _fetchHorarios(String token) async {
+    final response = await http.get(
+      Uri.parse('${AppConfig.baseUrl}/schedules/'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'accept': 'application/json',
+      },
+    );
+    if (response.statusCode == 200) {
+      return json.decode(response.body);
+    } else {
+      throw Exception('Error al cargar horarios');
+    }
+  }
+}
+
+class PlanificadorViajeScreen extends StatefulWidget {
+  final String token;
+  const PlanificadorViajeScreen({Key? key, required this.token})
+      : super(key: key);
+
+  @override
+  State<PlanificadorViajeScreen> createState() =>
+      _PlanificadorViajeScreenState();
+}
+
+class _PlanificadorViajeScreenState extends State<PlanificadorViajeScreen> {
+  final TextEditingController _origenController = TextEditingController();
+  final TextEditingController _destinoController = TextEditingController();
+  bool _loading = false;
+  String? _error;
+  Map<String, dynamic>? _resultado;
+
+  Future<void> _planificar() async {
+    setState(() {
+      _loading = true;
+      _error = null;
+      _resultado = null;
+    });
+    final origen = _origenController.text.trim();
+    final destino = _destinoController.text.trim();
+    if (origen.isEmpty || destino.isEmpty) {
+      setState(() {
+        _loading = false;
+        _error = 'Completa ambos campos';
+      });
+      return;
+    }
+    try {
+      final response = await http.post(
+        Uri.parse('${AppConfig.baseUrl}/planificador/ubicaciones'),
+        headers: {
+          'Authorization': 'Bearer ${widget.token}',
+          'accept': 'application/json',
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: {
+          'ubicacion_entrada': origen,
+          'ubicacion_final': destino,
+        },
+      );
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        setState(() {
+          _resultado = data;
+        });
+      } else {
+        setState(() {
+          _error = 'No se encontró ruta o error en la consulta';
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _error = 'Error de conexión';
+      });
+    } finally {
+      setState(() {
+        _loading = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Planificador de Viaje'),
+        backgroundColor: Color(0xFF1A73E8),
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            TextField(
+              controller: _origenController,
+              decoration: InputDecoration(
+                labelText: 'Ubicación inicial',
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.location_on_outlined),
+              ),
             ),
-          ),
-        ],
+            const SizedBox(height: 16),
+            TextField(
+              controller: _destinoController,
+              decoration: InputDecoration(
+                labelText: 'Ubicación final',
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.flag_outlined),
+              ),
+            ),
+            const SizedBox(height: 20),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: _loading ? null : _planificar,
+                child: _loading
+                    ? SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                            strokeWidth: 2, color: Colors.white),
+                      )
+                    : Text('Planificar viaje'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Color(0xFF1A73E8),
+                  foregroundColor: Colors.white,
+                  padding: EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+            ),
+            if (_error != null) ...[
+              const SizedBox(height: 16),
+              Text(_error!, style: TextStyle(color: Colors.red)),
+            ],
+            if (_resultado != null) ...[
+              const SizedBox(height: 32),
+              Card(
+                elevation: 4,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(24.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(Icons.alt_route,
+                              color: Color(0xFF1A73E8), size: 32),
+                          const SizedBox(width: 12),
+                          const Text('Resultado de Planificación',
+                              style: TextStyle(
+                                  fontSize: 20, fontWeight: FontWeight.bold)),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+            // Mostrar solo si hay interconexiones (lista)
+            if (_resultado != null &&
+                _resultado!['interconexiones'] != null &&
+                (_resultado!['interconexiones'] as List).isNotEmpty) ...[
+              const SizedBox(height: 32),
+              ...(_resultado!['interconexiones'] as List)
+                  .map<Widget>((item) => Card(
+                        elevation: 4,
+                        margin: const EdgeInsets.only(bottom: 20),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(24.0),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Icon(Icons.alt_route,
+                                      color: Color(0xFF1A73E8), size: 32),
+                                  const SizedBox(width: 12),
+                                  const Text('Interconexión',
+                                      style: TextStyle(
+                                          fontSize: 20,
+                                          fontWeight: FontWeight.bold)),
+                                ],
+                              ),
+                              const SizedBox(height: 20),
+                              _buildResultRow('Ruta Inicial',
+                                  item['ruta_inicio']?.toString() ?? '-'),
+                              _buildResultRow('Interconexión',
+                                  item['interconexion']?.toString() ?? '-'),
+                              _buildResultRow('Ruta Final',
+                                  item['ruta_final']?.toString() ?? '-'),
+                            ],
+                          ),
+                        ),
+                      ))
+                  .toList(),
+            ]
+            // Si no hay interconexiones pero sí resultado plano
+            else if (_resultado != null &&
+                _resultado!['ruta_inicial'] != null) ...[
+              const SizedBox(height: 32),
+              Card(
+                elevation: 4,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(24.0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Icon(Icons.alt_route,
+                              color: Color(0xFF1A73E8), size: 32),
+                          const SizedBox(width: 12),
+                          const Text('Resultado de Planificación',
+                              style: TextStyle(
+                                  fontSize: 20, fontWeight: FontWeight.bold)),
+                        ],
+                      ),
+                      const SizedBox(height: 20),
+                      _buildResultRow('Ruta Inicial',
+                          _resultado!['ruta_inicial']?.toString() ?? '-'),
+                      _buildResultRow('Interconexión',
+                          _resultado!['interconexion']?.toString() ?? '-'),
+                      _buildResultRow('Ruta Final',
+                          _resultado!['ruta_final']?.toString() ?? '-'),
+                    ],
+                  ),
+                ),
+              ),
+            ]
+            // Si no hay nada útil
+            else if (_resultado != null) ...[
+              const SizedBox(height: 32),
+              Text('No se encontraron rutas para la búsqueda.',
+                  style: TextStyle(color: Colors.red)),
+            ],
+          ],
+        ),
       ),
     );
   }
 
-  Widget _errorWidget(String text) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
+  Widget _buildResultRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6.0),
+      child: Row(
         children: [
-          const Icon(
-            Icons.error_outline,
-            color: Colors.red,
-            size: 60,
-          ),
-          const SizedBox(height: 16),
-          Text(
-            text,
-            style: const TextStyle(color: Colors.red),
-            textAlign: TextAlign.center,
-          ),
+          Text('$label:', style: TextStyle(fontWeight: FontWeight.bold)),
+          const SizedBox(width: 8),
+          Expanded(child: Text(value, style: TextStyle(fontSize: 16))),
         ],
-      ),
-    );
-  }
-
-  Widget _emptyWidget(String text) {
-    return Center(
-      child: Text(
-        text,
-        style: const TextStyle(fontSize: 18),
       ),
     );
   }
