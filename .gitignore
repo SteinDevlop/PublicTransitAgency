@@ -10,3 +10,4 @@ coverage.xml
 .idea
 .env
 .pyc
+src/backend/app/tests/api/flutter/
