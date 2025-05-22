@@ -21,7 +21,7 @@ class UniversalController:
                 driver = "SQL Server"
 
             self.conn = pyodbc.connect(
-                f"DRIVER={{{driver}}};SERVER={settings.db_config['host']},1435;DATABASE={settings.db_config['dbname']};UID={settings.db_config['user']};PWD={settings.db_config['password']};TrustServerCertificate=yes"
+                f"DRIVER={{{driver}}};SERVER={settings.db_config['HOST']},1435;DATABASE={settings.db_config['DB']};UID={settings.db_config['USER']};PWD={settings.db_config['PASSWORD']};TrustServerCertificate=yes"
             )
             self.conn.autocommit = False  # Desactivar autocommit
             self.cursor = self.conn.cursor()
