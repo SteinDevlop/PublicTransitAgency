@@ -1,7 +1,6 @@
 import logging
-from fastapi import APIRouter, HTTPException, Request, Security
-from fastapi.responses import HTMLResponse
-from fastapi.templating import Jinja2Templates
+from fastapi import APIRouter, HTTPException, Security
+from fastapi.responses import JSONResponse
 from backend.app.logic.universal_controller_instance import universal_controller as controller
 
 from backend.app.models.incidence import Incidence
@@ -11,24 +10,27 @@ logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
 app = APIRouter(prefix="/incidences", tags=["incidences"])
-templates = Jinja2Templates(directory="src/backend/app/templates")
 
-@app.get("/", response_class=HTMLResponse)
+@app.get("/", response_class=JSONResponse)
 def listar_incidencias(
-    request: Request,
-   #current_user: dict = Security(get_current_user, scopes=["system", "administrador", "supervisor"])
+    #current_user: dict = Security(get_current_user, scopes=["system", "administrador", "supervisor"])
 ):
     """
     Lista todas las incidencias.
     """
     incidencias = controller.read_all(Incidence)
     logger.info(f"[GET /incidences/] Se listaron {len(incidencias)} incidencias.")
-    return templates.TemplateResponse("ListarIncidencia.html", {"request": request, "incidencias": incidencias})
+    incidencias_json = [
+        i.model_dump() if hasattr(i, "model_dump")
+        else i.dict() if hasattr(i, "dict")
+        else i
+        for i in incidencias
+    ]
+    return incidencias_json
 
-@app.get("/{ID}", response_class=HTMLResponse)
+@app.get("/{ID}", response_class=JSONResponse)
 def detalle_incidencia(
     ID: int,
-    request: Request,
     #current_user: dict = Security(get_current_user, scopes=["system", "administrador", "supervisor"])
 ):
     """
@@ -39,4 +41,9 @@ def detalle_incidencia(
         logger.warning(f"[GET /incidences/{ID}] Incidencia no encontrada.")
         raise HTTPException(status_code=404, detail="Incidencia no encontrada.")
     logger.info(f"[GET /incidences/{ID}] Se consultó la incidencia con ID={ID}.")
-    return templates.TemplateResponse("DetalleIncidencia.html", {"request": request, "incidencia": incidencia.to_dict()})
+    if hasattr(incidencia, "model_dump"):
+        return incidencia.model_dump()
+    elif hasattr(incidencia, "dict"):
+        return incidencia.dict()
+    else:
+        return incidencia
