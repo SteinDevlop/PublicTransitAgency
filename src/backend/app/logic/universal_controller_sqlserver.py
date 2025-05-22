@@ -19,9 +19,12 @@ class UniversalController:
                 driver = "ODBC Driver 18 for SQL Server"
             else:
                 driver = "SQL Server"
-
+            db_password = os.getenv('PASSWORD')
+            if db_password is None:
+                raise ValueError("La variable de entorno DB_PASSWORD no está definida.")
+            
             self.conn = pyodbc.connect(
-                f"DRIVER={{{driver}}};SERVER={settings.db_config['host']},1435;DATABASE={settings.db_config['dbname']};UID={settings.db_config['user']};PWD={settings.db_config['password']};TrustServerCertificate=yes"
+                f"DRIVER={{{driver}}};SERVER={settings.db_config['host']},1435;DATABASE={settings.db_config['dbname']};UID={settings.db_config['user']};PWD={db_password};TrustServerCertificate=yes"
             )
             self.conn.autocommit = False  # Desactivar autocommit
             self.cursor = self.conn.cursor()
