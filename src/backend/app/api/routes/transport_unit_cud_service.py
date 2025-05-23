@@ -9,6 +9,8 @@ logging.basicConfig(level=logging.INFO)
 
 from fastapi import APIRouter
 
+import re
+
 app = APIRouter(prefix="/transport_units", tags=["transport_units"])
 
 @app.post("/create")
@@ -36,14 +38,16 @@ def actualizar_unidad_transporte(
     IDRuta: int = Form(...),
     IDTipo: int = Form(...),
 ):
+    # Sanitizar el ID recibido
+    safe_id = re.sub(r"[^\w\-]", "_", ID)
     try:
-        existing = controller.get_by_id(UnidadTransporte, ID)
+        existing = controller.get_by_id(UnidadTransporte, safe_id)
         if not existing:
-            logger.warning("[POST /update] Unidad de transporte no encontrada: ID=%r", ID)
+            logger.warning("[POST /update] Unidad de transporte no encontrada: ID=%s", safe_id)
             raise HTTPException(status_code=404, detail="Unidad de transporte no encontrada.")
-        unidad = UnidadTransporte(ID=ID, Ubicacion=Ubicacion, Capacidad=Capacidad, IDRuta=IDRuta, IDTipo=IDTipo)
+        unidad = UnidadTransporte(ID=safe_id, Ubicacion=Ubicacion, Capacidad=Capacidad, IDRuta=IDRuta, IDTipo=IDTipo)
         controller.update(unidad)
-        logger.info(f"[POST /update] Unidad de transporte actualizada exitosamente: ID={ID}")
+        logger.info(f"[POST /update] Unidad de transporte actualizada exitosamente: ID={safe_id}")
         return {"message": "Unidad de transporte actualizada exitosamente."}
     except HTTPException:
         raise
@@ -55,14 +59,15 @@ def actualizar_unidad_transporte(
 def eliminar_unidad_transporte(
     ID: str = Form(...),
 ):
+    # Sanitizar el ID recibido
+    safe_id = re.sub(r"[^\w\-]", "_", ID)
     try:
-        existing = controller.get_by_id(UnidadTransporte, ID)
+        existing = controller.get_by_id(UnidadTransporte, safe_id)
         if not existing:
-            # Evita inyección en logs usando parámetros separados
-            logger.warning("[POST /delete] Unidad de transporte no encontrada: ID=%r", ID)
+            logger.warning("[POST /delete] Unidad de transporte no encontrada: ID=%s", safe_id)
             raise HTTPException(status_code=404, detail="Unidad de transporte no encontrada.")
         controller.delete(existing)
-        logger.info("[POST /delete] Unidad de transporte eliminada exitosamente: ID=%r", ID)
+        logger.info("[POST /delete] Unidad de transporte eliminada exitosamente: ID=%s", safe_id)
         return {"message": "Unidad de transporte eliminada exitosamente."}
     except HTTPException:
         raise

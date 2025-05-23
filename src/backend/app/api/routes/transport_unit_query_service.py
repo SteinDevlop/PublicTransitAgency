@@ -1,4 +1,5 @@
 import logging
+import re
 from fastapi import APIRouter, HTTPException, Security
 from fastapi.responses import JSONResponse
 from backend.app.logic.universal_controller_instance import universal_controller as controller
@@ -24,17 +25,18 @@ def listar_unidades_transporte():
         ]
         return unidades_json
     except Exception as e:
-        logger.error(f"[GET /transport_units/] Error al listar unidades de transporte: {e}")
+        logger.error("[GET /transport_units/] Error al listar unidades de transporte: %s", e)
         raise HTTPException(status_code=500, detail="Error al listar unidades de transporte.")
 
 @app.get("/{ID}", response_class=JSONResponse)
 def detalle_unidad_transporte(ID: str):
+    safe_id = re.sub(r"[^\w\-]", "_", ID)
     try:
-        unidad = controller.get_by_id(UnidadTransporte, ID)
+        unidad = controller.get_by_id(UnidadTransporte, safe_id)
         if not unidad:
-            logger.warning(f"[GET /transport_units/{ID}] Unidad de transporte no encontrada.")
+            logger.warning("[GET /transport_units/{ID}] Unidad de transporte no encontrada: ID=%s", safe_id)
             raise HTTPException(status_code=404, detail="Unidad de transporte no encontrada.")
-        logger.info("[GET /transport_units/{ID}] Detalle de unidad de transporte consultado.")
+        logger.info("[GET /transport_units/{ID}] Detalle de unidad de transporte consultado: ID=%s", safe_id)
         if hasattr(unidad, "model_dump"):
             return unidad.model_dump()
         elif hasattr(unidad, "dict"):
@@ -44,5 +46,5 @@ def detalle_unidad_transporte(ID: str):
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"[GET /transport_units/{ID}] Error al consultar detalle de unidad de transporte: {e}")
+        logger.error("[GET /transport_units/{ID}] Error al consultar detalle de unidad de transporte: %s", e)
         raise HTTPException(status_code=500, detail="Error al consultar detalle de unidad de transporte.")
