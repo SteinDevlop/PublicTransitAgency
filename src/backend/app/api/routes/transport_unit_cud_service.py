@@ -39,7 +39,7 @@ def actualizar_unidad_transporte(
     try:
         existing = controller.get_by_id(UnidadTransporte, ID)
         if not existing:
-            logger.warning(f"[POST /update] Unidad de transporte no encontrada: ID={ID}")
+            logger.warning("[POST /update] Unidad de transporte no encontrada: ID=%r", ID)
             raise HTTPException(status_code=404, detail="Unidad de transporte no encontrada.")
         unidad = UnidadTransporte(ID=ID, Ubicacion=Ubicacion, Capacidad=Capacidad, IDRuta=IDRuta, IDTipo=IDTipo)
         controller.update(unidad)
@@ -58,13 +58,14 @@ def eliminar_unidad_transporte(
     try:
         existing = controller.get_by_id(UnidadTransporte, ID)
         if not existing:
-            logger.warning(f"[POST /delete] Unidad de transporte no encontrada: ID={ID}")
+            # Evita inyección en logs usando parámetros separados
+            logger.warning("[POST /delete] Unidad de transporte no encontrada: ID=%r", ID)
             raise HTTPException(status_code=404, detail="Unidad de transporte no encontrada.")
         controller.delete(existing)
-        logger.info(f"[POST /delete] Unidad de transporte eliminada exitosamente: ID={ID}")
+        logger.info("[POST /delete] Unidad de transporte eliminada exitosamente: ID=%r", ID)
         return {"message": "Unidad de transporte eliminada exitosamente."}
     except HTTPException:
         raise
     except Exception as e:
-        logger.error(f"[POST /delete] Error: {e}")
+        logger.error("[POST /delete] Error: %s", e)
         raise HTTPException(status_code=500, detail=str(e))
