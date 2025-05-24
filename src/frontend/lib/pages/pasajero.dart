@@ -245,8 +245,7 @@ class PassengerPanel extends StatelessWidget {
                                             itemBuilder: (_, i) {
                                               final h = horarios[i];
                                               return ListTile(
-                                                leading: Icon(
-                                                    Icons.access_time,
+                                                leading: Icon(Icons.access_time,
                                                     color: primaryColor),
                                                 title: Text('ID: ${h['ID']}'),
                                                 subtitle: Text(
@@ -281,6 +280,33 @@ class PassengerPanel extends StatelessWidget {
                             icon: Icons.feedback_outlined,
                             title: 'Sugerencias y Quejas',
                             color: primaryColor,
+                          ),
+                          _buildMenuItem(
+                            icon: Icons.payment_outlined,
+                            title: 'Pago',
+                            color: primaryColor,
+                            onTap: () {
+                              showDialog(
+                                context: context,
+                                builder: (_) => Dialog(
+                                  child: PagoWidget(token: token, user: user),
+                                ),
+                              );
+                            },
+                          ),
+                          _buildMenuItem(
+                            icon: Icons.account_balance_wallet_outlined,
+                            title: 'Recarga',
+                            color: primaryColor,
+                            onTap: () {
+                              showDialog(
+                                context: context,
+                                builder: (_) => Dialog(
+                                  child:
+                                      RecargaWidget(token: token, user: user),
+                                ),
+                              );
+                            },
                           ),
                         ],
                       ),
@@ -842,6 +868,694 @@ class _PlanificadorViajeScreenState extends State<PlanificadorViajeScreen> {
           Expanded(child: Text(value, style: TextStyle(fontSize: 16))),
         ],
       ),
+    );
+  }
+}
+
+class PagoWidget extends StatefulWidget {
+  final String token;
+  final Map<String, dynamic> user;
+  const PagoWidget({Key? key, required this.token, required this.user})
+      : super(key: key);
+  @override
+  State<PagoWidget> createState() => _PagoWidgetState();
+}
+
+class _PagoWidgetState extends State<PagoWidget> {
+  final _formKey = GlobalKey<FormState>();
+  final _idPagoController = TextEditingController();
+  final _idMovimientoController = TextEditingController();
+  int? _selectedTransportId;
+  double? _selectedMonto;
+  int? _selectedTipoTransporte;
+  bool _loading = false;
+  String? _error;
+  Map<String, dynamic>? _detallePago;
+  List<Map<String, dynamic>> _transportOptions = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchTransportOptions();
+  }
+
+  Future<void> _fetchTransportOptions() async {
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+    try {
+      debugPrint('[PagoWidget] Solicitando precios...');
+      final pricesResp = await http.get(
+        Uri.parse('${AppConfig.baseUrl}/price/pasajero/prices'),
+        headers: {
+          'Authorization': 'Bearer ${widget.token}',
+          'accept': 'application/json'
+        },
+      );
+      debugPrint(
+          '[PagoWidget] Respuesta precios: statusCode=${pricesResp.statusCode}');
+      debugPrint('[PagoWidget] Solicitando tipos de transporte...');
+      final transportsResp = await http.get(
+        Uri.parse('${AppConfig.baseUrl}/typetransport/typetransports'),
+        headers: {
+          'Authorization': 'Bearer ${widget.token}',
+          'accept': 'application/json'
+        },
+      );
+      debugPrint(
+          '[PagoWidget] Respuesta tipos de transporte: statusCode=${transportsResp.statusCode}');
+      if (pricesResp.statusCode == 200 && transportsResp.statusCode == 200) {
+        final pricesDecoded = json.decode(pricesResp.body);
+        final transportsDecoded = json.decode(transportsResp.body);
+        // Extraer listas reales si vienen envueltas en un objeto
+        final pricesList = (pricesDecoded is List)
+            ? pricesDecoded
+            : (pricesDecoded is Map && pricesDecoded.containsKey('prices'))
+                ? pricesDecoded['prices']
+                : [];
+        final transportsList = (transportsDecoded is List)
+            ? transportsDecoded
+            : (transportsDecoded is Map &&
+                    transportsDecoded.containsKey('typetransports'))
+                ? transportsDecoded['typetransports']
+                : [];
+        if (pricesList is! List || transportsList is! List) {
+          debugPrint(
+              '[PagoWidget] Error: precios o transportes no son listas.');
+          debugPrint(
+              '[PagoWidget] pricesDecoded: \\${pricesDecoded.toString()}');
+          debugPrint(
+              '[PagoWidget] transportsDecoded: \\${transportsDecoded.toString()}');
+          setState(() {
+            _error =
+                'Error: precios o transportes no son listas.\nPrecios: \\${pricesDecoded.toString()}\nTransportes: \\${transportsDecoded.toString()}';
+          });
+          return;
+        }
+        final prices = List<Map<String, dynamic>>.from(pricesList);
+        final transports = List<Map<String, dynamic>>.from(transportsList);
+        debugPrint('[PagoWidget] Precios obtenidos: \\${prices.length}');
+        debugPrint(
+            '[PagoWidget] Transportes obtenidos: \\${transports.length}');
+        // Cruzar precios y transportes
+        final options = <Map<String, dynamic>>[];
+        for (final price in prices) {
+          final tipoId = price['IDTipoTransporte'];
+          final monto = price['Monto'];
+          final transport = transports.firstWhere(
+            (t) => t['ID'] == tipoId,
+            orElse: () => <String, dynamic>{},
+          );
+          if (transport.isNotEmpty) {
+            options.add({
+              'IDTipoTransporte': tipoId,
+              'Monto': monto,
+              'Nombre': transport['TipoTransporte'] ?? transport['Transporte'],
+              'ID': transport['ID'],
+            });
+          } else {
+            debugPrint(
+                '[PagoWidget] No se encontró transporte para IDTipoTransporte=$tipoId');
+          }
+        }
+        setState(() {
+          _transportOptions = options;
+        });
+      } else {
+        debugPrint(
+            '[PagoWidget] Error al cargar transportes o precios. Status precios: \\${pricesResp.statusCode}, Status transportes: \\${transportsResp.statusCode}');
+        setState(() {
+          _error = 'Error al cargar transportes o precios.';
+        });
+      }
+    } catch (e) {
+      debugPrint(
+          '[PagoWidget] Error de conexión al cargar transportes: \\${e.toString()}');
+      setState(() {
+        _error = 'Error de conexión al cargar transportes.';
+      });
+    } finally {
+      setState(() {
+        _loading = false;
+      });
+    }
+  }
+
+  Future<void> _realizarPago() async {
+    if (!_formKey.currentState!.validate() || _selectedTransportId == null)
+      return;
+    setState(() {
+      _loading = true;
+      _error = null;
+      _detallePago = null;
+    });
+    final idPago = DateTime.now().millisecondsSinceEpoch.toString();
+    debugPrint('[RecargaWidget]$idPago');
+    final idMovimiento = _idMovimientoController.text.trim();
+    final idTarjeta = widget.user['IDTarjeta']?.toString() ?? '';
+    try {
+      // 1. POST /movement/create
+      final movResp = await http.post(
+        Uri.parse('${AppConfig.baseUrl}/movement/create'),
+        headers: {
+          'Authorization': 'Bearer ${widget.token}',
+          'accept': 'application/json',
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: {
+          'ID': idMovimiento,
+          'IDTipoMovimiento': '1',
+          'Monto': _selectedMonto.toString(),
+        },
+      );
+      if (movResp.statusCode != 201 && movResp.statusCode != 200) {
+        setState(() {
+          _error = 'Error al crear movimiento: ${movResp.body}';
+          _loading = false;
+        });
+        return;
+      }
+      // 2. POST /payments/create
+      final payResp = await http.post(
+        Uri.parse('${AppConfig.baseUrl}/payments/create'),
+        headers: {
+          'Authorization': 'Bearer ${widget.token}',
+          'accept': 'application/json',
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: {
+          'IDMovimiento': idMovimiento,
+          'IDPago': idPago,
+          'IDTarjeta': idTarjeta,
+          'IDTransporte': _selectedTipoTransporte.toString(),
+        },
+      );
+      if (payResp.statusCode != 200 && payResp.statusCode != 201) {
+        setState(() {
+          _error = 'Error al crear pago: ${payResp.body}';
+          _loading = false;
+        });
+        return;
+      }
+      // 3. GET /payments/{IDPago}
+      final detResp = await http.get(
+        Uri.parse('${AppConfig.baseUrl}/payments/$idPago'),
+        headers: {
+          'Authorization': 'Bearer ${widget.token}',
+          'accept': 'application/json'
+        },
+      );
+      if (detResp.statusCode == 200) {
+        setState(() {
+          _detallePago = json.decode(detResp.body);
+        });
+      } else {
+        setState(() {
+          _error = 'Pago realizado, pero no se pudo obtener el detalle.';
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _error = 'Error de conexión al realizar el pago.';
+      });
+    } finally {
+      setState(() {
+        _loading = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final primaryColor = const Color(0xFF1A73E8);
+    final secondaryColor = const Color(0xFF34A853);
+    final cardColor = const Color(0xFFF8F9FA);
+    return SizedBox(
+      width: 420,
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Card(
+          elevation: 0,
+          color: cardColor,
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: _loading
+                ? Center(child: CircularProgressIndicator(color: primaryColor))
+                : _detallePago != null
+                    ? _buildDetallePago(
+                        _detallePago!, primaryColor, secondaryColor)
+                    : SingleChildScrollView(
+                        child: Form(
+                          key: _formKey,
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Icon(Icons.payment_outlined,
+                                      color: primaryColor, size: 28),
+                                  const SizedBox(width: 10),
+                                  const Text('Realizar Pago',
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 22,
+                                          color: Color(0xFF202124))),
+                                ],
+                              ),
+                              const SizedBox(height: 20),
+                              TextFormField(
+                                controller: _idPagoController,
+                                decoration: InputDecoration(
+                                  labelText: 'IDPago',
+                                  border: OutlineInputBorder(),
+                                  prefixIcon: Icon(Icons.confirmation_number,
+                                      color: primaryColor),
+                                ),
+                                validator: (v) => v == null || v.isEmpty
+                                    ? 'Ingrese el IDPago'
+                                    : null,
+                              ),
+                              const SizedBox(height: 16),
+                              TextFormField(
+                                controller: _idMovimientoController,
+                                decoration: InputDecoration(
+                                  labelText: 'IDMovimiento',
+                                  border: OutlineInputBorder(),
+                                  prefixIcon: Icon(Icons.directions_bus,
+                                      color: primaryColor),
+                                ),
+                                validator: (v) => v == null || v.isEmpty
+                                    ? 'Ingrese el IDMovimiento'
+                                    : null,
+                              ),
+                              const SizedBox(height: 16),
+                              DropdownButtonFormField<int>(
+                                decoration: InputDecoration(
+                                  labelText: 'Transporte',
+                                  border: OutlineInputBorder(),
+                                  prefixIcon: Icon(Icons.directions_transit,
+                                      color: primaryColor),
+                                ),
+                                items: _transportOptions
+                                    .map((opt) => DropdownMenuItem<int>(
+                                          value: opt['IDTipoTransporte'],
+                                          child: Text(
+                                              '${opt['Nombre']}(${opt['Monto']})'),
+                                        ))
+                                    .toList(),
+                                onChanged: (val) {
+                                  final selected = _transportOptions.firstWhere(
+                                      (opt) => opt['IDTipoTransporte'] == val);
+                                  setState(() {
+                                    _selectedTransportId = selected['ID'];
+                                    _selectedMonto = selected['Monto'] is int
+                                        ? (selected['Monto'] as int).toDouble()
+                                        : selected['Monto'];
+                                    _selectedTipoTransporte =
+                                        selected['IDTipoTransporte'];
+                                  });
+                                },
+                                validator: (v) => v == null
+                                    ? 'Seleccione un transporte'
+                                    : null,
+                              ),
+                              const SizedBox(height: 24),
+                              SizedBox(
+                                width: double.infinity,
+                                child: ElevatedButton(
+                                  onPressed: _loading ? null : _realizarPago,
+                                  child: const Text('Enviar',
+                                      style: TextStyle(fontSize: 16)),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: primaryColor,
+                                    foregroundColor: Colors.white,
+                                    padding: const EdgeInsets.symmetric(
+                                        vertical: 14),
+                                    shape: RoundedRectangleBorder(
+                                        borderRadius:
+                                            BorderRadius.circular(12)),
+                                  ),
+                                ),
+                              ),
+                              if (_error != null) ...[
+                                const SizedBox(height: 16),
+                                Text(_error!,
+                                    style: const TextStyle(color: Colors.red)),
+                              ],
+                            ],
+                          ),
+                        ),
+                      ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDetallePago(
+      Map<String, dynamic> pago, Color primaryColor, Color secondaryColor) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(Icons.check_circle, color: secondaryColor, size: 28),
+            const SizedBox(width: 10),
+            const Text('Pago realizado con éxito',
+                style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 20,
+                    color: Color(0xFF202124))),
+          ],
+        ),
+        const SizedBox(height: 16),
+        ...pago.entries.map((e) => Padding(
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              child: Row(
+                children: [
+                  Text('${e.key}: ',
+                      style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF5F6368))),
+                  Expanded(
+                      child: Text(e.value.toString(),
+                          style: const TextStyle(fontSize: 16))),
+                ],
+              ),
+            )),
+        const SizedBox(height: 20),
+        SizedBox(
+          width: double.infinity,
+          child: ElevatedButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cerrar'),
+            style: ElevatedButton.styleFrom(backgroundColor: secondaryColor),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class RecargaWidget extends StatefulWidget {
+  final String token;
+  final Map<String, dynamic> user;
+  const RecargaWidget({Key? key, required this.token, required this.user})
+      : super(key: key);
+  @override
+  State<RecargaWidget> createState() => _RecargaWidgetState();
+}
+
+class _RecargaWidgetState extends State<RecargaWidget> {
+  final _formKey = GlobalKey<FormState>();
+  final _montoController = TextEditingController();
+  bool _loading = false;
+  String? _error;
+  Map<String, dynamic>? _detalleRecarga;
+  bool _confirmar = false;
+
+  Future<void> _realizarRecarga() async {
+    final montoStr = _montoController.text.trim();
+    final monto = double.tryParse(montoStr);
+    if (monto == null || monto <= 0 || monto > 100000) {
+      setState(() {
+        _error = 'El monto debe ser mayor a 0 y menor o igual a 100000.';
+      });
+      return;
+    }
+    setState(() {
+      _loading = true;
+      _error = null;
+      _detalleRecarga = null;
+    });
+    try {
+      // 2. Obtener nuevo ID de movimiento
+      final movIdResp = await http.get(
+        Uri.parse('${AppConfig.baseUrl}/movement/administrador/crear'),
+        headers: {
+          'Authorization': 'Bearer ${widget.token}',
+          'accept': 'application/json'
+        },
+      );
+      if (movIdResp.statusCode != 200) {
+        setState(() {
+          _error = 'Error al generar ID de movimiento.';
+          _loading = false;
+        });
+        return;
+      }
+      final nuevoId = json.decode(movIdResp.body)['nuevo_id'].toString();
+      // 3. POST /movement/create
+      final movResp = await http.post(
+        Uri.parse('${AppConfig.baseUrl}/movement/create'),
+        headers: {
+          'Authorization': 'Bearer ${widget.token}',
+          'accept': 'application/json',
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: {
+          'ID': nuevoId,
+          'IDTipoMovimiento': '2',
+          'Monto': montoStr,
+        },
+      );
+      if (movResp.statusCode != 201 && movResp.statusCode != 200) {
+        setState(() {
+          _error = 'Error al crear movimiento: ${movResp.body}';
+          _loading = false;
+        });
+        return;
+      }
+      // 4. POST /payments/create
+      final idPago = '${DateTime.now().millisecondsSinceEpoch}';
+      debugPrint('[RecargaWidget - idPago]$idPago');
+      final idTarjeta = widget.user['IDTarjeta']?.toString() ?? '';
+      final payResp = await http.post(
+        Uri.parse('${AppConfig.baseUrl}/payments/create'),
+        headers: {
+          'Authorization': 'Bearer ${widget.token}',
+          'accept': 'application/json',
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: {
+          'IDMovimiento': nuevoId,
+          'IDPago': idPago,
+          'IDTarjeta': idTarjeta,
+          'IDTransporte': '0',
+        },
+      );
+      if (payResp.statusCode != 200 && payResp.statusCode != 201) {
+        setState(() {
+          _error = 'Error al crear recarga: ${payResp.body}';
+          _loading = false;
+        });
+        return;
+      }
+      // 5. GET /payments/{IDPago}
+      final detResp = await http.get(
+        Uri.parse('${AppConfig.baseUrl}/payments/$idPago'),
+        headers: {
+          'Authorization': 'Bearer ${widget.token}',
+          'accept': 'application/json'
+        },
+      );
+      if (detResp.statusCode == 200) {
+        setState(() {
+          _detalleRecarga = json.decode(detResp.body);
+        });
+      } else {
+        setState(() {
+          _error = 'Recarga realizada, pero no se pudo obtener el detalle.';
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _error = 'Error de conexión al realizar la recarga.';
+      });
+    } finally {
+      setState(() {
+        _loading = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final primaryColor = const Color(0xFF1A73E8);
+    final secondaryColor = const Color(0xFF34A853);
+    final cardColor = const Color(0xFFF8F9FA);
+    return SizedBox(
+      width: 420,
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Card(
+          elevation: 0,
+          color: cardColor,
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: _loading
+                ? Center(child: CircularProgressIndicator(color: primaryColor))
+                : _detalleRecarga != null
+                    ? _buildDetalleRecarga(
+                        _detalleRecarga!, primaryColor, secondaryColor)
+                    : SingleChildScrollView(
+                        child: Form(
+                          key: _formKey,
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Icon(Icons.account_balance_wallet_outlined,
+                                      color: primaryColor, size: 28),
+                                  const SizedBox(width: 10),
+                                  const Text('Recargar Tarjeta',
+                                      style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 22,
+                                          color: Color(0xFF202124))),
+                                ],
+                              ),
+                              const SizedBox(height: 20),
+                              TextFormField(
+                                controller: _montoController,
+                                keyboardType: TextInputType.number,
+                                decoration: InputDecoration(
+                                  labelText: 'Monto',
+                                  border: OutlineInputBorder(),
+                                  prefixIcon: Icon(Icons.attach_money,
+                                      color: primaryColor),
+                                ),
+                                validator: (v) {
+                                  final val = double.tryParse(v ?? '');
+                                  if (val == null || val <= 0 || val > 100000) {
+                                    return 'El monto debe ser mayor a 0 y menor o igual a 100000.';
+                                  }
+                                  return null;
+                                },
+                              ),
+                              const SizedBox(height: 24),
+                              if (!_confirmar)
+                                SizedBox(
+                                  width: double.infinity,
+                                  child: ElevatedButton(
+                                    onPressed: _loading
+                                        ? null
+                                        : () {
+                                            if (_formKey.currentState!
+                                                .validate()) {
+                                              setState(() {
+                                                _confirmar = true;
+                                              });
+                                            }
+                                          },
+                                    child: const Text('Confirmar recarga',
+                                        style: TextStyle(fontSize: 16)),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: primaryColor,
+                                      foregroundColor: Colors.white,
+                                      padding: const EdgeInsets.symmetric(
+                                          vertical: 14),
+                                      shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(12)),
+                                    ),
+                                  ),
+                                ),
+                              if (_confirmar) ...[
+                                Text(
+                                    '¿Confirmar recarga de \\${_montoController.text}?',
+                                    style: const TextStyle(
+                                        color: Color(0xFF1A73E8),
+                                        fontWeight: FontWeight.bold)),
+                                const SizedBox(height: 12),
+                                SizedBox(
+                                  width: double.infinity,
+                                  child: ElevatedButton(
+                                    onPressed:
+                                        _loading ? null : _realizarRecarga,
+                                    child: const Text('Recargar',
+                                        style: TextStyle(fontSize: 16)),
+                                    style: ElevatedButton.styleFrom(
+                                        backgroundColor: secondaryColor,
+                                        foregroundColor: Colors.white),
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                TextButton(
+                                  onPressed: () {
+                                    setState(() {
+                                      _confirmar = false;
+                                    });
+                                  },
+                                  child: const Text('Cancelar'),
+                                ),
+                              ],
+                              if (_error != null) ...[
+                                const SizedBox(height: 16),
+                                Text(_error!,
+                                    style: const TextStyle(color: Colors.red)),
+                              ],
+                            ],
+                          ),
+                        ),
+                      ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDetalleRecarga(
+      Map<String, dynamic> pago, Color primaryColor, Color secondaryColor) {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            Icon(Icons.check_circle, color: secondaryColor, size: 28),
+            const SizedBox(width: 10),
+            const Text('Recarga realizada con éxito',
+                style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 20,
+                    color: Color(0xFF202124))),
+          ],
+        ),
+        const SizedBox(height: 16),
+        ...pago.entries.map((e) => Padding(
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              child: Row(
+                children: [
+                  Text('${e.key}: ',
+                      style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF5F6368))),
+                  Expanded(
+                      child: Text(e.value.toString(),
+                          style: const TextStyle(fontSize: 16))),
+                ],
+              ),
+            )),
+        const SizedBox(height: 20),
+        SizedBox(
+          width: double.infinity,
+          child: ElevatedButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('Cerrar'),
+            style: ElevatedButton.styleFrom(backgroundColor: secondaryColor),
+          ),
+        ),
+      ],
     );
   }
 }
