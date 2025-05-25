@@ -39,6 +39,7 @@ class UniversalController:
         else:
             raise ValueError("El objeto o su clase no tienen definido '__entity_name__'.")
 
+
     def _ensure_table_exists(self, obj: Any):
         """Crea la tabla si no existe."""
         table = self._get_table_name(obj)
@@ -352,3 +353,4 @@ class UniversalController:
             return result[0] if result else 0.0
         except pyodbc.Error as e:
             raise RuntimeError(f"Error al obtener el turno del usuario con ID {user_id}: {e}")
+    

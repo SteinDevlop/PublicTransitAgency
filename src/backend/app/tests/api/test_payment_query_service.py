@@ -1,49 +1,41 @@
-# import pytest
-# from fastapi.testclient import TestClient
-# from backend.app.api.routes.payment_query_service import app
-# from backend.app.models.payment import Payment
-# from backend.app.logic.universal_controller_instance import universal_controller as controller
+import pytest
+import logging
+from fastapi.testclient import TestClient
+from backend.app.api.routes.payment_query_service import app
+from backend.app.models.payments import Payment
+from backend.app.logic.universal_controller_instance import universal_controller as controller
 
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("backend.app.api.routes.payment_query_service")
 
-# client = TestClient(app)
+client = TestClient(app, raise_server_exceptions=False)
 
-# @pytest.fixture
-# def setup_and_teardown():
-#     """
-#     Fixture para configurar y limpiar los datos de prueba.
-#     """
-#     pago = Payment(IDMovimiento=9999, IDPago=1, IDTarjeta=1, IDTransporte=1)
-#     # Asegurarse de que el pago no exista antes de crearlo
-#     existing_pago = controller.get_by_id(Payment, pago.IDMovimiento)
-#     if existing_pago:
-#         controller.delete(existing_pago)
+@pytest.fixture
+def setup_and_teardown():
+    """
+    Fixture para configurar y limpiar los datos de prueba.
+    """
+    pago = Payment(IDMovimiento=2, IDPrecio=1, IDTarjeta=41, IDUnidad="1", ID=12345)
+    existing_pago = controller.get_by_id(Payment, pago.ID)
+    if existing_pago:
+        controller.delete(existing_pago)
+    controller.add(pago)
+    yield pago
+    controller.delete(pago)
 
-#     # Crear el pago de prueba
-#     controller.add(pago)
-#     yield pago
+def test_listar_pagos(setup_and_teardown):
+    """
+    Prueba para listar todos los pagos.
+    """
+    response = client.get("/payments/")
+    assert response.status_code == 200
+    logger.info("Test listar_pagos ejecutado correctamente.")
 
-#     # Eliminar el pago de prueba
-#     controller.delete(pago)
-
-# def test_listar_pagos(setup_and_teardown):
-#     """
-#     Prueba para listar todos los pagos.
-#     """
-#     response = client.get("/payments/")
-#     assert response.status_code == 200
-
-# def test_detalle_pago_existente(setup_and_teardown):
-#     """
-#     Prueba para obtener el detalle de un pago existente.
-#     """
-#     pago = setup_and_teardown
-#     response = client.get(f"/payments/{pago.IDMovimiento}")
-#     assert response.status_code == 200
-
-# def test_detalle_pago_no_existente():
-#     """
-#     Prueba para obtener el detalle de un pago que no existe.
-#     """
-#     response = client.get("/payments/99999")
-#     assert response.status_code == 404
-#     assert response.json()["detail"] == "Pago no encontrado"
+def test_detalle_pago_existente(setup_and_teardown):
+    """
+    Prueba para obtener el detalle de un pago existente.
+    """
+    pago = setup_and_teardown
+    response = client.get(f"/payments/{pago.ID}")
+    assert response.status_code == 200
+    logger.info(f"Test detalle_pago_existente ejecutado correctamente para ID={pago.ID}.")

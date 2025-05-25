@@ -1,62 +1,81 @@
-from fastapi import APIRouter, Form, HTTPException, Request, Security
-from fastapi.responses import HTMLResponse
-from fastapi.templating import Jinja2Templates
+import logging
+import re
+from fastapi import APIRouter, Form, HTTPException
+from fastapi.responses import JSONResponse
 from backend.app.logic.universal_controller_instance import universal_controller as controller
-
 from backend.app.models.payments import Payment
-from backend.app.core.auth import get_current_user
+
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
 
 app = APIRouter(prefix="/payments", tags=["payments"])
-templates = Jinja2Templates(directory="src/backend/app/templates")
 
-@app.get("/create", response_class=HTMLResponse)
-def crear_pago_form(
-    request: Request,
-   #current_user: dict  = Security(get_current_user, scopes=["system", "administrador", "finanzas"])
-):
-    """
-    Renderiza el formulario para crear un nuevo pago.
-    """
-    return templates.TemplateResponse("CrearPago.html", {"request": request})
-
-@app.post("/create")
+@app.post("/create", response_class=JSONResponse)
 def crear_pago(
     IDMovimiento: int = Form(...),
-    IDPago: int = Form(...),
+    IDPrecio: int = Form(...),
     IDTarjeta: int = Form(...),
-    IDTransporte: int = Form(...),
-   #current_user: dict  = Security(get_current_user, scopes=["system", "administrador", "finanzas"])
+    IDUnidad: str = Form("EMPTY"),
+    ID: int = Form(...),
 ):
-    """
-    Crea un nuevo pago.
-    """
-    pago = Payment(IDMovimiento=IDMovimiento, IDPago=IDPago, IDTarjeta=IDTarjeta, IDTransporte=IDTransporte)
+    safe_unidad = re.sub(r"[^\w\-]", "_", IDUnidad)
     try:
+        pago = Payment(
+            IDMovimiento=IDMovimiento,
+            IDPrecio=IDPrecio,
+            IDTarjeta=IDTarjeta,
+            IDUnidad=safe_unidad,
+            ID=ID
+        )
         controller.add(pago)
-        return {"message": "Pago creado exitosamente.", "data": pago.to_dict()}
+        logger.info("[POST /payments/create] Pago creado exitosamente: ID=%s", ID)
+        return JSONResponse(content={"message": "Pago creado exitosamente.", "data": pago.model_dump()})
     except ValueError as e:
+        logger.warning("[POST /payments/create] Error al crear pago: %s", e)
         raise HTTPException(status_code=400, detail=str(e))
-
-@app.get("/delete", response_class=HTMLResponse)
-def eliminar_pago_form(
-    request: Request,
-   #current_user: dict  = Security(get_current_user, scopes=["system", "administrador", "finanzas"])
-):
-    """
-    Renderiza el formulario para eliminar un pago.
-    """
-    return templates.TemplateResponse("EliminarPago.html", {"request": request})
-
-@app.post("/delete")
-def eliminar_pago(
+    
+@app.post("/update", response_class=JSONResponse)
+def actualizar_pago(
+    ID: int = Form(...),
     IDMovimiento: int = Form(...),
-   #current_user: dict  = Security(get_current_user, scopes=["system", "administrador", "finanzas"])
+    IDPrecio: int = Form(...),
+    IDTarjeta: int = Form(...),
+    IDUnidad: str = Form(...),
 ):
-    """
-    Elimina un pago por su IDMovimiento.
-    """
     try:
-        controller.delete(Payment(IDMovimiento=IDMovimiento))
-        return {"message": "Pago eliminado exitosamente."}
-    except ValueError:
-        raise HTTPException(status_code=404, detail="Pago no encontrado")
+        existing = controller.get_by_id(Payment, ID)
+        if not existing:
+            logger.warning("[POST /payments/update] Pago no encontrado: ID=%s", ID)
+            raise HTTPException(status_code=404, detail="Pago no encontrado")
+        pago = Payment(
+            ID=ID,
+            IDMovimiento=IDMovimiento,
+            IDPrecio=IDPrecio,
+            IDTarjeta=IDTarjeta,
+            IDUnidad=IDUnidad
+        )
+        controller.update(pago)
+        logger.info("[POST /payments/update] Pago actualizado exitosamente: ID=%s", ID)
+        return JSONResponse(content={"message": "Pago actualizado exitosamente."})
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("[POST /payments/update] Error: %s", e)
+        raise HTTPException(status_code=500, detail=str(e))
+    
+@app.post("/delete", response_class=JSONResponse)
+def eliminar_pago(ID: int = Form(...)):
+    try:
+        existing = controller.get_by_id(Payment, ID)
+        if not existing:
+            logger.warning("[POST /payments/delete] Pago no encontrado: ID=%s", ID)
+            raise HTTPException(status_code=404, detail="Pago no encontrado")
+        pago = Payment(ID=ID, IDMovimiento=0, IDPrecio=0, IDTarjeta=0, IDUnidad="EMPTY")
+        controller.delete(pago)
+        logger.info("[POST /payments/delete] Pago eliminado exitosamente: ID=%s", ID)
+        return JSONResponse(content={"message": "Pago eliminado exitosamente."})
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error("[POST /payments/delete] Error: %s", e)
+        raise HTTPException(status_code=500, detail=str(e))

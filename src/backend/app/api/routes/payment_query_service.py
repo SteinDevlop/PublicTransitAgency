@@ -1,43 +1,44 @@
-from fastapi import APIRouter, HTTPException, Request, Security
-from fastapi.responses import HTMLResponse
-from fastapi.templating import Jinja2Templates
+import logging
+from fastapi import APIRouter, HTTPException
+from fastapi.responses import JSONResponse
 from backend.app.logic.universal_controller_instance import universal_controller as controller
-
 from backend.app.models.payments import Payment
-from backend.app.core.auth import get_current_user
 
+logger = logging.getLogger(__name__)
 app = APIRouter(prefix="/payments", tags=["payments"])
-templates = Jinja2Templates(directory="src/backend/app/templates")
 
-@app.get("/", response_class=HTMLResponse)
-def listar_pagos(
-    request: Request,
-   #current_user: dict  = Security(get_current_user, scopes=["system", "administrador", "finanzas", "operador"])
-):
-    """
-    Lista todos los pagos.
-    """
+@app.get("/", response_class=JSONResponse)
+def listar_pagos():
     try:
         pagos = controller.read_all(Payment)
-        return templates.TemplateResponse("ListarPago.html", {"request": request, "pagos": pagos})
+        logger.info("[GET /payments/] Pagos listados.")
+        pagos_json = [
+            p.model_dump() if hasattr(p, "model_dump")
+            else p.dict() if hasattr(p, "dict")
+            else p
+            for p in pagos
+        ]
+        return pagos_json
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error("[GET /payments/] Error al listar pagos: %s", e)
+        raise HTTPException(status_code=500, detail="Error al listar pagos.")
 
-@app.get("/{IDMovimiento}", response_class=HTMLResponse)
-def detalle_pago(
-    IDMovimiento: int,
-    request: Request,
-   #current_user: dict  = Security(get_current_user, scopes=["system", "administrador", "finanzas", "operador"])
-):
-    """
-    Obtiene el detalle de un pago por su IDMovimiento.
-    """
+@app.get("/{ID}", response_class=JSONResponse)
+def detalle_pago(ID: int):
     try:
-        pago = controller.get_by_id(Payment, IDMovimiento)
+        pago = controller.get_by_id(Payment, ID)
         if not pago:
+            logger.warning("[GET /payments/{ID}] Pago no encontrado: ID=%s", ID)
             raise HTTPException(status_code=404, detail="Pago no encontrado")
-        return templates.TemplateResponse("DetallePago.html", {"request": request, "pago": pago.to_dict()})
-    except HTTPException as e:
-        raise e
+        logger.info("[GET /payments/{ID}] Detalle de pago consultado: ID=%s", ID)
+        if hasattr(pago, "model_dump"):
+            return pago.model_dump()
+        elif hasattr(pago, "dict"):
+            return pago.dict()
+        else:
+            return pago
+    except HTTPException:
+        raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        logger.error("[GET /payments/{ID}] Error al consultar detalle de pago: %s", e)
+        raise HTTPException(status_code=500, detail="Error al consultar detalle de pago.")
