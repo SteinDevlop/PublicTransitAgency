@@ -298,16 +298,33 @@ class UniversalController:
         result = self._execute_query(query)
         return result[0] if result else 0.0
 
-    def last_card_used(self, id_card: int) -> str:
-        query = """
-        SELECT TOP 1 a.TipoMovimiento, m.Monto
-        FROM Movimiento m
-        INNER JOIN TipoMovimiento a ON m.IDTipoMovimiento = a.ID
-        WHERE a.ID = ?
-        ORDER BY m.ID DESC;
+    def last_card_used(self, user_id: int) -> dict:
         """
-        result = self._execute_query(query, (id_card,))
-        return result[0] if result else None
+        Retorna el último uso de tarjeta del usuario como un dict con 'tipo' y 'monto'.
+        """
+        query = """
+SELECT TOP 1
+    tm.TipoMovimiento,
+    m.Monto
+FROM 
+    Pago p
+INNER JOIN Movimiento m ON p.IDMovimiento = m.ID
+INNER JOIN TipoMovimiento tm ON m.IDTipoMovimiento = tm.ID
+INNER JOIN Tarjeta t ON p.IDTarjeta = t.ID
+WHERE 
+    t.IDUsuario = ?
+ORDER BY 
+    m.ID DESC;
+        """
+        try:
+            self.cursor.execute(query, (user_id,))
+            row = self.cursor.fetchone()
+            if row:
+                return {"tipo": row[0], "monto": row[1]}
+            else:
+                return {"tipo": "N/A", "monto": "N/A"}
+        except pyodbc.Error as e:
+            raise RuntimeError(f"Error al obtener el último uso de tarjeta del usuario con ID {user_id}: {e}")
 
     def get_ruta_parada(self, id_ruta: int = None, id_parada: int = None) -> list[dict]:
         """
