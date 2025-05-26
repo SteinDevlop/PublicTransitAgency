@@ -117,13 +117,19 @@ class PassengerPanel extends StatelessWidget {
           final data = snapshot.data!;
           final user = data['user'] ?? {};
           final typeCard = data['type_card'] ?? 'No disponible';
-          final lastCardUse = data['ultimo_uso_tarjeta'] ?? {};
-          final saldo = data['Saldo'] ?? '0.00';
+          final lastCardUseRaw = data['ultimo_uso_tarjeta'];
+          Map<String, dynamic> lastCardUse;
+          if (lastCardUseRaw is Map) {
+            lastCardUse = Map<String, dynamic>.from(lastCardUseRaw);
+          } else if (lastCardUseRaw is String) {
+            lastCardUse = {'tipo': lastCardUseRaw, 'monto': 'N/A'};
+          } else {
+            lastCardUse = {'tipo': 'N/A', 'monto': 'N/A'};
+          }
+          final lastCardType = lastCardUse['tipo']?.toString() ?? 'N/A';
+          final lastCardMonto = lastCardUse['monto']?.toString() ?? 'N/A';
 
-          // Ejemplo de último viaje (ajusta según tu backend)
-          final lastTripDay = lastCardUse['day'] ?? 'N/A';
-          final lastTripRoute = lastCardUse['route'] ?? 'N/A';
-          final lastTripTime = lastCardUse['time'] ?? 'N/A';
+          final saldo = data['Saldo'] ?? '0.00';
 
           return Row(
             children: [
@@ -392,15 +398,15 @@ class PassengerPanel extends StatelessWidget {
                                   primaryColor,
                                 ),
                                 _buildInfoRow(
-                                  'Correo',
-                                  user['Correo']?.toString() ?? 'No disponible',
+                                  'Identificacion',
+                                  user['Identificacion']?.toString() ??
+                                      'No disponible',
                                   Icons.email_outlined,
                                   primaryColor,
                                 ),
                                 _buildInfoRow(
-                                  'Teléfono',
-                                  user['Telefono']?.toString() ??
-                                      'No disponible',
+                                  'Correo',
+                                  user['Correo']?.toString() ?? 'No disponible',
                                   Icons.phone_outlined,
                                   primaryColor,
                                 ),
@@ -490,7 +496,7 @@ class PassengerPanel extends StatelessWidget {
                                     ),
                                     const SizedBox(width: 8),
                                     const Text(
-                                      'Último Viaje',
+                                      'Último uso de tarjeta',
                                       style: TextStyle(
                                         fontSize: 18,
                                         fontWeight: FontWeight.bold,
@@ -501,21 +507,15 @@ class PassengerPanel extends StatelessWidget {
                                 ),
                                 const SizedBox(height: 16),
                                 _buildInfoRow(
-                                  'Día',
-                                  lastTripDay,
-                                  Icons.calendar_today_outlined,
+                                  'Tipo',
+                                  lastCardType,
+                                  Icons.credit_card,
                                   accentColor,
                                 ),
                                 _buildInfoRow(
-                                  'Ruta',
-                                  lastTripRoute,
-                                  Icons.route_outlined,
-                                  accentColor,
-                                ),
-                                _buildInfoRow(
-                                  'Hora',
-                                  lastTripTime,
-                                  Icons.access_time_outlined,
+                                  'Monto',
+                                  lastCardMonto,
+                                  Icons.attach_money,
                                   accentColor,
                                 ),
                               ],
@@ -1209,7 +1209,7 @@ class _PagoWidgetState extends State<PagoWidget> {
                                     .map((opt) => DropdownMenuItem<int>(
                                           value: opt['IDTipoTransporte'],
                                           child: Text(
-                                              '${opt['Nombre']} ( 24${opt['Monto']})'),
+                                              '${opt['Nombre']} (${opt['Monto']})'),
                                         ))
                                     .toList(),
                                 onChanged: (val) {
