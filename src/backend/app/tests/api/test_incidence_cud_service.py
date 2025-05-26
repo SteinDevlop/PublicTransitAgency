@@ -56,12 +56,12 @@ def test_actualizar_incidencia_no_existente():
 def test_eliminar_incidencia(setup_and_teardown):
     incidencia = setup_and_teardown
     response = client.post("/incidences/delete", data={"ID": incidencia.ID}, headers=headers)
-    assert response.status_code == 200
+    assert response.status_code == 200  
     assert response.json()["message"] == "Incidencia eliminada exitosamente."
     logger.info(f"Test eliminar_incidencia ejecutado correctamente para ID={incidencia.ID}.")
 
 def test_eliminar_incidencia_no_existente():
     with pytest.raises(Exception) as excinfo:
-        client.post("/incidences/delete", data={"ID": 99999}, headers=headers)
+        client.post("/incidences/delete", data={"ID": 999999}, headers=headers)
     assert "Incidencia no encontrada" in str(excinfo.value)
     logger.warning(f"Test eliminar_incidencia_no_existente ejecutado para ID=99999 y capturada excepción correctamente.")

@@ -39,3 +39,4 @@ def test_detalle_pago_existente(setup_and_teardown):
     response = client.get(f"/payments/{pago.ID}")
     assert response.status_code == 200
     logger.info(f"Test detalle_pago_existente ejecutado correctamente para ID={pago.ID}.")
+

@@ -382,3 +382,50 @@ class UniversalController:
             return row[0] if row else ""
         except pyodbc.Error as e:
             raise RuntimeError(f"Error al obtener el tipo de tarjeta del usuario con ID {user_id}: {e}")
+
+    def get_ruta_parada(self, id_ruta: int, id_parada: int):
+        """
+        Obtiene la relación Ruta-Parada específica por clave compuesta.
+        """
+        query = "SELECT * FROM RutaParada WHERE IDRuta = ? AND IDParada = ?"
+        try:
+            with self.conn.cursor() as cursor:
+                cursor.execute(query, (id_ruta, id_parada))
+                row = cursor.fetchone()
+                if row is None:
+                    return None
+                columns = [column[0] for column in cursor.description]
+                row_dict = dict(zip(columns, row))
+                from backend.app.models.rutaparada import RutaParada
+                return RutaParada.model_validate(row_dict)
+        except Exception as e:
+            logger.error(f"Error en get_ruta_parada: {e}")
+            return None
+
+    def delete_ruta_parada(self, id_ruta: int, id_parada: int):
+        """
+        Elimina la relación Ruta-Parada específica por clave compuesta.
+        """
+        query = "DELETE FROM RutaParada WHERE IDRuta = ? AND IDParada = ?"
+        try:
+            with self.conn.cursor() as cursor:
+                cursor.execute(query, (id_ruta, id_parada))
+                self.conn.commit()
+                return True
+        except Exception as e:
+            logger.error(f"Error en delete_ruta_parada: {e}")
+            return False
+
+    def update_ruta_parada(self, id_ruta: int, id_parada: int, nuevo_id_ruta: int, nuevo_id_parada: int):
+        """
+        Actualiza la relación Ruta-Parada específica por clave compuesta.
+        """
+        query = "UPDATE RutaParada SET IDRuta = ?, IDParada = ? WHERE IDRuta = ? AND IDParada = ?"
+        try:
+            with self.conn.cursor() as cursor:
+                cursor.execute(query, (nuevo_id_ruta, nuevo_id_parada, id_ruta, id_parada))
+                self.conn.commit()
+                return True
+        except Exception as e:
+            logger.error(f"Error en update_ruta_parada: {e}")
+            return False

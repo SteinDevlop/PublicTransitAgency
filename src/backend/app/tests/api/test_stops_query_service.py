@@ -14,7 +14,7 @@ client = TestClient(app, raise_server_exceptions=False)
 
 @pytest.fixture
 def setup_and_teardown():
-    parada = Parada(ID=9999, Nombre="Parada de Prueba", Ubicacion="Ubicación de Prueba")
+    parada = Parada(ID=999999, Nombre="Parada de Prueba", Ubicacion="Ubicación de Prueba")
     existing_parada = controller.get_by_id(Parada, parada.ID)
     if existing_parada:
         controller.delete(existing_parada)

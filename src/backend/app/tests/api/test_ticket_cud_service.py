@@ -54,7 +54,7 @@ def test_actualizar_ticket():
             controller.delete(ticket)
 
 def test_eliminar_ticket():
-    ticket_id = 9999
+    ticket_id = 99999
     ticket = Ticket(ID=ticket_id, EstadoIncidencia="Abierto")
     controller.add(ticket)
     response = client.post("/tickets/delete", data={"ID": ticket_id}, headers=headers)
@@ -65,7 +65,7 @@ def test_eliminar_ticket():
     logger.info(f"Test eliminar_ticket ejecutado correctamente para ID={ticket_id}.")
 
 def test_eliminar_ticket_no_existente():
-    ticket_id = 99999
+    ticket_id = 999999
     response = client.post("/tickets/delete", data={"ID": ticket_id}, headers=headers)
     assert response.status_code in (404, 500)
     logger.warning(
