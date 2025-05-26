@@ -353,4 +353,32 @@ class UniversalController:
             return result[0] if result else 0.0
         except pyodbc.Error as e:
             raise RuntimeError(f"Error al obtener el turno del usuario con ID {user_id}: {e}")
-    
+
+    def get_saldo_usuario(self, user_id: int) -> float:
+        """
+        Obtiene el saldo de un usuario según su ID desde la tabla Tarjeta.
+        """
+        query = "SELECT Saldo FROM Tarjeta WHERE IDUsuario = ?"
+        try:
+            self.cursor.execute(query, (user_id,))
+            row = self.cursor.fetchone()
+            return row[0] if row else 0.0
+        except pyodbc.Error as e:
+            raise RuntimeError(f"Error al obtener el saldo del usuario con ID {user_id}: {e}")
+
+    def get_type_card(self, user_id: int) -> str:
+        """
+        Obtiene el tipo de tarjeta de un usuario según su ID desde la tabla Tarjeta y TipoTarjeta.
+        """
+        query = """
+        SELECT tt.Tipo
+        FROM Tarjeta t
+        JOIN TipoTarjeta tt ON t.IDTipoTarjeta = tt.ID
+        WHERE t.IDUsuario = ?
+        """
+        try:
+            self.cursor.execute(query, (user_id,))
+            row = self.cursor.fetchone()
+            return row[0] if row else ""
+        except pyodbc.Error as e:
+            raise RuntimeError(f"Error al obtener el tipo de tarjeta del usuario con ID {user_id}: {e}")

@@ -88,12 +88,13 @@ async def general_dashboard(
                 "total_passanger": controller.total_pasajeros(),
                 "total_operative": controller.total_operarios(),
                 "total_supervisors": controller.total_supervisores(),
-                "type_card": controller.last_card_used(user.ID),
+                "type_card": controller.get_type_card(user.ID),
                 "buses_mantenimiento": controller.total_unidades(),
                 "registros_mantenimiento": controller.total_mantenimiento(),
                 "proximo_mantenimiento": controller.proximos_mantenimientos(),
                 "ultimo_uso_tarjeta": controller.last_card_used(user.ID),
-                "turno": controller.get_turno_usuario(user.ID)
+                "turno": controller.get_turno_usuario(user.ID),
+                "Saldo": controller.get_saldo_usuario(user.ID),
             }
         except Exception as e:
             logger.error(f"[DASHBOARD] Error al construir datos del dashboard: {e}")

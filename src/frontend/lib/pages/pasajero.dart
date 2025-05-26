@@ -3,6 +3,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../config/config.dart';
 import 'package:flutter/services.dart';
+import 'dart:math';
 
 class PassengerPanel extends StatelessWidget {
   final String token;
@@ -117,7 +118,7 @@ class PassengerPanel extends StatelessWidget {
           final user = data['user'] ?? {};
           final typeCard = data['type_card'] ?? 'No disponible';
           final lastCardUse = data['ultimo_uso_tarjeta'] ?? {};
-          final saldo = user['Saldo']?.toString() ?? '0.00';
+          final saldo = data['Saldo'] ?? '0.00';
 
           // Ejemplo de último viaje (ajusta según tu backend)
           final lastTripDay = lastCardUse['day'] ?? 'N/A';
@@ -883,15 +884,15 @@ class PagoWidget extends StatefulWidget {
 
 class _PagoWidgetState extends State<PagoWidget> {
   final _formKey = GlobalKey<FormState>();
-  final _idPagoController = TextEditingController();
-  final _idMovimientoController = TextEditingController();
   int? _selectedTransportId;
   double? _selectedMonto;
   int? _selectedTipoTransporte;
+  int? _selectedUnidadId;
   bool _loading = false;
   String? _error;
   Map<String, dynamic>? _detallePago;
   List<Map<String, dynamic>> _transportOptions = [];
+  List<Map<String, dynamic>> _unidadesOptions = [];
 
   @override
   void initState() {
@@ -947,14 +948,22 @@ class _PagoWidgetState extends State<PagoWidget> {
               '[PagoWidget] pricesDecoded: \\${pricesDecoded.toString()}');
           debugPrint(
               '[PagoWidget] transportsDecoded: \\${transportsDecoded.toString()}');
-          setState(() {
-            _error =
-                'Error: precios o transportes no son listas.\nPrecios: \\${pricesDecoded.toString()}\nTransportes: \\${transportsDecoded.toString()}';
-          });
+          if (mounted) {
+            setState(() {
+              _error =
+                  'Error: precios o transportes no son listas.\nPrecios: \\${pricesDecoded.toString()}\nTransportes: \\${transportsDecoded.toString()}';
+            });
+          }
           return;
         }
-        final prices = List<Map<String, dynamic>>.from(pricesList);
-        final transports = List<Map<String, dynamic>>.from(transportsList);
+        final prices = List<Map<String, dynamic>>.from(pricesList.map((e) =>
+            e is Map<String, dynamic>
+                ? e
+                : Map<String, dynamic>.from(e as Map)));
+        final transports = List<Map<String, dynamic>>.from(transportsList.map(
+            (e) => e is Map<String, dynamic>
+                ? e
+                : Map<String, dynamic>.from(e as Map)));
         debugPrint('[PagoWidget] Precios obtenidos: \\${prices.length}');
         debugPrint(
             '[PagoWidget] Transportes obtenidos: \\${transports.length}');
@@ -979,40 +988,97 @@ class _PagoWidgetState extends State<PagoWidget> {
                 '[PagoWidget] No se encontró transporte para IDTipoTransporte=$tipoId');
           }
         }
-        setState(() {
-          _transportOptions = options;
-        });
+        if (mounted) {
+          setState(() {
+            _transportOptions = options;
+          });
+        }
       } else {
         debugPrint(
             '[PagoWidget] Error al cargar transportes o precios. Status precios: \\${pricesResp.statusCode}, Status transportes: \\${transportsResp.statusCode}');
-        setState(() {
-          _error = 'Error al cargar transportes o precios.';
-        });
+        if (mounted) {
+          setState(() {
+            _error = 'Error al cargar transportes o precios.';
+          });
+        }
       }
     } catch (e) {
       debugPrint(
           '[PagoWidget] Error de conexión al cargar transportes: \\${e.toString()}');
-      setState(() {
-        _error = 'Error de conexión al cargar transportes.';
-      });
+      if (mounted) {
+        setState(() {
+          _error = 'Error de conexión al cargar transportes.';
+        });
+      }
     } finally {
-      setState(() {
-        _loading = false;
-      });
+      if (mounted) {
+        setState(() {
+          _loading = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _fetchUnidadesForTipo(int tipoId) async {
+    if (!mounted) return;
+    setState(() {
+      _loading = true;
+      _error = null;
+      _unidadesOptions = [];
+      _selectedUnidadId = null;
+    });
+    try {
+      final resp = await http.get(
+        Uri.parse('${AppConfig.baseUrl}/transport_units/?tipo=$tipoId'),
+        headers: {
+          'Authorization': 'Bearer ${widget.token}',
+          'accept': 'application/json'
+        },
+      );
+      if (resp.statusCode == 200) {
+        final decoded = json.decode(resp.body);
+        final unidadesList = (decoded is List)
+            ? decoded
+            : (decoded is Map && decoded.containsKey('units'))
+                ? decoded['units']
+                : [];
+        setState(() {
+          _unidadesOptions = List<Map<String, dynamic>>.from(unidadesList);
+        });
+      } else {
+        if (mounted) {
+          setState(() {
+            _error = 'Error al cargar unidades de transporte.';
+          });
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _error = 'Error de conexión al cargar unidades.';
+        });
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _loading = false;
+        });
+      }
     }
   }
 
   Future<void> _realizarPago() async {
-    if (!_formKey.currentState!.validate() || _selectedTransportId == null)
-      return;
+    if (!_formKey.currentState!.validate() ||
+        _selectedTransportId == null ||
+        _selectedUnidadId == null) return;
     setState(() {
       _loading = true;
       _error = null;
       _detallePago = null;
     });
-    final idPago = DateTime.now().millisecondsSinceEpoch.toString();
-    debugPrint('[RecargaWidget]$idPago');
-    final idMovimiento = _idMovimientoController.text.trim();
+    final random = Random();
+    final idPago = (100 + random.nextInt(2147483547 - 100)).toString();
+    final idMovimiento = (100 + random.nextInt(2147483547 - 100)).toString();
     final idTarjeta = widget.user['IDTarjeta']?.toString() ?? '';
     try {
       // 1. POST /movement/create
@@ -1037,6 +1103,16 @@ class _PagoWidgetState extends State<PagoWidget> {
         return;
       }
       // 2. POST /payments/create
+      final payBody = {
+        'IDMovimiento': idMovimiento,
+        'IDPago': idPago,
+        'IDTarjeta': idTarjeta,
+        'IDPrecio': _selectedTransportId?.toString() ?? '',
+        'IDUnidad': _selectedUnidadId?.toString() ?? '',
+        'ID': idPago, // ID es el IDPago generado
+      };
+      debugPrint(
+          '[PagoWidget] Body para /payments/create: ' + payBody.toString());
       final payResp = await http.post(
         Uri.parse('${AppConfig.baseUrl}/payments/create'),
         headers: {
@@ -1044,12 +1120,7 @@ class _PagoWidgetState extends State<PagoWidget> {
           'accept': 'application/json',
           'Content-Type': 'application/x-www-form-urlencoded'
         },
-        body: {
-          'IDMovimiento': idMovimiento,
-          'IDPago': idPago,
-          'IDTarjeta': idTarjeta,
-          'IDTransporte': _selectedTipoTransporte.toString(),
-        },
+        body: payBody,
       );
       if (payResp.statusCode != 200 && payResp.statusCode != 201) {
         setState(() {
@@ -1127,35 +1198,9 @@ class _PagoWidgetState extends State<PagoWidget> {
                                 ],
                               ),
                               const SizedBox(height: 20),
-                              TextFormField(
-                                controller: _idPagoController,
-                                decoration: InputDecoration(
-                                  labelText: 'IDPago',
-                                  border: OutlineInputBorder(),
-                                  prefixIcon: Icon(Icons.confirmation_number,
-                                      color: primaryColor),
-                                ),
-                                validator: (v) => v == null || v.isEmpty
-                                    ? 'Ingrese el IDPago'
-                                    : null,
-                              ),
-                              const SizedBox(height: 16),
-                              TextFormField(
-                                controller: _idMovimientoController,
-                                decoration: InputDecoration(
-                                  labelText: 'IDMovimiento',
-                                  border: OutlineInputBorder(),
-                                  prefixIcon: Icon(Icons.directions_bus,
-                                      color: primaryColor),
-                                ),
-                                validator: (v) => v == null || v.isEmpty
-                                    ? 'Ingrese el IDMovimiento'
-                                    : null,
-                              ),
-                              const SizedBox(height: 16),
                               DropdownButtonFormField<int>(
                                 decoration: InputDecoration(
-                                  labelText: 'Transporte',
+                                  labelText: 'Tipo de Transporte',
                                   border: OutlineInputBorder(),
                                   prefixIcon: Icon(Icons.directions_transit,
                                       color: primaryColor),
@@ -1164,7 +1209,7 @@ class _PagoWidgetState extends State<PagoWidget> {
                                     .map((opt) => DropdownMenuItem<int>(
                                           value: opt['IDTipoTransporte'],
                                           child: Text(
-                                              '${opt['Nombre']}(${opt['Monto']})'),
+                                              '${opt['Nombre']} ( 24${opt['Monto']})'),
                                         ))
                                     .toList(),
                                 onChanged: (val) {
@@ -1177,12 +1222,44 @@ class _PagoWidgetState extends State<PagoWidget> {
                                         : selected['Monto'];
                                     _selectedTipoTransporte =
                                         selected['IDTipoTransporte'];
+                                    _unidadesOptions = [];
+                                    _selectedUnidadId = null;
                                   });
+                                  if (val != null) _fetchUnidadesForTipo(val);
                                 },
+                                value: _selectedTipoTransporte,
                                 validator: (v) => v == null
-                                    ? 'Seleccione un transporte'
+                                    ? 'Seleccione un tipo de transporte'
                                     : null,
                               ),
+                              const SizedBox(height: 16),
+                              if (_unidadesOptions.isNotEmpty)
+                                DropdownButtonFormField<int>(
+                                  decoration: InputDecoration(
+                                    labelText: 'Unidad de Transporte',
+                                    border: OutlineInputBorder(),
+                                    prefixIcon: Icon(Icons.directions_bus,
+                                        color: primaryColor),
+                                  ),
+                                  items: _unidadesOptions
+                                      .map((u) => DropdownMenuItem<int>(
+                                            value: u['ID'] is int
+                                                ? u['ID']
+                                                : int.tryParse(
+                                                    u['ID'].toString()),
+                                            child: Text(u['Nombre'] ??
+                                                u['ID'].toString()),
+                                          ))
+                                      .toList(),
+                                  onChanged: (val) {
+                                    setState(() {
+                                      _selectedUnidadId = val;
+                                    });
+                                  },
+                                  validator: (v) => v == null
+                                      ? 'Seleccione una unidad'
+                                      : null,
+                                ),
                               const SizedBox(height: 24),
                               SizedBox(
                                 width: double.infinity,
@@ -1293,6 +1370,8 @@ class _RecargaWidgetState extends State<RecargaWidget> {
       _error = null;
       _detalleRecarga = null;
     });
+    final random = Random();
+    String nuevoId = '';
     try {
       // 2. Obtener nuevo ID de movimiento
       final movIdResp = await http.get(
@@ -1309,7 +1388,7 @@ class _RecargaWidgetState extends State<RecargaWidget> {
         });
         return;
       }
-      final nuevoId = json.decode(movIdResp.body)['nuevo_id'].toString();
+      nuevoId = json.decode(movIdResp.body)['nuevo_id'].toString();
       // 3. POST /movement/create
       final movResp = await http.post(
         Uri.parse('${AppConfig.baseUrl}/movement/create'),
@@ -1332,47 +1411,57 @@ class _RecargaWidgetState extends State<RecargaWidget> {
         return;
       }
       // 4. POST /payments/create
-      final idPago = '${DateTime.now().millisecondsSinceEpoch}';
-      debugPrint('[RecargaWidget - idPago]$idPago');
-      final idTarjeta = widget.user['IDTarjeta']?.toString() ?? '';
-      final payResp = await http.post(
-        Uri.parse('${AppConfig.baseUrl}/payments/create'),
-        headers: {
-          'Authorization': 'Bearer ${widget.token}',
-          'accept': 'application/json',
-          'Content-Type': 'application/x-www-form-urlencoded'
-        },
-        body: {
-          'IDMovimiento': nuevoId,
-          'IDPago': idPago,
-          'IDTarjeta': idTarjeta,
-          'IDTransporte': '0',
-        },
-      );
-      if (payResp.statusCode != 200 && payResp.statusCode != 201) {
-        setState(() {
-          _error = 'Error al crear recarga: ${payResp.body}';
-          _loading = false;
-        });
-        return;
-      }
+      // final idPago = (100 + random.nextInt(2147483547 - 100)).toString();
+      // final idTarjeta = widget.user['IDTarjeta']?.toString() ?? '';
+      // final payBody = {
+      //   'IDMovimiento': nuevoId,
+      //   'IDPago': idPago,
+      //   'IDTarjeta': idTarjeta,
+      //   'IDPrecio': 'NULL',
+      //   'IDUnidad': '',
+      //   'ID': idPago, // ID es el IDPago generado
+      // };
+      // debugPrint('[RecargaWidget] Body para /payments/create: ' + payBody.toString());
+      // final payResp = await http.post(
+      //   Uri.parse('${AppConfig.baseUrl}/payments/create'),
+      //   headers: {
+      //     'Authorization': 'Bearer ${widget.token}',
+      //     'accept': 'application/json',
+      //     'Content-Type': 'application/x-www-form-urlencoded'
+      //   },
+      //   body: payBody,
+      // );
+      // if (payResp.statusCode != 200 && payResp.statusCode != 201) {
+      //   setState(() {
+      //     _error = 'Error al crear recarga: ${payResp.body}';
+      //     _loading = false;
+      //   });
+      //   return;
+      // }
       // 5. GET /payments/{IDPago}
-      final detResp = await http.get(
-        Uri.parse('${AppConfig.baseUrl}/payments/$idPago'),
-        headers: {
-          'Authorization': 'Bearer ${widget.token}',
-          'accept': 'application/json'
-        },
-      );
-      if (detResp.statusCode == 200) {
-        setState(() {
-          _detalleRecarga = json.decode(detResp.body);
-        });
-      } else {
-        setState(() {
-          _error = 'Recarga realizada, pero no se pudo obtener el detalle.';
-        });
-      }
+      // final detResp = await http.get(
+      //   Uri.parse('${AppConfig.baseUrl}/payments/$idPago'),
+      //   headers: {
+      //     'Authorization': 'Bearer ${widget.token}',
+      //     'accept': 'application/json'
+      //   },
+      // );
+      // if (detResp.statusCode == 200) {
+      //   setState(() {
+      //     _detalleRecarga = json.decode(detResp.body);
+      //   });
+      // } else {
+      //   setState(() {
+      //     _error = 'Recarga realizada, pero no se pudo obtener el detalle.';
+      //   });
+      // }
+      setState(() {
+        _detalleRecarga = {
+          'IDMovimiento': nuevoId,
+          'Monto': montoStr,
+          'status': 'Recarga realizada con éxito'
+        };
+      });
     } catch (e) {
       setState(() {
         _error = 'Error de conexión al realizar la recarga.';
