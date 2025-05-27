@@ -2,38 +2,65 @@
 
 ## Overview
 
-**Public Transit Agency** is a comprehensive, modular software solution aimed at modernizing public transportation systems. Built using a microservices architecture and leveraging cloud-native technologies, it replaces legacy systems with scalable, maintainable, and interoperable components.  
+**Public Transit Agency** is a comprehensive, modular solution for managing urban public transportation systems. The platform is designed to replace legacy systems, optimizing fleet management, routes, schedules, users, and daily operations through a microservices architecture and cloud-native technologies. Its goal is to improve operational efficiency, data transparency, and the experience for both users and operators/administrators.
 
-Key features include:
+The system provides features for managing transport units, drivers and operators, a passenger information portal with real-time updates, electronic payment processing, incident and maintenance management, and more.
 
-- Fleet and route management    
-- Driver and operator administration  
-- Passenger information portal with real-time schedule and availability updates
+---
 
-This platform is designed to enhance operational efficiency, data transparency, and overall user experience in urban transit environments.
+## 🚦 Main Functional Requirements
+
+1. **User and Role Management**
+   - Registration, authentication, and administration of users with different roles: Administrator, Operational Supervisor, Driver, Maintenance Technician, and Passenger.
+   - Role-based permissions for accessing and operating different system features.
+
+2. **Fleet and Unit Management**
+   - Registration, updating, and monitoring of transport units (buses, trams, etc.).
+   - Assignment of units to routes and shifts.
+
+3. **Route and Stop Management**
+   - Creation, editing, and deletion of routes and stops.
+   - Visualization of active routes and their real-time status.
+
+4. **Schedule and Shift Management**
+   - Definition and adjustment of operation schedules.
+   - Assignment and modification of driver shifts.
+
+5. **Passenger Portal**
+   - Real-time consultation of schedules, routes, and availability.
+   - Purchase and validation of electronic tickets.
+   - Submission of complaints and suggestions.
+
+6. **Incident and Maintenance Management**
+   - Registration and tracking of operational and technical incidents.
+   - Scheduling and logging of preventive and corrective maintenance activities.
+
+7. **Reports and Notifications**
+   - Generation of operational and administrative reports.
+   - Sending notifications to users and operators.
 
 ---
 
 ## 📈 Project Status
 
-> **Current Phase**: In Development  
+> **Current Phase:** In Development
 
-[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=ISCODEVUTB_PublicTransitAgency&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=ISCODEVUTB_PublicTransitAgency)  
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=ISCODEVUTB_PublicTransitAgency&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=ISCODEVUTB_PublicTransitAgency)
 [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=ISCODEVUTB_PublicTransitAgency&metric=coverage)](https://sonarcloud.io/summary/new_code?id=ISCODEVUTB_PublicTransitAgency)
 
 ---
 
 ## ⚙️ Installation & Setup
 
-### 🐍 Requirements
+### Requirements
 
 - Python 3.9+
 - Docker (for containerized environments)
-- Flutter
+- Flutter (for mobile/web frontend)
 
-### 🔧 Local Setup
+### Local Setup
 
-1. Clone the repository  
+1. Clone the repository.
 2. Install dependencies:
 
    ```bash
@@ -44,15 +71,15 @@ This platform is designed to enhance operational efficiency, data transparency, 
    ```text
    fastapi
    uvicorn
-   jinja2
+   jose
+   typing
    pytest
    pytest-cov
    ```
 
-### 🐳 Docker Support
+### Docker Support
 
-Deployment and development environments are containerized using a custom `Dockerfile`.  
-Compatible with Linux-based systems, the container includes all necessary configurations and dependencies for consistent environment replication.
+Development and deployment environments are containerized using a custom `Dockerfile`, compatible with Linux systems. It includes all necessary configurations and dependencies for consistent environment replication.
 
 ---
 
@@ -60,114 +87,145 @@ Compatible with Linux-based systems, the container includes all necessary config
 
 ```
 PUBLIC TRANSIT AGENCY
-├───.github
-│   └───workflows
-├───docs
-└───src
-    ├───backend
-    │   └───app
-    │       ├───data
-    │       ├───logic
-    │       ├───models
-    │       ├───routes
-    │       ├───templates
-    │       └───test
-    └───frontend
-        ├───assets
-        ├───lib
-        ├───templates
-        │   └───img
-        └───web
+├── .github
+│   └── workflows
+├── docs
+├── src
+│   ├── backend
+│   │   └── app
+│   │       ├── data         # Data access and repositories
+│   │       ├── logic        # Business logic and services
+│   │       ├── models       # Domain and ORM models
+│   │       ├── routes       # FastAPI endpoints and controllers
+│   │       ├── templates    # Jinja2 templates for views
+│   │       └── tests        # Unit and integration tests
+│   └── frontend
+│       ├── assets
+│       ├── lib              # Flutter source code
+│       ├── templates
+│       │   └── img
+│       └── web
 ```
 
 ---
 
-## 🧠 Class and Function Reference
+## 🧩 Class and Module Documentation
 
-Each system component is modeled using Python classes to reflect real-world entities:
+### Module: `models`
 
-### 👤 Users
+#### Users and Roles
 
-#### `User`
-- `login(self)`: Abstract method to authenticate user.
-- `logout(self)`: Abstract method to log out.
+- **User (abstract)**
+  - Methods:
+    - `login(self)`: User authentication.
+    - `logout(self)`: Logout.
 
-#### `Administrator`
-- `manage_routes(self)`: Manages transport routes.
-- `manage_schedules(self)`: Manages transport schedules.
-- `manage_users(self)`: Manages system users.
-- `generate_reports(self)`: Generates system reports.
+- **Administrator (User)**
+  - Methods:
+    - `manage_routes(self)`: Manage routes.
+    - `manage_schedules(self)`: Manage schedules.
+    - `manage_users(self)`: Manage users.
+    - `generate_reports(self)`: Generate reports.
 
-#### `OperationalSupervisor`
-- `assign_shifts(self)`: Assigns shifts to drivers.
-- `monitor_units(self)`: Monitors transport units.
-- `record_incidents(self)`: Records operational incidents.
+- **OperationalSupervisor (User)**
+  - Methods:
+    - `assign_shifts(self)`: Assign shifts to drivers.
+    - `monitor_units(self)`: Monitor transport units.
+    - `record_incidents(self)`: Record incidents.
 
-#### `Driver`
-- `check_shifts(self)`: Checks assigned shifts.
-- `report_incident(self)`: Reports an incident.
+- **Driver (User)**
+  - Methods:
+    - `check_shifts(self)`: Check assigned shifts.
+    - `report_incident(self)`: Report incidents.
 
-#### `PassengerUser`
-- `check_schedules(self)`: Checks transport schedules.
-- `make_payment(self)`: Makes a payment.
-- `submit_complaint(self)`: Submits a complaint.
+- **PassengerUser (User)**
+  - Methods:
+    - `check_schedules(self)`: Check schedules and routes.
+    - `make_payment(self)`: Make electronic payments.
+    - `submit_complaint(self)`: Submit complaints or suggestions.
 
-#### `MaintenanceTechnician`
-- `record_maintenance(self)`: Logs maintenance activities.
-- `check_unit_history(self)`: Checks maintenance history of a unit.
+- **MaintenanceTechnician (User)**
+  - Methods:
+    - `record_maintenance(self)`: Log maintenance activities.
+    - `check_unit_history(self)`: Check unit maintenance history.
+
+#### Transport Entities
+
+- **Card**
+  - Methods:
+    - `use_card(self)`: Use and validate transport card.
+
+- **TransportUnit**
+  - Methods:
+    - `update_status(self)`: Update unit status.
+    - `send_alert(self)`: Send unit alerts.
+
+- **Route**
+  - Methods:
+    - `update_route(self)`: Update route information.
+
+- **Stop**
+  - Methods:
+    - `register_stop(self)`: Register a new stop.
+
+- **Schedule**
+  - Methods:
+    - `adjust_schedule(self)`: Adjust schedules.
+
+- **Shift**
+  - Methods:
+    - `assign_shift(self)`: Assign shift to driver.
+    - `change_shift(self)`: Modify shift.
+
+- **Incident**
+  - Methods:
+    - `register_incident(self)`: Register an incident.
+    - `update_status(self)`: Update incident status.
+
+- **Maintenance**
+  - Methods:
+    - `schedule_maintenance(self)`: Schedule maintenance.
+    - `update_status(self)`: Update maintenance status.
+
+- **Report**
+  - Methods:
+    - `generate_report(self)`: Generate reports.
+    - `export(self)`: Export report data.
+
+- **Notification**
+  - Methods:
+    - `send_notification(self)`: Send notifications to users.
+
+- **Payment**
+  - Methods:
+    - `process_payment(self)`: Process payments.
+    - `validate_ticket(self)`: Validate electronic tickets.
 
 ---
 
-### 🚌 Transport Entities
+### Module: `routes`
 
-#### `Card`
-- `use_card(self)`: Abstract method to use the card.
+Defines RESTful endpoints for system interaction, organized by resources (users, routes, units, payments, etc.) using FastAPI.
 
-#### `TransportUnit`
-- `update_status(self)`: Updates the status of the unit.
-- `send_alert(self)`: Sends an alert regarding the unit.
+### Module: `logic`
 
-#### `Route`
-- `update_route(self)`: Updates the route information.
+Contains business logic, services, and validations for each entity and process in the system.
 
-#### `Stop`
-- `register_stop(self)`: Registers a new stop.
+### Module: `data`
 
-#### `Schedule`
-- `adjust_schedule(self)`: Adjusts the schedule timings.
+Implements data access, repositories, and integration with relational/non-relational databases.
 
-#### `Shift`
-- `assign_shift(self)`: Assigns a shift to a driver.
-- `change_shift(self)`: Modifies the assigned shift.
+### Module: `frontend/lib`
 
-#### `GPS`
-- `get_location(self)`: Retrieves the current location.
-- `send_alert(self)`: Sends an alert regarding GPS data.
-
-#### `Incident`
-- `register_incident(self)`: Logs a new incident.
-- `update_status(self)`: Updates the status of an incident.
-
-#### `Maintenance`
-- `schedule_maintenance(self)`: Schedules maintenance for a unit.
-- `update_status(self)`: Updates maintenance status.
-
-#### `Report`
-- `generate_report(self)`: Creates a new report.
-- `export(self)`: Exports the report data.
-
-#### `Notification`
-- `send_notification(self)`: Sends a notification message.
-
-#### `Payment`
-- `process_payment(self)`: Processes a payment transaction.
-- `validate_ticket(self)`: Validates a transport ticket.
+Flutter source code for the user interface, for both passengers and operators/administrators.
 
 ---
+
 ## 👥 Development Team
 
-- **Mario Alberto Julio Wilches**  
-- **Andrés Felipe Rubiano Marrugo**  
+- **Mario Alberto Julio Wilches**
+- **Andrés Felipe Rubiano Marrugo**
 - **Alejandro Pedro Steinman Cuesta**
 
 ---
+
