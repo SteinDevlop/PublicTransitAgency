@@ -27,6 +27,12 @@ def test_listar_turnos(setup_and_teardown):
     assert "Prueba" in response.text
     logger.info("Test listar_turnos ejecutado correctamente.")
 
+def test_obtener_turnos(setup_and_teardown):
+    response = client.get("/shifts/turnos", headers=headers)
+    assert response.status_code == 200
+    assert "turnos" in response.text
+    logger.info("Test obtener_turnos ejecutado correctamente.")
+
 def test_detalle_turno_existente(setup_and_teardown):
     turno_prueba = setup_and_teardown
     response = client.get(f"/shifts/{turno_prueba.ID}", headers=headers)

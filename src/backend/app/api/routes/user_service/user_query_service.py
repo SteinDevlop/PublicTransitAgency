@@ -25,7 +25,7 @@ async def get_users():
     """
     usuarios = controller.read_all(UserOut)
     logger.info(f"[GET /users] Número de usuarios encontrados: {len(usuarios) if usuarios else 0}")
-    return JSONResponse(content={"usuarios": usuarios or []})
+    return JSONResponse(content={"usuarios": usuarios or [],"cantidad":len(usuarios)})
 
 @router.get("/usuario", response_class=JSONResponse)
 def usuario(

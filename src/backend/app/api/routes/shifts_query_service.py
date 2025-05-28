@@ -30,6 +30,15 @@ def listar_turnos():
         logger.error(f"[GET /shifts/] Error al listar turnos: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
+@app.get("/turnos", response_class=JSONResponse)
+async def get_users():
+    """
+    Devuelve todos los usuarios registrados.
+    """
+    turnos = controller.read_all(Shift)
+    logger.info(f"[GET /users] Número de usuarios encontrados: {len(turnos) if turnos else 0}")
+    return JSONResponse(content={"turnos": turnos or []})
+
 @app.get("/{id}", response_class=JSONResponse)
 def detalle_turno(id: int):
     """

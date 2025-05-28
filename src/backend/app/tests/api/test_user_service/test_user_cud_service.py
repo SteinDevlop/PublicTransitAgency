@@ -35,27 +35,11 @@ def test_create_user():
     assert data["data"]["Nombre"] == "aa"
 
 def test_update_user_existing():
-    # Asegurarse de que el usuario existe primero
-    client.post(
-        "/user/create",
-        data={
-            "ID": 2,
-            "Identificacion": 123,
-            "Nombre": "cc",
-            "Apellido": "dd",
-            "Correo": "correoexistente@example.com",
-            "Contrasena": "1234@1234Aasss",
-            "IDRolUsuario": 1,
-            "IDTurno": 1,
-            "IDTarjeta": 1
-        },
-        headers=headers
-    )
     response = client.post(
         "/user/update",
         data={
-            "ID": 2,
-            "Identificacion": 124,
+            "ID": 1,
+            "Identificacion": 99,
             "Nombre": "ee",
             "Apellido": "ff",
             "Correo": "correoactualizado@example.com",
@@ -94,24 +78,9 @@ def test_update_user_not_found():
 
 def test_delete_user_existing():
     # Crear primero el usuario para poder eliminarlo
-    client.post(
-        "/user/create",
-        data={
-            "ID": 3,
-            "Identificacion": 333,
-            "Nombre": "gg",
-            "Apellido": "hh",
-            "Correo": "paraborrar@example.com",
-            "Contrasena": "1234@1234Aasss",
-            "IDRolUsuario": 1,
-            "IDTurno": 1,
-            "IDTarjeta": 1
-        },
-        headers=headers
-    )
     response = client.post(
         "/user/delete",
-        data={"ID": 3},
+        data={"ID": 1},
         headers=headers
     )
     assert response.status_code == 200

@@ -38,7 +38,7 @@ def get_pqrs_pasajero(
     """
     pqrs = controller.read_all(PQROut)
     logger.info(f"[GET /pasajero/pqrs] Número de PQRs encontrados: {len(pqrs) if pqrs else 0}")
-    return JSONResponse(content={"pqrs": pqrs or []})
+    return JSONResponse(content={"pqrs": pqrs or [], "cantidad":len(pqrs)})
 
 @router.get("/administrador/pqrs", response_class=JSONResponse)
 def get_pqrs_admin(

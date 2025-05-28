@@ -283,11 +283,32 @@ class AdminPanel extends StatelessWidget {
                             icon: Icons.person_add_alt_1,
                             title: 'Crear Usuario',
                             color: primaryColor,
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) =>
+                                      CrearUsuarioScreen(token: token),
+                                ),
+                              );
+                            },
                           ),
                           _buildMenuItem(
                             icon: Icons.question_answer_outlined,
                             title: 'Gestión de PQR',
                             color: primaryColor,
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) =>
+                                      PQRWidget(
+                                        token: token,
+                                        onBack: () => Navigator.of(context).pop(),
+                                        onSuccess: () => Navigator.pop(context)),
+                                ),
+                              );
+                            },
                           ),
                           _buildMenuItem(
                             icon: Icons.bar_chart_outlined,
@@ -296,8 +317,17 @@ class AdminPanel extends StatelessWidget {
                           ),
                           _buildMenuItem(
                             icon: Icons.assignment_turned_in_outlined,
-                            title: 'Gestión de Asistencia',
+                            title: 'Registrar Asistencia',
                             color: primaryColor,
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) =>
+                                      CrearAsistenciaScreen(token: token),
+                                ),
+                              );
+                            },
                           ),
                           // CRUD: Rutas
                           _buildCrudSection(
@@ -365,42 +395,55 @@ class AdminPanel extends StatelessWidget {
                               ),
                             ],
                           ),
-                          // CRUD: Usuarios
+                          // CRUD: Usuario
                           _buildCrudSection(
                             title: 'Usuarios',
                             color: primaryColor,
                             buttons: [
                               _buildCrudButton(
-                                  '📄 Leer Usuarios',
-                                  () => Navigator.pushNamed(
-                                      context, '/user/consultar')),
+                                  '📄 Buscar Usuario',
+                                  () => showDialog(
+                                  context: context,
+                                  builder: (_) => Dialog(
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(24),
+                                      child: ConsultarUsuarioScreen(
+                                        token: token,
+                                        onSuccess: () => Navigator.pop(context),
+                                      ),
+                                    ),
+                                  ),
+                                ),),
                               _buildCrudButton(
                                   '🖊️ Actualizar Usuario',
-                                  () => Navigator.pushNamed(
-                                      context, '/user/actualizar')),
+                                  () => showDialog(
+                                  context: context,
+                                  builder: (_) => Dialog(
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(24),
+                                      child: ActualizarUsuarioScreen(
+                                        token: token,
+                                        mode: ActualizarUsuarioFormMode.update,
+                                        onSuccess: () => Navigator.pop(context),
+                                      ),
+                                    ),
+                                  ),
+                                ),),
                               _buildCrudButton(
                                   '🗑️ Eliminar Usuario',
-                                  () => Navigator.pushNamed(
-                                      context, '/user/eliminar')),
-                            ],
-                          ),
-                          // CRUD: Operarios
-                          _buildCrudSection(
-                            title: 'Operarios',
-                            color: primaryColor,
-                            buttons: [
-                              _buildCrudButton(
-                                  '📄 Leer Operarios',
-                                  () => Navigator.pushNamed(
-                                      context, '/user/consultar')),
-                              _buildCrudButton(
-                                  '🖊️ Actualizar Operarios',
-                                  () => Navigator.pushNamed(
-                                      context, '/user/actualizar')),
-                              _buildCrudButton(
-                                  '🗑️ Eliminar Operarios',
-                                  () => Navigator.pushNamed(
-                                      context, '/user/eliminar')),
+                                  () => showDialog(
+                                  context: context,
+                                  builder: (_) => Dialog(
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(24),
+                                      child: EliminarUsuarioScreen(
+                                        token: token,
+                                        mode: EliminarUsuarioFormMode.normal,
+                                        onSuccess: () => Navigator.pop(context),
+                                      ),
+                                    ),
+                                  ),
+                                ),),
                             ],
                           ),
                           // CRUD: Mantenimiento
@@ -444,25 +487,6 @@ class AdminPanel extends StatelessWidget {
                                           token: token)),
                                 ),
                               ),
-                            ],
-                          ),
-                          // CRUD: Supervisores
-                          _buildCrudSection(
-                            title: 'Supervisores',
-                            color: primaryColor,
-                            buttons: [
-                              _buildCrudButton(
-                                  '📄 Leer Supervisores',
-                                  () => Navigator.pushNamed(
-                                      context, '/user/consultar')),
-                              _buildCrudButton(
-                                  '🖊️ Actualizar Supervisores',
-                                  () => Navigator.pushNamed(
-                                      context, '/user/actualizar')),
-                              _buildCrudButton(
-                                  '🗑️ Eliminar Supervisores',
-                                  () => Navigator.pushNamed(
-                                      context, '/user/eliminar')),
                             ],
                           ),
                           // CRUD: Horario
@@ -772,6 +796,16 @@ class AdminPanel extends StatelessWidget {
                                       label: 'Añadir Usuario',
                                       icon: Icons.person_add_outlined,
                                       color: primaryColor,
+                                      onPressed: () => showDialog(
+                                        context: context,
+                                        builder: (_) => Dialog(
+                                          child: CrearUsuarioWidget(
+                                            token: token,
+                                            onCreated: () =>
+                                                Navigator.pop(context),
+                                          ),
+                                        ),
+                                      ),
                                     ),
                                     _buildActionButton(
                                       label: 'Añadir Vehículo',
@@ -2444,6 +2478,2542 @@ class _RutaDeleteWidgetState extends State<_RutaDeleteWidget> {
               Text(_error!, style: TextStyle(color: Colors.red)),
             ],
           ],
+        ),
+      ),
+    );
+  }
+}
+// Screen para crear usuario
+class CrearAsistenciaScreen extends StatefulWidget {
+  final String token;
+  const CrearAsistenciaScreen({Key? key, required this.token})
+      : super(key: key);
+
+  static const primaryColor = Color(0xFF1A73E8);
+
+  @override
+  State<CrearAsistenciaScreen> createState() =>
+      _CrearAsistenciaScreenState();
+}
+
+class _CrearAsistenciaScreenState extends State<CrearAsistenciaScreen> {
+  final _formKey = GlobalKey<FormState>();
+  final TextEditingController _idController = TextEditingController();
+  final TextEditingController _idUserController = TextEditingController();
+  final TextEditingController _horaInicioController = TextEditingController();
+  final TextEditingController _horaFinalController = TextEditingController();
+  final TextEditingController _fechaController = TextEditingController();
+  bool _loading = false;
+  String? _response;
+  String? _error;
+  TimeOfDay? _horaInicio;
+  TimeOfDay? _horaFinal;
+  DateTime? _fechaSeleccionada;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchNextId();
+  }
+
+  String timeOfDayToString(TimeOfDay? t) {
+    if (t == null) return '';
+    final h = t.hour.toString().padLeft(2, '0');
+    final m = t.minute.toString().padLeft(2, '0');
+    return "$h:$m:00";
+  }
+
+  String dateToString(DateTime? d) {
+    if (d == null) return '';
+    return "${d.year.toString().padLeft(4, '0')}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}";
+  }
+
+  Future<void> _selectHoraInicio(BuildContext context) async {
+    final TimeOfDay? picked = await showTimePicker(
+      context: context,
+      initialTime: _horaInicio ?? TimeOfDay.now(),
+    );
+    if (picked != null) {
+      setState(() {
+        _horaInicio = picked;
+        _horaInicioController.text = picked.format(context);
+      });
+    }
+  }
+
+  Future<void> _selectHoraFinal(BuildContext context) async {
+    final TimeOfDay? picked = await showTimePicker(
+      context: context,
+      initialTime: _horaFinal ?? TimeOfDay.now(),
+    );
+    if (picked != null) {
+      setState(() {
+        _horaFinal = picked;
+        _horaFinalController.text = picked.format(context);
+      });
+    }
+  }
+
+  Future<void> _selectFecha(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: _fechaSeleccionada ?? DateTime.now(),
+      firstDate: DateTime(2000), // Límite inferior (puedes ajustar)
+      lastDate: DateTime(2100),  // Límite superior (puedes ajustar)
+    );
+    if (picked != null) {
+      setState(() {
+        _fechaSeleccionada = picked;
+        _fechaController.text = dateToString(picked);
+      });
+    }
+  }
+
+  Future<void> _fetchNextId() async {
+    try {
+      final response = await http.get(
+        Uri.parse('${AppConfig.baseUrl}/asistance/asistencias'),
+        headers: {
+          'Authorization': 'Bearer ${widget.token}',
+          'accept': 'application/json',
+        },
+      );
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final nextId = (data['count'] ?? 0) + 1;
+        setState(() {
+          _idController.text = nextId.toString();
+        });
+      } else {
+        setState(() {
+          _error = 'No se pudo obtener el siguiente ID. (${response.body})';
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _error = 'Error de conexión al consultar el ID.';
+      });
+    }
+  }
+
+  Future<void> _crearAsistencia() async {
+    if (!_formKey.currentState!.validate()) return;
+    setState(() {
+      _loading = true;
+      _response = null;
+      _error = null;
+    });
+    try {
+      final response = await http.post(
+        Uri.parse('${AppConfig.baseUrl}/asistance/create'),
+        headers: {
+          'Authorization': 'Bearer ${widget.token}',
+          'accept': 'application/json',
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: {
+          'id': _idController.text.trim(),
+          'iduser': _idUserController.text.trim(),
+          'horainicio': timeOfDayToString(_horaInicio),
+          'horafinal': timeOfDayToString(_horaFinal),
+          'fecha': dateToString(_fechaSeleccionada),
+        },
+      );
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        setState(() {
+          _response = 'Asistencia creada exitosamente.';
+        });
+        _fetchNextId();
+      } else {
+        setState(() {
+          _error = 'No se pudo crear la asistencia. (${response.body})';
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _error = 'Error de conexión.';
+      });
+    } finally {
+      setState(() {
+        _loading = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Crear Asistencia'),
+        backgroundColor: CrearAsistenciaScreen.primaryColor,
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(24.0),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Complete los datos para crear una asistencia:',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 24),
+              TextFormField(
+                controller: _idController,
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(
+                  labelText: 'ID Asistencia',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.confirmation_number),
+                ),
+                enabled: false,
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _idUserController,
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(
+                  labelText: 'ID Usuario',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.person),
+                ),
+                validator: (value) => value == null || value.isEmpty
+                    ? 'Ingrese el ID Usuario'
+                    : null,
+              ),
+              const SizedBox(height: 16),
+              GestureDetector(
+                onTap: () => _selectHoraInicio(context),
+                child: AbsorbPointer(
+                  child: TextFormField(
+                    controller: _horaInicioController,
+                    readOnly: true,
+                    decoration: InputDecoration(
+                      labelText: 'Hora de Inicio (HH:MM:SS)',
+                      border: OutlineInputBorder(),
+                      prefixIcon: Icon(Icons.access_time),
+                    ),
+                    validator: (value) =>
+                        value == null || value.isEmpty ? 'Seleccione la hora de inicio' : null,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              GestureDetector(
+                onTap: () => _selectHoraFinal(context),
+                child: AbsorbPointer(
+                  child: TextFormField(
+                    controller: _horaFinalController,
+                    readOnly: true,
+                    decoration: InputDecoration(
+                      labelText: 'Hora Final (HH:MM:SS)',
+                      border: OutlineInputBorder(),
+                      prefixIcon: Icon(Icons.access_time_filled),
+                    ),
+                    validator: (value) =>
+                        value == null || value.isEmpty ? 'Seleccione la hora final' : null,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              GestureDetector(
+                onTap: () => _selectFecha(context),
+                child: AbsorbPointer(
+                  child: TextFormField(
+                    controller: _fechaController,
+                    readOnly: true,
+                    decoration: InputDecoration(
+                      labelText: 'Fecha (YYYY-MM-DD)',
+                      border: OutlineInputBorder(),
+                      prefixIcon: Icon(Icons.date_range),
+                    ),
+                    validator: (value) =>
+                        value == null || value.isEmpty ? 'Seleccione la fecha' : null,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: _loading ? null : _crearAsistencia,
+                  child: _loading
+                      ? SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                              strokeWidth: 2, color: Colors.white),
+                        )
+                      : Text('Crear Asistencia'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: CrearAsistenciaScreen.primaryColor,
+                    foregroundColor: Colors.white,
+                    padding: EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                ),
+              ),
+              if (_response != null) ...[
+                const SizedBox(height: 24),
+                Card(
+                  color: Colors.green[50],
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Row(
+                      children: [
+                        Icon(Icons.check_circle, color: Colors.green[700]),
+                        const SizedBox(width: 12),
+                        Expanded(
+                            child: Text(_response!,
+                                style: TextStyle(
+                                    color: Colors.green[900],
+                                    fontWeight: FontWeight.bold))),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+              if (_error != null) ...[
+                const SizedBox(height: 24),
+                Card(
+                  color: Colors.red[50],
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Row(
+                      children: [
+                        Icon(Icons.error, color: Colors.red[700]),
+                        const SizedBox(width: 12),
+                        Expanded(
+                            child: Text(_error!,
+                                style: TextStyle(
+                                    color: Colors.red[900],
+                                    fontWeight: FontWeight.bold))),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class CrearUsuarioScreen extends StatefulWidget {
+  final String token;
+  const CrearUsuarioScreen({Key? key, required this.token}) : super(key: key);
+
+  static const primaryColor = Color(0xFF1A73E8);
+
+  @override
+  State<CrearUsuarioScreen> createState() => _CrearUsuarioScreenState();
+}
+
+class _CrearUsuarioScreenState extends State<CrearUsuarioScreen> {
+  final _formKey = GlobalKey<FormState>();
+
+  // Controladores para los campos
+  final TextEditingController _idController = TextEditingController();
+  final TextEditingController _identificacionController = TextEditingController();
+  final TextEditingController _nombreController = TextEditingController();
+  final TextEditingController _apellidoController = TextEditingController();
+  final TextEditingController _correoController = TextEditingController();
+  final TextEditingController _contrasenaController = TextEditingController();
+  final TextEditingController _idTarjetaController = TextEditingController();
+  List<Map<String, dynamic>> _turnos = [];
+  List<Map<String, dynamic>> _rolusers = [];
+  int? _turnoSeleccionado;
+  int? _rolSeleccionado;
+
+  bool _loading = false;
+  String? _response;
+  String? _error;
+  @override
+  void initState() {
+    super.initState();
+    _fetchNextId();
+    _fetchTurnos();
+    _fetchRoles();
+  }
+  Future<void> _fetchNextId() async {
+    try {
+      final response = await http.get(
+        Uri.parse('${AppConfig.baseUrl}/user/users'),
+        headers: {
+          'Authorization': 'Bearer ${widget.token}',
+          'accept': 'application/json',
+        },
+      );
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final nextId = (data['cantidad'] ?? 0) + 1;
+        setState(() {
+          _idController.text = nextId.toString();
+        });
+      } else {
+        setState(() {
+          _error = 'No se pudo obtener el siguiente ID. (${response.body})';
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _error = 'Error de conexión al consultar el ID.';
+      });
+    }
+  }
+    Future<void> _fetchTurnos() async {
+    try {
+      final response = await http.get(
+        Uri.parse('${AppConfig.baseUrl}/shifts/turnos'),
+        headers: {
+          'Authorization': 'Bearer ${widget.token}',
+          'accept': 'application/json',
+        },
+      );
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        // Ajusta esto según cómo responde tu API
+        // Por ejemplo, si tu API retorna {"turnos": [{ID: 1, nombre: "Mañana"}, ...]}
+        setState(() {
+          _turnos = List<Map<String, dynamic>>.from(data["turnos"] ?? data);
+        });
+      } else {
+        setState(() {
+          _error = 'No se pudieron cargar los turnos. (${response.body})';
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _error = 'Error de conexión al cargar turnos.';
+      });
+    }
+  }
+
+  Future<void> _fetchRoles() async {
+    try {
+      final response = await http.get(
+        Uri.parse('${AppConfig.baseUrl}/roluser/administrador/rolusers'),
+        headers: {
+          'Authorization': 'Bearer ${widget.token}',
+          'accept': 'application/json',
+        },
+      );
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        // Ajusta esto según cómo responde tu API
+        // Por ejemplo, si tu API retorna {"roles": [{ID: 1, nombre: "Pasajero"}, ...]}
+        setState(() {
+          _rolusers = List<Map<String, dynamic>>.from(data["rolusers"] ?? data);
+        });
+      } else {
+        setState(() {
+          _error = 'No se pudieron cargar los roles. (${response.body})';
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _error = 'Error de conexión al cargar roles.';
+      });
+    }
+  }
+
+  Future<void> _crearUsuario() async {
+    if (!_formKey.currentState!.validate()) return;
+    setState(() {
+      _loading = true;
+      _response = null;
+      _error = null;
+    });
+    try {
+      final response = await http.post(
+        Uri.parse('${AppConfig.baseUrl}/user/create'),
+        headers: {
+          'Authorization': 'Bearer ${widget.token}',
+          'accept': 'application/json',
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: {
+          'ID': _idController.text.trim(),
+          'Identificacion': _identificacionController.text.trim(),
+          'Nombre': _nombreController.text.trim(),
+          'Apellido': _apellidoController.text.trim(),
+          'Correo': _correoController.text.trim(),
+          'Contrasena': _contrasenaController.text.trim(),
+          'IDRolUsuario': _rolSeleccionado?.toString() ?? '',
+          'IDTurno': _turnoSeleccionado?.toString() ?? '',
+          'IDTarjeta': _idTarjetaController.text.trim(),
+        },
+      );
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        setState(() {
+          _response = 'Usuario creado exitosamente.';
+        });
+        _fetchNextId();
+      } else {
+        setState(() {
+          _error = 'No se pudo crear el usuario. (${response.body})';
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _error = 'Error de conexión.';
+      });
+    } finally {
+      setState(() {
+        _loading = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Crear Usuario'),
+        backgroundColor: CrearUsuarioScreen.primaryColor,
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(24.0),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Complete los datos para crear un usuario:',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 24),
+
+              // Campos del formulario
+              TextFormField(
+                              controller: _idController,
+                              keyboardType: TextInputType.number,
+                              decoration: InputDecoration(
+                                labelText: 'ID de Usuario',
+                                border: OutlineInputBorder(),
+                                prefixIcon: Icon(Icons.confirmation_number),
+                              ),
+                              enabled: false,
+                            ),
+
+              TextFormField(
+                controller: _identificacionController,
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(
+                  labelText: 'Identificación',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.badge),
+                ),
+                validator: (v) => v == null || v.isEmpty ? 'Ingrese la identificación' : null,
+              ),
+              const SizedBox(height: 16),
+
+              TextFormField(
+                controller: _nombreController,
+                decoration: InputDecoration(
+                  labelText: 'Nombre',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.person),
+                ),
+                validator: (v) => v == null || v.isEmpty ? 'Ingrese el nombre' : null,
+              ),
+              const SizedBox(height: 16),
+
+              TextFormField(
+                controller: _apellidoController,
+                decoration: InputDecoration(
+                  labelText: 'Apellido',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.person_outline),
+                ),
+                validator: (v) => v == null || v.isEmpty ? 'Ingrese el apellido' : null,
+              ),
+              const SizedBox(height: 16),
+
+              TextFormField(
+                controller: _correoController,
+                decoration: InputDecoration(
+                  labelText: 'Correo',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.email),
+                ),
+                validator: (v) => v == null || v.isEmpty ? 'Ingrese el correo' : null,
+              ),
+              const SizedBox(height: 16),
+
+              TextFormField(
+                controller: _contrasenaController,
+                obscureText: true,
+                decoration: InputDecoration(
+                  labelText: 'Contraseña',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.lock),
+                ),
+                validator: (v) => v == null || v.isEmpty ? 'Ingrese la contraseña' : null,
+              ),
+
+              const SizedBox(height: 16),
+              DropdownButtonFormField<int>(
+                value: _rolSeleccionado,
+                items: _rolusers.map((rol) {
+                  return DropdownMenuItem<int>(
+                    value: rol["ID"],
+                    child: Text(rol["Rol"] ?? rol["Rol"]),
+                  );
+                }).toList(),
+                decoration: InputDecoration(
+                  labelText: 'Rol',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.timer),
+                ),
+                onChanged: (value) {
+                  setState(() {
+                    _rolSeleccionado = value;
+                  });
+                },
+                validator: (v) =>
+                  v == null ? 'Seleccione un rol' : null,
+              ),
+
+              const SizedBox(height: 16),
+              DropdownButtonFormField<int>(
+                value: _turnoSeleccionado,
+                items: _turnos.map((turno) {
+                  return DropdownMenuItem<int>(
+                    value: turno["ID"],
+                    child: Text(turno["TipoTurno"] ?? turno["TipoTurno"]),
+                  );
+                }).toList(),
+                decoration: InputDecoration(
+                  labelText: 'Turno',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.timer),
+                ),
+                onChanged: (value) {
+                  setState(() {
+                    _turnoSeleccionado = value;
+                  });
+                },
+                validator: (v) =>
+                  v == null ? 'Seleccione un turno' : null,
+              ),
+
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _idTarjetaController,
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(
+                  labelText: 'ID Tarjeta',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.credit_card),
+                ),
+                validator: (v) => v == null || v.isEmpty ? 'Ingrese el ID de tarjeta' : null,
+              ),
+              const SizedBox(height: 24),
+
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: _loading ? null : _crearUsuario,
+                  child: _loading
+                      ? SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                              strokeWidth: 2, color: Colors.white),
+                        )
+                      : Text('Crear Usuario'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: CrearUsuarioScreen.primaryColor,
+                    foregroundColor: Colors.white,
+                    padding: EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                ),
+              ),
+              if (_response != null) ...[
+                const SizedBox(height: 24),
+                Card(
+                  color: Colors.green[50],
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Row(
+                      children: [
+                        Icon(Icons.check_circle, color: Colors.green[700]),
+                        const SizedBox(width: 12),
+                        Expanded(
+                            child: Text(_response!,
+                                style: TextStyle(
+                                    color: Colors.green[900],
+                                    fontWeight: FontWeight.bold))),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+              if (_error != null) ...[
+                const SizedBox(height: 24),
+                Card(
+                  color: Colors.red[50],
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Row(
+                      children: [
+                        Icon(Icons.error, color: Colors.red[700]),
+                        const SizedBox(width: 12),
+                        Expanded(
+                            child: Text(_error!,
+                                style: TextStyle(
+                                    color: Colors.red[900],
+                                    fontWeight: FontWeight.bold))),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+///
+///
+
+// Enum para el modo del formulario, por si quieres ampliarlo en el futuro.
+enum ActualizarUsuarioFormMode { update }
+
+class UsuarioModel {
+  final int id;
+  final int identificacion;
+  final String nombre;
+  final String apellido;
+  final String correo;
+  final String contrasena;
+  final int idRolUsuario;
+  final int idTurno;
+  final int idTarjeta;
+
+  UsuarioModel({
+    required this.id,
+    required this.identificacion,
+    required this.nombre,
+    required this.apellido,
+    required this.correo,
+    required this.contrasena, 
+    required this.idRolUsuario,
+    required this.idTurno,
+    required this.idTarjeta,
+  });
+
+  factory UsuarioModel.fromJson(Map<String, dynamic> json) => UsuarioModel(
+    id: json['ID'],
+    identificacion: json['Identificacion'],
+    nombre: json['Nombre'],
+    apellido: json['Apellido'],
+    correo: json['Correo'],
+    contrasena: json['Contrasena'],
+    idRolUsuario: json['IDRolUsuario'],
+    idTurno: json['IDTurno'],
+    idTarjeta: json['IDTarjeta'],
+  );
+}
+
+class ActualizarUsuarioScreen  extends StatefulWidget {
+  final String token;
+  final ActualizarUsuarioFormMode mode;
+  final VoidCallback onSuccess;
+
+  const ActualizarUsuarioScreen({
+    Key? key,
+    required this.token,
+    required this.mode,
+    required this.onSuccess,
+  }) : super(key: key);
+
+  @override
+  State<ActualizarUsuarioScreen> createState() => _ActualizarUsuarioScreenState();
+}
+
+class _ActualizarUsuarioScreenState extends State<ActualizarUsuarioScreen> {
+  final _formKey = GlobalKey<FormState>();
+  final _idBusquedaController = TextEditingController();
+  bool _mostrarContrasena = false; 
+
+  // Controladores de formulario
+  final TextEditingController _idController = TextEditingController();
+  final TextEditingController _identificacionController = TextEditingController();
+  final TextEditingController _nombreController = TextEditingController();
+  final TextEditingController _apellidoController = TextEditingController();
+  final TextEditingController _correoController = TextEditingController();
+  final TextEditingController _contrasenaController = TextEditingController();
+  final TextEditingController _idRolUsuarioController = TextEditingController();
+  final TextEditingController _idTarjetaController = TextEditingController();
+  final TextEditingController _idTurnoController = TextEditingController();
+  List<Map<String, dynamic>> _rolusers = []; 
+  int? _rolSeleccionado;
+  List<Map<String, dynamic>> _turnos = [];
+  int? _turnoSeleccionado;
+
+  bool _loading = false;
+  String? _response;
+  String? _error;
+  bool _userLoaded = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchTurnos();
+    _fetchRoles();
+  }
+
+  Future<void> _fetchTurnos() async {
+    try {
+      final response = await http.get(
+        Uri.parse('${AppConfig.baseUrl}/shifts/turnos'),
+        headers: {
+          'Authorization': 'Bearer ${widget.token}',
+          'accept': 'application/json',
+        },
+      );
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        setState(() {
+          _turnos = List<Map<String, dynamic>>.from(data["turnos"] ?? data);
+        });
+      } else {
+        setState(() {
+          _error = 'No se pudieron cargar los turnos. (${response.body})';
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _error = 'Error de conexión al cargar turnos.';
+      });
+    }
+  }
+  Future<void> _fetchRoles() async {
+    try {
+      final response = await http.get(
+        Uri.parse('${AppConfig.baseUrl}/roluser/administrador/rolusers'),
+        headers: {
+          'Authorization': 'Bearer ${widget.token}',
+          'accept': 'application/json',
+        },
+      );
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        // Ajusta esto según cómo responde tu API
+        // Por ejemplo, si tu API retorna {"roles": [{ID: 1, nombre: "Pasajero"}, ...]}
+        setState(() {
+          _rolusers = List<Map<String, dynamic>>.from(data["rolusers"] ?? data);
+        });
+      } else {
+        setState(() {
+          _error = 'No se pudieron cargar los roles. (${response.body})';
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _error = 'Error de conexión al cargar roles.';
+      });
+    }
+  }
+
+  Future<void> _buscarUsuario() async {
+    setState(() {
+      _loading = true;
+      _error = null;
+      _response = null;
+      _userLoaded = false;
+    });
+    try {
+      final response = await http.get(
+        Uri.parse('${AppConfig.baseUrl}/user/usuario?id=${_idBusquedaController.text.trim()}'),
+        headers: {
+          'Authorization': 'Bearer ${widget.token}',
+          'accept': 'application/json',
+        },
+      );
+      print('URL: ${AppConfig.baseUrl}/user/usuario?id=${_idBusquedaController.text.trim()}');
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final usuario = UsuarioModel.fromJson(data);
+        _llenarFormulario(usuario);
+        setState(() {
+          _userLoaded = true;
+        });
+      } else {
+        setState(() {
+          _error = 'Usuario no encontrado (${response.body})';
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _error = 'Error de conexión al buscar usuario.';
+      });
+    } finally {
+      setState(() {
+        _loading = false;
+      });
+    }
+  }
+
+  void _llenarFormulario(UsuarioModel usuario) {
+    _idController.text = usuario.id.toString();
+    _identificacionController.text = usuario.identificacion.toString();
+    _nombreController.text = usuario.nombre;
+    _apellidoController.text = usuario.apellido;
+    _correoController.text = usuario.correo;
+    _idRolUsuarioController.text = usuario.idRolUsuario.toString();
+    _idTarjetaController.text = usuario.idTarjeta.toString();
+    _idTurnoController.text = usuario.idTurno.toString();
+    _contrasenaController.text = usuario.contrasena;
+  }
+
+  Future<void> _actualizarUsuario() async {
+    if (!_formKey.currentState!.validate()) return;
+    setState(() {
+      _loading = true;
+      _response = null;
+      _error = null;
+    });
+    try {
+      final response = await http.post(
+        Uri.parse('${AppConfig.baseUrl}/user/update'),
+        headers: {
+          'Authorization': 'Bearer ${widget.token}',
+          'accept': 'application/json',
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: {
+          'ID': _idController.text.trim(),
+          'Identificacion': _identificacionController.text.trim(),
+          'Nombre': _nombreController.text.trim(),
+          'Apellido': _apellidoController.text.trim(),
+          'Correo': _correoController.text.trim(),
+          'Contrasena': _contrasenaController.text.trim(),
+          'IDRolUsuario':  _rolSeleccionado?.toString() ?? '',
+          'IDTurno': _turnoSeleccionado?.toString() ?? '',
+          'IDTarjeta': _idTarjetaController.text.trim(),
+        },
+      );
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        setState(() {
+          _response = 'Usuario actualizado exitosamente.';
+        });
+        widget.onSuccess();
+      } else {
+        setState(() {
+          _error = 'No se pudo actualizar el usuario. (${response.body})';
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _error = 'Error de conexión.';
+      });
+    } finally {
+      setState(() {
+        _loading = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Paso 1: Campo para buscar usuario
+          TextFormField(
+            controller: _idBusquedaController,
+            decoration: InputDecoration(
+              labelText: 'ID del usuario a buscar',
+              border: OutlineInputBorder(),
+              prefixIcon: Icon(Icons.search),
+            ),
+            keyboardType: TextInputType.number,
+            enabled: !_userLoaded,
+          ),
+          const SizedBox(height: 8),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton.icon(
+              icon: Icon(Icons.search),
+              label: Text('Buscar usuario'),
+              onPressed: _loading ? null : _buscarUsuario,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.blue,
+                foregroundColor: Colors.white,
+              ),
+            ),
+          ),
+          const SizedBox(height: 24),
+          if (_userLoaded)
+            Form(
+              key: _formKey,
+              child: Column(
+                children: [
+                  TextFormField(
+                    controller: _idController,
+                    keyboardType: TextInputType.number,
+                    decoration: InputDecoration(
+                      labelText: 'ID de Usuario',
+                      border: OutlineInputBorder(),
+                      prefixIcon: Icon(Icons.confirmation_number),
+                    ),
+                    enabled: false,
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _identificacionController,
+                    keyboardType: TextInputType.number,
+                    decoration: InputDecoration(
+                      labelText: 'Identificación',
+                      border: OutlineInputBorder(),
+                      prefixIcon: Icon(Icons.badge),
+                    ),
+                    validator: (v) => v == null || v.isEmpty ? 'Ingrese la identificación' : null,
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _nombreController,
+                    decoration: InputDecoration(
+                      labelText: 'Nombre',
+                      border: OutlineInputBorder(),
+                      prefixIcon: Icon(Icons.person),
+                    ),
+                    validator: (v) => v == null || v.isEmpty ? 'Ingrese el nombre' : null,
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _apellidoController,
+                    decoration: InputDecoration(
+                      labelText: 'Apellido',
+                      border: OutlineInputBorder(),
+                      prefixIcon: Icon(Icons.person_outline),
+                    ),
+                    validator: (v) => v == null || v.isEmpty ? 'Ingrese el apellido' : null,
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _correoController,
+                    decoration: InputDecoration(
+                      labelText: 'Correo',
+                      border: OutlineInputBorder(),
+                      prefixIcon: Icon(Icons.email),
+                    ),
+                    validator: (v) => v == null || v.isEmpty ? 'Ingrese el correo' : null,
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _contrasenaController,
+                    obscureText: !_mostrarContrasena,
+                    decoration: InputDecoration(
+                      labelText: 'Contraseña (dejar vacío si no desea cambiarla)',
+                      border: OutlineInputBorder(),
+                      prefixIcon: Icon(Icons.lock),
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _mostrarContrasena ? Icons.visibility : Icons.visibility_off,
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            _mostrarContrasena = !_mostrarContrasena;
+                          });
+                        },
+                      ),
+                    ),
+                    validator: (v) => v == null || v.isEmpty ? 'Contraseña (dejar contraseña si no desea cambiarla)' : null,
+                  ),
+                
+                const SizedBox(height: 16),
+                DropdownButtonFormField<int>(
+                  value: _rolSeleccionado,
+                  items: _rolusers.map((rol) {
+                    return DropdownMenuItem<int>(
+                      value: rol["ID"],
+                      child: Text(rol["Rol"] ?? rol["Rol"]),
+                    );
+                  }).toList(),
+                  decoration: InputDecoration(
+                    labelText: 'Rol',
+                    border: OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.timer),
+                  ),
+                  onChanged: (value) {
+                    setState(() {
+                      _rolSeleccionado = value;
+                    });
+                  },
+                  validator: (v) =>
+                    v == null ? 'Seleccione un rol' : null,
+                  ),
+
+                  const SizedBox(height: 16),
+                  DropdownButtonFormField<int>(
+                    value: _turnoSeleccionado,
+                    items: _turnos.map((turno) {
+                      return DropdownMenuItem<int>(
+                        value: turno["ID"],
+                        child: Text(turno["TipoTurno"] ?? turno["nombre"] ?? ''),
+                      );
+                    }).toList(),
+                    decoration: InputDecoration(
+                      labelText: 'Turno',
+                      border: OutlineInputBorder(),
+                      prefixIcon: Icon(Icons.timer),
+                    ),
+                    onChanged: (value) {
+                      setState(() {
+                        _turnoSeleccionado = value;
+                      });
+                    },
+                    validator: (v) => v == null ? 'Seleccione un turno' : null,
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _idTarjetaController,
+                    keyboardType: TextInputType.number,
+                    decoration: InputDecoration(
+                      labelText: 'ID Tarjeta',
+                      border: OutlineInputBorder(),
+                      prefixIcon: Icon(Icons.credit_card),
+                    ),
+                    validator: (v) => v == null || v.isEmpty ? 'Ingrese el ID de tarjeta' : null,
+                  ),
+                  const SizedBox(height: 24),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: _loading ? null : _actualizarUsuario,
+                      child: _loading
+                          ? SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                  strokeWidth: 2, color: Colors.white),
+                            )
+                          : Text('Actualizar Usuario'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.blue,
+                        foregroundColor: Colors.white,
+                        padding: EdgeInsets.symmetric(vertical: 14),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          if (_response != null) ...[
+            const SizedBox(height: 24),
+            Card(
+              color: Colors.green[50],
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Row(
+                  children: [
+                    Icon(Icons.check_circle, color: Colors.green[700]),
+                    const SizedBox(width: 12),
+                    Expanded(
+                        child: Text(_response!,
+                            style: TextStyle(
+                                color: Colors.green[900],
+                                fontWeight: FontWeight.bold))),
+                  ],
+                ),
+              ),
+            ),
+          ],
+          if (_error != null) ...[
+            const SizedBox(height: 24),
+            Card(
+              color: Colors.red[50],
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Row(
+                  children: [
+                    Icon(Icons.error, color: Colors.red[700]),
+                    const SizedBox(width: 12),
+                    Expanded(
+                        child: Text(_error!,
+                            style: TextStyle(
+                                color: Colors.red[900],
+                                fontWeight: FontWeight.bold))),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+///
+///
+class CrearUsuarioWidget extends StatefulWidget {
+  final String token;
+  final VoidCallback onCreated;
+  const CrearUsuarioWidget({Key? key, required this.onCreated,required this.token}) : super(key: key);
+
+  static const primaryColor = Color(0xFF1A73E8);
+
+  @override
+  State<CrearUsuarioWidget> createState() => _CrearUsuarioWidgetState();
+}
+
+class _CrearUsuarioWidgetState extends State<CrearUsuarioWidget> {
+  final _formKey = GlobalKey<FormState>();
+
+  // Controladores para los campos
+  final TextEditingController _idController = TextEditingController();
+  final TextEditingController _identificacionController = TextEditingController();
+  final TextEditingController _nombreController = TextEditingController();
+  final TextEditingController _apellidoController = TextEditingController();
+  final TextEditingController _correoController = TextEditingController();
+  final TextEditingController _contrasenaController = TextEditingController();
+  final TextEditingController _idTarjetaController = TextEditingController();
+  List<Map<String, dynamic>> _turnos = [];
+  List<Map<String, dynamic>> _rolusers = [];
+  int? _rolSeleccionado;
+  int? _turnoSeleccionado;
+
+  bool _loading = false;
+  String? _response;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchNextId();
+    _fetchTurnos();
+    _fetchRoles();
+  }
+
+  Future<void> _fetchNextId() async {
+    try {
+      final response = await http.get(
+        Uri.parse('${AppConfig.baseUrl}/user/users'),
+        headers: {
+          'Authorization': 'Bearer ${widget.token}',
+          'accept': 'application/json',
+        },
+      );
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final nextId = (data['cantidad'] ?? 0) + 1;
+        setState(() {
+          _idController.text = nextId.toString();
+        });
+      } else {
+        setState(() {
+          _error = 'No se pudo obtener el siguiente ID. (${response.body})';
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _error = 'Error de conexión al consultar el ID.';
+      });
+    }
+  }
+
+  Future<void> _fetchTurnos() async {
+    try {
+      final response = await http.get(
+        Uri.parse('${AppConfig.baseUrl}/shifts/turnos'),
+        headers: {
+          'Authorization': 'Bearer ${widget.token}',
+          'accept': 'application/json',
+        },
+      );
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        setState(() {
+          _turnos = List<Map<String, dynamic>>.from(data["turnos"] ?? data);
+        });
+      } else {
+        setState(() {
+          _error = 'No se pudieron cargar los turnos. (${response.body})';
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _error = 'Error de conexión al cargar turnos.';
+      });
+    }
+  }
+  Future<void> _fetchRoles() async {
+    try {
+      final response = await http.get(
+        Uri.parse('${AppConfig.baseUrl}/roluser/administrador/rolusers'),
+        headers: {
+          'Authorization': 'Bearer ${widget.token}',
+          'accept': 'application/json',
+        },
+      );
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        // Ajusta esto según cómo responde tu API
+        // Por ejemplo, si tu API retorna {"roles": [{ID: 1, nombre: "Pasajero"}, ...]}
+        setState(() {
+          _rolusers = List<Map<String, dynamic>>.from(data["rolusers"] ?? data);
+        });
+      } else {
+        setState(() {
+          _error = 'No se pudieron cargar los roles. (${response.body})';
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _error = 'Error de conexión al cargar roles.';
+      });
+    }
+  }
+  Future<void> _crearUsuario() async {
+    if (!_formKey.currentState!.validate()) return;
+    setState(() {
+      _loading = true;
+      _response = null;
+      _error = null;
+    });
+    try {
+      final response = await http.post(
+        Uri.parse('${AppConfig.baseUrl}/user/create'),
+        headers: {
+          'Authorization': 'Bearer ${widget.token}',
+          'accept': 'application/json',
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: {
+          'ID': _idController.text.trim(),
+          'Identificacion': _identificacionController.text.trim(),
+          'Nombre': _nombreController.text.trim(),
+          'Apellido': _apellidoController.text.trim(),
+          'Correo': _correoController.text.trim(),
+          'Contrasena': _contrasenaController.text.trim(),
+          'IDRolUsuario': _rolSeleccionado?.toString() ?? '',
+          'IDTurno': _turnoSeleccionado?.toString() ?? '',
+          'IDTarjeta': _idTarjetaController.text.trim(),
+        },
+      );
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        setState(() {
+          _response = 'Usuario creado exitosamente.';
+        });
+        _fetchNextId();
+      } else {
+        setState(() {
+          _error = 'No se pudo crear el usuario. (${response.body})';
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _error = 'Error de conexión.';
+      });
+    } finally {
+      setState(() {
+        _loading = false;
+      });
+    }
+  }
+
+@override
+Widget build(BuildContext context) {
+  return Card(
+    elevation: 4,
+    margin: const EdgeInsets.all(16.0),
+    child: Padding(
+      padding: const EdgeInsets.all(24.0),
+      child: Form(
+        key: _formKey,
+        child: LayoutBuilder(
+          builder: (context, constraints) {
+            return ConstrainedBox(
+              constraints: BoxConstraints(
+                maxHeight: MediaQuery.of(context).size.height * 0.8,
+              ),
+              child: SingleChildScrollView(
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Complete los datos para crear un usuario:',
+                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 24),
+                    // ...todos tus campos aquí...
+                    TextFormField(
+                      controller: _idController,
+                      keyboardType: TextInputType.number,
+                      decoration: InputDecoration(
+                        labelText: 'ID de Usuario',
+                        border: OutlineInputBorder(),
+                        prefixIcon: Icon(Icons.confirmation_number),
+                      ),
+                      enabled: false,
+                    ),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      controller: _identificacionController,
+                      keyboardType: TextInputType.number,
+                      decoration: InputDecoration(
+                        labelText: 'Identificación',
+                        border: OutlineInputBorder(),
+                        prefixIcon: Icon(Icons.badge),
+                      ),
+                      validator: (v) => v == null || v.isEmpty ? 'Ingrese la identificación' : null,
+                    ),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      controller: _nombreController,
+                      decoration: InputDecoration(
+                        labelText: 'Nombre',
+                        border: OutlineInputBorder(),
+                        prefixIcon: Icon(Icons.person),
+                      ),
+                      validator: (v) => v == null || v.isEmpty ? 'Ingrese el nombre' : null,
+                    ),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      controller: _apellidoController,
+                      decoration: InputDecoration(
+                        labelText: 'Apellido',
+                        border: OutlineInputBorder(),
+                        prefixIcon: Icon(Icons.person_outline),
+                      ),
+                      validator: (v) => v == null || v.isEmpty ? 'Ingrese el apellido' : null,
+                    ),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      controller: _correoController,
+                      decoration: InputDecoration(
+                        labelText: 'Correo',
+                        border: OutlineInputBorder(),
+                        prefixIcon: Icon(Icons.email),
+                      ),
+                      validator: (v) => v == null || v.isEmpty ? 'Ingrese el correo' : null,
+                    ),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      controller: _contrasenaController,
+                      obscureText: true,
+                      decoration: InputDecoration(
+                        labelText: 'Contraseña',
+                        border: OutlineInputBorder(),
+                        prefixIcon: Icon(Icons.lock),
+                      ),
+                      validator: (v) => v == null || v.isEmpty ? 'Ingrese la contraseña' : null,
+                    ),
+                    const SizedBox(height: 16),
+                    DropdownButtonFormField<int>(
+                      value: _rolSeleccionado,
+                      items: _rolusers.map((rol) {
+                        return DropdownMenuItem<int>(
+                          value: rol["ID"],
+                          child: Text(rol["Rol"] ?? rol["Rol"]),
+                        );
+                      }).toList(),
+                      decoration: InputDecoration(
+                        labelText: 'Rol',
+                        border: OutlineInputBorder(),
+                        prefixIcon: Icon(Icons.timer),
+                      ),
+                      onChanged: (value) {
+                        setState(() {
+                          _rolSeleccionado = value;
+                        });
+                      },
+                      validator: (v) =>
+                        v == null ? 'Seleccione un rol' : null,
+                      ),
+                    const SizedBox(height: 16),
+                    DropdownButtonFormField<int>(
+                      value: _turnoSeleccionado,
+                      items: _turnos.map((turno) {
+                        return DropdownMenuItem<int>(
+                          value: turno["ID"],
+                          child: Text(turno["TipoTurno"] ?? turno["TipoTurno"].toString()),
+                        );
+                      }).toList(),
+                      decoration: InputDecoration(
+                        labelText: 'Turno',
+                        border: OutlineInputBorder(),
+                        prefixIcon: Icon(Icons.timer),
+                      ),
+                      onChanged: (value) {
+                        setState(() {
+                          _turnoSeleccionado = value;
+                        });
+                      },
+                      validator: (v) =>
+                        v == null ? 'Seleccione un turno' : null,
+                    ),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      controller: _idTarjetaController,
+                      keyboardType: TextInputType.number,
+                      decoration: InputDecoration(
+                        labelText: 'ID Tarjeta',
+                        border: OutlineInputBorder(),
+                        prefixIcon: Icon(Icons.credit_card),
+                      ),
+                      validator: (v) => v == null || v.isEmpty ? 'Ingrese el ID de tarjeta' : null,
+                    ),
+                    const SizedBox(height: 24),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        onPressed: _loading ? null : _crearUsuario,
+                        child: _loading
+                            ? SizedBox(
+                                width: 20,
+                                height: 20,
+                                child: CircularProgressIndicator(
+                                    strokeWidth: 2, color: Colors.white),
+                              )
+                            : Text('Crear Usuario'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: CrearUsuarioWidget.primaryColor,
+                          foregroundColor: Colors.white,
+                          padding: EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                      ),
+                    ),
+                    if (_response != null) ...[
+                      const SizedBox(height: 24),
+                      Card(
+                        color: Colors.green[50],
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Row(
+                            children: [
+                              Icon(Icons.check_circle, color: Colors.green[700]),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                  child: Text(_response!,
+                                      style: TextStyle(
+                                          color: Colors.green[900],
+                                          fontWeight: FontWeight.bold))),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                    if (_error != null) ...[
+                      const SizedBox(height: 24),
+                      Card(
+                        color: Colors.red[50],
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Row(
+                            children: [
+                              Icon(Icons.error, color: Colors.red[700]),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                  child: Text(_error!,
+                                      style: TextStyle(
+                                          color: Colors.red[900],
+                                          fontWeight: FontWeight.bold))),
+                            ],
+                          ),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            );
+          },
+        ),
+      ),
+    ),
+  );
+}
+}
+///
+///
+enum EliminarUsuarioFormMode { normal }
+
+class EliminarUsuarioScreen extends StatefulWidget {
+  final String token;
+  final EliminarUsuarioFormMode mode;
+  final VoidCallback? onSuccess;
+
+  const EliminarUsuarioScreen({
+    Key? key,
+    required this.token,
+    this.mode = EliminarUsuarioFormMode.normal,
+    this.onSuccess,
+  }) : super(key: key);
+
+  @override
+  State<EliminarUsuarioScreen> createState() => _EliminarUsuarioScreenState();
+}
+
+class _EliminarUsuarioScreenState extends State<EliminarUsuarioScreen> {
+  final _formKey = GlobalKey<FormState>();
+  final TextEditingController _idController = TextEditingController();
+
+  bool _loading = false;
+  String? _error;
+
+  Future<void> _confirmarYEliminarUsuario() async {
+    final confirm = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Confirmar eliminación'),
+        content: Text(
+            '¿Está seguro que desea eliminar el usuario con ID: ${_idController.text.trim()}? Esta acción no se puede deshacer.'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            onPressed: () => Navigator.of(context).pop(true),
+            child: const Text('Eliminar'),
+          ),
+        ],
+      ),
+    );
+    if (confirm == true) {
+      await _eliminarUsuario();
+    }
+  }
+
+  Future<void> _eliminarUsuario() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+
+    try {
+      final response = await http.post(
+        Uri.parse('${AppConfig.baseUrl}/user/delete'),
+        headers: {
+          'Authorization': 'Bearer ${widget.token}',
+          'accept': 'application/json',
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: {
+          'ID': _idController.text.trim(),
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        if (data['success'] == true) {
+          // Mostrar diálogo de éxito
+          await showDialog(
+            context: context,
+            builder: (_) => AlertDialog(
+              title: const Text('Usuario eliminado'),
+              content: Text(data['message'] ?? 'Usuario eliminado exitosamente.'),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(),
+                  child: const Text('Aceptar'),
+                ),
+              ],
+            ),
+          );
+          widget.onSuccess?.call();
+          setState(() {
+            _idController.clear();
+          });
+        } else {
+          setState(() {
+            _error = data['message'] ?? 'No se pudo eliminar el usuario.';
+          });
+        }
+      } else if (response.statusCode == 404) {
+        setState(() {
+          _error = 'Usuario no encontrado.';
+        });
+      } else {
+        setState(() {
+          _error = 'Error al eliminar el usuario: (${response.body})';
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _error = 'Error de conexión.';
+      });
+    } finally {
+      setState(() {
+        _loading = false;
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _idController.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Form(
+            key: _formKey,
+            child: Column(
+              children: [
+                TextFormField(
+                  controller: _idController,
+                  keyboardType: TextInputType.number,
+                  decoration: InputDecoration(
+                    labelText: 'ID de Usuario a eliminar',
+                    border: OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.delete),
+                  ),
+                  validator: (v) =>
+                      v == null || v.isEmpty ? 'Ingrese el ID del usuario' : null,
+                  enabled: !_loading,
+                ),
+                const SizedBox(height: 24),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton.icon(
+                    icon: Icon(Icons.delete_forever),
+                    label: _loading
+                        ? SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
+                        : Text('Eliminar Usuario'),
+                    onPressed: _loading ? null : _confirmarYEliminarUsuario,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red,
+                      foregroundColor: Colors.white,
+                      padding: EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          if (_error != null) ...[
+            const SizedBox(height: 24),
+            Card(
+              color: Colors.red[50],
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Row(
+                  children: [
+                    Icon(Icons.error, color: Colors.red[700]),
+                    const SizedBox(width: 12),
+                    Expanded(
+                        child: Text(_error!,
+                            style: TextStyle(
+                                color: Colors.red[900],
+                                fontWeight: FontWeight.bold))),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+/// Widget para consultar un usuario por ID utilizando el endpoint /user/usuario
+class ConsultarUsuarioScreen extends StatefulWidget {
+  final String token;
+  final VoidCallback? onSuccess;
+  const ConsultarUsuarioScreen({Key? key, required this.onSuccess, required this.token}) : super(key: key);
+
+  @override
+  State<ConsultarUsuarioScreen> createState() => _ConsultarUsuarioScreenState();
+}
+
+class _ConsultarUsuarioScreenState extends State<ConsultarUsuarioScreen> {
+  final _idController = TextEditingController();
+  bool _loading = false;
+  String? _error;
+  Map<String, dynamic>? _usuario;
+
+  Future<void> _consultarUsuario() async {
+    setState(() {
+      _loading = true;
+      _error = null;
+      _usuario = null;
+    });
+
+    try {
+      final response = await http.get(
+        Uri.parse('${AppConfig.baseUrl}/user/usuario?id=${_idController.text.trim()}'),
+        headers: {
+          'Authorization': 'Bearer ${widget.token}',
+          'accept': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        setState(() {
+          _usuario = data;
+        });
+      } else if (response.statusCode == 404) {
+        setState(() {
+          _error = "Usuario no encontrado.";
+        });
+      } else {
+        setState(() {
+          _error = "Error al consultar el usuario: (${response.body})";
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _error = "Error de conexión.";
+      });
+    } finally {
+      setState(() {
+        _loading = false;
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _idController.dispose();
+    super.dispose();
+  }
+
+  Widget _usuarioCard(Map<String, dynamic> usuario) {
+    return Card(
+      margin: const EdgeInsets.only(top: 24),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: usuario.entries.map((entry) {
+            return Padding(
+              padding: const EdgeInsets.symmetric(vertical: 4),
+              child: Row(
+                children: [
+                  Text(
+                    "${entry.key}: ",
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                  ),
+                  Expanded(child: Text("${entry.value}")),
+                ],
+              ),
+            );
+          }).toList(),
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      child: Padding(
+        padding: const EdgeInsets.all(18),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            TextFormField(
+              controller: _idController,
+              decoration: InputDecoration(
+                labelText: 'ID de Usuario',
+                border: const OutlineInputBorder(),
+                prefixIcon: const Icon(Icons.search),
+              ),
+              keyboardType: TextInputType.number,
+              enabled: !_loading,
+            ),
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton.icon(
+                icon: const Icon(Icons.search),
+                label: _loading
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          color: Colors.white,
+                        ),
+                      )
+                    : const Text('Consultar Usuario'),
+                onPressed: _loading ? null : _consultarUsuario,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+            ),
+            if (_usuario != null) _usuarioCard(_usuario!),
+            if (_error != null) ...[
+              const SizedBox(height: 24),
+              Card(
+                color: Colors.red[50],
+                elevation: 0,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Row(
+                    children: [
+                      Icon(Icons.error, color: Colors.red[700]),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(_error!,
+                            style: TextStyle(
+                                color: Colors.red[900],
+                                fontWeight: FontWeight.bold)),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+///
+///
+enum PQROperation { create, update, delete }
+enum PQRType { peticion, queja, reclamo, sugerencia }
+
+class PQRWidget extends StatefulWidget {
+  final String token;
+  final VoidCallback? onSuccess;
+  final VoidCallback? onBack;
+  final String? baseUrl;
+
+  const PQRWidget({
+    Key? key,
+    required this.token,
+    this.onSuccess,
+    this.onBack,
+    this.baseUrl,
+  }) : super(key: key);
+
+  @override
+  _PQRWidgetState createState() => _PQRWidgetState();
+}
+
+class _PQRWidgetState extends State<PQRWidget> {
+  final _formKey = GlobalKey<FormState>();
+  final _idController = TextEditingController();
+  final _descriptionController = TextEditingController();
+  final _identificationController = TextEditingController();
+  final _fechaController = TextEditingController();
+
+  PQROperation _operation = PQROperation.create;
+  PQRType? _selectedType;
+  bool _loading = false;
+  String? _response;
+  String? _error;
+  
+
+  @override
+  void initState() {
+    super.initState();
+    _fechaController.text = DateTime.now().toString().split(' ')[0];
+    _fetchNextId();
+  }
+
+  @override
+  void dispose() {
+    _idController.dispose();
+    _descriptionController.dispose();
+    _identificationController.dispose();
+    _fechaController.dispose();
+    super.dispose();
+  }
+
+  void _clearMessages() {
+    setState(() {
+      _response = null;
+      _error = null;
+    });
+  }
+
+  void _showSnackBar(String message, {bool isError = false}) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: isError ? Colors.red : Colors.green,
+        behavior: SnackBarBehavior.floating,
+        action: SnackBarAction(
+          label: 'OK',
+          textColor: Colors.white,
+          onPressed: () {},
+        ),
+      ),
+    );
+  }
+
+  String _getOperationEndpoint() {
+    switch (_operation) {
+      case PQROperation.create:
+        return '/pqr/create';
+      case PQROperation.update:
+        return '/pqr/update';
+      case PQROperation.delete:
+        return '/pqr/delete';
+    }
+  }
+
+  Map<String, dynamic> _buildRequestBody() {
+    final body = <String, dynamic>{
+      'ID': _idController.text,
+    };
+
+    if (_operation != PQROperation.delete) {
+      body.addAll({
+        'type': _selectedType?.name ?? '',
+        'description': _descriptionController.text,
+        'fecha': _fechaController.text,
+        'identificationuser': _identificationController.text,
+      });
+    }
+
+    return body;
+  }
+  Future<void> _fetchNextId() async {
+    try {
+      final response = await http.get(
+        Uri.parse('${AppConfig.baseUrl}/pqr/administrador/pqrs'),
+        headers: {
+          'Authorization': 'Bearer ${widget.token}',
+          'accept': 'application/json',
+        },
+      );
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final nextId = (data['cantidad'] ?? 0) + 1;
+        setState(() {
+          _idController.text = nextId.toString();
+        });
+      } else {
+        setState(() {
+          _error = 'No se pudo obtener el siguiente ID. (${response.body})';
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _error = 'Error de conexión al consultar el ID.';
+      });
+    }
+  }
+  Future<void> _submitForm() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    _clearMessages();
+    setState(() => _loading  = true);
+
+    try {
+      final response = await http.post(
+        Uri.parse('$AppConfig.baseUrl${_getOperationEndpoint()}'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ${widget.token}',
+        },
+        body: json.encode(_buildRequestBody()),
+      );
+
+      if (response.statusCode >= 200 && response.statusCode < 300) {
+        final operationText = _operation == PQROperation.create
+            ? 'creado'
+            : _operation == PQROperation.update
+                ? 'actualizado'
+                : 'eliminado';
+
+        setState(() {
+          _response = 'PQR $operationText exitosamente';
+        });
+
+        _showSnackBar('PQR $operationText correctamente');
+
+        if (_operation == PQROperation.create) {
+          _clearForm();
+        }
+
+        widget.onSuccess?.call();
+      } else {
+        final errorData = json.decode(response.body);
+        throw Exception(errorData['message'] ?? 'Error ${response.statusCode}');
+      }
+    } catch (e) {
+      setState(() {
+        _error = e.toString().replaceFirst('Exception: ', '');
+      });
+      _showSnackBar(_error!, isError: true);
+    } finally {
+      setState(() => _loading  = false);
+    }
+  }
+
+  void _clearForm() {
+    _idController.clear();
+    _descriptionController.clear();
+    _identificationController.clear();
+    _fechaController.text = DateTime.now().toString().split(' ')[0];
+    setState(() {
+      _selectedType = null;
+    });
+  }
+
+  Future<void> _selectDate() async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(2020),
+      lastDate: DateTime(2030),
+    );
+    if (picked != null) {
+      _fechaController.text = picked.toString().split(' ')[0];
+    }
+  }
+
+  Widget _buildOperationSelector() {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Seleccionar operación',
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            const SizedBox(height: 12),
+            Wrap(
+              spacing: 8,
+              children: PQROperation.values.map((operation) {
+                final isSelected = _operation == operation;
+                final labels = {
+                  PQROperation.create: 'Crear',
+                  PQROperation.update: 'Actualizar',
+                  PQROperation.delete: 'Eliminar',
+                };
+                final colors = {
+                  PQROperation.create: Colors.blue,
+                  PQROperation.update: Colors.orange,
+                  PQROperation.delete: Colors.red,
+                };
+
+                return FilterChip(
+                  label: Text(labels[operation]!),
+                  selected: isSelected,
+                  onSelected: (selected) {
+                    if (selected) {
+                      setState(() {
+                        _operation = operation;
+                        _clearMessages();
+                      });
+                    }
+                  },
+                  selectedColor: colors[operation]?.withOpacity(0.2),
+                  checkmarkColor: colors[operation],
+                );
+              }).toList(),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFormFields() {
+    final fields = <Widget>[
+      if (_operation == PQROperation.create) ...[
+        const SizedBox(height: 16),
+        // Campos del formulario
+        TextFormField(
+          controller: _idController,
+          keyboardType: TextInputType.number,
+          decoration: InputDecoration(
+                labelText: 'ID de PQR',
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.confirmation_number),
+                ),
+              enabled: false,
+            ),
+         const SizedBox(height: 16),
+        DropdownButtonFormField<PQRType>(
+          value: _selectedType,
+          decoration: const InputDecoration(
+            labelText: 'Tipo *',
+            hintText: 'Seleccione el tipo de PQR',
+            prefixIcon: Icon(Icons.category),
+          ),
+          items: PQRType.values.map((type) {
+            final labels = {
+              PQRType.peticion: 'Petición',
+              PQRType.queja: 'Queja',
+              PQRType.reclamo: 'Reclamo',
+              PQRType.sugerencia: 'Sugerencia',
+            };
+            return DropdownMenuItem(
+              value: type,
+              child: Text(labels[type]!),
+            );
+          }).toList(),
+          onChanged: (value) {
+            setState(() => _selectedType = value);
+          },
+          validator: (value) {
+            if (value == null) return 'Tipo es requerido';
+            return null;
+          },
+        ),
+        const SizedBox(height: 16),
+        TextFormField(
+          controller: _descriptionController,
+          decoration: const InputDecoration(
+            labelText: 'Descripción *',
+            hintText: 'Describa detalladamente su PQR...',
+            prefixIcon: Icon(Icons.description),
+          ),
+          maxLines: 4,
+          validator: (value) {
+            if (value == null || value.trim().isEmpty) {
+              return 'Descripción es requerida';
+            }
+            if (value.length < 10) {
+              return 'La descripción debe tener al menos 10 caracteres';
+            }
+            return null;
+          },
+        ),
+        const SizedBox(height: 16),
+        TextFormField(
+          controller: _fechaController,
+          decoration: InputDecoration(
+            labelText: 'Fecha *',
+            hintText: 'YYYY-MM-DD',
+            prefixIcon: const Icon(Icons.calendar_today),
+            suffixIcon: IconButton(
+              icon: const Icon(Icons.date_range),
+              onPressed: _selectDate,
+            ),
+          ),
+          readOnly: true,
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Fecha es requerida';
+            }
+            return null;
+          },
+        ),
+        const SizedBox(height: 16),
+        TextFormField(
+          controller: _identificationController,
+          decoration: const InputDecoration(
+            labelText: 'Número de identificación *',
+            hintText: 'Ingrese su número de identificación',
+            prefixIcon: Icon(Icons.person),
+          ),
+          keyboardType: TextInputType.number,
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Identificación es requerida';
+            }
+            if (value.length < 6) {
+              return 'La identificación debe tener al menos 6 dígitos';
+            }
+            return null;
+          },
+        ),
+      ],
+      if (_operation == PQROperation.update || _operation == PQROperation.delete)
+        TextFormField(
+          controller: _idController,
+          decoration: const InputDecoration(
+            labelText: 'ID *',
+            hintText: 'Ingrese el ID del PQR',
+            prefixIcon: Icon(Icons.tag),
+          ),
+          keyboardType: TextInputType.number,
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'ID es requerido para esta operación';
+            }
+            return null;
+          },
+        ),
+      if (_operation == PQROperation.update) ...[
+        const SizedBox(height: 16),
+        DropdownButtonFormField<PQRType>(
+          value: _selectedType,
+          decoration: const InputDecoration(
+            labelText: 'Tipo *',
+            hintText: 'Seleccione el tipo de PQR',
+            prefixIcon: Icon(Icons.category),
+          ),
+          items: PQRType.values.map((type) {
+            final labels = {
+              PQRType.peticion: 'Petición',
+              PQRType.queja: 'Queja',
+              PQRType.reclamo: 'Reclamo',
+              PQRType.sugerencia: 'Sugerencia',
+            };
+            return DropdownMenuItem(
+              value: type,
+              child: Text(labels[type]!),
+            );
+          }).toList(),
+          onChanged: (value) {
+            setState(() => _selectedType = value);
+          },
+          validator: (value) {
+            if (value == null) return 'Tipo es requerido';
+            return null;
+          },
+        ),
+        const SizedBox(height: 16),
+        TextFormField(
+          controller: _descriptionController,
+          decoration: const InputDecoration(
+            labelText: 'Descripción *',
+            hintText: 'Describa detalladamente su PQR...',
+            prefixIcon: Icon(Icons.description),
+          ),
+          maxLines: 4,
+          validator: (value) {
+            if (value == null || value.trim().isEmpty) {
+              return 'Descripción es requerida';
+            }
+            if (value.length < 10) {
+              return 'La descripción debe tener al menos 10 caracteres';
+            }
+            return null;
+          },
+        ),
+        const SizedBox(height: 16),
+        TextFormField(
+          controller: _fechaController,
+          decoration: InputDecoration(
+            labelText: 'Fecha *',
+            hintText: 'YYYY-MM-DD',
+            prefixIcon: const Icon(Icons.calendar_today),
+            suffixIcon: IconButton(
+              icon: const Icon(Icons.date_range),
+              onPressed: _selectDate,
+            ),
+          ),
+          readOnly: true,
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Fecha es requerida';
+            }
+            return null;
+          },
+        ),
+        const SizedBox(height: 16),
+        TextFormField(
+          controller: _identificationController,
+          decoration: const InputDecoration(
+            labelText: 'Número de identificación *',
+            hintText: 'Ingrese su número de identificación',
+            prefixIcon: Icon(Icons.person),
+          ),
+          keyboardType: TextInputType.number,
+          validator: (value) {
+            if (value == null || value.isEmpty) {
+              return 'Identificación es requerida';
+            }
+            if (value.length < 6) {
+              return 'La identificación debe tener al menos 6 dígitos';
+            }
+            return null;
+          },
+        ),
+      ],
+      
+    ];
+
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(children: fields),
+      ),
+    );
+  }
+
+  Widget _buildSubmitButton() {
+    final operationLabels = {
+      PQROperation.create: 'Crear PQR',
+      PQROperation.update: 'Actualizar PQR',
+      PQROperation.delete: 'Eliminar PQR',
+    };
+
+    final operationColors = {
+      PQROperation.create: Colors.blue,
+      PQROperation.update: Colors.orange,
+      PQROperation.delete: Colors.red,
+    };
+
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton.icon(
+        onPressed: _loading  ? null : _submitForm,
+        icon: _loading 
+            ? const SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(strokeWidth: 2),
+              )
+            : Icon(_operation == PQROperation.delete ? Icons.delete : Icons.send),
+        label: Text(_loading  ? 'Procesando...' : operationLabels[_operation]!),
+        style: ElevatedButton.styleFrom(
+          backgroundColor: operationColors[_operation],
+          foregroundColor: Colors.white,
+          padding: const EdgeInsets.symmetric(vertical: 16),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMessages() {
+    if (_response == null && _error == null) {
+      return const SizedBox.shrink();
+    }
+
+    return Card(
+      color: _response != null ? Colors.green.shade50 : Colors.red.shade50,
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Row(
+          children: [
+            Icon(
+              _response != null ? Icons.check_circle : Icons.error,
+              color: _response != null ? Colors.green : Colors.red,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                _response ?? _error!,
+                style: TextStyle(
+                  color: _response != null ? Colors.green.shade800 : Colors.red.shade800,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      elevation: 8,
+      margin: const EdgeInsets.all(16),
+      child: Padding(
+        padding: const EdgeInsets.all(20),
+        child: Form(
+          key: _formKey,
+          child: SingleChildScrollView( // <--- El cambio importante aquí!
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Row(
+                  children: [
+                    if (widget.onBack != null)
+                      IconButton(
+                        icon: const Icon(Icons.arrow_back),
+                        tooltip: 'Regresar',
+                        onPressed: widget.onBack,
+                      ),
+                    Expanded(
+                      child: Text(
+                        'Gestión de PQR',
+                        style: Theme.of(context).textTheme.headlineLarge,
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                _buildOperationSelector(),
+                const SizedBox(height: 16),
+                _buildFormFields(),
+                const SizedBox(height: 20),
+                _buildSubmitButton(),
+                const SizedBox(height: 16),
+                _buildMessages(),
+              ],
+            ),
+          ),
         ),
       ),
     );
