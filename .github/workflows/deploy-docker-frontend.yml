@@ -16,8 +16,8 @@ jobs:
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: 'stable'
-
+          flutter-version: '3.22.0'  # Cambia esto por la versión estable que prefieras
+          
       - name: Build Flutter Web
         working-directory: ./frontend
         run: flutter build web
