@@ -19,7 +19,7 @@ jobs:
           flutter-version: '3.22.0'  # Cambia esto por la versión estable que prefieras
           
       - name: Build Flutter Web
-        working-directory: ./frontend
+        working-directory: ./src/frontend
         run: flutter build web
 
       - name: Login to Docker Hub
