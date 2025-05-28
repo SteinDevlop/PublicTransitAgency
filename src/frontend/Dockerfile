@@ -1,5 +1,5 @@
 # Etapa 1: Build de Flutter Web
-FROM cirrusci/flutter:3.22.0 AS build
+FROM ghcr.io/flutter/flutter:3.22.0 AS build
 WORKDIR /app
 COPY . .
 RUN flutter build web
