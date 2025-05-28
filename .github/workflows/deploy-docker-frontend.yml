@@ -1,4 +1,4 @@
-name: Build & Push Frontend (Flutter Web) Docker
+name: Build & Push Frontend (Flutter Web) Docker & Push To Azure
 
 on:
   push:
@@ -34,3 +34,10 @@ jobs:
 
       - name: Push Docker image
         run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/publictransitagency-frontend:latest
+      
+      - name: Deploy to Azure Web App
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: transitagencywebapp # <- tu nombre de Azure Web App aquí
+          publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
+          images: ${{ secrets.DOCKERHUB_USERNAME }}/publictransitagency-frontend:latest
