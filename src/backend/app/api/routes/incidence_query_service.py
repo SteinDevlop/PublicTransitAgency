@@ -8,7 +8,7 @@ from backend.app.core.auth import get_current_user
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
-
+glob= "Incidencia no encontrada"
 app = APIRouter(prefix="/incidences", tags=["incidences"])
 
 @app.get("/", response_class=JSONResponse)
@@ -38,8 +38,8 @@ def detalle_incidencia(
     """
     incidencia = controller.get_by_id(Incidence, ID)
     if not incidencia:
-        logger.warning(f"[GET /incidences/{ID}] Incidencia no encontrada.")
-        raise HTTPException(status_code=404, detail="Incidencia no encontrada.")
+        logger.warning(f"[GET /incidences/{ID}] {glob}.")
+        raise HTTPException(status_code=404, detail=glob)
     logger.info(f"[GET /incidences/{ID}] Se consultó la incidencia con ID={ID}.")
     if hasattr(incidencia, "model_dump"):
         return incidencia.model_dump()

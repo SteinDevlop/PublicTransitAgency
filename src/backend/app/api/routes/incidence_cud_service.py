@@ -7,7 +7,7 @@ from backend.app.core.auth import get_current_user
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
-
+glob="Incidencia no encontrada"
 app = APIRouter(prefix="/incidences", tags=["incidences"])
 
 @app.post("/create")
@@ -46,8 +46,8 @@ def actualizar_incidencia(
         raise HTTPException(status_code=404, detail="Incidencia no encontrada.")
 
     if not existing_incidencia:
-        logger.warning(f"[POST /incidences/update] Incidencia no encontrada: ID={ID}")
-        raise HTTPException(status_code=404, detail="Incidencia no encontrada.")
+        logger.warning(f"[POST /incidences/update] {glob}: ID={ID}")
+        raise HTTPException(status_code=404, detail=glob)
 
     try:
         incidencia_actualizada = Incidence(ID=ID, IDTicket=IDTicket, Descripcion=Descripcion, Tipo=Tipo, IDUnidad=IDUnidad)
@@ -69,8 +69,8 @@ def eliminar_incidencia(
         raise HTTPException(status_code=404, detail="Incidencia no encontrada.")
 
     if not existing_incidencia:
-        logger.warning(f"[POST /incidences/delete] Incidencia no encontrada: ID={ID}")
-        raise HTTPException(status_code=404, detail="Incidencia no encontrada.")
+        logger.warning(f"[POST /incidences/delete] {glob}: ID={ID}")
+        raise HTTPException(status_code=404, detail=glob)
 
     try:
         controller.delete(existing_incidencia)
