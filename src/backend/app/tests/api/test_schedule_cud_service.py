@@ -13,7 +13,6 @@ def setup_and_teardown():
     """
     Fixture para configurar y limpiar los datos de prueba.
     """
-    # Usar strings en formato HH:MM
     horario = Schedule(ID=9999, Llegada="08:00", Salida="18:00")
     controller.add(horario)
     yield horario
@@ -38,7 +37,7 @@ def test_actualizar_horario(setup_and_teardown):
     horario = setup_and_teardown
     response = client.post(
         "/schedules/update",
-        data={"id": horario.ID, "Llegada": "10:00", "Salida": "20:00"},
+        data={"ID": horario.ID, "Llegada": "10:00", "Salida": "20:00"},
         headers=headers
     )
     assert response.status_code == 200
@@ -49,6 +48,17 @@ def test_eliminar_horario(setup_and_teardown):
     Prueba para eliminar un horario existente.
     """
     horario = setup_and_teardown
-    response = client.post("/schedules/delete", data={"id": horario.ID}, headers=headers)
+    response = client.post("/schedules/delete", data={"ID": horario.ID}, headers=headers)
     assert response.status_code == 200
     assert response.json()["message"] == "Horario eliminado exitosamente."
+
+
+
+
+def test_eliminar_horario_no_existente():
+    """
+    Prueba para manejar un error al eliminar un horario inexistente.
+    """
+    response = client.post("/schedules/delete", data={"ID": 999999}, headers=headers)
+    assert response.status_code == 404
+    assert "Horario no encontrado" in response.json()["detail"]

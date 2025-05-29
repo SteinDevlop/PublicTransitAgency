@@ -15,6 +15,16 @@ app_for_test = FastAPI()
 app_for_test.include_router(tickets_router)
 client = TestClient(app_for_test, raise_server_exceptions=False)
 
+@pytest.fixture
+def setup_and_teardown():
+    """
+    Fixture para configurar y limpiar los datos de prueba.
+    """
+    ticket = Ticket(ID=9999, EstadoIncidencia="Abierto")
+    controller.add(ticket)
+    yield ticket
+    controller.delete(ticket)
+
 def test_crear_ticket():
     ticket_id = 9999
     try:
@@ -64,10 +74,23 @@ def test_eliminar_ticket():
     assert ticket_eliminado is None
     logger.info(f"Test eliminar_ticket ejecutado correctamente para ID={ticket_id}.")
 
-def test_eliminar_ticket_no_existente():
-    ticket_id = 999999
-    response = client.post("/tickets/delete", data={"ID": ticket_id}, headers=headers)
+def test_actualizar_ticket_no_existente():
+    """
+    Prueba para manejar un error al actualizar un ticket inexistente.
+    """
+    response = client.post("/tickets/update", data={
+        "ID": 9999999,  # ID que no existe
+        "EstadoIncidencia": "Cerrado"
+    }, headers=headers)
     assert response.status_code in (404, 500)
-    logger.warning(
-        f"Test eliminar_ticket_no_existente ejecutado: status={response.status_code}, body={response.text}"
-    )
+    assert "Ticket no encontrado" in response.json()["detail"]
+    logger.warning("Test actualizar_ticket_no_existente ejecutado correctamente.")
+
+def test_eliminar_ticket_no_existente():
+    """
+    Prueba para manejar un error al eliminar un ticket inexistente.
+    """
+    response = client.post("/tickets/delete", data={"ID": 9999999}, headers=headers)  # ID que no existe
+    assert response.status_code in (404, 500)
+    assert "Ticket no encontrado" in response.json()["detail"]
+    logger.warning("Test eliminar_ticket_no_existente ejecutado correctamente.")

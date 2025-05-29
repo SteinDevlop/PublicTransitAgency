@@ -1,11 +1,18 @@
 import logging
 from fastapi import APIRouter, Form, HTTPException, Security
+from fastapi.responses import JSONResponse
 from backend.app.logic.universal_controller_instance import universal_controller as controller
 from backend.app.models.ticket import Ticket
-from backend.app.core.auth import get_current_user
+# from backend.app.core.auth import get_current_user  # Comentado para inutilizar autenticación temporalmente
+# from backend.app.core.conf import headers  # Comentado para inutilizar autenticación temporalmente
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
+
+TICKET_NO_ENCONTRADO = "Ticket no encontrado."
+ERROR_AL_CREAR = "Error al crear el ticket."
+ERROR_AL_ACTUALIZAR = "Error al actualizar el ticket."
+ERROR_AL_ELIMINAR = "Error al eliminar el ticket."
 
 app = APIRouter(prefix="/tickets", tags=["tickets"])
 
@@ -13,60 +20,67 @@ app = APIRouter(prefix="/tickets", tags=["tickets"])
 def crear_ticket(
     ID: int = Form(...),
     EstadoIncidencia: str = Form(...),
-    #current_user: dict  = Security(get_current_user, scopes=["system", "administrador"])
+    # current_user: dict = Security(get_current_user, scopes=["system"])  # Comentado para inutilizar autenticación temporalmente
 ):
     """
-    Endpoint para crear un ticket.
+    Crea un nuevo ticket.
     """
-    ticket = Ticket(ID=ID, EstadoIncidencia=EstadoIncidencia)
+    new_ticket = Ticket(ID=ID, EstadoIncidencia=EstadoIncidencia)
     try:
-        controller.add(ticket)
-        logger.info(f"[POST /tickets/create] Ticket creado exitosamente: {ticket}")
-        return {"message": "Ticket creado exitosamente.", "data": ticket.to_dict()}
+        controller.add(new_ticket)
+        logger.info(f"[POST /tickets/create] Ticket creado exitosamente: {new_ticket}")
+        return {"message": "Ticket creado exitosamente.", "data": new_ticket.to_dict()}
     except Exception as e:
-        logger.warning(f"[POST /tickets/create] Error al crear el ticket: {str(e)}")
-        raise HTTPException(status_code=400, detail=str(e))
+        logger.warning(f"[POST /tickets/create] {ERROR_AL_CREAR}: {str(e)}")
+        return JSONResponse(
+            status_code=400,
+            content={"detail": ERROR_AL_CREAR}
+        )
 
 @app.post("/update")
 def actualizar_ticket(
     ID: int = Form(...),
     EstadoIncidencia: str = Form(...),
-    #current_user: dict  = Security(get_current_user, scopes=["system", "administrador"])
+    # current_user: dict = Security(get_current_user, scopes=["system"])  # Comentado para inutilizar autenticación temporalmente
 ):
-    """
-    Endpoint para actualizar un ticket existente.
-    """
-    existing_ticket = controller.get_by_id(Ticket, ID)
-    if not existing_ticket:
-        logger.warning(f"[POST /tickets/update] Ticket no encontrado: ID={ID}")
-        raise HTTPException(status_code=404, detail="Ticket no encontrado")
-
-    updated_ticket = Ticket(ID=ID, EstadoIncidencia=EstadoIncidencia)
     try:
+        existing_ticket = controller.get_by_id(Ticket, ID)
+        if not existing_ticket:
+            logger.warning(f"[POST /tickets/update] {TICKET_NO_ENCONTRADO}: ID={ID}")
+            return JSONResponse(
+                status_code=404,
+                content={"detail": TICKET_NO_ENCONTRADO}
+            )
+        updated_ticket = Ticket(ID=ID, EstadoIncidencia=EstadoIncidencia)
         controller.update(updated_ticket)
         logger.info(f"[POST /tickets/update] Ticket actualizado exitosamente: {updated_ticket}")
         return {"message": "Ticket actualizado exitosamente.", "data": updated_ticket.to_dict()}
     except Exception as e:
-        logger.warning(f"[POST /tickets/update] Error al actualizar el ticket: {str(e)}")
-        raise HTTPException(status_code=400, detail=str(e))
+        logger.warning(f"[POST /tickets/update] {ERROR_AL_ACTUALIZAR}: {str(e)}")
+        return JSONResponse(
+            status_code=500,
+            content={"detail": ERROR_AL_ACTUALIZAR}
+        )
 
 @app.post("/delete")
 def eliminar_ticket(
     ID: int = Form(...),
-    #current_user: dict  = Security(get_current_user, scopes=["system", "administrador"])
+    # current_user: dict = Security(get_current_user, scopes=["system"])  # Comentado para inutilizar autenticación temporalmente
 ):
-    """
-    Endpoint para eliminar un ticket por su ID.
-    """
-    existing_ticket = controller.get_by_id(Ticket, ID)
-    if not existing_ticket:
-        logger.warning(f"[POST /tickets/delete] Ticket no encontrado: ID={ID}")
-        raise HTTPException(status_code=404, detail="Ticket no encontrado")
-
     try:
+        existing_ticket = controller.get_by_id(Ticket, ID)
+        if not existing_ticket:
+            logger.warning(f"[POST /tickets/delete] {TICKET_NO_ENCONTRADO}: ID={ID}")
+            return JSONResponse(
+                status_code=404,
+                content={"detail": TICKET_NO_ENCONTRADO}
+            )
         controller.delete(existing_ticket)
         logger.info(f"[POST /tickets/delete] Ticket eliminado exitosamente: ID={ID}")
         return {"message": "Ticket eliminado exitosamente."}
     except Exception as e:
-        logger.warning(f"[POST /tickets/delete] Error al eliminar el ticket: {str(e)}")
-        raise HTTPException(status_code=400, detail=str(e))
+        logger.warning(f"[POST /tickets/delete] {ERROR_AL_ELIMINAR}: {str(e)}")
+        return JSONResponse(
+            status_code=500,
+            content={"detail": ERROR_AL_ELIMINAR}
+        )

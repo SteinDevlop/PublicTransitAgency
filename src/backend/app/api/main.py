@@ -27,7 +27,8 @@ from backend.app.api.routes import (
     routes_query_service,
     reporte_service,
     planificador_service,
-    rutaparada_query_service
+    rutaparada_query_service,
+    rutaparada_cud_service
 )
 from backend.app.api.routes.card_service import (card_cud_service, card_query_service)
 from backend.app.api.routes.maintainance_service import (maintance_cud_service, maintance_query_service)
@@ -119,3 +120,4 @@ app.include_router(asistance_query_service.router)
 app.include_router(behavior_cud_service.router)
 app.include_router(behavior_query_service.router)
 app.include_router(rutaparada_query_service.app)
+app.include_router(rutaparada_cud_service.app)

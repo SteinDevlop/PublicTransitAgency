@@ -14,27 +14,44 @@ client = TestClient(app, raise_server_exceptions=False)
 
 @pytest.fixture
 def setup_and_teardown():
+    """
+    Configura y limpia datos de prueba para las rutas.
+    """
     ruta = Ruta(ID=9999, IDHorario=1, Nombre="Ruta de Prueba")
     controller.add(ruta)
     yield ruta
     controller.delete(ruta)
 
 def test_listar_rutas(setup_and_teardown):
+    """
+    Prueba para listar todas las rutas.
+    """
     response = client.get("/routes/", headers=headers)
-    assert response.status_code == 200
+    assert response.status_code == 200, f"Error inesperado: {response.status_code}"
+    assert "data" in response.json(), "La respuesta no contiene el campo 'data'."
+    assert isinstance(response.json()["data"], list), "El campo 'data' no es una lista."
     logger.info("Test listar_rutas ejecutado correctamente.")
 
 def test_detalle_ruta_existente(setup_and_teardown):
+    """
+    Prueba para obtener el detalle de una ruta existente.
+    """
     ruta = setup_and_teardown
     response = client.get(f"/routes/{ruta.ID}", headers=headers)
-    assert response.status_code == 200
-    assert str(ruta.ID) in response.text
-    assert "Ruta de Prueba" in response.text
+    assert response.status_code == 200, f"Error inesperado: {response.status_code}"
+    assert "data" in response.json(), "La respuesta no contiene el campo 'data'."
+    assert response.json()["data"]["ID"] == ruta.ID, "El ID de la ruta no coincide."
+    assert response.json()["data"]["Nombre"] == "Ruta de Prueba", "El nombre de la ruta no coincide."
     logger.info(f"Test detalle_ruta_existente ejecutado correctamente para ID={ruta.ID}.")
 
 def test_detalle_ruta_no_existente():
+    """
+    Prueba para obtener el detalle de una ruta inexistente.
+    """
     response = client.get("/routes/99999", headers=headers)
-    assert response.status_code in (404, 500)
+    assert response.status_code == 404, f"Error inesperado: {response.status_code}"
+    assert "detail" in response.json(), "La respuesta no contiene el campo 'detail'."
+    assert "No se encontró la ruta especificada." in response.json()["detail"], "El mensaje de error no es el esperado."
     logger.warning(
-        f"Test detalle_ruta_no_existente ejecutado: status={response.status_code}, body={response.text}"
+        f"Test detalle_ruta_no_existente ejecutado correctamente: status={response.status_code}, body={response.text}"
     )

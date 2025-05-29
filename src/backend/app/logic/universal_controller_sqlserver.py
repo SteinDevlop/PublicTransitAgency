@@ -4,7 +4,7 @@ from typing import Any
 import os
 import logging
 import platform
-
+from typing import List
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.DEBUG)
 class UniversalController:
@@ -39,22 +39,68 @@ class UniversalController:
         else:
             raise ValueError("El objeto o su clase no tienen definido '__entity_name__'.")
 
-
-    def _ensure_table_exists(self, obj: Any):
-        """Crea la tabla si no existe."""
-        table = self._get_table_name(obj)
-        fields = obj.get_fields()
-
-        columns = []
-        for k, v in fields.items():
-            if k == "id":
-                columns.append(f"{k} INT PRIMARY KEY")
+    def execute_queryRutaParada(self, query: str, params: tuple = None) -> List[dict]:
+        """
+        Ejecuta una consulta SQL y retorna los resultados como una lista de diccionarios.
+        """
+        try:
+            if not self.cursor:
+                raise RuntimeError("El cursor de la base de datos no está disponible.")
+            if params:
+                self.cursor.execute(query, params)
             else:
-                columns.append(f"{k} {v}")
+                self.cursor.execute(query)
+            rows = self.cursor.fetchall()  # Recupera todos los registros
+            return [dict(zip([column[0] for column in self.cursor.description], row)) for row in rows]
+        except pyodbc.Error as e:
+            logger.error(f"Error al ejecutar la consulta: {e}")
+            raise RuntimeError(f"Error al ejecutar la consulta: {e}")
 
-        sql = f"IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='{table}' AND xtype='U') CREATE TABLE {table} ({', '.join(columns)})"
-        self.cursor.execute(sql)
-        self.conn.commit()
+    def get_all_rutaparada(self) -> List[dict]:
+        """
+        Obtiene todos los registros de la tabla RutaParada.
+        """
+        try:
+            query = "SELECT * FROM RutaParada"
+            results = self.execute_queryRutaParada(query)
+            if not results:
+                logger.warning("No se encontraron registros en la tabla RutaParada.")
+            logger.info(f"Se obtuvieron {len(results)} registros de la tabla RutaParada.")
+            return results
+        except Exception as e:
+            logger.error(f"Error al obtener todos los registros de RutaParada: {e}")
+            raise RuntimeError(f"Error al obtener todos los registros de RutaParada: {e}")
+
+    def get_by_id_parada(self, id_parada: int) -> List[dict]:
+        """
+        Obtiene registros de la tabla RutaParada filtrados por IDParada.
+        """
+        try:
+            query = "SELECT * FROM RutaParada WHERE IDParada = ?"
+            results = self.execute_queryRutaParada(query, (id_parada,))
+            if not results:
+                logger.warning(f"No se encontraron registros en RutaParada con IDParada={id_parada}.")
+            logger.info(f"Se obtuvieron {len(results)} registros de RutaParada con IDParada={id_parada}.")
+            return results
+        except Exception as e:
+            logger.error(f"Error al obtener registros de RutaParada por IDParada={id_parada}: {e}")
+            raise RuntimeError(f"Error al obtener registros de RutaParada por IDParada={id_parada}: {e}")
+    
+    def _ensure_table_exists(self, obj: Any):
+            """Crea la tabla si no existe."""
+            table = self._get_table_name(obj)
+            fields = obj.get_fields()
+
+            columns = []
+            for k, v in fields.items():
+                if k == "id":
+                    columns.append(f"{k} INT PRIMARY KEY")
+                else:
+                    columns.append(f"{k} {v}")
+
+            sql = f"IF NOT EXISTS (SELECT * FROM sysobjects WHERE name='{table}' AND xtype='U') CREATE TABLE {table} ({', '.join(columns)})"
+            self.cursor.execute(sql)
+            self.conn.commit()
 
     def drop_table(self, obj: Any) -> None:
         """Elimina la tabla de la base de datos."""
@@ -429,3 +475,4 @@ ORDER BY
         except Exception as e:
             logger.error(f"Error en update_ruta_parada: {e}")
             return False
+

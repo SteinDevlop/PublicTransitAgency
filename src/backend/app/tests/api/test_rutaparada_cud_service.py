@@ -49,3 +49,25 @@ def test_actualizar_rutaparada():
     # Limpieza: elimina la relación actualizada
     client.post("/rutaparada/delete", data={"IDRuta": 10, "IDParada": 4})
 
+def test_actualizar_rutaparada_no_existente():
+    """
+    Prueba para intentar actualizar una relación Ruta-Parada que no existe.
+    """
+    data_update = {
+        "IDRuta": 99,  # IDs que no existen
+        "IDParada": 99,
+        "nuevo_IDRuta": 100,
+        "nuevo_IDParada": 101
+    }
+    response = client.post("/rutaparada/update", data=data_update)
+    assert response.status_code in (404, 500)  # Verifica que el código de estado sea 404 o 500
+    logger.info("Test actualizar_rutaparada_no_existente ejecutado correctamente.")
+
+def test_eliminar_rutaparada_no_existente():
+    """
+    Prueba para intentar eliminar una relación Ruta-Parada que no existe.
+    """
+    data = {"IDRuta": 99, "IDParada": 99}  # IDs que no existen
+    response = client.post("/rutaparada/delete", data=data)
+    assert response.status_code in (404, 500)  # Verifica que el código de estado sea 404 o 500
+    logger.info("Test eliminar_rutaparada_no_existente ejecutado correctamente.")

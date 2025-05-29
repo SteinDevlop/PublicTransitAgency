@@ -1,10 +1,13 @@
 import pytest
+import logging
 from fastapi.testclient import TestClient
 from backend.app.api.routes.schedule_query_service import app
 from backend.app.models.schedule import Schedule
 from backend.app.logic.universal_controller_instance import universal_controller as controller
-
 from backend.app.core.conf import headers
+
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("backend.app.api.routes.schedule_query_service")
 
 client = TestClient(app)
 
@@ -33,6 +36,20 @@ def test_listar_horarios(setup_and_teardown):
     """
     response = client.get("/schedules/", headers=headers)
     assert response.status_code == 200
+    assert "Horarios listados exitosamente." in response.json()["message"]
+    assert isinstance(response.json()["data"], list)
+    assert len(response.json()["data"]) > 0
+    logger.info("Test listar_horarios ejecutado correctamente. Se listaron %d horarios.", len(response.json()["data"]))
+
+def test_listar_horarios_error():
+    """
+    Prueba para manejar un error al listar los horarios.
+    """
+    controller.read_all = lambda model: (_ for _ in ()).throw(Exception("Simulated error"))
+    response = client.get("/schedules/", headers=headers)
+    assert response.status_code == 500
+    assert "Error al listar los horarios" in response.json()["detail"]
+    logger.error("Test listar_horarios_error ejecutado correctamente. Error simulado al listar horarios.")
 
 def test_detalle_horario_existente(setup_and_teardown):
     """
@@ -41,3 +58,15 @@ def test_detalle_horario_existente(setup_and_teardown):
     schedule = setup_and_teardown
     response = client.get(f"/schedules/{schedule.ID}", headers=headers)
     assert response.status_code == 200
+    assert "Detalle de horario consultado exitosamente." in response.json()["message"]
+    assert response.json()["data"]["ID"] == schedule.ID
+    logger.info("Test detalle_horario_existente ejecutado correctamente para ID=%d.", schedule.ID)
+
+def test_detalle_horario_no_existente():
+    """
+    Prueba para manejar un error al consultar el detalle de un horario inexistente.
+    """
+    response = client.get("/schedules/99999", headers=headers)  # ID que no existe
+    assert response.status_code == 404
+    assert "Horario no encontrado" in response.json()["detail"]
+    logger.warning("Test detalle_horario_no_existente ejecutado correctamente. ID=99999 no encontrado.")
