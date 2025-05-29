@@ -15,7 +15,7 @@ def setup_and_teardown():
     """
     Fixture para configurar y limpiar los datos de prueba.
     """
-    pago = Payment(IDMovimiento=2, IDPrecio=1, IDTarjeta=41, IDUnidad="1", ID=12345)
+    pago = Payment(IDMovimiento=2, IDPrecio=1, IDTarjeta=42, IDUnidad="1", ID=12345)
     existing_pago = controller.get_by_id(Payment, pago.ID)
     if existing_pago:
         controller.delete(existing_pago)

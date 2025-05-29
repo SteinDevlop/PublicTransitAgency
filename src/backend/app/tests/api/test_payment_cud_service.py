@@ -15,7 +15,7 @@ def setup_and_teardown():
     """
     Fixture para configurar y limpiar los datos de prueba.
     """
-    pago = Payment(IDMovimiento=2, IDPrecio=1, IDTarjeta=41, IDUnidad="1", ID=54321)
+    pago = Payment(IDMovimiento=2, IDPrecio=1, IDTarjeta=42, IDUnidad="1", ID=54321)
     existing_pago = controller.get_by_id(Payment, pago.ID)
     if existing_pago:
         controller.delete(existing_pago)
@@ -27,7 +27,7 @@ def test_crear_pago():
     """
     Prueba para crear un pago.
     """
-    pago = Payment(IDMovimiento=2, IDPrecio=1, IDTarjeta=41, IDUnidad="1", ID=67890)
+    pago = Payment(IDMovimiento=2, IDPrecio=1, IDTarjeta=42, IDUnidad="1", ID=67890)
     try:
         response = client.post("/payments/create", data=pago.model_dump())
         assert response.status_code == 200
@@ -40,7 +40,7 @@ def test_crear_pago_existente():
     """
     Prueba para crear un pago que ya existe.
     """
-    pago = Payment(IDMovimiento=2, IDPrecio=1, IDTarjeta=41, IDUnidad="1", ID=54321)
+    pago = Payment(IDMovimiento=2, IDPrecio=1, IDTarjeta=42, IDUnidad="1", ID=54321)
     controller.add(pago)
     response = client.post("/payments/create", data=pago.model_dump())
     assert response.status_code in (409, 500)
@@ -106,7 +106,7 @@ def test_update_pago_no_existente():
         "ID": 9999999,
         "IDMovimiento": 2,
         "IDPrecio": 1,
-        "IDTarjeta": 41,
+        "IDTarjeta": 42,
         "IDUnidad": "1"
     }
     response = client.post("/payments/update", data=updated_data)
