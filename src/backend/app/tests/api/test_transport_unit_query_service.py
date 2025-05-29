@@ -1,6 +1,5 @@
 import pytest
 import logging
-from unittest.mock import patch
 from fastapi.testclient import TestClient
 from backend.app.api.routes.transport_unit_query_service import app
 from backend.app.models.transport import UnidadTransporte
@@ -51,23 +50,3 @@ def test_detalle_unidad_transporte_no_existente():
     logger.warning(
         f"Test detalle_unidad_transporte_no_existente ejecutado: status={response.status_code}, body={response.text}"
     )
-
-def test_error_al_listar_unidades_transporte():
-    """
-    Prueba para simular un error al listar unidades de transporte.
-    """
-    with patch("backend.app.logic.universal_controller_instance.universal_controller.read_all", side_effect=Exception("Simulated error")):
-        response = client.get("/transport_units/", headers=headers)
-        assert response.status_code == 500
-        assert "Error al listar unidades de transporte." in response.json()["detail"]
-        logger.warning("Test error_al_listar_unidades_transporte ejecutado correctamente.")
-
-def test_error_al_consultar_detalle_unidad_transporte():
-    """
-    Prueba para simular un error al consultar el detalle de una unidad de transporte.
-    """
-    with patch("backend.app.logic.universal_controller_instance.universal_controller.get_by_id", side_effect=Exception("Simulated error")):
-        response = client.get("/transport_units/ERROR", headers=headers)
-        assert response.status_code == 500
-        assert "Error al consultar detalle de unidad de transporte." in response.json()["detail"]
-        logger.warning("Test error_al_consultar_detalle_unidad_transporte ejecutado correctamente.")

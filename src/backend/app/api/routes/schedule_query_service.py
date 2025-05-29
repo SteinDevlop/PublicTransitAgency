@@ -8,6 +8,7 @@ from backend.app.models.schedule import Schedule
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
+glob="Detalle horario consultado exitosamente."
 
 app = APIRouter(prefix="/schedules", tags=["schedules"])
 
@@ -53,11 +54,11 @@ def obtener_detalle_horario(
             )
         logger.info(f"[GET /schedules/{id}] Se consultó el horario con ID={id}.")
         if hasattr(horario, "model_dump"):
-            return {"message": "Detalle de horario consultado exitosamente.", "data": horario.model_dump()}
+            return {"message": glob, "data": horario.model_dump()}
         elif hasattr(horario, "dict"):
-            return {"message": "Detalle de horario consultado exitosamente.", "data": horario.dict()}
+            return {"message": glob, "data": horario.dict()}
         else:
-            return {"message": "Detalle de horario consultado exitosamente.", "data": horario}
+            return {"message": glob, "data": horario}
     except Exception as e:
         logger.error(f"[GET /schedules/{id}] Error al consultar detalle de horario: {str(e)}")
         return JSONResponse(

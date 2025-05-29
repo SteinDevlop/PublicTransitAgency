@@ -6,6 +6,7 @@ from backend.app.models.payments import Payment
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
+glob="Detalle pago consultado exitosamente."
 
 app = APIRouter(prefix="/payments", tags=["payments"])
 
@@ -40,11 +41,11 @@ def detalle_pago(ID: int):
             )
         logger.info("[GET /payments/{ID}] Detalle de pago consultado: ID=%s", ID)
         if hasattr(pago, "model_dump"):
-            return {"message": "Detalle de pago consultado exitosamente.", "data": pago.model_dump()}
+            return {"message": glob, "data": pago.model_dump()}
         elif hasattr(pago, "dict"):
-            return {"message": "Detalle de pago consultado exitosamente.", "data": pago.dict()}
+            return {"message": glob, "data": pago.dict()}
         else:
-            return {"message": "Detalle de pago consultado exitosamente.", "data": pago}
+            return {"message": glob, "data": pago}
     except Exception as e:
         logger.error("[GET /payments/{ID}] Error al consultar detalle de pago: %s", e)
         return JSONResponse(
