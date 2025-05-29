@@ -1,4 +1,4 @@
-name: Build & Push Frontend (Flutter Web) Docker & Push To Azure
+name: Build & Deploy Flutter Web Frontend to Azure
 
 on:
   push:
@@ -16,12 +16,15 @@ jobs:
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.22.0'  # Cambia esto por la versión estable que prefieras
-          
-      - name: Build Flutter Web
+          flutter-version: '3.22.0'  # Ajusta si usas otra versión
+
+      - name: Limpiar build anterior
+        working-directory: ./src/frontend
+        run: flutter clean
+
+      - name: Build Flutter Web (con BACKEND_URL de Railway)
         working-directory: ./src/frontend
         run: flutter build web --dart-define=BACKEND_URL=https://publictransitagency-production.up.railway.app
-
 
       - name: Login to Docker Hub
         uses: docker/login-action@v3
@@ -29,16 +32,15 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Build Docker image (usando Dockerfile en frontend/)
-        run: |
-          docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/publictransitagency-frontend:latest -f ./src/frontend/Dockerfile ./src/frontend
+      - name: Build Docker image
+        run: docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/publictransitagency-frontend:latest -f ./src/frontend/Dockerfile ./src/frontend
 
       - name: Push Docker image
         run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/publictransitagency-frontend:latest
-      
+
       - name: Deploy to Azure Web App
         uses: azure/webapps-deploy@v3
         with:
-          app-name: transitagencywebapp # <- tu nombre de Azure Web App aquí
+          app-name: transitagencywebapp # Cambia por el nombre de tu Azure Web App
           publish-profile: ${{ secrets.AZURE_WEBAPP_PUBLISH_PROFILE }}
           images: ${{ secrets.DOCKERHUB_USERNAME }}/publictransitagency-frontend:latest
