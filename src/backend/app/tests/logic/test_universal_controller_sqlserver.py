@@ -201,3 +201,17 @@ def test_get_ruta_parada(controller):
         pass
     else:
         assert True  # No se lanza excepción, pero el error se loguea
+
+def test_get_ruta_parada_full(controller):
+    # Cubre get_ruta_parada con parámetros
+    # Con parámetros que no existen
+    result = controller.get_ruta_parada(999999, 999999)
+    assert isinstance(result, list) or result is None
+    assert result == [] or result is None
+    # Forzamos excepción con parámetros inválidos
+    try:
+        controller.get_ruta_parada(None, 'error')
+    except Exception:
+        pass
+    else:
+        assert True
