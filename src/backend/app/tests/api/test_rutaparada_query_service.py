@@ -1,6 +1,7 @@
 import logging
 from fastapi.testclient import TestClient
 from backend.app.api.routes.rutaparada_query_service import app as rutaparada_router
+from unittest.mock import patch
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("backend.app.api.routes.rutaparada_query_service")

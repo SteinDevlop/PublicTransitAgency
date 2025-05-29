@@ -58,7 +58,7 @@ def test_detalle_horario_existente(setup_and_teardown):
     schedule = setup_and_teardown
     response = client.get(f"/schedules/{schedule.ID}", headers=headers)
     assert response.status_code == 200
-    assert "Detalle de horario consultado exitosamente." in response.json()["message"]
+    assert "Detalle horario consultado exitosamente." in response.json()["message"]
     assert response.json()["data"]["ID"] == schedule.ID
     logger.info("Test detalle_horario_existente ejecutado correctamente para ID=%d.", schedule.ID)
 

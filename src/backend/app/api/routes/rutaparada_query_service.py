@@ -52,26 +52,3 @@ def detalle_rutaparada(id_parada: int):
             status_code=500,
             content={"detail": "Error interno al obtener el detalle de la relación Ruta-Parada."}
         )
-
-@app.get("/filtrar/", response_class=JSONResponse)
-def filtrar_ruta_parada(id_ruta: int = Query(None), id_parada: int = Query(None)):
-    """
-    Filtra las relaciones Ruta-Parada según el ID de Ruta o ID de Parada.
-    """
-    try:
-        # Se pasan explícitamente los argumentos id_ruta y id_parada
-        resultados = controller.get_ruta_parada(id_ruta=id_ruta, id_parada=id_parada)
-        if not resultados:
-            logger.warning(f"[GET /ruta_parada/filtrar/] No se encontraron registros para los filtros especificados.")
-            return JSONResponse(
-                status_code=404,
-                content={"detail": "No se encontraron registros para los filtros especificados."}
-            )
-        logger.info(f"[GET /ruta_parada/filtrar/] Se consultaron {len(resultados)} registros con los filtros especificados.")
-        return {"data": resultados}
-    except Exception as e:
-        logger.error(f"[GET /ruta_parada/filtrar/] Error al filtrar las relaciones Ruta-Parada: {str(e)}")
-        return JSONResponse(
-            status_code=500,
-            content={"detail": "Error interno al filtrar las relaciones Ruta-Parada."}
-        )
