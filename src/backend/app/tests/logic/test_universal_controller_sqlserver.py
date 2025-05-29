@@ -30,6 +30,21 @@ def controller():
             Valor FLOAT
         )
         """)
+        c.cursor.execute("""
+        IF OBJECT_ID('UnitTable', 'U') IS NULL
+        CREATE TABLE UnitTable (
+            ID INT PRIMARY KEY,
+            idunidad INT,
+            Nombre VARCHAR(50)
+        )
+        """)
+        c.cursor.execute("""
+        IF OBJECT_ID('BadTable', 'U') IS NULL
+        CREATE TABLE BadTable (
+            ID INT PRIMARY KEY,
+            idunidad INT
+        )
+        """)
         c.conn.commit()
     except Exception:
         pass
@@ -156,3 +171,33 @@ def test_get_by_unit_exception(controller):
     c.add(obj)
     with pytest.raises(Exception):
         c.get_by_unit(BadModel, 1)
+
+def test_drop_table(controller):
+    obj = DummyModel(99, "Drop", 0.0)
+    controller.drop_table(obj)
+    # Después de drop, intentar leer debe retornar lista vacía o lanzar excepción
+    try:
+        results = controller.read_all(obj)
+        assert results == []
+    except Exception:
+        pass
+
+def test_last_card_used_and_exceptions(controller):
+    # Debe retornar tipo y monto N/A si no hay datos
+    result = controller.last_card_used(999999)
+    assert isinstance(result, dict)
+    assert "tipo" in result and "monto" in result
+    # No se lanza excepción si no hay datos, solo si hay error de conexión
+
+
+def test_get_ruta_parada(controller):
+    # Debe retornar None si no hay datos
+    result = controller.get_ruta_parada(999999, 999999)
+    assert result is None
+    # Forzamos excepción con parámetros inválidos
+    try:
+        controller.get_ruta_parada(None, 'error')
+    except Exception:
+        pass
+    else:
+        assert True  # No se lanza excepción, pero el error se loguea

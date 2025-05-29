@@ -183,77 +183,60 @@ class UniversalController:
             raise RuntimeError(f"Error al ejecutar la consulta: {e}")
 
     def ruta_interconexion(self, ubicacion_llegada: str, ubicacion_final: str) -> dict:
-        response = {"interconexiones": []}  # Inicializar la respuesta en formato JSON
-
+        response = {"interconexiones": []}
         try:
-            # Obtener rutas desde la ubicación de llegada
-            query_llegada = '''
-            SELECT r.ID, r.Nombre, p.ID, p.Ubicacion
-            FROM DB_PUBLIC_TRANSIT_AGENCY.dbo.Rutas r
-            JOIN DB_PUBLIC_TRANSIT_AGENCY.dbo.RutaParada rp ON r.ID = rp.IDRuta
-            JOIN DB_PUBLIC_TRANSIT_AGENCY.dbo.Parada p ON rp.IDParada = p.ID
-            WHERE p.Ubicacion = ?;
-            '''
-            self.cursor.execute(query_llegada, (ubicacion_llegada,))
-            rutas_llegada = self.cursor.fetchall()
-
+            rutas_llegada = self._get_rutas_por_ubicacion(ubicacion_llegada)
             if not rutas_llegada:
                 return {"mensaje": "No se encontraron rutas desde la ubicación de llegada."}
-
-            for ruta_id, ruta_name, parada_id, parada_ubicacion in rutas_llegada:
-                # Obtener rutas que lleguen a la ubicación final
-                query_final = '''
-                SELECT r.ID, r.Nombre, p.ID, p.Ubicacion
-                FROM DB_PUBLIC_TRANSIT_AGENCY.dbo.Rutas r
-                JOIN DB_PUBLIC_TRANSIT_AGENCY.dbo.RutaParada rp ON r.ID = rp.IDRuta
-                JOIN DB_PUBLIC_TRANSIT_AGENCY.dbo.Parada p ON rp.IDParada = p.ID
-                WHERE p.Ubicacion = ?;
-                '''
-                self.cursor.execute(query_final, (ubicacion_final,))
-                rutas_final = self.cursor.fetchall()
-
-                if not rutas_final:
-                    return {"mensaje": "No se encontraron rutas hacia la ubicación final."}
-
-                for ruta_final_id, ruta_final_name, parada_final_id, parada_final_ubicacion in rutas_final:
-                    # Verificar interconexión entre rutas
-                    query_interconexion = '''
-                    SELECT p.ID, p.Ubicacion
-                    FROM DB_PUBLIC_TRANSIT_AGENCY.dbo.Parada p
-                    JOIN DB_PUBLIC_TRANSIT_AGENCY.dbo.RutaParada rp1 ON p.ID = rp1.IDParada
-                    JOIN DB_PUBLIC_TRANSIT_AGENCY.dbo.RutaParada rp2 ON p.ID = rp2.IDParada
-                    WHERE rp1.IDRuta = ? AND rp2.IDRuta = ?;
-                    '''
-                    self.cursor.execute(query_interconexion, (ruta_id, ruta_final_id))
-                    interconexiones = self.cursor.fetchall()
-
-                    # Procesar interconexiones encontradas
-                    if interconexiones:
-                        for inter_parada_id, inter_ubicacion in interconexiones:
-                            response["interconexiones"].append({
-                                "ruta_inicio": ruta_name,
-                                "ruta_final": ruta_final_name,
-                                "interconexion": inter_ubicacion
-                            })
-                    else:
-                        response["interconexiones"].append({
-                            "ruta_inicio": ruta_name,
-                            "ruta_final": ruta_final_name,
-                            "interconexion": "Sin interconexión directa"
-                        })
-
-            # Si no se encontró ninguna interconexión
+            rutas_final = self._get_rutas_por_ubicacion(ubicacion_final)
+            if not rutas_final:
+                return {"mensaje": "No se encontraron rutas hacia la ubicación final."}
+            for ruta_id, ruta_name, _, _ in rutas_llegada:
+                for ruta_final_id, ruta_final_name, _, _ in rutas_final:
+                    self._agregar_interconexiones(response, ruta_id, ruta_name, ruta_final_id, ruta_final_name)
             if not response["interconexiones"]:
                 return {"mensaje": "No se encontraron rutas con interconexión."}
-
         except Exception as e:
             response = {"error": f"Error al obtener la ruta: {str(e)}"}
             logger.error(response["error"])
         finally:
-            self.conn.commit()  # Confirmar transacción
-
+            self.conn.commit()
         return response
 
+    def _get_rutas_por_ubicacion(self, ubicacion: str):
+        query = '''
+        SELECT r.ID, r.Nombre, p.ID, p.Ubicacion
+        FROM DB_PUBLIC_TRANSIT_AGENCY.dbo.Rutas r
+        JOIN DB_PUBLIC_TRANSIT_AGENCY.dbo.RutaParada rp ON r.ID = rp.IDRuta
+        JOIN DB_PUBLIC_TRANSIT_AGENCY.dbo.Parada p ON rp.IDParada = p.ID
+        WHERE p.Ubicacion = ?;
+        '''
+        self.cursor.execute(query, (ubicacion,))
+        return self.cursor.fetchall()
+
+    def _agregar_interconexiones(self, response, ruta_id, ruta_name, ruta_final_id, ruta_final_name):
+        query_interconexion = '''
+        SELECT p.ID, p.Ubicacion
+        FROM DB_PUBLIC_TRANSIT_AGENCY.dbo.Parada p
+        JOIN DB_PUBLIC_TRANSIT_AGENCY.dbo.RutaParada rp1 ON p.ID = rp1.IDParada
+        JOIN DB_PUBLIC_TRANSIT_AGENCY.dbo.RutaParada rp2 ON p.ID = rp2.IDParada
+        WHERE rp1.IDRuta = ? AND rp2.IDRuta = ?;
+        '''
+        self.cursor.execute(query_interconexion, (ruta_id, ruta_final_id))
+        interconexiones = self.cursor.fetchall()
+        if interconexiones:
+            for _, inter_ubicacion in interconexiones:
+                response["interconexiones"].append({
+                    "ruta_inicio": ruta_name,
+                    "ruta_final": ruta_final_name,
+                    "interconexion": inter_ubicacion
+                })
+        else:
+            response["interconexiones"].append({
+                "ruta_inicio": ruta_name,
+                "ruta_final": ruta_final_name,
+                "interconexion": "Sin interconexión directa"
+            })
 
     # Método para obtener cualquier cuenta
     def total_registros(self, table: str, condition: str = "") -> int:
