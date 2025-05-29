@@ -36,14 +36,33 @@ def detalle_incidencia(
     """
     Obtiene el detalle de una incidencia por su ID.
     """
-    incidencia = controller.get_by_id(Incidence, ID)
-    if not incidencia:
-        logger.warning(f"[GET /incidences/{ID}] {glob}.")
-        raise HTTPException(status_code=404, detail=glob)
-    logger.info(f"[GET /incidences/{ID}] Se consultó la incidencia con ID={ID}.")
-    if hasattr(incidencia, "model_dump"):
-        return incidencia.model_dump()
-    elif hasattr(incidencia, "dict"):
-        return incidencia.dict()
-    else:
-        return incidencia
+    try:
+        incidencia = controller.get_by_id(Incidence, ID)
+        if not incidencia:
+            logger.warning(f"[GET /incidences/{ID}] {glob}.")
+            return JSONResponse(
+                status_code=404,
+                content={"detail": glob}
+            )
+        logger.info(f"[GET /incidences/{ID}] Se consultó la incidencia con ID={ID}.")
+        if hasattr(incidencia, "model_dump"):
+            return JSONResponse(
+                status_code=200,
+                content={"data": incidencia.model_dump()}
+            )
+        elif hasattr(incidencia, "dict"):
+            return JSONResponse(
+                status_code=200,
+                content={"data": incidencia.dict()}
+            )
+        else:
+            return JSONResponse(
+                status_code=200,
+                content={"data": incidencia}
+            )
+    except Exception as e:
+        logger.error(f"[GET /incidences/{ID}] Error interno al consultar incidencia: {str(e)}")
+        return JSONResponse(
+            status_code=500,
+            content={"detail": "Error interno al consultar incidencia."}
+        )

@@ -5,6 +5,7 @@ from backend.app.api.routes.maintainance_status_cud_service import app
 from backend.app.models.maintainance_status import MaintainanceStatus
 from backend.app.logic.universal_controller_instance import universal_controller as controller
 from backend.app.core.conf import headers
+from unittest.mock import patch
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("backend.app.api.routes.maintainance_status_cud_service")
@@ -54,10 +55,15 @@ def test_actualizar_estado_no_existente():
     """
     Prueba para actualizar un estado de mantenimiento que no existe.
     """
-    with pytest.raises(Exception) as excinfo:
-        client.post("/maintainance_status/update", data={"id": 99999, "TipoEstado": "No existe"}, headers=headers)
-    assert "Estado de mantenimiento no encontrado" in str(excinfo.value)
-    logger.warning("Test actualizar_estado_no_existente ejecutado y capturada excepción correctamente.")
+    with patch("backend.app.logic.universal_controller_instance.universal_controller.get_by_id", return_value=None):
+        response = client.post("/maintainance_status/update", data={"id": 99999, "TipoEstado": "Error Actualizar"})
+        
+        # Verifica el código de estado
+        assert response.status_code == 404, f"Error inesperado: {response.status_code}"
+        
+        # Verifica el mensaje de error en la respuesta
+        response_json = response.json()
+        assert "Estado de mantenimiento no encontrado" in response_json["detail"], "El mensaje de error no es el esperado."
 
 def test_eliminar_estado(setup_and_teardown):
     """
@@ -76,7 +82,60 @@ def test_eliminar_estado_no_existente():
     """
     Prueba para eliminar un estado de mantenimiento que no existe.
     """
-    with pytest.raises(Exception) as excinfo:
-        client.post("/maintainance_status/delete", data={"id": 99999}, headers=headers)
-    assert "Estado de mantenimiento no encontrado" in str(excinfo.value)
-    logger.warning("Test eliminar_estado_no_existente ejecutado y capturada excepción correctamente.")
+    with patch("backend.app.logic.universal_controller_instance.universal_controller.get_by_id", return_value=None):
+        response = client.post("/maintainance_status/delete", data={"id": 99999})
+        
+        # Verifica el código de estado
+        assert response.status_code == 404, f"Error inesperado: {response.status_code}"
+        
+        # Verifica el mensaje de error en la respuesta
+        response_json = response.json()
+        assert "Estado de mantenimiento no encontrado" in response_json["detail"], "El mensaje de error no es el esperado."
+
+def test_error_al_crear_estado():
+    """
+    Prueba para simular un error al crear un estado de mantenimiento.
+    """
+    with patch("backend.app.logic.universal_controller_instance.universal_controller.add", side_effect=Exception("Simulated error")):
+        response = client.post("/maintainance_status/create", data={"ID": 9999, "TipoEstado": "Error Estado"}, headers=headers)
+        
+        # Verifica el código de estado
+        assert response.status_code == 400, f"Error inesperado: {response.status_code}"
+        
+        # Verifica si la respuesta contiene el mensaje esperado
+        response_json = response.json()
+        assert "Error al crear estado" in response_json["detail"], "El mensaje de error no es el esperado."
+
+def test_error_al_actualizar_estado():
+    """
+    Prueba para simular un error al actualizar un estado de mantenimiento.
+    """
+    with patch("backend.app.logic.universal_controller_instance.universal_controller.update", side_effect=Exception("Simulated error")):
+        response = client.post("/maintainance_status/update", data={"id": 9999, "TipoEstado": "Error Actualizar"}, headers=headers)
+        
+        # Verifica el código de estado
+        assert response.status_code in (400, 404), f"Error inesperado: {response.status_code}"
+        
+        # Verifica si la respuesta contiene el mensaje esperado
+        response_json = response.json()
+        if response.status_code == 404:
+            assert "Estado de mantenimiento no encontrado" in response_json["detail"], "El mensaje de error no es el esperado."
+        else:
+            assert "Error al actualizar estado" in response_json["detail"], "El mensaje de error no es el esperado."
+
+def test_error_al_eliminar_estado():
+    """
+    Prueba para simular un error al eliminar un estado de mantenimiento.
+    """
+    with patch("backend.app.logic.universal_controller_instance.universal_controller.delete", side_effect=Exception("Simulated error")):
+        response = client.post("/maintainance_status/delete", data={"id": 9999}, headers=headers)
+        
+        # Verifica el código de estado
+        assert response.status_code in (400, 404), f"Error inesperado: {response.status_code}"
+        
+        # Verifica si la respuesta contiene el mensaje esperado
+        response_json = response.json()
+        if response.status_code == 404:
+            assert "Estado de mantenimiento no encontrado" in response_json["detail"], "El mensaje de error no es el esperado."
+        else:
+            assert "Error al eliminar estado" in response_json["detail"], "El mensaje de error no es el esperado."

@@ -4,6 +4,7 @@ from fastapi.testclient import TestClient
 from backend.app.api.routes.routes_query_service import app
 from backend.app.models.routes import Ruta
 from backend.app.logic.universal_controller_instance import universal_controller as controller
+from unittest.mock import patch
 
 from backend.app.core.conf import headers
 
@@ -55,3 +56,17 @@ def test_detalle_ruta_no_existente():
     logger.warning(
         f"Test detalle_ruta_no_existente ejecutado correctamente: status={response.status_code}, body={response.text}"
     )
+
+def test_detalle_ruta_error_interno():
+    """
+    Prueba para manejar un error interno al consultar una ruta.
+    """
+    with patch("backend.app.logic.universal_controller_instance.universal_controller.get_by_id", side_effect=Exception("Error interno")):
+        response = client.get("/routes/99999")
+        
+        # Verifica el código de estado
+        assert response.status_code == 500, f"Error inesperado: {response.status_code}"
+        
+        # Verifica el mensaje de error en la respuesta
+        response_json = response.json()
+        assert "Error interno al consultar ruta" in response_json["detail"], "El mensaje de error no es el esperado."

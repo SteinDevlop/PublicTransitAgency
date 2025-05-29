@@ -1,5 +1,5 @@
 import logging
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 from backend.app.models.routes import Ruta
 from backend.app.logic.universal_controller_instance import universal_controller as controller
@@ -26,7 +26,10 @@ def listar_rutas():
         return {"data": rutas_json}
     except Exception as e:
         logger.error(f"[GET /routes/] Error al listar rutas: {str(e)}")
-        raise HTTPException(status_code=500, detail="Error interno al listar rutas.")
+        return JSONResponse(
+            status_code=500,
+            content={"detail": "Error interno al listar rutas."}
+        )
 
 @app.get("/{ID}", response_class=JSONResponse)
 def detalle_ruta(ID: int):
@@ -39,7 +42,7 @@ def detalle_ruta(ID: int):
             logger.warning(f"[GET /routes/{ID}] Ruta no encontrada.")
             return JSONResponse(
                 status_code=404,
-                content={"detail": "No se encontró la ruta especificada."}  # Ajuste del mensaje
+                content={"detail": "No se encontró la ruta especificada."}
             )
         logger.info(f"[GET /routes/{ID}] Se consultó la ruta con ID={ID}.")
         if hasattr(ruta, "model_dump"):
@@ -50,4 +53,7 @@ def detalle_ruta(ID: int):
             return {"data": ruta}
     except Exception as e:
         logger.error(f"[GET /routes/{ID}] Error al consultar ruta: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
+        return JSONResponse(
+            status_code=500,
+            content={"detail": f"Error interno al consultar ruta: {str(e)}"}
+        )

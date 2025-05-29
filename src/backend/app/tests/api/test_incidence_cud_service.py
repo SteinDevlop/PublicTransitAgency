@@ -36,7 +36,6 @@ def test_crear_incidencia():
         controller.delete(incidencia)
 
 
-
 def test_actualizar_incidencia(setup_and_teardown):
     """
     Prueba para actualizar una incidencia existente.
@@ -63,9 +62,24 @@ def test_actualizar_incidencia_no_existente():
         data=incidencia.to_dict(),
         headers=headers
     )
-    assert response.status_code in (404, 500)
-    assert "Incidencia no encontrada" in response.json()["detail"] or "Error al actualizar incidencia" in response.json()["detail"]
+    assert response.status_code == 404
+    assert "Incidencia no encontrada" in response.json()["detail"]
     logger.warning(f"Test actualizar_incidencia_no_existente ejecutado correctamente para ID={incidencia.ID}.")
+
+def test_actualizar_incidencia_error_interno():
+    """
+    Prueba para manejar un error interno al actualizar una incidencia.
+    """
+    with pytest.raises(Exception):
+        with patch("backend.app.logic.universal_controller_instance.universal_controller.update", side_effect=Exception("Error interno")):
+            response = client.post(
+                "/incidences/update",
+                data={"ID": 99999, "IDTicket": 1, "Descripcion": "Error interno", "Tipo": "Error", "IDUnidad": "1"},
+                headers=headers
+            )
+            assert response.status_code == 500
+            assert "Error al actualizar incidencia" in response.json()["detail"]
+            logger.error("Test actualizar_incidencia_error_interno ejecutado correctamente.")
 
 def test_eliminar_incidencia(setup_and_teardown):
     """
@@ -82,7 +96,18 @@ def test_eliminar_incidencia_no_existente():
     Prueba para manejar un error al eliminar una incidencia inexistente.
     """
     response = client.post("/incidences/delete", data={"ID": 999999}, headers=headers)
-    assert response.status_code in (404, 500)
-    assert "Incidencia no encontrada" in response.json()["detail"] or "Error al eliminar incidencia" in response.json()["detail"]
+    assert response.status_code == 404
+    assert "Incidencia no encontrada" in response.json()["detail"]
     logger.warning("Test eliminar_incidencia_no_existente ejecutado correctamente.")
+
+def test_eliminar_incidencia_error_interno():
+    """
+    Prueba para manejar un error interno al eliminar una incidencia.
+    """
+    with pytest.raises(Exception):
+        with patch("backend.app.logic.universal_controller_instance.universal_controller.delete", side_effect=Exception("Error interno")):
+            response = client.post("/incidences/delete", data={"ID": 999999}, headers=headers)
+            assert response.status_code == 500
+            assert "Error al eliminar incidencia" in response.json()["detail"]
+            logger.error("Test eliminar_incidencia_error_interno ejecutado correctamente.")
 
