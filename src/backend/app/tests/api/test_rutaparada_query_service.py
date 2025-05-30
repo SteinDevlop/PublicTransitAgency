@@ -17,7 +17,19 @@ def test_listar_rutas_con_paradas():
     if response.status_code == 200:
         assert "data" in response.json(), "La respuesta no contiene el campo 'data'."
         assert isinstance(response.json()["data"], list), "El campo 'data' no es una lista."
+    elif response.status_code == 404:
+        assert "No se encontraron registros." in response.json()["detail"]
     logger.info("Test listar_rutas_con_paradas ejecutado correctamente.")
+
+def test_listar_rutas_con_paradas_no_registros():
+    """
+    Prueba para el caso en que no hay registros de ruta-parada (404).
+    """
+    with patch("backend.app.logic.universal_controller_instance.universal_controller.read_all", return_value=[]):
+        response = client.get("/ruta_parada/")
+        assert response.status_code == 404
+        assert "No se encontraron registros." in response.json()["detail"]
+        logger.warning("Test listar_rutas_con_paradas_no_registros ejecutado correctamente.")
 
 def test_buscar_por_id_parada_existente():
     """
@@ -45,17 +57,10 @@ def test_listar_rutas_con_paradas_error_interno():
     """
     with patch("backend.app.logic.universal_controller_instance.universal_controller.read_all", side_effect=Exception("Simulated error")):
         response = client.get("/ruta_parada/")
-        
-        # Verifica el código de estado
-        assert response.status_code in (200, 500), f"Error inesperado: {response.status_code}"
-        
-        # Verifica el mensaje de error en la respuesta si el código es 500
-        if response.status_code == 500:
-            response_json = response.json()
-            assert "Error interno al listar las relaciones Ruta-Parada." in response_json.get("detail", ""), "El mensaje de error no es el esperado."
-            logger.error("Test listar_rutas_con_paradas_error_interno ejecutado correctamente.")
-        else:
-            logger.warning("El servicio devolvió un estado 200 inesperado en lugar de un error interno.")
+        assert response.status_code == 500, f"Error inesperado: {response.status_code}"
+        response_json = response.json()
+        assert "Error interno al listar las relaciones Ruta-Parada." in response_json.get("detail", ""), "El mensaje de error no es el esperado."
+        logger.error("Test listar_rutas_con_paradas_error_interno ejecutado correctamente.")
 
 def test_buscar_por_id_parada_error_interno():
     """
@@ -63,16 +68,7 @@ def test_buscar_por_id_parada_error_interno():
     """
     with patch("backend.app.logic.universal_controller_instance.universal_controller.get_by_id", side_effect=Exception("Simulated error")):
         response = client.get("/ruta_parada/99999")
-        
-        # Verifica el código de estado
-        assert response.status_code in (404, 500), f"Error inesperado: {response.status_code}"
-        
-        # Verifica el mensaje de error en la respuesta si el código es 500
-        if response.status_code == 500:
-            response_json = response.json()
-            assert "Error interno al obtener el detalle de la relación Ruta-Parada." in response_json.get("detail", ""), "El mensaje de error no es el esperado."
-            logger.error("Test buscar_por_id_parada_error_interno ejecutado correctamente.")
-        elif response.status_code == 404:
-            response_json = response.json()
-            assert "No se encontraron registros para la parada especificada." in response_json.get("detail", ""), "El mensaje de error no es el esperado."
-            logger.warning("Test buscar_por_id_parada_error_interno ejecutado correctamente para un caso de parada no encontrada.")
+        assert response.status_code == 500, f"Error inesperado: {response.status_code}"
+        response_json = response.json()
+        assert "Error interno al obtener el detalle de la relación Ruta-Parada." in response_json.get("detail", ""), "El mensaje de error no es el esperado."
+        logger.error("Test buscar_por_id_parada_error_interno ejecutado correctamente.")
