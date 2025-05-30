@@ -1,6 +1,7 @@
 import logging
 from fastapi.testclient import TestClient
 from backend.app.api.routes.rutaparada_cud_service import app as rutaparada_router
+from unittest.mock import patch
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("backend.app.api.routes.rutaparada_cud_service")
@@ -39,15 +40,15 @@ def test_actualizar_rutaparada():
     data_update = {
         "IDRuta": 9,
         "IDParada": 30,
-        "nuevo_IDRuta": 10,
-        "nuevo_IDParada": 4
+        "nuevo_IDRuta": 1,
+        "nuevo_IDParada": 30
     }
     response = client.post("/rutaparada/update", data=data_update)
     assert response.status_code == 200
     assert "actualizada exitosamente" in response.json()["message"]
     logger.info("Test actualizar_rutaparada ejecutado correctamente.")
     # Limpieza: elimina la relación actualizada
-    client.post("/rutaparada/delete", data={"IDRuta": 10, "IDParada": 4})
+    client.post("/rutaparada/delete", data={"IDRuta": 1, "IDParada": 30})
 
 def test_actualizar_rutaparada_no_existente():
     """
@@ -71,3 +72,55 @@ def test_eliminar_rutaparada_no_existente():
     response = client.post("/rutaparada/delete", data=data)
     assert response.status_code in (404, 500)  # Verifica que el código de estado sea 404 o 500
     logger.info("Test eliminar_rutaparada_no_existente ejecutado correctamente.")
+
+def test_crear_rutaparada_ya_existente():
+    """
+    Prueba para intentar crear una relación Ruta-Parada que ya existe.
+    """
+    data = {"IDRuta": 9, "IDParada": 30}
+    client.post("/rutaparada/create", data=data)
+    response = client.post("/rutaparada/create", data=data)
+    assert response.status_code == 409, f"Error inesperado: {response.status_code}"
+    assert "La relación Ruta-Parada ya existe." in response.json()["detail"], "El mensaje de error no es el esperado."
+
+def test_crear_rutaparada_error_interno():
+    """
+    Prueba para manejar un error interno al crear una relación Ruta-Parada.
+    """
+    with patch("backend.app.logic.universal_controller_instance.universal_controller.add", side_effect=Exception("Simulated error")):
+        data = {"IDRuta": 9, "IDParada": 30}
+        response = client.post("/rutaparada/create", data=data)
+        
+        # Verifica el código de estado
+        if response.status_code == 409:
+            assert "La relación Ruta-Parada ya existe." in response.json()["detail"], "El mensaje de error no es el esperado."
+        elif response.status_code == 500:
+            assert "Error interno al crear la relación Ruta-Parada" in response.json()["detail"], "El mensaje de error no es el esperado."
+        else:
+            assert False, f"Error inesperado: {response.status_code}"
+
+def test_actualizar_rutaparada_error_interno():
+    """
+    Prueba para manejar un error interno al actualizar una relación Ruta-Parada.
+    """
+    with patch("backend.app.logic.universal_controller_instance.universal_controller.update", side_effect=Exception("Simulated error")):
+        data_update = {"IDRuta": 9, "IDParada": 30, "nuevo_IDRuta": 10, "nuevo_IDParada": 4}
+        response = client.post("/rutaparada/update", data=data_update)
+        assert response.status_code == 500, f"Error inesperado: {response.status_code}"
+        assert "Error interno al actualizar la relación Ruta-Parada" in response.json()["detail"], "El mensaje de error no es el esperado."
+
+def test_eliminar_rutaparada_error_interno():
+    """
+    Prueba para manejar un error interno al eliminar una relación Ruta-Parada.
+    """
+    with patch("backend.app.logic.universal_controller_instance.universal_controller.delete", side_effect=Exception("Simulated error")):
+        data = {"IDRuta": 9, "IDParada": 30}
+        response = client.post("/rutaparada/delete", data=data)
+        
+        # Verifica el código de estado
+        if response.status_code == 200:
+            assert "Relación Ruta-Parada eliminada exitosamente." in response.json()["message"], "El mensaje de éxito no es el esperado."
+        elif response.status_code == 500:
+            assert "Error interno al eliminar la relación Ruta-Parada" in response.json()["detail"], "El mensaje de error no es el esperado."
+        else:
+            assert False, f"Error inesperado: {response.status_code}"

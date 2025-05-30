@@ -1,62 +1,104 @@
-import unittest
+import pytest
 import datetime
-from backend.app.logic.user_driver import Worker
 from backend.app.logic.shift import Shift
-class DummyTransport:
-    def __init__(self, id="T001"):
-        self.id = id
+from backend.app.logic.unit_transport import Transport
+from backend.app.logic.schedule import Schedule
+from backend.app.logic.user_driver import Worker
 
-    def __eq__(self, other):
-        return isinstance(other, DummyTransport) and self.id == other.id
+@pytest.fixture
+def setup_shift():
+    """
+    Fixture para configurar un turno de prueba.
+    """
+    unit = Transport(unit_id="123", capacity=50)
+    driver = Worker(name="John Doe", license_number="ABC123")
+    schedule = Schedule(schedule_id="456", route="Route A", is_active=True)
+    start_time = datetime.datetime.now() + datetime.timedelta(hours=1)
+    end_time = start_time + datetime.timedelta(hours=4)
+    return Shift(unit=unit, start_time=start_time, end_time=end_time, driver=driver, schedule=schedule)
 
-class DummySchedule:
-    def __init__(self, name="S001"):
-        self.name = name
+def test_shift_assigment_success(setup_shift):
+    """
+    Prueba para asignar un turno exitosamente.
+    """
+    shift = setup_shift
+    shift.unit.is_available = lambda start, end: True
+    shift.schedule.is_valid = lambda: True
+    assert shift.shift_assigment() is True
 
-    def __eq__(self, other):
-        return isinstance(other, DummySchedule) and self.name == other.name
+def test_shift_assigment_start_time_in_past(setup_shift):
+    """
+    Prueba para manejar un error cuando el tiempo de inicio está en el pasado.
+    """
+    shift = setup_shift
+    shift.start_time = datetime.datetime.now() - datetime.timedelta(hours=1)
+    with pytest.raises(ValueError, match="Start time cannot be in the past."):
+        shift.shift_assigment()
 
-class DummyWorker(Worker):
-    def __init__(self, name="John Doe"):
-        self.name = name
+def test_shift_assigment_end_time_before_start_time(setup_shift):
+    """
+    Prueba para manejar un error cuando el tiempo de fin es antes del tiempo de inicio.
+    """
+    shift = setup_shift
+    shift.end_time = shift.start_time - datetime.timedelta(hours=1)
+    with pytest.raises(ValueError, match="End time must be after start time."):
+        shift.shift_assigment()
 
-    def __eq__(self, other):
-        return isinstance(other, DummyWorker) and self.name == other.name
+def test_shift_assigment_unit_not_available(setup_shift):
+    """
+    Prueba para manejar un error cuando la unidad no está disponible.
+    """
+    shift = setup_shift
+    shift.unit.is_available = lambda start, end: False
+    with pytest.raises(ValueError, match="Unit is not available for the specified time."):
+        shift.shift_assigment()
 
-class TestShiftClass(unittest.TestCase):
-    def setUp(self):
-        self.unit = DummyTransport()
-        self.schedule = DummySchedule()
-        self.start_time = datetime.datetime(2025, 4, 12, 8, 0)
-        self.end_time = datetime.datetime(2025, 4, 12, 12, 0)
-        self.driver = DummyWorker(name="John Doe")  # Use DummyWorker instead of string
-        self.shift = Shift(self.unit, self.start_time, self.end_time, self.driver, self.schedule)
+def test_shift_assigment_invalid_schedule(setup_shift):
+    """
+    Prueba para manejar un error cuando el horario no es válido.
+    """
+    shift = setup_shift
+    shift.schedule.is_valid = lambda: False
+    with pytest.raises(ValueError, match="Schedule is not valid."):
+        shift.shift_assigment()
 
-    def test_initial_values(self):
-        self.assertEqual(self.shift.unit, self.unit)
-        self.assertEqual(self.shift.start_time, self.start_time)
-        self.assertEqual(self.shift.end_time, self.end_time)
-        self.assertEqual(self.shift.driver, self.driver)
-        self.assertEqual(self.shift.schedule, self.schedule)
+def test_shift_change_success(setup_shift):
+    """
+    Prueba para cambiar un turno exitosamente.
+    """
+    shift = setup_shift
+    shift.unit.is_available = lambda start, end: True
+    new_start_time = shift.start_time + datetime.timedelta(hours=2)
+    new_end_time = new_start_time + datetime.timedelta(hours=4)
+    assert shift.shift_change(new_start_time, new_end_time) is True
 
-    def test_setters(self):
-        new_unit = DummyTransport("T002")
-        new_schedule = DummySchedule("S002")
-        new_start = datetime.datetime(2025, 4, 13, 10, 0)
-        new_end = datetime.datetime(2025, 4, 13, 14, 0)
-        new_driver = DummyWorker(name="Jane Smith")  # Use DummyWorker instead of string
+def test_shift_change_start_time_in_past(setup_shift):
+    """
+    Prueba para manejar un error cuando el nuevo tiempo de inicio está en el pasado.
+    """
+    shift = setup_shift
+    new_start_time = datetime.datetime.now() - datetime.timedelta(hours=1)
+    new_end_time = new_start_time + datetime.timedelta(hours=4)
+    with pytest.raises(ValueError, match="Start time cannot be in the past."):
+        shift.shift_change(new_start_time, new_end_time)
 
-        self.shift.unit = new_unit
-        self.shift.start_time = new_start
-        self.shift.end_time = new_end
-        self.shift.driver = new_driver  # Use DummyWorker
-        self.shift.schedule = new_schedule
+def test_shift_change_end_time_before_start_time(setup_shift):
+    """
+    Prueba para manejar un error cuando el nuevo tiempo de fin es antes del nuevo tiempo de inicio.
+    """
+    shift = setup_shift
+    new_start_time = shift.start_time + datetime.timedelta(hours=2)
+    new_end_time = new_start_time - datetime.timedelta(hours=1)
+    with pytest.raises(ValueError, match="End time must be after start time."):
+        shift.shift_change(new_start_time, new_end_time)
 
-        self.assertEqual(self.shift.unit, new_unit)
-        self.assertEqual(self.shift.start_time, new_start)
-        self.assertEqual(self.shift.end_time, new_end)
-        self.assertEqual(self.shift.driver, new_driver)  # Updated test
-        self.assertEqual(self.shift.schedule, new_schedule)
-
-if __name__ == "__main__":
-    unittest.main()
+def test_shift_change_unit_not_available(setup_shift):
+    """
+    Prueba para manejar un error cuando la unidad no está disponible para el nuevo turno.
+    """
+    shift = setup_shift
+    shift.unit.is_available = lambda start, end: False
+    new_start_time = shift.start_time + datetime.timedelta(hours=2)
+    new_end_time = new_start_time + datetime.timedelta(hours=4)
+    with pytest.raises(ValueError, match="Unit is not available for the specified time."):
+        shift.shift_change(new_start_time, new_end_time)

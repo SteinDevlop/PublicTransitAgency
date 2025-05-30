@@ -4,6 +4,7 @@ from fastapi.testclient import TestClient
 from backend.app.api.routes.transport_unit_query_service import app
 from backend.app.models.transport import UnidadTransporte
 from backend.app.logic.universal_controller_instance import universal_controller as controller
+from unittest.mock import patch
 
 from backend.app.core.conf import headers
 
@@ -28,8 +29,22 @@ def test_listar_unidades_transporte(setup_and_teardown):
     """
     response = client.get("/transport_units/", headers=headers)
     assert response.status_code == 200
-    assert "Depósito Central" in response.text
+    response_json = response.json()
+    assert "data" in response_json
+    assert any(u["Ubicacion"] == "Depósito Central" for u in response_json["data"])
     logger.info("Test listar_unidades_transporte ejecutado correctamente.")
+
+def test_listar_unidades_transporte_formato_json(setup_and_teardown):
+    """
+    Prueba para listar todas las unidades de transporte en formato JSON.
+    """
+    response = client.get("/transport_units/", headers=headers)
+    assert response.status_code == 200, f"Error inesperado: {response.status_code}"
+    response_json = response.json()
+    assert "data" in response_json, "La respuesta no contiene la clave 'data'."
+    assert isinstance(response_json["data"], list), "La respuesta no contiene una lista de unidades de transporte."
+    assert len(response_json["data"]) > 0, "La lista de unidades de transporte está vacía."
+    logger.info("Test listar_unidades_transporte_formato_json ejecutado correctamente.")
 
 def test_detalle_unidad_transporte_existente(setup_and_teardown):
     """
@@ -37,16 +52,43 @@ def test_detalle_unidad_transporte_existente(setup_and_teardown):
     """
     unidad = setup_and_teardown
     response = client.get(f"/transport_units/{unidad.ID}", headers=headers)
-    assert response.status_code == 200
-    assert "Depósito Central" in response.text
+    assert response.status_code == 200, f"Error inesperado: {response.status_code}"
+    response_json = response.json()
+    assert "data" in response_json, "La respuesta no contiene la clave 'data'."
+    assert response_json["data"]["Ubicacion"] == "Depósito Central"
     logger.info(f"Test detalle_unidad_transporte_existente ejecutado correctamente para ID={unidad.ID}.")
+
+def test_detalle_unidad_transporte_existente_formato_dict(setup_and_teardown):
+    """
+    Prueba para obtener el detalle de una unidad de transporte existente en formato dict.
+    """
+    unidad = setup_and_teardown
+    response = client.get(f"/transport_units/{unidad.ID}", headers=headers)
+    assert response.status_code == 200, f"Error inesperado: {response.status_code}"
+    response_json = response.json()
+    assert "data" in response_json, "La respuesta no contiene la clave 'data'."
+    assert isinstance(response_json["data"], dict), "La respuesta no está en formato dict."
+    logger.info(f"Test detalle_unidad_transporte_existente_formato_dict ejecutado correctamente para ID={unidad.ID}.")
 
 def test_detalle_unidad_transporte_no_existente():
     """
-    Prueba para obtener el detalle de una unidad de transporte que no existe.
+    Prueba para manejar el caso en el que una unidad de transporte no existe.
     """
     response = client.get("/transport_units/NO_EXISTE", headers=headers)
-    assert response.status_code in (404, 500)
-    logger.warning(
-        f"Test detalle_unidad_transporte_no_existente ejecutado: status={response.status_code}, body={response.text}"
-    )
+    assert response.status_code == 404, f"Error inesperado: {response.status_code}"
+    response_json = response.json()
+    assert "detail" in response_json, "La respuesta no contiene la clave 'detail'."
+    assert "No se encontró la unidad de transporte especificada." in response_json["detail"], "El mensaje de error no es el esperado."
+    logger.warning("Test detalle_unidad_transporte_no_existente ejecutado correctamente.")
+
+def test_detalle_unidad_transporte_error_interno():
+    """
+    Prueba para manejar un error interno al consultar una unidad de transporte.
+    """
+    with patch("backend.app.logic.universal_controller_instance.universal_controller.get_by_id", side_effect=Exception("Simulated error")):
+        response = client.get("/transport_units/ERROR", headers=headers)
+        assert response.status_code == 500, f"Error inesperado: {response.status_code}"
+        response_json = response.json()
+        assert "detail" in response_json, "La respuesta no contiene la clave 'detail'."
+        assert "Error interno al consultar detalle de unidad de transporte." in response_json["detail"], "El mensaje de error no es el esperado."
+        logger.error("Test detalle_unidad_transporte_error_interno ejecutado correctamente.")

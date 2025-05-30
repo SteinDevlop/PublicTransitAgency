@@ -1,11 +1,10 @@
 import logging
 import re
-from fastapi import APIRouter, HTTPException, Security
+from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 from backend.app.logic.universal_controller_instance import universal_controller as controller
 
 from backend.app.models.transport import UnidadTransporte
-from backend.app.core.auth import get_current_user
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -23,10 +22,13 @@ def listar_unidades_transporte():
             else u
             for u in unidades
         ]
-        return unidades_json
+        return JSONResponse(status_code=200, content={"data": unidades_json})
     except Exception as e:
         logger.error("[GET /transport_units/] Error al listar unidades de transporte: %s", e)
-        raise HTTPException(status_code=500, detail="Error al listar unidades de transporte.")
+        return JSONResponse(
+            status_code=500,
+            content={"detail": "Error al listar unidades de transporte."}
+        )
 
 @app.get("/{ID}", response_class=JSONResponse)
 def detalle_unidad_transporte(ID: str):
@@ -35,16 +37,20 @@ def detalle_unidad_transporte(ID: str):
         unidad = controller.get_by_id(UnidadTransporte, safe_id)
         if not unidad:
             logger.warning("[GET /transport_units/{ID}] Unidad de transporte no encontrada: ID=%s", safe_id)
-            raise HTTPException(status_code=404, detail="Unidad de transporte no encontrada.")
+            return JSONResponse(
+                status_code=404,
+                content={"detail": "No se encontró la unidad de transporte especificada."}
+            )
         logger.info("[GET /transport_units/{ID}] Detalle de unidad de transporte consultado: ID=%s", safe_id)
         if hasattr(unidad, "model_dump"):
-            return unidad.model_dump()
+            return JSONResponse(status_code=200, content={"data": unidad.model_dump()})
         elif hasattr(unidad, "dict"):
-            return unidad.dict()
+            return JSONResponse(status_code=200, content={"data": unidad.dict()})
         else:
-            return unidad
-    except HTTPException:
-        raise
+            return JSONResponse(status_code=200, content={"data": unidad})
     except Exception as e:
         logger.error("[GET /transport_units/{ID}] Error al consultar detalle de unidad de transporte: %s", e)
-        raise HTTPException(status_code=500, detail="Error al consultar detalle de unidad de transporte.")
+        return JSONResponse(
+            status_code=500,
+            content={"detail": "Error interno al consultar detalle de unidad de transporte."}
+        )

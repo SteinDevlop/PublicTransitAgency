@@ -5,6 +5,7 @@ from backend.app.api.routes.schedule_query_service import app
 from backend.app.models.schedule import Schedule
 from backend.app.logic.universal_controller_instance import universal_controller as controller
 from backend.app.core.conf import headers
+from unittest.mock import patch
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("backend.app.api.routes.schedule_query_service")
@@ -70,3 +71,19 @@ def test_detalle_horario_no_existente():
     assert response.status_code == 404
     assert "Horario no encontrado" in response.json()["detail"]
     logger.warning("Test detalle_horario_no_existente ejecutado correctamente. ID=99999 no encontrado.")
+
+def test_detalle_horario_error_interno():
+    """
+    Prueba para manejar un error interno al consultar el detalle de un horario.
+    """
+    with patch("backend.app.logic.universal_controller_instance.universal_controller.get_by_id", side_effect=Exception("Simulated error")):
+        response = client.get("/schedules/99999", headers=headers)
+        
+        # Verifica el código de estado
+        assert response.status_code == 500, f"Error inesperado: {response.status_code}"
+        
+        # Verifica el mensaje de error en la respuesta
+        response_json = response.json()
+        assert "Error al consultar detalle de horario" in response_json["detail"], "El mensaje de error no es el esperado."
+        logger.error("Test detalle_horario_error_interno ejecutado correctamente.")
+

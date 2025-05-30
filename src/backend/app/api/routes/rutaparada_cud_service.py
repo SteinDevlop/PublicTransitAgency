@@ -22,16 +22,22 @@ def crear_rutaparada(
         existentes = controller.get_ruta_parada(id_ruta=IDRuta, id_parada=IDParada)
         if existentes:
             logger.warning(f"[POST /rutaparada/create] Relación ya existe: IDParada={IDParada}, IDRuta={IDRuta}")
-            raise HTTPException(status_code=409, detail="La relación Ruta-Parada ya existe.")
+            return JSONResponse(
+                status_code=409,
+                content={"detail": "La relación Ruta-Parada ya existe."}
+            )
         rutaparada = RutaParada(IDParada=IDParada, IDRuta=IDRuta)
         controller.add(rutaparada)
         logger.info(f"[POST /rutaparada/create] Relación creada: IDParada={IDParada}, IDRuta={IDRuta}")
-        return JSONResponse(content={"message": "Relación Ruta-Parada creada exitosamente.", "data": rutaparada.model_dump()})
-    except HTTPException:
-        raise
+        return JSONResponse(
+            content={"message": "Relación Ruta-Parada creada exitosamente.", "data": rutaparada.model_dump()}
+        )
     except Exception as e:
         logger.error(f"[POST /rutaparada/create] Error: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        return JSONResponse(
+            status_code=500,
+            content={"detail": f"Error interno al crear la relación Ruta-Parada: {str(e)}"}
+        )
 
 @app.post("/update", response_class=JSONResponse)
 def actualizar_rutaparada(
@@ -44,8 +50,10 @@ def actualizar_rutaparada(
         existentes = controller.get_ruta_parada(id_ruta=IDRuta, id_parada=IDParada)
         if not existentes:
             logger.warning(f"[POST /rutaparada/update] Relación no encontrada: IDParada={IDParada}, IDRuta={IDRuta}")
-            raise HTTPException(status_code=404, detail="Relación Ruta-Parada no encontrada.")
-        # Usa el método específico para actualizar
+            return JSONResponse(
+                status_code=404,
+                content={"detail": "Relación Ruta-Parada no encontrada."}
+            )
         ok = controller.update_ruta_parada(
             id_ruta=IDRuta,
             id_parada=IDParada,
@@ -59,12 +67,15 @@ def actualizar_rutaparada(
             IDRuta=nuevo_IDRuta if nuevo_IDRuta is not None else IDRuta
         )
         logger.info(f"[POST /rutaparada/update] Relación actualizada: {IDParada},{IDRuta} -> {rutaparada_actualizada.IDParada},{rutaparada_actualizada.IDRuta}")
-        return JSONResponse(content={"message": "Relación Ruta-Parada actualizada exitosamente.", "data": rutaparada_actualizada.model_dump()})
-    except HTTPException:
-        raise
+        return JSONResponse(
+            content={"message": "Relación Ruta-Parada actualizada exitosamente.", "data": rutaparada_actualizada.model_dump()}
+        )
     except Exception as e:
         logger.error(f"[POST /rutaparada/update] Error: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        return JSONResponse(
+            status_code=500,
+            content={"detail": f"Error interno al actualizar la relación Ruta-Parada: {str(e)}"}
+        )
 
 @app.post("/delete", response_class=JSONResponse)
 def eliminar_rutaparada(
@@ -75,14 +86,20 @@ def eliminar_rutaparada(
         existentes = controller.get_ruta_parada(id_ruta=IDRuta, id_parada=IDParada)
         if not existentes:
             logger.warning(f"[POST /rutaparada/delete] Relación no encontrada: IDParada={IDParada}, IDRuta={IDRuta}")
-            raise HTTPException(status_code=404, detail="Relación Ruta-Parada no encontrada.")
+            return JSONResponse(
+                status_code=404,
+                content={"detail": "Relación Ruta-Parada no encontrada."}
+            )
         ok = controller.delete_ruta_parada(id_ruta=IDRuta, id_parada=IDParada)
         if not ok:
             raise Exception("No se pudo eliminar la relación.")
         logger.info(f"[POST /rutaparada/delete] Relación eliminada: IDParada={IDParada}, IDRuta={IDRuta}")
-        return JSONResponse(content={"message": "Relación Ruta-Parada eliminada exitosamente."})
-    except HTTPException:
-        raise
+        return JSONResponse(
+            content={"message": "Relación Ruta-Parada eliminada exitosamente."}
+        )
     except Exception as e:
         logger.error(f"[POST /rutaparada/delete] Error: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        return JSONResponse(
+            status_code=500,
+            content={"detail": f"Error interno al eliminar la relación Ruta-Parada: {str(e)}"}
+        )
