@@ -1,9 +1,8 @@
 import logging
-from fastapi import APIRouter, HTTPException, Security
+from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 from backend.app.logic.universal_controller_instance import universal_controller as controller
 from backend.app.models.maintainance_status import MaintainanceStatus
-from backend.app.core.auth import get_current_user
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -24,10 +23,10 @@ def listar_estados():
             else e
             for e in estados
         ]
-        return estados_json
+        return JSONResponse(status_code=200, content={"data": estados_json})
     except Exception as e:
         logger.error(f"[GET /maintainance_status/] Error al listar estados: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
+        return JSONResponse(status_code=500, content={"detail": str(e)})
 
 @app.get("/{id:int}", response_class=JSONResponse)
 def detalle_estado(id: int):
@@ -38,16 +37,14 @@ def detalle_estado(id: int):
         estado = controller.get_by_id(MaintainanceStatus, id)
         if not estado:
             logger.warning(f"[GET /maintainance_status/{id}] Estado de mantenimiento no encontrado.")
-            raise HTTPException(status_code=404, detail="Estado de mantenimiento no encontrado")
+            return JSONResponse(status_code=404, content={"detail": "Estado de mantenimiento no encontrado"})
         logger.info(f"[GET /maintainance_status/{id}] Se consultó el estado de mantenimiento con ID={id}.")
         if hasattr(estado, "model_dump"):
-            return estado.model_dump()
+            return JSONResponse(status_code=200, content={"data": estado.model_dump()})
         elif hasattr(estado, "dict"):
-            return estado.dict()
+            return JSONResponse(status_code=200, content={"data": estado.dict()})
         else:
-            return estado
-    except HTTPException as e:
-        raise e
+            return JSONResponse(status_code=200, content={"data": estado})
     except Exception as e:
         logger.error(f"[GET /maintainance_status/{id}] Error al consultar estado: {str(e)}")
-        raise HTTPException(status_code=500, detail=str(e))
+        return JSONResponse(status_code=500, content={"detail": str(e)})
