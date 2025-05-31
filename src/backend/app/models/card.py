@@ -2,7 +2,7 @@ from typing import Optional
 from pydantic import BaseModel
 
 class CardCreate(BaseModel):
-    __entity_name__ = "TarjetaIns"
+    __entity_name__ = "Tarjeta"
     ID: Optional[int] = None
     IDUsuario: Optional[int] = None
     IDTipoTarjeta: Optional[int] = None
@@ -21,7 +21,7 @@ class CardCreate(BaseModel):
         }
 
 class CardOut(CardCreate):
-    __entity_name__ = "TarjetaIns"
+    __entity_name__ = "Tarjeta"
     @classmethod
     def from_dict(cls, data: dict):
         return cls(**data)

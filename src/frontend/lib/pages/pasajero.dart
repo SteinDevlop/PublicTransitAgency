@@ -1039,14 +1039,19 @@ class _PagoWidgetState extends State<PagoWidget> {
         final decoded = json.decode(resp.body);
         final unidadesList = (decoded is Map && decoded.containsKey('data'))
             ? decoded['data']
-            : [];
-        final filtradas = unidadesList
-            .where((u) =>
-                (u['IDTipo'] is int
-                    ? u['IDTipo']
-                    : int.tryParse(u['IDTipo'].toString())) ==
-                tipoId)
-            .toList();
+            : (decoded is List ? decoded : []);
+        final filtradas = unidadesList.where((u) {
+          final idTipo = u['IDTipo'];
+          int? idTipoInt;
+          if (idTipo is int) {
+            idTipoInt = idTipo;
+          } else if (idTipo is String) {
+            idTipoInt = int.tryParse(idTipo);
+          }
+          // Excluir IDTipo == 0 (None) y también excluir si el nombre es 'None'
+          final nombre = (u['Nombre'] ?? u['Ubicacion'] ?? '').toString().toLowerCase();
+          return idTipoInt != null && idTipoInt != 0 && nombre != 'none' && idTipoInt == tipoId;
+        }).toList();
         debugPrint(
             '[PagoWidget] Unidades filtradas para tipo $tipoId: ${filtradas.length}');
         setState(() {
@@ -1103,6 +1108,7 @@ class _PagoWidgetState extends State<PagoWidget> {
           'ID': idMovimiento,
           'IDTipoMovimiento': '1',
           'Monto': _selectedMonto.toString(),
+          'IDTarjeta': idTarjeta.toString()
         },
       );
       if (movResp.statusCode != 201 && movResp.statusCode != 200) {
@@ -1401,6 +1407,9 @@ class _RecargaWidgetState extends State<RecargaWidget> {
         return;
       }
       nuevoId = json.decode(movIdResp.body)['nuevo_id'].toString();
+      final idTarjeta = widget.user['IDTarjeta'] is int
+          ? widget.user['IDTarjeta']
+          : int.tryParse(widget.user['IDTarjeta']?.toString() ?? '0') ?? 0;
       // 3. POST /movement/create
       final movResp = await http.post(
         Uri.parse('${AppConfig.baseUrl}/movement/create'),
@@ -1413,6 +1422,7 @@ class _RecargaWidgetState extends State<RecargaWidget> {
           'ID': nuevoId,
           'IDTipoMovimiento': '2',
           'Monto': montoStr,
+          'IDTarjeta': idTarjeta.toString()
         },
       );
       debugPrint(
@@ -1426,9 +1436,6 @@ class _RecargaWidgetState extends State<RecargaWidget> {
       }
       // 4. POST /payments/create
       final idPago = (100 + random.nextInt(2147483547 - 100)).toString();
-      final idTarjeta = widget.user['IDTarjeta'] is int
-          ? widget.user['IDTarjeta']
-          : int.tryParse(widget.user['IDTarjeta']?.toString() ?? '0') ?? 0;
       final payBody = {
         'IDMovimiento': nuevoId.toString(),
         'IDPrecio': '0',
