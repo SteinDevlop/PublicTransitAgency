@@ -54,7 +54,7 @@ class _LoginPageState extends State<LoginPage> {
     try {
       // Realizar la solicitud POST al backend usando la URL base
       final response = await http.post(
-        Uri.parse('https://publictransitagency-production.up.railway.app/login/token'),
+        Uri.parse('${AppConfig.baseUrl}/login/token'),
         headers: {'Content-Type': 'application/x-www-form-urlencoded'},
         body: {
           'username': username,

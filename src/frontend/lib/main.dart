@@ -394,7 +394,7 @@ class _CardBalanceScreenState extends State<CardBalanceScreen> {
     }
     try {
       final response = await http.get(
-        Uri.parse('https://publictransitagency-production.up.railway.app/card/tarjeta?ID=$id'),
+        Uri.parse('${AppConfig.baseUrl}/card/tarjeta?ID=$id'),
         headers: {'accept': 'application/json'},
       );
       if (response.statusCode == 200) {
@@ -535,7 +535,7 @@ class _RoutesStopsScreenState extends State<RoutesStopsScreen> {
     });
     try {
       final response = await http.get(
-        Uri.parse('https://publictransitagency-production.up.railway.app/routes/solo_nombres'),
+        Uri.parse('${AppConfig.baseUrl}/ruta_parada/solo_nombres'),
         headers: {'accept': 'application/json'},
       );
       if (response.statusCode == 200) {
@@ -584,15 +584,60 @@ class _RoutesStopsScreenState extends State<RoutesStopsScreen> {
                         itemCount: _routes!.length,
                         itemBuilder: (context, index) {
                           final item = _routes![index];
+                          // Si item es un String, lo mostramos directo. Si es Map, mostramos campos bonitos.
                           return Card(
+                            elevation: 4,
+                            margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
+                            color: Colors.green[50],
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(18),
+                              side: BorderSide(
+                                color: Colors.green[700]!,
+                                width: 1.2,
+                              ),
+                            ),
                             child: ListTile(
-                              title: Text(item.toString()),
+                              leading: CircleAvatar(
+                                backgroundColor: Colors.green[700],
+                                child: Icon(Icons.route, color: Colors.white),
+                              ),
+                              title: Text(
+                                item is Map && item.containsKey('Nombre')
+                                    ? item['Nombre']
+                                    : item.toString(),
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.green[900],
+                                  fontSize: 17,
+                                ),
+                              ),
+                              subtitle: item is Map
+                                  ? Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        if (item['Paradas'] != null)
+                                          Padding(
+                                            padding: const EdgeInsets.only(top: 4.0),
+                                            child: Text(
+                                              'Paradas: ${item['Paradas']}',
+                                              style: TextStyle(color: Colors.grey[800]),
+                                            ),
+                                          ),
+                                        if (item['Horario'] != null)
+                                          Text(
+                                            'Horario: ${item['Horario']}',
+                                            style: TextStyle(color: Colors.grey[700]),
+                                          ),
+                                      ],
+                                    )
+                                  : null,
+                              trailing: Icon(Icons.directions_bus, color: Colors.green[700]),
+                              isThreeLine: true,
                             ),
                           );
                         },
                       ),
-      ),
-    );
+    ));
   }
 }
 
@@ -615,7 +660,7 @@ class _IncidentsScreenState extends State<IncidentsScreen> {
     });
     try {
       final response = await http.get(
-        Uri.parse('https://publictransitagency-production.up.railway.app/incidences/'),
+        Uri.parse('${AppConfig.baseUrl}/incidences/'),
         headers: {'accept': 'application/json'},
       );
       if (response.statusCode == 200) {

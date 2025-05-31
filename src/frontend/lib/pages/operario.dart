@@ -18,7 +18,7 @@ class _OperarioPanelState extends State<OperarioPanel> {
 
   Future<Map<String, dynamic>> fetchDashboardData() async {
     final response = await http.get(
-      Uri.parse('https://publictransitagency-production.up.railway.app/login/dashboard'),
+      Uri.parse('${AppConfig.baseUrl}/login/dashboard'),
       headers: {
         'Authorization': 'Bearer ${widget.token}',
         'accept': 'application/json',
@@ -33,7 +33,7 @@ class _OperarioPanelState extends State<OperarioPanel> {
 
   Future<List<dynamic>> fetchIncidences() async {
     final response = await http.get(
-      Uri.parse('https://publictransitagency-production.up.railway.app/incidences/'),
+      Uri.parse('${AppConfig.baseUrl}/incidences/'),
       headers: {
         'Authorization': 'Bearer ${widget.token}',
         'accept': 'application/json',
@@ -461,6 +461,164 @@ class _OperarioPanelState extends State<OperarioPanel> {
       child: Text(
         text,
         style: const TextStyle(fontSize: 18),
+      ),
+    );
+  }
+}
+
+class CrearIncidenciaWidget extends StatefulWidget {
+  final String token;
+  final VoidCallback? onCreated;
+  const CrearIncidenciaWidget({required this.token, this.onCreated, Key? key}) : super(key: key);
+
+  @override
+  State<CrearIncidenciaWidget> createState() => _CrearIncidenciaWidgetState();
+}
+
+class _CrearIncidenciaWidgetState extends State<CrearIncidenciaWidget> {
+  final _formKey = GlobalKey<FormState>();
+  final _ticketController = TextEditingController();
+  final _descripcionController = TextEditingController();
+  final _tipoController = TextEditingController();
+  final _unidadController = TextEditingController();
+  bool _loading = false;
+  String? _error;
+  String? _success;
+
+  Future<void> _submit() async {
+    if (!_formKey.currentState!.validate()) return;
+    setState(() {
+      _loading = true;
+      _error = null;
+      _success = null;
+    });
+    final response = await http.post(
+      Uri.parse('${AppConfig.baseUrl}/incidences/create'),
+      headers: {
+        'Authorization': 'Bearer ${widget.token}',
+        'accept': 'application/json',
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: {
+        'IDTicket': _ticketController.text.trim(),
+        'Descripcion': _descripcionController.text.trim(),
+        'Tipo': _tipoController.text.trim(),
+        'IDUnidad': _unidadController.text.trim(),
+      },
+    );
+    setState(() => _loading = false);
+    if (response.statusCode == 200) {
+      setState(() {
+        _success = 'Incidencia reportada exitosamente.';
+        _ticketController.clear();
+        _descripcionController.clear();
+        _tipoController.clear();
+        _unidadController.clear();
+      });
+      if (widget.onCreated != null) widget.onCreated!();
+    } else {
+      String msg = 'Error al reportar incidencia';
+      try {
+        final data = json.decode(response.body);
+        msg = data['detail']?.toString() ?? msg;
+      } catch (_) {}
+      setState(() {
+        _error = msg;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 24, horizontal: 8),
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Reportar Incidencia o Falla',
+                style: TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 20,
+                  color: Theme.of(context).primaryColor,
+                ),
+              ),
+              const SizedBox(height: 18),
+              TextFormField(
+                controller: _ticketController,
+                decoration: InputDecoration(
+                  labelText: 'ID Ticket',
+                  prefixIcon: Icon(Icons.receipt_long),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+                keyboardType: TextInputType.number,
+                validator: (v) => v == null || v.isEmpty ? 'Ingrese el ID del ticket' : null,
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: _descripcionController,
+                decoration: InputDecoration(
+                  labelText: 'Descripción',
+                  prefixIcon: Icon(Icons.description),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+                maxLines: 2,
+                validator: (v) => v == null || v.isEmpty ? 'Ingrese la descripción' : null,
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: _tipoController,
+                decoration: InputDecoration(
+                  labelText: 'Tipo',
+                  prefixIcon: Icon(Icons.category),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+                validator: (v) => v == null || v.isEmpty ? 'Ingrese el tipo' : null,
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: _unidadController,
+                decoration: InputDecoration(
+                  labelText: 'ID Unidad',
+                  prefixIcon: Icon(Icons.directions_bus),
+                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+                validator: (v) => v == null || v.isEmpty ? 'Ingrese el ID de la unidad' : null,
+              ),
+              const SizedBox(height: 20),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton.icon(
+                  icon: _loading
+                      ? SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                      : Icon(Icons.report),
+                  label: Text(_loading ? 'Enviando...' : 'Reportar'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Theme.of(context).primaryColor,
+                    foregroundColor: Colors.white,
+                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                  onPressed: _loading ? null : _submit,
+                ),
+              ),
+              if (_error != null) ...[
+                const SizedBox(height: 12),
+                Text(_error!, style: TextStyle(color: Colors.red)),
+              ],
+              if (_success != null) ...[
+                const SizedBox(height: 12),
+                Text(_success!, style: TextStyle(color: Colors.green)),
+              ],
+            ],
+          ),
+        ),
       ),
     );
   }

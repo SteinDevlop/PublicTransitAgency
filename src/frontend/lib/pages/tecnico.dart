@@ -20,7 +20,7 @@ class TecnicoPanel extends StatelessWidget {
   Future<Map<String, dynamic>> fetchDashboardData() async {
     print('Token enviado: $token');
     final response = await http.get(
-      Uri.parse('https://publictransitagency-production.up.railway.app/login/dashboard'),
+      Uri.parse('${AppConfig.baseUrl}/login/dashboard'),
       headers: {
         'Authorization': 'Bearer $token',
         'accept': 'application/json',
@@ -39,7 +39,7 @@ class TecnicoPanel extends StatelessWidget {
 
   Future<List<Map<String, dynamic>>> fetchItinerario() async {
     final response = await http.get(
-      Uri.parse('https://publictransitagency-production.up.railway.app/schedules/'),
+      Uri.parse('${AppConfig.baseUrl}/schedules/'),
       headers: {
         'Authorization': 'Bearer $token',
         'accept': 'application/json',
@@ -72,7 +72,7 @@ class TecnicoPanel extends StatelessWidget {
       errorAlertas.value = null;
       try {
         final response = await http.get(
-          Uri.parse('https://publictransitagency-production.up.railway.app/reporte/alert-tec'),
+          Uri.parse('${AppConfig.baseUrl}/reporte/alert-tec'),
           headers: {
             'Authorization': 'Bearer $token',
             'accept': 'application/json',
@@ -663,7 +663,7 @@ class _AgendarMantenimientoScreenState
     });
     try {
       final response = await http.post(
-        Uri.parse('https://publictransitagency-production.up.railway.app/maintainance/create'),
+        Uri.parse('${AppConfig.baseUrl}/maintainance/create'),
         headers: {
           'Authorization': 'Bearer ${widget.token}',
           'accept': 'application/json',

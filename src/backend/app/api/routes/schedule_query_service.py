@@ -28,7 +28,7 @@ def listar_horarios(
             else h
             for h in horarios
         ]
-        return {"message": "Horarios listados exitosamente.", "data": horarios_json}
+        return horarios_json
     except Exception as e:
         logger.error(f"[GET /schedules/] Error al listar los horarios: {str(e)}")
         return JSONResponse(

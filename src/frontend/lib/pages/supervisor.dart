@@ -26,7 +26,7 @@ class _SupervisorDashboardState extends State<SupervisorDashboard> {
   // Microservicios
   Future<List<dynamic>> fetchShifts() async {
     final response = await http.get(
-      Uri.parse('https://publictransitagency-production.up.railway.app/shifts/'),
+      Uri.parse('${AppConfig.baseUrl}/shifts/'),
       headers: {
         'Authorization': 'Bearer ${widget.token}',
         'accept': 'application/json',
@@ -41,7 +41,7 @@ class _SupervisorDashboardState extends State<SupervisorDashboard> {
 
   Future<Map<String, dynamic>> fetchReport() async {
     final response = await http.get(
-      Uri.parse('https://publictransitagency-production.up.railway.app/reporte/supervisor'),
+      Uri.parse('${AppConfig.baseUrl}/reporte/supervisor'),
       headers: {
         'Authorization': 'Bearer ${widget.token}',
         'accept': 'application/json',
@@ -56,7 +56,7 @@ class _SupervisorDashboardState extends State<SupervisorDashboard> {
 
   Future<List<dynamic>> fetchTransportUnits() async {
     final response = await http.get(
-      Uri.parse('https://publictransitagency-production.up.railway.app/transport_units/'),
+      Uri.parse('${AppConfig.baseUrl}/transport_units/'),
       headers: {
         'Authorization': 'Bearer ${widget.token}',
         'accept': 'application/json',
@@ -71,7 +71,7 @@ class _SupervisorDashboardState extends State<SupervisorDashboard> {
 
   Future<List<dynamic>> fetchIncidences() async {
     final response = await http.get(
-      Uri.parse('https://publictransitagency-production.up.railway.app/incidences/'),
+      Uri.parse('${AppConfig.baseUrl}/incidences/'),
       headers: {
         'Authorization': 'Bearer ${widget.token}',
         'accept': 'application/json',
@@ -86,7 +86,7 @@ class _SupervisorDashboardState extends State<SupervisorDashboard> {
 
   Future<Map<String, dynamic>> fetchDashboardData() async {
     final response = await http.get(
-      Uri.parse('https://publictransitagency-production.up.railway.app/login/dashboard'),
+      Uri.parse('${AppConfig.baseUrl}/login/dashboard'),
       headers: {
         'Authorization': 'Bearer ${widget.token}',
         'accept': 'application/json',
@@ -101,7 +101,7 @@ class _SupervisorDashboardState extends State<SupervisorDashboard> {
 
   Future<List<dynamic>> fetchUsers() async {
     final response = await http.get(
-      Uri.parse('https://publictransitagency-production.up.railway.app/user/all'), // Ajusta el endpoint si es diferente
+      Uri.parse('${AppConfig.baseUrl}/user/users'), // <-- Cambiado aquí
       headers: {'accept': 'application/json'},
     );
     if (response.statusCode == 200) {
@@ -931,17 +931,21 @@ class _UserShiftUpdateFormState extends State<UserShiftUpdateForm> {
               initialValue: widget.userData['Nombre'],
               decoration: InputDecoration(labelText: 'Nombre'),
               readOnly: true,
+              enabled: false,
             ),
             TextFormField(
               initialValue: widget.userData['Apellido'],
               decoration: InputDecoration(labelText: 'Apellido'),
               readOnly: true,
+              enabled: false,
             ),
             TextFormField(
               initialValue: widget.userData['Correo'],
               decoration: InputDecoration(labelText: 'Correo'),
               readOnly: true,
+              enabled: false,
             ),
+            // Puedes agregar más campos bloqueados si lo deseas
             DropdownButtonFormField<int>(
               value: selectedShiftId,
               decoration: InputDecoration(labelText: 'Turno'),
@@ -962,8 +966,9 @@ class _UserShiftUpdateFormState extends State<UserShiftUpdateForm> {
             const SizedBox(height: 16),
             ElevatedButton(
               onPressed: () async {
+                // Solo permite modificar el turno, los demás campos se envían igual que están
                 final response = await http.post(
-                  Uri.parse('https://publictransitagency-production.up.railway.app/user/update'),
+                  Uri.parse('${AppConfig.baseUrl}/user/update'),
                   body: {
                     "ID": widget.userData['ID'].toString(),
                     "Identificacion": widget.userData['Identificacion'].toString(),

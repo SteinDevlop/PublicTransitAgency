@@ -23,7 +23,7 @@ def listar_rutas():
             else r
             for r in rutas
         ]
-        return {"data": rutas_json}
+        return rutas_json
     except Exception as e:
         logger.error(f"[GET /routes/] Error al listar rutas: {str(e)}")
         return JSONResponse(
