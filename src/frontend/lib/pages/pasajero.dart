@@ -1029,7 +1029,7 @@ class _PagoWidgetState extends State<PagoWidget> {
     });
     try {
       final resp = await http.get(
-        Uri.parse('${AppConfig.baseUrl}/transport_units/?tipo=$tipoId'),
+        Uri.parse('${AppConfig.baseUrl}/transport_units/'),
         headers: {
           'Authorization': 'Bearer ${widget.token}',
           'accept': 'application/json'
@@ -1037,15 +1037,24 @@ class _PagoWidgetState extends State<PagoWidget> {
       );
       if (resp.statusCode == 200) {
         final decoded = json.decode(resp.body);
-        final unidadesList = (decoded is List)
-            ? decoded
-            : (decoded is Map && decoded.containsKey('units'))
-                ? decoded['units']
-                : [];
+        final unidadesList = (decoded is Map && decoded.containsKey('data'))
+            ? decoded['data']
+            : [];
+        final filtradas = unidadesList
+            .where((u) =>
+                (u['IDTipo'] is int
+                    ? u['IDTipo']
+                    : int.tryParse(u['IDTipo'].toString())) ==
+                tipoId)
+            .toList();
+        debugPrint(
+            '[PagoWidget] Unidades filtradas para tipo $tipoId: ${filtradas.length}');
         setState(() {
-          _unidadesOptions = List<Map<String, dynamic>>.from(unidadesList);
+          _unidadesOptions = List<Map<String, dynamic>>.from(filtradas);
         });
       } else {
+        debugPrint(
+            '[PagoWidget] Error al cargar unidades: statusCode=${resp.statusCode}, body=${resp.body}');
         if (mounted) {
           setState(() {
             _error = 'Error al cargar unidades de transporte.';
@@ -1053,6 +1062,7 @@ class _PagoWidgetState extends State<PagoWidget> {
         }
       }
     } catch (e) {
+      debugPrint('[PagoWidget] Error de conexión al cargar unidades: $e');
       if (mounted) {
         setState(() {
           _error = 'Error de conexión al cargar unidades.';
@@ -1381,6 +1391,8 @@ class _RecargaWidgetState extends State<RecargaWidget> {
           'accept': 'application/json'
         },
       );
+      debugPrint(
+          '[RecargaWidget] movIdResp: statusCode=${movIdResp.statusCode}, body=${movIdResp.body}');
       if (movIdResp.statusCode != 200) {
         setState(() {
           _error = 'Error al generar ID de movimiento.';
@@ -1403,6 +1415,8 @@ class _RecargaWidgetState extends State<RecargaWidget> {
           'Monto': montoStr,
         },
       );
+      debugPrint(
+          '[RecargaWidget] movResp: statusCode=${movResp.statusCode}, body=${movResp.body}');
       if (movResp.statusCode != 201 && movResp.statusCode != 200) {
         setState(() {
           _error = 'Error al crear movimiento: ${movResp.body}';
@@ -1411,58 +1425,58 @@ class _RecargaWidgetState extends State<RecargaWidget> {
         return;
       }
       // 4. POST /payments/create
-      // final idPago = (100 + random.nextInt(2147483547 - 100)).toString();
-      // final idTarjeta = widget.user['IDTarjeta']?.toString() ?? '';
-      // final payBody = {
-      //   'IDMovimiento': nuevoId,
-      //   'IDPago': idPago,
-      //   'IDTarjeta': idTarjeta,
-      //   'IDPrecio': 'NULL',
-      //   'IDUnidad': '',
-      //   'ID': idPago, // ID es el IDPago generado
-      // };
-      // debugPrint('[RecargaWidget] Body para /payments/create: ' + payBody.toString());
-      // final payResp = await http.post(
-      //   Uri.parse('${AppConfig.baseUrl}/payments/create'),
-      //   headers: {
-      //     'Authorization': 'Bearer ${widget.token}',
-      //     'accept': 'application/json',
-      //     'Content-Type': 'application/x-www-form-urlencoded'
-      //   },
-      //   body: payBody,
-      // );
-      // if (payResp.statusCode != 200 && payResp.statusCode != 201) {
-      //   setState(() {
-      //     _error = 'Error al crear recarga: ${payResp.body}';
-      //     _loading = false;
-      //   });
-      //   return;
-      // }
+      final idPago = (100 + random.nextInt(2147483547 - 100)).toString();
+      final idTarjeta = widget.user['IDTarjeta'] is int
+          ? widget.user['IDTarjeta']
+          : int.tryParse(widget.user['IDTarjeta']?.toString() ?? '0') ?? 0;
+      final payBody = {
+        'IDMovimiento': nuevoId.toString(),
+        'IDPrecio': '0',
+        'IDTarjeta': idTarjeta.toString(),
+        'IDUnidad': '0',
+        'ID': idPago.toString(),
+      };
+      debugPrint(
+          '[RecargaWidget] Body para /payments/create: ' + payBody.toString());
+      final payResp = await http.post(
+        Uri.parse('${AppConfig.baseUrl}/payments/create'),
+        headers: {
+          'Authorization': 'Bearer ${widget.token}',
+          'accept': 'application/json',
+          'Content-Type': 'application/x-www-form-urlencoded'
+        },
+        body: payBody,
+      );
+      debugPrint(
+          '[RecargaWidget] payResp: statusCode=${payResp.statusCode}, body=${payResp.body}');
+      if (payResp.statusCode != 200 && payResp.statusCode != 201) {
+        setState(() {
+          _error = 'Error al crear recarga: ${payResp.body}';
+          _loading = false;
+        });
+        return;
+      }
       // 5. GET /payments/{IDPago}
-      // final detResp = await http.get(
-      //   Uri.parse('${AppConfig.baseUrl}/payments/$idPago'),
-      //   headers: {
-      //     'Authorization': 'Bearer ${widget.token}',
-      //     'accept': 'application/json'
-      //   },
-      // );
-      // if (detResp.statusCode == 200) {
-      //   setState(() {
-      //     _detalleRecarga = json.decode(detResp.body);
-      //   });
-      // } else {
-      //   setState(() {
-      //     _error = 'Recarga realizada, pero no se pudo obtener el detalle.';
-      //   });
-      // }
-      setState(() {
-        _detalleRecarga = {
-          'IDMovimiento': nuevoId,
-          'Monto': montoStr,
-          'status': 'Recarga realizada con éxito'
-        };
-      });
-    } catch (e) {
+      final detResp = await http.get(
+        Uri.parse('${AppConfig.baseUrl}/payments/$idPago'),
+        headers: {
+          'Authorization': 'Bearer ${widget.token}',
+          'accept': 'application/json'
+        },
+      );
+      debugPrint(
+          '[RecargaWidget] detResp: statusCode=${detResp.statusCode}, body=${detResp.body}');
+      if (detResp.statusCode == 200) {
+        setState(() {
+          _detalleRecarga = json.decode(detResp.body);
+        });
+      } else {
+        setState(() {
+          _error = 'Recarga realizada, pero no se pudo obtener el detalle.';
+        });
+      }
+    } catch (e, st) {
+      debugPrint('[RecargaWidget] EXCEPCION: $e\n$st');
       setState(() {
         _error = 'Error de conexión al realizar la recarga.';
       });
