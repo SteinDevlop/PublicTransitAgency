@@ -204,7 +204,7 @@ class HomePage extends StatelessWidget {
                           Icon(Icons.map, color: Colors.green[700], size: 36),
                           SizedBox(height: 12),
                           Text(
-                            'Rutas y horarios',
+                            'Rutas',
                             style: TextStyle(
                                 fontWeight: FontWeight.bold, fontSize: 16),
                             textAlign: TextAlign.center,
@@ -219,7 +219,10 @@ class HomePage extends StatelessWidget {
                           SizedBox(height: 12),
                           ElevatedButton(
                             onPressed: () {
-                              // Acción para rutas y horarios
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (_) => RoutesStopsScreen()),
+                              );
                             },
                             child: Text('Ver rutas'),
                             style: ElevatedButton.styleFrom(
@@ -271,7 +274,10 @@ class HomePage extends StatelessWidget {
                           SizedBox(height: 12),
                           ElevatedButton(
                             onPressed: () {
-                              // Acción para avisos y noticias
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (_) => IncidentsScreen()),
+                              );
                             },
                             child: Text('Ver avisos'),
                             style: ElevatedButton.styleFrom(
@@ -388,7 +394,7 @@ class _CardBalanceScreenState extends State<CardBalanceScreen> {
     }
     try {
       final response = await http.get(
-        Uri.parse('${AppConfig.baseUrl}/card/tarjeta?ID=$id'),
+        Uri.parse('https://publictransitagency-production.up.railway.app/card/tarjeta?ID=$id'),
         headers: {'accept': 'application/json'},
       );
       if (response.statusCode == 200) {
@@ -505,6 +511,224 @@ class _CardBalanceScreenState extends State<CardBalanceScreen> {
             ],
           ],
         ),
+      ),
+    );
+  }
+}
+
+// --- NUEVO: Pantalla para ver rutas y paradas ---
+class RoutesStopsScreen extends StatefulWidget {
+  @override
+  _RoutesStopsScreenState createState() => _RoutesStopsScreenState();
+}
+
+class _RoutesStopsScreenState extends State<RoutesStopsScreen> {
+  bool _loading = false;
+  String? _error;
+  List<dynamic>? _routes;
+
+  Future<void> _fetchRoutes() async {
+    setState(() {
+      _loading = true;
+      _error = null;
+      _routes = null;
+    });
+    try {
+      final response = await http.get(
+        Uri.parse('https://publictransitagency-production.up.railway.app/routes/solo_nombres'),
+        headers: {'accept': 'application/json'},
+      );
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        setState(() {
+          _routes = data is List ? data : [];
+        });
+      } else {
+        setState(() {
+          _error = 'No se pudieron obtener las rutas/paradas';
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _error = 'Error de conexión';
+      });
+    } finally {
+      setState(() {
+        _loading = false;
+      });
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchRoutes();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Rutas y Paradas'),
+        backgroundColor: Colors.green[700],
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: _loading
+            ? Center(child: CircularProgressIndicator())
+            : _error != null
+                ? Center(child: Text(_error!, style: TextStyle(color: Colors.red)))
+                : _routes == null
+                    ? SizedBox()
+                    : ListView.builder(
+                        itemCount: _routes!.length,
+                        itemBuilder: (context, index) {
+                          final item = _routes![index];
+                          return Card(
+                            child: ListTile(
+                              title: Text(item.toString()),
+                            ),
+                          );
+                        },
+                      ),
+      ),
+    );
+  }
+}
+
+// --- NUEVO: Pantalla para ver incidencias ---
+class IncidentsScreen extends StatefulWidget {
+  @override
+  _IncidentsScreenState createState() => _IncidentsScreenState();
+}
+
+class _IncidentsScreenState extends State<IncidentsScreen> {
+  bool _loading = false;
+  String? _error;
+  List<dynamic>? _incidents;
+
+  Future<void> _fetchIncidents() async {
+    setState(() {
+      _loading = true;
+      _error = null;
+      _incidents = null;
+    });
+    try {
+      final response = await http.get(
+        Uri.parse('https://publictransitagency-production.up.railway.app/incidences/'),
+        headers: {'accept': 'application/json'},
+      );
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        setState(() {
+          _incidents = data is List ? data : [];
+        });
+      } else {
+        setState(() {
+          _error = 'No se pudieron obtener las incidencias';
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _error = 'Error de conexión';
+      });
+    } finally {
+      setState(() {
+        _loading = false;
+      });
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchIncidents();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Incidencias'),
+        backgroundColor: Colors.amber[800],
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: _loading
+            ? Center(child: CircularProgressIndicator())
+            : _error != null
+                ? Center(child: Text(_error!, style: TextStyle(color: Colors.red)))
+                : _incidents == null
+                    ? SizedBox()
+                    : ListView.builder(
+                        itemCount: _incidents!.length,
+                        itemBuilder: (context, index) {
+                          final item = _incidents![index];
+                          return Card(
+                            elevation: 4,
+                            margin: const EdgeInsets.symmetric(vertical: 10, horizontal: 4),
+                            color: Colors.amber[50],
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(18),
+                              side: BorderSide(
+                                color: Colors.amber[800]!,
+                                width: 1.2,
+                              ),
+                            ),
+                            child: ListTile(
+                              leading: CircleAvatar(
+                                backgroundColor: Colors.amber[800],
+                                child: Icon(Icons.warning_amber_rounded, color: Colors.white),
+                              ),
+                              title: Text(
+                                item['Descripcion'] ?? 'Sin descripción',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.amber[900],
+                                  fontSize: 17,
+                                ),
+                              ),
+                              subtitle: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  if (item['Tipo'] != null)
+                                    Padding(
+                                      padding: const EdgeInsets.only(top: 4.0),
+                                      child: Text(
+                                        'Tipo: ${item['Tipo']}',
+                                        style: TextStyle(color: Colors.grey[800]),
+                                      ),
+                                    ),
+                                  if (item['IDUnidad'] != null)
+                                    Text(
+                                      'Unidad: ${item['IDUnidad']}',
+                                      style: TextStyle(color: Colors.grey[700]),
+                                    ),
+                                  if (item['IDTicket'] != null)
+                                    Text(
+                                      'Ticket: ${item['IDTicket']}',
+                                      style: TextStyle(color: Colors.grey[700]),
+                                    ),
+                                ],
+                              ),
+                              trailing: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(Icons.report, color: Colors.amber[800], size: 22),
+                                  Text(
+                                    '#${item['ID'] ?? '-'}',
+                                    style: TextStyle(
+                                      color: Colors.amber[800],
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              isThreeLine: true,
+                            ),
+                          );
+                        },
+                      ),
       ),
     );
   }

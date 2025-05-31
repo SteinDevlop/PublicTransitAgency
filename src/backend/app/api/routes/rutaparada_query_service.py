@@ -29,6 +29,27 @@ def listar_rutaparada():
             status_code=500,
             content={"detail": "Error interno al listar las relaciones Ruta-Parada."}
         )
+@app.get("/solo_nombres", response_class=JSONResponse)
+def listar_rutaparada_nombres():
+    """
+    Lista solo los nombres de las rutas y paradas.
+    """
+    try:
+        nombres = controller.get_ruta_parada_nombres()
+        if not nombres:
+            logger.warning("[GET /ruta_parada/solo_nombres] No se encontraron registros.")
+            return JSONResponse(
+                status_code=404,
+                content={"detail": "No se encontraron registros."}
+            )
+        logger.info(f"[GET /ruta_parada/solo_nombres] Se listaron {len(nombres)} relaciones Ruta-Parada (solo nombres).")
+        return nombres
+    except Exception as e:
+        logger.error(f"[GET /ruta_parada/solo_nombres] Error: {str(e)}")
+        return JSONResponse(
+            status_code=500,
+            content={"detail": "Error interno al listar los nombres de las relaciones Ruta-Parada."}
+        )
 
 @app.get("/{id_parada}", response_class=JSONResponse)
 def detalle_rutaparada(id_parada: int):
@@ -52,3 +73,4 @@ def detalle_rutaparada(id_parada: int):
             status_code=500,
             content={"detail": "Error interno al obtener el detalle de la relación Ruta-Parada."}
         )
+

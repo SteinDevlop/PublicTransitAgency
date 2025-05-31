@@ -20,7 +20,7 @@ class AdminPanel extends StatelessWidget {
   Future<Map<String, dynamic>> fetchDashboardData() async {
     print('Token enviado: $token');
     final response = await http.get(
-      Uri.parse('${AppConfig.baseUrl}/login/dashboard'),
+      Uri.parse('https://publictransitagency-production.up.railway.app/login/dashboard'),
       headers: {
         'Authorization': 'Bearer $token',
         'accept': 'application/json',
@@ -39,7 +39,7 @@ class AdminPanel extends StatelessWidget {
 
   Future<List<dynamic>> fetchTransportUnits() async {
     final response = await http.get(
-      Uri.parse('${AppConfig.baseUrl}/transport_units/'),
+      Uri.parse('https://publictransitagency-production.up.railway.app/transport_units/'),
       headers: {
         'Authorization': 'Bearer $token',
         'accept': 'application/json',
@@ -54,7 +54,7 @@ class AdminPanel extends StatelessWidget {
 
   Future<bool> createTransportUnit(Map<String, dynamic> data) async {
     final response = await http.post(
-      Uri.parse('${AppConfig.baseUrl}/transport_units/create'),
+      Uri.parse('https://publictransitagency-production.up.railway.app/transport_units/create'),
       headers: {
         'Authorization': 'Bearer $token',
         'accept': 'application/json',
@@ -67,7 +67,7 @@ class AdminPanel extends StatelessWidget {
 
   Future<bool> updateTransportUnit(Map<String, dynamic> data) async {
     final response = await http.post(
-      Uri.parse('${AppConfig.baseUrl}/transport_units/update'),
+      Uri.parse('https://publictransitagency-production.up.railway.app/transport_units/update'),
       headers: {
         'Authorization': 'Bearer $token',
         'accept': 'application/json',
@@ -80,7 +80,7 @@ class AdminPanel extends StatelessWidget {
 
   Future<bool> deleteTransportUnit(String id) async {
     final response = await http.post(
-      Uri.parse('${AppConfig.baseUrl}/transport_units/delete'),
+      Uri.parse('https://publictransitagency-production.up.railway.app/transport_units/delete'),
       headers: {
         'Authorization': 'Bearer $token',
         'accept': 'application/json',
@@ -1186,7 +1186,7 @@ class _AgendarMantenimientoScreenState
     });
     try {
       final response = await http.post(
-        Uri.parse('${AppConfig.baseUrl}/maintainance/create'),
+        Uri.parse('https://publictransitagency-production.up.railway.app/maintainance/create'),
         headers: {
           'Authorization': 'Bearer ${widget.token}',
           'accept': 'application/json',
@@ -1402,7 +1402,7 @@ class _LeerMantenimientosWidgetState extends State<LeerMantenimientosWidget> {
     });
     try {
       final response = await http.get(
-        Uri.parse('${AppConfig.baseUrl}/maintainance/listar'),
+        Uri.parse('https://publictransitagency-production.up.railway.app/maintainance/listar'),
         headers: {
           'Authorization': 'Bearer ${widget.token}',
           'accept': 'application/json'
@@ -1490,7 +1490,7 @@ class _ActualizarMantenimientoWidgetState
     });
     try {
       final response = await http.post(
-        Uri.parse('${AppConfig.baseUrl}/maintainance/update'),
+        Uri.parse('https://publictransitagency-production.up.railway.app/maintainance/update'),
         headers: {
           'Authorization': 'Bearer ${widget.token}',
           'accept': 'application/json',
@@ -1632,7 +1632,7 @@ class _EliminarMantenimientoWidgetState
     });
     try {
       final response = await http.post(
-        Uri.parse('${AppConfig.baseUrl}/maintainance/delete'),
+        Uri.parse('https://publictransitagency-production.up.railway.app/maintainance/delete'),
         headers: {
           'Authorization': 'Bearer ${widget.token}',
           'accept': 'application/json',
@@ -1743,7 +1743,7 @@ class _CrearUnidadWidgetState extends State<CrearUnidadWidget> {
       'IDTipo': _tipoController.text.trim(),
     };
     final response = await http.post(
-      Uri.parse('${AppConfig.baseUrl}/transport_units/create'),
+      Uri.parse('https://publictransitagency-production.up.railway.app/transport_units/create'),
       headers: {
         'Authorization': 'Bearer ${widget.token}',
         'accept': 'application/json',
@@ -1866,7 +1866,7 @@ class _EditarUnidadWidgetState extends State<EditarUnidadWidget> {
       'IDTipo': _tipoController.text.trim(),
     };
     final response = await http.post(
-      Uri.parse('${AppConfig.baseUrl}/transport_units/update'),
+      Uri.parse('https://publictransitagency-production.up.railway.app/transport_units/update'),
       headers: {
         'Authorization': 'Bearer ${widget.token}',
         'accept': 'application/json',
@@ -1988,8 +1988,8 @@ class _HorarioFormWidgetState extends State<_HorarioFormWidget> {
       'Salida': _salidaController.text.trim(),
     };
     final url = widget.mode == HorarioFormMode.create
-        ? '${AppConfig.baseUrl}/schedules/create'
-        : '${AppConfig.baseUrl}/schedules/update';
+        ? 'https://publictransitagency-production.up.railway.app/schedules/create'
+        : 'https://publictransitagency-production.up.railway.app/schedules/update';
     final response = await http.post(
       Uri.parse(url),
       headers: {
@@ -2085,7 +2085,7 @@ class _HorarioListWidget extends StatelessWidget {
 
   Future<List<dynamic>> fetchHorarios() async {
     final response = await http.get(
-      Uri.parse('${AppConfig.baseUrl}/schedules/'),
+      Uri.parse('https://publictransitagency-production.up.railway.app/schedules/'),
       headers: {
         'Authorization': 'Bearer $token',
         'accept': 'application/json',
@@ -2155,7 +2155,7 @@ class _HorarioDeleteWidgetState extends State<_HorarioDeleteWidget> {
       _success = null;
     });
     final response = await http.post(
-      Uri.parse('${AppConfig.baseUrl}/schedules/delete'),
+      Uri.parse('https://publictransitagency-production.up.railway.app/schedules/delete'),
       headers: {
         'Authorization': 'Bearer ${widget.token}',
         'accept': 'application/json',
@@ -2256,8 +2256,8 @@ class _RutaFormWidgetState extends State<_RutaFormWidget> {
       'Nombre': _nombreController.text.trim(),
     };
     final url = widget.mode == RutaFormMode.create
-        ? '${AppConfig.baseUrl}/routes/create'
-        : '${AppConfig.baseUrl}/routes/update';
+        ? 'https://publictransitagency-production.up.railway.app/routes/create'
+        : 'https://publictransitagency-production.up.railway.app/routes/update';
     final response = await http.post(
       Uri.parse(url),
       headers: {
@@ -2354,7 +2354,7 @@ class _RutaListWidget extends StatelessWidget {
 
   Future<List<dynamic>> fetchRutas() async {
     final response = await http.get(
-      Uri.parse('${AppConfig.baseUrl}/routes/'),
+      Uri.parse('https://publictransitagency-production.up.railway.app/routes/'),
       headers: {
         'Authorization': 'Bearer $token',
         'accept': 'application/json',
@@ -2424,7 +2424,7 @@ class _RutaDeleteWidgetState extends State<_RutaDeleteWidget> {
       _success = null;
     });
     final response = await http.post(
-      Uri.parse('${AppConfig.baseUrl}/routes/delete'),
+      Uri.parse('https://publictransitagency-production.up.railway.app/routes/delete'),
       headers: {
         'Authorization': 'Bearer ${widget.token}',
         'accept': 'application/json',
@@ -2572,7 +2572,7 @@ class _CrearAsistenciaScreenState extends State<CrearAsistenciaScreen> {
   Future<void> _fetchNextId() async {
     try {
       final response = await http.get(
-        Uri.parse('${AppConfig.baseUrl}/asistance/asistencias'),
+        Uri.parse('https://publictransitagency-production.up.railway.app/asistance/asistencias'),
         headers: {
           'Authorization': 'Bearer ${widget.token}',
           'accept': 'application/json',
@@ -2605,7 +2605,7 @@ class _CrearAsistenciaScreenState extends State<CrearAsistenciaScreen> {
     });
     try {
       final response = await http.post(
-        Uri.parse('${AppConfig.baseUrl}/asistance/create'),
+        Uri.parse('https://publictransitagency-production.up.railway.app/asistance/create'),
         headers: {
           'Authorization': 'Bearer ${widget.token}',
           'accept': 'application/json',
@@ -2849,7 +2849,7 @@ class _CrearUsuarioScreenState extends State<CrearUsuarioScreen> {
   Future<void> _fetchNextId() async {
     try {
       final response = await http.get(
-        Uri.parse('${AppConfig.baseUrl}/user/users'),
+        Uri.parse('https://publictransitagency-production.up.railway.app/user/users'),
         headers: {
           'Authorization': 'Bearer ${widget.token}',
           'accept': 'application/json',
@@ -2875,7 +2875,7 @@ class _CrearUsuarioScreenState extends State<CrearUsuarioScreen> {
     Future<void> _fetchTurnos() async {
     try {
       final response = await http.get(
-        Uri.parse('${AppConfig.baseUrl}/shifts/turnos'),
+        Uri.parse('https://publictransitagency-production.up.railway.app/shifts/turnos'),
         headers: {
           'Authorization': 'Bearer ${widget.token}',
           'accept': 'application/json',
@@ -2903,7 +2903,7 @@ class _CrearUsuarioScreenState extends State<CrearUsuarioScreen> {
   Future<void> _fetchRoles() async {
     try {
       final response = await http.get(
-        Uri.parse('${AppConfig.baseUrl}/roluser/administrador/rolusers'),
+        Uri.parse('https://publictransitagency-production.up.railway.app/roluser/administrador/rolusers'),
         headers: {
           'Authorization': 'Bearer ${widget.token}',
           'accept': 'application/json',
@@ -2937,7 +2937,7 @@ class _CrearUsuarioScreenState extends State<CrearUsuarioScreen> {
     });
     try {
       final response = await http.post(
-        Uri.parse('${AppConfig.baseUrl}/user/create'),
+        Uri.parse('https://publictransitagency-production.up.railway.app/user/create'),
         headers: {
           'Authorization': 'Bearer ${widget.token}',
           'accept': 'application/json',
@@ -3291,7 +3291,7 @@ class _ActualizarUsuarioScreenState extends State<ActualizarUsuarioScreen> {
   Future<void> _fetchTurnos() async {
     try {
       final response = await http.get(
-        Uri.parse('${AppConfig.baseUrl}/shifts/turnos'),
+        Uri.parse('https://publictransitagency-production.up.railway.app/shifts/turnos'),
         headers: {
           'Authorization': 'Bearer ${widget.token}',
           'accept': 'application/json',
@@ -3316,7 +3316,7 @@ class _ActualizarUsuarioScreenState extends State<ActualizarUsuarioScreen> {
   Future<void> _fetchRoles() async {
     try {
       final response = await http.get(
-        Uri.parse('${AppConfig.baseUrl}/roluser/administrador/rolusers'),
+        Uri.parse('https://publictransitagency-production.up.railway.app/roluser/administrador/rolusers'),
         headers: {
           'Authorization': 'Bearer ${widget.token}',
           'accept': 'application/json',
@@ -3350,13 +3350,13 @@ class _ActualizarUsuarioScreenState extends State<ActualizarUsuarioScreen> {
     });
     try {
       final response = await http.get(
-        Uri.parse('${AppConfig.baseUrl}/user/usuario?id=${_idBusquedaController.text.trim()}'),
+        Uri.parse('https://publictransitagency-production.up.railway.app/user/usuario?id=${_idBusquedaController.text.trim()}'),
         headers: {
           'Authorization': 'Bearer ${widget.token}',
           'accept': 'application/json',
         },
       );
-      print('URL: ${AppConfig.baseUrl}/user/usuario?id=${_idBusquedaController.text.trim()}');
+      print('URL: https://publictransitagency-production.up.railway.app/user/usuario?id=${_idBusquedaController.text.trim()}');
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
         final usuario = UsuarioModel.fromJson(data);
@@ -3401,7 +3401,7 @@ class _ActualizarUsuarioScreenState extends State<ActualizarUsuarioScreen> {
     });
     try {
       final response = await http.post(
-        Uri.parse('${AppConfig.baseUrl}/user/update'),
+        Uri.parse('https://publictransitagency-production.up.railway.app/user/update'),
         headers: {
           'Authorization': 'Bearer ${widget.token}',
           'accept': 'application/json',
@@ -3727,7 +3727,7 @@ class _CrearUsuarioWidgetState extends State<CrearUsuarioWidget> {
   Future<void> _fetchNextId() async {
     try {
       final response = await http.get(
-        Uri.parse('${AppConfig.baseUrl}/user/users'),
+        Uri.parse('https://publictransitagency-production.up.railway.app/user/users'),
         headers: {
           'Authorization': 'Bearer ${widget.token}',
           'accept': 'application/json',
@@ -3754,7 +3754,7 @@ class _CrearUsuarioWidgetState extends State<CrearUsuarioWidget> {
   Future<void> _fetchTurnos() async {
     try {
       final response = await http.get(
-        Uri.parse('${AppConfig.baseUrl}/shifts/turnos'),
+        Uri.parse('https://publictransitagency-production.up.railway.app/shifts/turnos'),
         headers: {
           'Authorization': 'Bearer ${widget.token}',
           'accept': 'application/json',
@@ -3779,7 +3779,7 @@ class _CrearUsuarioWidgetState extends State<CrearUsuarioWidget> {
   Future<void> _fetchRoles() async {
     try {
       final response = await http.get(
-        Uri.parse('${AppConfig.baseUrl}/roluser/administrador/rolusers'),
+        Uri.parse('https://publictransitagency-production.up.railway.app/roluser/administrador/rolusers'),
         headers: {
           'Authorization': 'Bearer ${widget.token}',
           'accept': 'application/json',
@@ -3812,7 +3812,7 @@ class _CrearUsuarioWidgetState extends State<CrearUsuarioWidget> {
     });
     try {
       final response = await http.post(
-        Uri.parse('${AppConfig.baseUrl}/user/create'),
+        Uri.parse('https://publictransitagency-production.up.railway.app/user/create'),
         headers: {
           'Authorization': 'Bearer ${widget.token}',
           'accept': 'application/json',
@@ -4136,7 +4136,7 @@ class _EliminarUsuarioScreenState extends State<EliminarUsuarioScreen> {
 
     try {
       final response = await http.post(
-        Uri.parse('${AppConfig.baseUrl}/user/delete'),
+        Uri.parse('https://publictransitagency-production.up.railway.app/user/delete'),
         headers: {
           'Authorization': 'Bearer ${widget.token}',
           'accept': 'application/json',
@@ -4304,7 +4304,7 @@ class _ConsultarUsuarioScreenState extends State<ConsultarUsuarioScreen> {
 
     try {
       final response = await http.get(
-        Uri.parse('${AppConfig.baseUrl}/user/usuario?id=${_idController.text.trim()}'),
+        Uri.parse('https://publictransitagency-production.up.railway.app/user/usuario?id=${_idController.text.trim()}'),
         headers: {
           'Authorization': 'Bearer ${widget.token}',
           'accept': 'application/json',
@@ -4550,7 +4550,7 @@ class _PQRWidgetState extends State<PQRWidget> {
   Future<void> _fetchNextId() async {
     try {
       final response = await http.get(
-        Uri.parse('${AppConfig.baseUrl}/pqr/administrador/pqrs'),
+        Uri.parse('https://publictransitagency-production.up.railway.app/pqr/administrador/pqrs'),
         headers: {
           'Authorization': 'Bearer ${widget.token}',
           'accept': 'application/json',

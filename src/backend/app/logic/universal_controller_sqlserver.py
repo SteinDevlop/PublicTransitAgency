@@ -476,3 +476,24 @@ ORDER BY
             logger.error(f"Error en update_ruta_parada: {e}")
             return False
 
+    def get_ruta_parada_nombres(self) -> list[dict]:
+        """
+        Devuelve solo el nombre de la ruta y el nombre de la parada para todas las relaciones.
+        """
+        sql = """
+            SELECT r.Nombre AS NombreRuta, p.Nombre AS NombreParada
+            FROM RutaParada rp
+            JOIN Rutas r ON rp.IDRuta = r.ID
+            JOIN Parada p ON rp.IDParada = p.ID
+        """
+        try:
+            self.cursor.execute(sql)
+            rows = self.cursor.fetchall()
+            return [
+                {"NombreRuta": row[0], "NombreParada": row[1]}
+                for row in rows
+            ]
+        except Exception as e:
+            logger.error(f"Error al obtener solo nombres de ruta y parada: {e}")
+            raise RuntimeError("Error al obtener solo nombres de ruta y parada")
+

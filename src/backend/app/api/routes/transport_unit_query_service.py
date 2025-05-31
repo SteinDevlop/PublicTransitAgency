@@ -22,7 +22,7 @@ def listar_unidades_transporte():
             else u
             for u in unidades
         ]
-        return JSONResponse(status_code=200, content={"data": unidades_json})
+        return unidades_json
     except Exception as e:
         logger.error("[GET /transport_units/] Error al listar unidades de transporte: %s", e)
         return JSONResponse(

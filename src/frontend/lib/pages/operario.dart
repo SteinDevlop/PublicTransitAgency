@@ -18,7 +18,7 @@ class _OperarioPanelState extends State<OperarioPanel> {
 
   Future<Map<String, dynamic>> fetchDashboardData() async {
     final response = await http.get(
-      Uri.parse('${AppConfig.baseUrl}/login/dashboard'),
+      Uri.parse('https://publictransitagency-production.up.railway.app/login/dashboard'),
       headers: {
         'Authorization': 'Bearer ${widget.token}',
         'accept': 'application/json',
@@ -33,7 +33,7 @@ class _OperarioPanelState extends State<OperarioPanel> {
 
   Future<List<dynamic>> fetchIncidences() async {
     final response = await http.get(
-      Uri.parse('${AppConfig.baseUrl}/incidences/'),
+      Uri.parse('https://publictransitagency-production.up.railway.app/incidences/'),
       headers: {
         'Authorization': 'Bearer ${widget.token}',
         'accept': 'application/json',

@@ -26,7 +26,7 @@ class _SupervisorDashboardState extends State<SupervisorDashboard> {
   // Microservicios
   Future<List<dynamic>> fetchShifts() async {
     final response = await http.get(
-      Uri.parse('${AppConfig.baseUrl}/shifts/'),
+      Uri.parse('https://publictransitagency-production.up.railway.app/shifts/'),
       headers: {
         'Authorization': 'Bearer ${widget.token}',
         'accept': 'application/json',
@@ -41,7 +41,7 @@ class _SupervisorDashboardState extends State<SupervisorDashboard> {
 
   Future<Map<String, dynamic>> fetchReport() async {
     final response = await http.get(
-      Uri.parse('${AppConfig.baseUrl}/reporte/supervisor'),
+      Uri.parse('https://publictransitagency-production.up.railway.app/reporte/supervisor'),
       headers: {
         'Authorization': 'Bearer ${widget.token}',
         'accept': 'application/json',
@@ -56,7 +56,7 @@ class _SupervisorDashboardState extends State<SupervisorDashboard> {
 
   Future<List<dynamic>> fetchTransportUnits() async {
     final response = await http.get(
-      Uri.parse('${AppConfig.baseUrl}/transport_units/'),
+      Uri.parse('https://publictransitagency-production.up.railway.app/transport_units/'),
       headers: {
         'Authorization': 'Bearer ${widget.token}',
         'accept': 'application/json',
@@ -71,7 +71,7 @@ class _SupervisorDashboardState extends State<SupervisorDashboard> {
 
   Future<List<dynamic>> fetchIncidences() async {
     final response = await http.get(
-      Uri.parse('${AppConfig.baseUrl}/incidences/'),
+      Uri.parse('https://publictransitagency-production.up.railway.app/incidences/'),
       headers: {
         'Authorization': 'Bearer ${widget.token}',
         'accept': 'application/json',
@@ -86,7 +86,7 @@ class _SupervisorDashboardState extends State<SupervisorDashboard> {
 
   Future<Map<String, dynamic>> fetchDashboardData() async {
     final response = await http.get(
-      Uri.parse('${AppConfig.baseUrl}/login/dashboard'),
+      Uri.parse('https://publictransitagency-production.up.railway.app/login/dashboard'),
       headers: {
         'Authorization': 'Bearer ${widget.token}',
         'accept': 'application/json',
@@ -96,6 +96,18 @@ class _SupervisorDashboardState extends State<SupervisorDashboard> {
       return json.decode(response.body);
     } else {
       throw Exception('Error al cargar datos del dashboard');
+    }
+  }
+
+  Future<List<dynamic>> fetchUsers() async {
+    final response = await http.get(
+      Uri.parse('https://publictransitagency-production.up.railway.app/user/all'), // Ajusta el endpoint si es diferente
+      headers: {'accept': 'application/json'},
+    );
+    if (response.statusCode == 200) {
+      return json.decode(response.body);
+    } else {
+      throw Exception('Error al cargar usuarios');
     }
   }
 
@@ -300,43 +312,53 @@ class _SupervisorDashboardState extends State<SupervisorDashboard> {
       case 'shifts':
         return FutureBuilder<List<dynamic>>(
           future: fetchShifts(),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
+          builder: (context, shiftsSnapshot) {
+            if (shiftsSnapshot.connectionState == ConnectionState.waiting) {
               return _loadingWidget('Cargando turnos...');
-            } else if (snapshot.hasError) {
+            } else if (shiftsSnapshot.hasError) {
               return _errorWidget('Error al cargar turnos');
-            } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            } else if (!shiftsSnapshot.hasData || shiftsSnapshot.data!.isEmpty) {
               return _emptyWidget('No hay turnos disponibles.');
             }
-            final shifts = snapshot.data!;
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text('Turnos Asignados',
-                    style:
-                        TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
-                const SizedBox(height: 24),
-                DataTable(
-                  headingRowColor: MaterialStateProperty.all(
-                      SupervisorDashboard.primaryColor.withOpacity(0.1)),
-                  columns: const [
-                    DataColumn(label: Text('ID')),
-                    DataColumn(label: Text('Tipo')),
-                    DataColumn(label: Text('Inicio')),
-                    DataColumn(label: Text('Fin')),
-                  ],
-                  rows: shifts.map((shift) {
-                    return DataRow(
-                      cells: [
-                        DataCell(Text(shift['ID']?.toString() ?? '-')),
-                        DataCell(Text(shift['TipoTurno']?.toString() ?? '-')),
-                        DataCell(Text(shift['HoraInicio']?.toString() ?? '-')),
-                        DataCell(Text(shift['HoraFin']?.toString() ?? '-')),
-                      ],
-                    );
-                  }).toList(),
-                ),
-              ],
+            final shifts = shiftsSnapshot.data!;
+            return FutureBuilder<List<dynamic>>(
+              future: fetchUsers(),
+              builder: (context, usersSnapshot) {
+                if (usersSnapshot.connectionState == ConnectionState.waiting) {
+                  return _loadingWidget('Cargando usuarios...');
+                } else if (usersSnapshot.hasError) {
+                  return _errorWidget('Error al cargar usuarios');
+                } else if (!usersSnapshot.hasData || usersSnapshot.data!.isEmpty) {
+                  return _emptyWidget('No hay usuarios disponibles.');
+                }
+                final usuarios = usersSnapshot.data!;
+                Map<String, dynamic>? selectedUser;
+                return StatefulBuilder(
+                  builder: (context, setState) => Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('Selecciona un usuario para cambiar su turno:',
+                          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                      const SizedBox(height: 12),
+                      DropdownButton<Map<String, dynamic>>(
+                        value: selectedUser,
+                        hint: Text('Selecciona usuario'),
+                        items: usuarios
+                            .map<DropdownMenuItem<Map<String, dynamic>>>(
+                              (u) => DropdownMenuItem<Map<String, dynamic>>(
+                                value: u,
+                                child: Text('${u['Nombre']} ${u['Apellido']}'),
+                              ),
+                            )
+                            .toList(),
+                        onChanged: (val) => setState(() => selectedUser = val),
+                      ),
+                      if (selectedUser != null)
+                        UserShiftUpdateForm(userData: selectedUser!, shifts: shifts),
+                    ],
+                  ),
+                );
+              },
             );
           },
         );
@@ -402,30 +424,33 @@ class _SupervisorDashboardState extends State<SupervisorDashboard> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text('Unidades de Transporte',
-                    style:
-                        TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 24),
-                DataTable(
-                  headingRowColor: MaterialStateProperty.all(
-                      SupervisorDashboard.secondaryColor.withOpacity(0.1)),
-                  columns: const [
-                    DataColumn(label: Text('ID')),
-                    DataColumn(label: Text('Ubicación')),
-                    DataColumn(label: Text('Capacidad')),
-                    DataColumn(label: Text('Ruta')),
-                    DataColumn(label: Text('Tipo')),
-                  ],
-                  rows: units.map((unit) {
-                    return DataRow(
-                      cells: [
-                        DataCell(Text(unit['ID']?.toString() ?? '-')),
-                        DataCell(Text(unit['Ubicacion']?.toString() ?? '-')),
-                        DataCell(Text(unit['Capacidad']?.toString() ?? '-')),
-                        DataCell(Text(unit['IDRuta']?.toString() ?? '-')),
-                        DataCell(Text(unit['IDTipo']?.toString() ?? '-')),
-                      ],
+                ListView.builder(
+                  shrinkWrap: true,
+                  physics: NeverScrollableScrollPhysics(),
+                  itemCount: units.length,
+                  itemBuilder: (context, index) {
+                    final unit = units[index];
+                    return Card(
+                      elevation: 2,
+                      margin: const EdgeInsets.symmetric(vertical: 8),
+                      color: SupervisorDashboard.secondaryColor.withOpacity(0.07),
+                      child: ListTile(
+                        leading: Icon(Icons.directions_bus, color: SupervisorDashboard.secondaryColor, size: 36),
+                        title: Text('Unidad #${unit['ID'] ?? '-'}', style: TextStyle(fontWeight: FontWeight.bold)),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('Ubicación: ${unit['Ubicacion'] ?? '-'}'),
+                            Text('Capacidad: ${unit['Capacidad'] ?? '-'}'),
+                            Text('Ruta: ${unit['IDRuta'] ?? '-'}'),
+                            Text('Tipo: ${unit['IDTipo'] ?? '-'}'),
+                          ],
+                        ),
+                      ),
                     );
-                  }).toList(),
+                  },
                 ),
               ],
             );
@@ -447,30 +472,42 @@ class _SupervisorDashboardState extends State<SupervisorDashboard> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 const Text('Incidencias',
-                    style:
-                        TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
                 const SizedBox(height: 24),
-                DataTable(
-                  headingRowColor: MaterialStateProperty.all(
-                      SupervisorDashboard.warningColor.withOpacity(0.1)),
-                  columns: const [
-                    DataColumn(label: Text('ID')),
-                    DataColumn(label: Text('Ticket')),
-                    DataColumn(label: Text('Descripción')),
-                    DataColumn(label: Text('Tipo')),
-                    DataColumn(label: Text('Unidad')),
-                  ],
-                  rows: incidences.map((inc) {
-                    return DataRow(
-                      cells: [
-                        DataCell(Text(inc['ID']?.toString() ?? '-')),
-                        DataCell(Text(inc['IDTicket']?.toString() ?? '-')),
-                        DataCell(Text(inc['Descripcion']?.toString() ?? '-')),
-                        DataCell(Text(inc['Tipo']?.toString() ?? '-')),
-                        DataCell(Text(inc['IDUnidad']?.toString() ?? '-')),
-                      ],
+                ListView.builder(
+                  shrinkWrap: true,
+                  physics: NeverScrollableScrollPhysics(),
+                  itemCount: incidences.length,
+                  itemBuilder: (context, index) {
+                    final inc = incidences[index];
+                    return Card(
+                      elevation: 3,
+                      margin: const EdgeInsets.symmetric(vertical: 8),
+                      color: SupervisorDashboard.warningColor.withOpacity(0.08),
+                      child: ListTile(
+                        leading: Icon(Icons.warning_amber_rounded, color: SupervisorDashboard.warningColor, size: 36),
+                        title: Text(
+                          inc['Descripcion'] ?? 'Sin descripción',
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('Tipo: ${inc['Tipo'] ?? '-'}'),
+                            Text('Unidad: ${inc['IDUnidad'] ?? '-'}'),
+                            Text('Ticket: ${inc['IDTicket'] ?? '-'}'),
+                          ],
+                        ),
+                        trailing: Text(
+                          '#${inc['ID'] ?? '-'}',
+                          style: TextStyle(
+                            color: SupervisorDashboard.warningColor,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
                     );
-                  }).toList(),
+                  },
                 ),
               ],
             );
@@ -859,5 +896,101 @@ class _SupervisorDashboardState extends State<SupervisorDashboard> {
       'Diciembre'
     ];
     return '${now.day} de ${months[now.month - 1]}, ${now.year}';
+  }
+}
+
+class UserShiftUpdateForm extends StatefulWidget {
+  final Map<String, dynamic> userData;
+  final List<dynamic> shifts;
+
+  const UserShiftUpdateForm({required this.userData, required this.shifts, super.key});
+
+  @override
+  State<UserShiftUpdateForm> createState() => _UserShiftUpdateFormState();
+}
+
+class _UserShiftUpdateFormState extends State<UserShiftUpdateForm> {
+  late int selectedShiftId;
+
+  @override
+  void initState() {
+    super.initState();
+    selectedShiftId = widget.userData['IDTurno'];
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
+      elevation: 3,
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            TextFormField(
+              initialValue: widget.userData['Nombre'],
+              decoration: InputDecoration(labelText: 'Nombre'),
+              readOnly: true,
+            ),
+            TextFormField(
+              initialValue: widget.userData['Apellido'],
+              decoration: InputDecoration(labelText: 'Apellido'),
+              readOnly: true,
+            ),
+            TextFormField(
+              initialValue: widget.userData['Correo'],
+              decoration: InputDecoration(labelText: 'Correo'),
+              readOnly: true,
+            ),
+            DropdownButtonFormField<int>(
+              value: selectedShiftId,
+              decoration: InputDecoration(labelText: 'Turno'),
+              items: widget.shifts
+                  .map<DropdownMenuItem<int>>(
+                    (s) => DropdownMenuItem<int>(
+                      value: s['ID'],
+                      child: Text('${s['TipoTurno']} (${s['HoraInicio']} - ${s['HoraFin']})'),
+                    ),
+                  )
+                  .toList(),
+              onChanged: (val) {
+                setState(() {
+                  selectedShiftId = val!;
+                });
+              },
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () async {
+                final response = await http.post(
+                  Uri.parse('https://publictransitagency-production.up.railway.app/user/update'),
+                  body: {
+                    "ID": widget.userData['ID'].toString(),
+                    "Identificacion": widget.userData['Identificacion'].toString(),
+                    "Nombre": widget.userData['Nombre'],
+                    "Apellido": widget.userData['Apellido'],
+                    "Correo": widget.userData['Correo'],
+                    "Contrasena": widget.userData['Contrasena'],
+                    "IDRolUsuario": widget.userData['IDRolUsuario'].toString(),
+                    "IDTurno": selectedShiftId.toString(),
+                    "IDTarjeta": widget.userData['IDTarjeta'].toString(),
+                  },
+                );
+                if (response.statusCode == 200) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Turno actualizado')),
+                  );
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Error al actualizar turno')),
+                  );
+                }
+              },
+              child: Text('Actualizar Turno'),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }

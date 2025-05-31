@@ -13,7 +13,7 @@ class PassengerPanel extends StatelessWidget {
   Future<Map<String, dynamic>> fetchDashboardData(BuildContext context) async {
     print('Token enviado: $token');
     final response = await http.get(
-      Uri.parse('${AppConfig.baseUrl}/login/dashboard'),
+      Uri.parse('https://publictransitagency-production.up.railway.app/login/dashboard'),
       headers: {
         'Authorization': 'Bearer $token',
         'accept': 'application/json',
@@ -607,7 +607,7 @@ class PassengerPanel extends StatelessWidget {
 
   Future<List<dynamic>> _fetchHorarios(String token) async {
     final response = await http.get(
-      Uri.parse('${AppConfig.baseUrl}/schedules/'),
+      Uri.parse('https://publictransitagency-production.up.railway.app/schedules/'),
       headers: {
         'Authorization': 'Bearer $token',
         'accept': 'application/json',
@@ -655,7 +655,7 @@ class _PlanificadorViajeScreenState extends State<PlanificadorViajeScreen> {
     }
     try {
       final response = await http.post(
-        Uri.parse('${AppConfig.baseUrl}/planificador/ubicaciones'),
+        Uri.parse('https://publictransitagency-production.up.railway.app/planificador/ubicaciones'),
         headers: {
           'Authorization': 'Bearer ${widget.token}',
           'accept': 'application/json',
@@ -908,7 +908,7 @@ class _PagoWidgetState extends State<PagoWidget> {
     try {
       debugPrint('[PagoWidget] Solicitando precios...');
       final pricesResp = await http.get(
-        Uri.parse('${AppConfig.baseUrl}/price/pasajero/prices'),
+        Uri.parse('https://publictransitagency-production.up.railway.app/price/pasajero/prices'),
         headers: {
           'Authorization': 'Bearer ${widget.token}',
           'accept': 'application/json'
@@ -918,7 +918,7 @@ class _PagoWidgetState extends State<PagoWidget> {
           '[PagoWidget] Respuesta precios: statusCode=${pricesResp.statusCode}');
       debugPrint('[PagoWidget] Solicitando tipos de transporte...');
       final transportsResp = await http.get(
-        Uri.parse('${AppConfig.baseUrl}/typetransport/typetransports'),
+        Uri.parse('https://publictransitagency-production.up.railway.app/typetransport/typetransports'),
         headers: {
           'Authorization': 'Bearer ${widget.token}',
           'accept': 'application/json'
@@ -1029,7 +1029,7 @@ class _PagoWidgetState extends State<PagoWidget> {
     });
     try {
       final resp = await http.get(
-        Uri.parse('${AppConfig.baseUrl}/transport_units/'),
+        Uri.parse('https://publictransitagency-production.up.railway.app/transport_units/'),
         headers: {
           'Authorization': 'Bearer ${widget.token}',
           'accept': 'application/json'
@@ -1093,7 +1093,7 @@ class _PagoWidgetState extends State<PagoWidget> {
     try {
       // 1. POST /movement/create
       final movResp = await http.post(
-        Uri.parse('${AppConfig.baseUrl}/movement/create'),
+        Uri.parse('https://publictransitagency-production.up.railway.app/movement/create'),
         headers: {
           'Authorization': 'Bearer ${widget.token}',
           'accept': 'application/json',
@@ -1124,7 +1124,7 @@ class _PagoWidgetState extends State<PagoWidget> {
       debugPrint(
           '[PagoWidget] Body para /payments/create: ' + payBody.toString());
       final payResp = await http.post(
-        Uri.parse('${AppConfig.baseUrl}/payments/create'),
+        Uri.parse('https://publictransitagency-production.up.railway.app/payments/create'),
         headers: {
           'Authorization': 'Bearer ${widget.token}',
           'accept': 'application/json',
@@ -1141,7 +1141,7 @@ class _PagoWidgetState extends State<PagoWidget> {
       }
       // 3. GET /payments/{IDPago}
       final detResp = await http.get(
-        Uri.parse('${AppConfig.baseUrl}/payments/$idPago'),
+        Uri.parse('https://publictransitagency-production.up.railway.app/payments/$idPago'),
         headers: {
           'Authorization': 'Bearer ${widget.token}',
           'accept': 'application/json'
@@ -1385,7 +1385,7 @@ class _RecargaWidgetState extends State<RecargaWidget> {
     try {
       // 2. Obtener nuevo ID de movimiento
       final movIdResp = await http.get(
-        Uri.parse('${AppConfig.baseUrl}/movement/administrador/crear'),
+        Uri.parse('https://publictransitagency-production.up.railway.app/movement/administrador/crear'),
         headers: {
           'Authorization': 'Bearer ${widget.token}',
           'accept': 'application/json'
@@ -1403,7 +1403,7 @@ class _RecargaWidgetState extends State<RecargaWidget> {
       nuevoId = json.decode(movIdResp.body)['nuevo_id'].toString();
       // 3. POST /movement/create
       final movResp = await http.post(
-        Uri.parse('${AppConfig.baseUrl}/movement/create'),
+        Uri.parse('https://publictransitagency-production.up.railway.app/movement/create'),
         headers: {
           'Authorization': 'Bearer ${widget.token}',
           'accept': 'application/json',
@@ -1439,7 +1439,7 @@ class _RecargaWidgetState extends State<RecargaWidget> {
       debugPrint(
           '[RecargaWidget] Body para /payments/create: ' + payBody.toString());
       final payResp = await http.post(
-        Uri.parse('${AppConfig.baseUrl}/payments/create'),
+        Uri.parse('https://publictransitagency-production.up.railway.app/payments/create'),
         headers: {
           'Authorization': 'Bearer ${widget.token}',
           'accept': 'application/json',
@@ -1458,7 +1458,7 @@ class _RecargaWidgetState extends State<RecargaWidget> {
       }
       // 5. GET /payments/{IDPago}
       final detResp = await http.get(
-        Uri.parse('${AppConfig.baseUrl}/payments/$idPago'),
+        Uri.parse('https://publictransitagency-production.up.railway.app/payments/$idPago'),
         headers: {
           'Authorization': 'Bearer ${widget.token}',
           'accept': 'application/json'
