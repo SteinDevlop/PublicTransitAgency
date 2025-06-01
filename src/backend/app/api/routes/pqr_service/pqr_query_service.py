@@ -49,7 +49,7 @@ def get_pqrs_admin(
     """
     pqrs = controller.read_all(PQROut)
     logger.info(f"[GET /administrador/pqrs] Número de PQRs encontrados: {len(pqrs) if pqrs else 0}")
-    return JSONResponse(content={"pqrs": pqrs or []})
+    return JSONResponse(content={"pqrs": pqrs or [], "cantidad":len(pqrs)})
 
 @router.get("/find", response_class=JSONResponse)
 def pqr_by_id(

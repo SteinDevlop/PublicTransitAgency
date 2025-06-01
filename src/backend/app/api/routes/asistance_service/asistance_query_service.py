@@ -61,7 +61,7 @@ def get_asistencias(
     #logger.info(f"[GET /asistencias] Usuario: {current_user['user_id']} - Consultando todas las asistencias.")
     asistencias = controller.read_all(AsistanceOut)
     logger.info(f"[GET /asistencias] Número de asistencias encontradas: {len(asistencias)}")
-    return JSONResponse(content={"asistencias": asistencias or []})
+    return JSONResponse(content={"asistencias": asistencias or [], 'count':len(asistencias)})
 
 @router.get("/find", response_class=JSONResponse)
 def asistencia_by_id(

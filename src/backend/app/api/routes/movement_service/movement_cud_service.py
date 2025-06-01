@@ -62,6 +62,7 @@ async def create_movement(
     ID: int = Form(...),
     IDTipoMovimiento: int = Form(...),
     Monto: float = Form(...),
+    IDTarjeta: int = Form(...),
     current_movement: dict = Security(get_current_user, scopes=["system", "administrador"])
 ):
     """
@@ -73,7 +74,7 @@ async def create_movement(
             logger.warning(f"[POST /create] Error de validación: El movimiento ya existe con identificación {ID}")
             raise HTTPException(400, detail="El movimiento ya existe con la misma identificación.")
 
-        new_movement = MovementCreate(ID=ID, IDTipoMovimiento=IDTipoMovimiento, Monto=Monto)
+        new_movement = MovementCreate(ID=ID, IDTipoMovimiento=IDTipoMovimiento, Monto=Monto, IDTarjeta= IDTarjeta)
         controller.add(new_movement)
         logger.info(f"[POST /create] Movimiento creado exitosamente con identificación {ID}")
         return JSONResponse(
@@ -81,7 +82,7 @@ async def create_movement(
             content={
                 "operation": "create",
                 "success": True,
-                "data": MovementOut(ID=new_movement.ID, IDTipoMovimiento=new_movement.IDTipoMovimiento, Monto=new_movement.Monto).model_dump(),
+                "data": MovementOut(ID=new_movement.ID, IDTipoMovimiento=new_movement.IDTipoMovimiento, Monto=new_movement.Monto, IDTarjeta=new_movement.IDTarjeta).model_dump(),
                 "message": "Movement created successfully."
             }
         )
@@ -97,6 +98,7 @@ async def update_movement(
     ID: int = Form(...),
     IDTipoMovimiento: int = Form(...),
     Monto: float = Form(...),
+    IDTarjeta: int =Form(...),
     current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
 ):
     """
@@ -108,7 +110,7 @@ async def update_movement(
             logger.warning(f"[POST /update] Movimiento no encontrada: id={ID}")
             raise HTTPException(404, detail="Movement not found")
 
-        updated_movement = MovementOut(ID=ID, IDTipoMovimiento=IDTipoMovimiento, Monto=Monto)
+        updated_movement = MovementOut(ID=ID, IDTipoMovimiento=IDTipoMovimiento, Monto=Monto, IDTarjeta = IDTarjeta)
         controller.update(updated_movement)
         logger.info(f"[POST /update] Movimiento actualizada exitosamente: {updated_movement}")
         return JSONResponse(
