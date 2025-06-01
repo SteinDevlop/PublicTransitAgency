@@ -7018,41 +7018,152 @@ class BehaviorCard extends StatelessWidget {
       elevation: 2,
       margin: const EdgeInsets.symmetric(vertical: 4),
       child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Form(
-          key: _formKey,
-          child: SingleChildScrollView( // <--- El cambio importante aquí!
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
               children: [
-                Row(
-                  children: [
-                    if (widget.onBack != null)
-                      IconButton(
-                        icon: const Icon(Icons.arrow_back),
-                        tooltip: 'Regresar',
-                        onPressed: widget.onBack,
-                      ),
-                    Expanded(
-                      child: Text(
-                        'Gestión de PQR',
-                        style: Theme.of(context).textTheme.headlineLarge,
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                  ],
+                Text(
+                  'ID: ${behavior.id ?? 'N/A'}',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.grey,
+                  ),
                 ),
-                const SizedBox(height: 20),
-                _buildOperationSelector(),
-                const SizedBox(height: 16),
-                _buildFormFields(),
-                const SizedBox(height: 20),
-                _buildSubmitButton(),
-                const SizedBox(height: 16),
-                _buildMessages(),
+                const Spacer(),
+                Text(
+                  behavior.fecha ?? 'Sin fecha',
+                  style: TextStyle(color: Colors.grey[700]),
+                ),
               ],
             ),
-          ),
+            const SizedBox(height: 8),
+            Text('Usuario: ${behavior.iduser ?? 'N/A'}'),
+            Text('Cantidad de rutas: ${behavior.cantidadrutas ?? 'N/A'}'),
+            Text('Horas trabajadas: ${behavior.horastrabajadas ?? 'N/A'}'),
+            Text('Observaciones: ${behavior.observaciones ?? 'N/A'}'),
+          ],
+        ),
+      ),
+    );
+  }
+}
+// Widget para asignar ruta a una unidad (solo permite modificar IDRuta)
+class AsignarRutaUnidadWidget extends StatefulWidget {
+  final String token;
+  final Map<String, dynamic> unidad;
+  final VoidCallback onUpdated;
+  const AsignarRutaUnidadWidget({required this.token, required this.unidad, required this.onUpdated, Key? key}) : super(key: key);
+
+  @override
+  State<AsignarRutaUnidadWidget> createState() => _AsignarRutaUnidadWidgetState();
+}
+
+class _AsignarRutaUnidadWidgetState extends State<AsignarRutaUnidadWidget> {
+  final _formKey = GlobalKey<FormState>();
+  late TextEditingController _idController;
+  late TextEditingController _ubicacionController;
+  late TextEditingController _capacidadController;
+  late TextEditingController _rutaController;
+  late TextEditingController _tipoController;
+  bool _loading = false;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _idController = TextEditingController(text: widget.unidad['ID']?.toString() ?? '');
+    _ubicacionController = TextEditingController(text: widget.unidad['Ubicacion']?.toString() ?? '');
+    _capacidadController = TextEditingController(text: widget.unidad['Capacidad']?.toString() ?? '');
+    _rutaController = TextEditingController(text: widget.unidad['IDRuta']?.toString() ?? '');
+    _tipoController = TextEditingController(text: widget.unidad['IDTipo']?.toString() ?? '');
+  }
+
+  Future<void> _submit() async {
+    if (!_formKey.currentState!.validate()) return;
+    setState(() => _loading = true);
+    final data = {
+      'ID': _idController.text.trim(),
+      'Ubicacion': _ubicacionController.text.trim(),
+      'Capacidad': _capacidadController.text.trim(),
+      'IDRuta': _rutaController.text.trim(), // Solo este puede cambiar
+      'IDTipo': _tipoController.text.trim(),
+    };
+    final response = await http.post(
+      Uri.parse('${AppConfig.baseUrl}/transport_units/update'),
+      headers: {
+        'Authorization': 'Bearer ${widget.token}',
+        'accept': 'application/json',
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: data,
+    );
+    setState(() => _loading = false);
+    if (response.statusCode == 200) {
+      widget.onUpdated();
+      Navigator.pop(context);
+    } else {
+      setState(() => _error = 'No se pudo asignar la ruta.');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(24),
+      child: Form(
+        key: _formKey,
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text('Asignar Ruta a Unidad', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: _idController,
+              decoration: InputDecoration(labelText: 'ID'),
+              enabled: false,
+            ),
+            const SizedBox(height: 8),
+            TextFormField(
+              controller: _ubicacionController,
+              decoration: InputDecoration(labelText: 'Ubicación'),
+              enabled: false,
+            ),
+            const SizedBox(height: 8),
+            TextFormField(
+              controller: _capacidadController,
+              decoration: InputDecoration(labelText: 'Capacidad'),
+              enabled: false,
+            ),
+            const SizedBox(height: 8),
+            TextFormField(
+              controller: _rutaController,
+              decoration: InputDecoration(labelText: 'ID Ruta'),
+              keyboardType: TextInputType.number,
+              validator: (v) => v == null || v.isEmpty ? 'Ingrese el ID de ruta' : null,
+            ),
+            const SizedBox(height: 8),
+            TextFormField(
+              controller: _tipoController,
+              decoration: InputDecoration(labelText: 'ID Tipo'),
+              enabled: false,
+            ),
+            const SizedBox(height: 16),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: _loading ? null : _submit,
+                child: _loading
+                    ? SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                    : Text('Asignar Ruta'),
+              ),
+            ),
+            if (_error != null) ...[
+              const SizedBox(height: 8),
+              Text(_error!, style: TextStyle(color: Colors.red)),
+            ],
+          ],
         ),
       ),
     );
