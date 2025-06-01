@@ -7,8 +7,7 @@ def sample_movement_data():
     return {
         "ID": 1,
         "IDTipoMovimiento": 1,
-        "Monto": 2000.75,
-        "IDTarjeta":42
+        "Monto": 2000.75
     }
 
 def test_movement_create_initialization(sample_movement_data):
@@ -33,8 +32,7 @@ def test_movement_get_fields():
     expected_fields = {
         "ID": "INTEGER PRIMARY KEY",
         "IDTipoMovimiento": "INTEGER",
-        "Monto": "FLOAT",
-        "IDTarjeta":"INTEGER"
+        "Monto": "FLOAT"
     }
     assert MovementCreate.get_fields() == expected_fields
 
@@ -47,10 +45,9 @@ def test_movement_out_initialization(sample_movement_data):
 
 def test_movement_out_from_dict():
     """Verifica que from_dict inicializa correctamente un objeto MovementOut."""
-    data = {"ID": 2, "IDTipoMovimiento": 2, "Monto": 3500.50, "IDTarjeta":42}
+    data = {"ID": 2, "IDTipoMovimiento": 2, "Monto": 3500.50}
     movement_out = MovementOut.from_dict(data)
     assert isinstance(movement_out, MovementOut)
     assert movement_out.ID == 2
     assert movement_out.IDTipoMovimiento == 2
     assert movement_out.Monto == 3500.50
-    assert movement_out.IDTarjeta == 42

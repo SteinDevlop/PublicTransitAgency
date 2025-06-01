@@ -5,7 +5,6 @@ class MovementCreate(BaseModel):
     ID: int
     IDTipoMovimiento: int
     Monto: float
-    IDTarjeta: int
 
     def to_dict(self):
         return self.model_dump()
@@ -15,8 +14,7 @@ class MovementCreate(BaseModel):
         return {
             "ID": "INTEGER PRIMARY KEY",
             "IDTipoMovimiento": "INTEGER",
-            "Monto": "FLOAT",
-            "IDTarjeta":"INTEGER"
+            "Monto": "FLOAT"
         }
 
 class MovementOut(MovementCreate):
