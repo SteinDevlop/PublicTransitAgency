@@ -893,11 +893,67 @@ class _PagoWidgetState extends State<PagoWidget> {
   Map<String, dynamic>? _detallePago;
   List<Map<String, dynamic>> _transportOptions = [];
   List<Map<String, dynamic>> _unidadesOptions = [];
+  double saldoActual = 0.0;
 
   @override
   void initState() {
     super.initState();
+    _initSaldo();
     _fetchTransportOptions();
+  }
+
+  Future<void> _initSaldo() async {
+    saldoActual = await _obtenerSaldoDashboard(widget.token);
+    if (mounted) setState(() {});
+  }
+
+  Future<double> _obtenerSaldoDashboard(String token) async {
+    final url = '${AppConfig.baseUrl}/login/dashboard';
+    print('DEBUG: URL solicitada = $url');
+    print('DEBUG: Token enviado: $token');
+
+    try {
+      final response = await http.get(
+        Uri.parse(url),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'accept': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final rawBody = response.body.replaceAll('None', 'null');
+        print('DEBUG: rawBody modificado = $rawBody');
+
+        final data = json.decode(rawBody);
+        print('DEBUG: data = $data');
+
+        if (data.containsKey('Saldo') && data['Saldo'] != null) {
+          final saldo = data['Saldo'];
+
+          final saldoConvertido = (saldo is int)
+              ? saldo.toDouble()
+              : (saldo is double)
+                  ? saldo
+                  : (saldo is String)
+                      ? double.tryParse(saldo) ?? 0.0
+                      : 0.0;
+
+          print('DEBUG: Saldo retornado = $saldoConvertido');
+          return saldoConvertido;
+        } else {
+          print('DEBUG: El campo "Saldo" es null o no existe en el dashboard');
+          throw Exception('Campo "Saldo" no válido en dashboard');
+        }
+      } else {
+        print(
+            'Error en la respuesta: ${response.statusCode} - ${response.body}');
+        throw Exception('Error al consultar dashboard');
+      }
+    } catch (e) {
+      print('ERROR: al obtener el saldo del dashboard: $e');
+      throw Exception('Error de conexión o datos');
+    }
   }
 
   Future<void> _fetchTransportOptions() async {
@@ -1049,8 +1105,12 @@ class _PagoWidgetState extends State<PagoWidget> {
             idTipoInt = int.tryParse(idTipo);
           }
           // Excluir IDTipo == 0 (None) y también excluir si el nombre es 'None'
-          final nombre = (u['Nombre'] ?? u['Ubicacion'] ?? '').toString().toLowerCase();
-          return idTipoInt != null && idTipoInt != 0 && nombre != 'none' && idTipoInt == tipoId;
+          final nombre =
+              (u['Nombre'] ?? u['Ubicacion'] ?? '').toString().toLowerCase();
+          return idTipoInt != null &&
+              idTipoInt != 0 &&
+              nombre != 'none' &&
+              idTipoInt == tipoId;
         }).toList();
         debugPrint(
             '[PagoWidget] Unidades filtradas para tipo $tipoId: ${filtradas.length}');
@@ -1086,6 +1146,17 @@ class _PagoWidgetState extends State<PagoWidget> {
     if (!_formKey.currentState!.validate() ||
         _selectedTransportId == null ||
         _selectedUnidadId == null) return;
+    // saldoActual ya está inicializado en initState y se puede usar aquí
+    debugPrint('[PagoWidget] Saldo detectado: $saldoActual');
+    final montoPago = _selectedMonto ?? 0.0;
+    if (saldoActual - montoPago < 0) {
+      debugPrint(
+          '[PagoError] Es insuficiente debido a que saldo - monto es: $saldoActual - $montoPago');
+      setState(() {
+        _error = 'Saldo insuficiente para realizar el pago.';
+      });
+      return;
+    }
     setState(() {
       _loading = true;
       _error = null;
@@ -1345,7 +1416,15 @@ class _PagoWidgetState extends State<PagoWidget> {
         SizedBox(
           width: double.infinity,
           child: ElevatedButton(
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: () {
+              Navigator.of(context).pop();
+              // Recarga la página para actualizar el dashboard
+              Navigator.of(context).pushReplacement(
+                MaterialPageRoute(
+                  builder: (context) => PassengerPanel(token: widget.token),
+                ),
+              );
+            },
             child: const Text('Cerrar'),
             style: ElevatedButton.styleFrom(backgroundColor: secondaryColor),
           ),
@@ -1660,7 +1739,15 @@ class _RecargaWidgetState extends State<RecargaWidget> {
         SizedBox(
           width: double.infinity,
           child: ElevatedButton(
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: () {
+              Navigator.of(context).pop();
+              // Recarga la página para actualizar el dashboard
+              Navigator.of(context).pushReplacement(
+                MaterialPageRoute(
+                  builder: (context) => PassengerPanel(token: widget.token),
+                ),
+              );
+            },
             child: const Text('Cerrar'),
             style: ElevatedButton.styleFrom(backgroundColor: secondaryColor),
           ),
