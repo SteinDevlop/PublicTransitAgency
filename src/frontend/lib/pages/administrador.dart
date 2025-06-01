@@ -375,7 +375,7 @@ _buildMenuItem(
                                 context,
                                 MaterialPageRoute(
                                   builder: (_) =>
-                                      PQRWidget(
+                                      PqrCrudWidget(
                                         token: token,
                                         onBack: () => Navigator.of(context).pop(),
                                         onSuccess: () => Navigator.pop(context)),
@@ -387,17 +387,32 @@ _buildMenuItem(
                             icon: Icons.bar_chart_outlined,
                             title: 'Gestión de Rendimiento',
                             color: primaryColor,
+                            onTap: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) =>
+                                      BehaviorCrudWidget(
+                                        token: token,
+                                        onBack: () => Navigator.of(context).pop(),
+                                        onSuccess: () => Navigator.pop(context)),
+                                ),
+                              );
+                            },
                           ),
                           _buildMenuItem(
                             icon: Icons.assignment_turned_in_outlined,
-                            title: 'Registrar Asistencia',
+                            title: 'Gestión de Asistencia',
                             color: primaryColor,
                             onTap: () {
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
                                   builder: (_) =>
-                                      CrearAsistenciaScreen(token: token),
+                                      AsistanceCrudWidget(
+                                        token: token,
+                                        onBack: () => Navigator.of(context).pop(),
+                                        onSuccess: () => Navigator.pop(context)),
                                 ),
                               );
                             },
@@ -4520,191 +4535,388 @@ class _ConsultarUsuarioScreenState extends State<ConsultarUsuarioScreen> {
 }
 ///
 ///
-enum PQROperation { create, update, delete }
-enum PQRType { peticion, queja, reclamo, sugerencia }
+///PQR CRUD SERVICE
+// MODELO
+class PqrModel {
+  final String? id;
+  final String? iduser;
+  final String? tipo;
+  final String? descripcion;
+  final String? estado;
+  final String? fecha;
 
-class PQRWidget extends StatefulWidget {
+  PqrModel({
+    this.id,
+    this.iduser,
+    this.tipo,
+    this.descripcion,
+    this.estado,
+    this.fecha,
+  });
+
+  factory PqrModel.fromJson(Map<String, dynamic> json) {
+    return PqrModel(
+      id: json['ID']?.toString(),
+      iduser: json['iduser']?.toString(),
+      tipo: json['tipo'],
+      descripcion: json['descripcion'],
+      estado: json['estado'],
+      fecha: json['fecha'],
+    );
+  }
+
+  Map<String, String> toFormData() {
+    return {
+      if (id != null) 'ID': id!,
+      if (iduser != null) 'iduser': iduser!,
+      if (tipo != null) 'tipo': tipo!,
+      if (descripcion != null) 'descripcion': descripcion!,
+      if (estado != null) 'estado': estado!,
+      if (fecha != null) 'fecha': fecha!,
+    };
+  }
+}
+
+// SERVICIO API
+class PqrApiService {
+  final String token;
+  static const String _defaultBaseUrl = AppConfig.baseUrl;
+
+  PqrApiService({required this.token});
+  String get baseUrl => _defaultBaseUrl;
+
+  Map<String, String> get _headers => {
+    'Authorization': 'Bearer $token',
+    'accept': 'application/json',
+  };
+
+  Map<String, String> get _formHeaders => {
+    ..._headers,
+    'Content-Type': 'application/x-www-form-urlencoded',
+  };
+
+  Future<ApiResponse<int>> getNextId() async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/pqr/pqrs'),
+        headers: _headers,
+      );
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final pqrs = (data['pqrs'] as List?) ?? [];
+        int nextId = 1;
+        if (pqrs.isNotEmpty) {
+          final ids = pqrs.map((e) => int.tryParse(e['ID'].toString()) ?? 0).toList();
+          nextId = (ids.isNotEmpty ? (ids.reduce((a, b) => a > b ? a : b)) : 0) + 1;
+        }
+        return ApiResponse.success(nextId);
+      } else {
+        return ApiResponse.error('No se pudo obtener el siguiente ID');
+      }
+    } catch (e) {
+      return ApiResponse.error('Error de conexión al consultar el ID');
+    }
+  }
+
+  Future<ApiResponse<String>> createPqr(PqrModel pqr) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/pqr/create'),
+        headers: _formHeaders,
+        body: pqr.toFormData(),
+      );
+      if (response.statusCode == 201 || response.statusCode == 200) {
+        return ApiResponse.success('PQR creada exitosamente');
+      } else {
+        return ApiResponse.error('No se pudo crear la PQR: ${response.body}');
+      }
+    } catch (e) {
+      return ApiResponse.error('Error de conexión al crear PQR');
+    }
+  }
+
+  Future<ApiResponse<String>> updatePqr(PqrModel pqr) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/pqr/update'),
+        headers: _formHeaders,
+        body: pqr.toFormData(),
+      );
+      if (response.statusCode == 200) {
+        return ApiResponse.success('PQR actualizada exitosamente');
+      } else {
+        return ApiResponse.error('No se pudo actualizar la PQR: ${response.body}');
+      }
+    } catch (e) {
+      return ApiResponse.error('Error de conexión al actualizar PQR');
+    }
+  }
+
+  Future<ApiResponse<String>> deletePqr(String id) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/pqr/delete'),
+        headers: _formHeaders,
+        body: {'ID': id},
+      );
+      if (response.statusCode == 200) {
+        return ApiResponse.success('PQR eliminada exitosamente');
+      } else {
+        return ApiResponse.error('No se pudo eliminar la PQR: ${response.body}');
+      }
+    } catch (e) {
+      return ApiResponse.error('Error de conexión al eliminar PQR');
+    }
+  }
+
+  Future<ApiResponse<List<PqrModel>>> getAllPqrs() async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/pqr/pqrs'),
+        headers: _headers,
+      );
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final pqrs = (data['pqrs'] as List?)
+            ?.map((json) => PqrModel.fromJson(json))
+            .toList() ?? [];
+        return ApiResponse.success(pqrs);
+      } else {
+        return ApiResponse.error('Error al cargar PQRs: ${response.body}');
+      }
+    } catch (e) {
+      return ApiResponse.error('Error de conexión al cargar PQRs');
+    }
+  }
+
+  Future<ApiResponse<List<PqrModel>>> getPqrsByUser(String iduser) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/pqr/byuser?iduser=$iduser'),
+        headers: _headers,
+      );
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final pqrs = (data['pqrs'] as List?)
+            ?.map((json) => PqrModel.fromJson(json))
+            .toList() ?? [];
+        return ApiResponse.success(pqrs);
+      } else {
+        return ApiResponse.error('No se encontraron PQRs para ese usuario');
+      }
+    } catch (e) {
+      return ApiResponse.error('Error de conexión al buscar PQRs del usuario');
+    }
+  }
+}
+
+// RESPUESTA API
+class ApiResponse<T> {
+  final T? data;
+  final String? error;
+  final bool isSuccess;
+
+  ApiResponse._({this.data, this.error, required this.isSuccess});
+
+  factory ApiResponse.success(T data) {
+    return ApiResponse._(data: data, isSuccess: true);
+  }
+
+  factory ApiResponse.error(String error) {
+    return ApiResponse._(error: error, isSuccess: false);
+  }
+}
+
+// CONTROLADOR DE FORMULARIO
+class PqrFormController {
+  final GlobalKey<FormState> formKey = GlobalKey<FormState>();
+  final TextEditingController idController = TextEditingController();
+  final TextEditingController iduserController = TextEditingController();
+  final TextEditingController tipoController = TextEditingController();
+  final TextEditingController descripcionController = TextEditingController();
+  final TextEditingController estadoController = TextEditingController();
+  final TextEditingController fechaController = TextEditingController();
+
+  void clear() {
+    idController.clear();
+    iduserController.clear();
+    tipoController.clear();
+    descripcionController.clear();
+    estadoController.clear();
+    fechaController.clear();
+  }
+
+  void dispose() {
+    idController.dispose();
+    iduserController.dispose();
+    tipoController.dispose();
+    descripcionController.dispose();
+    estadoController.dispose();
+    fechaController.dispose();
+  }
+}
+
+enum MessageType { success, error }
+
+// WIDGET PRINCIPAL
+class PqrCrudWidget extends StatefulWidget {
   final String token;
   final VoidCallback? onSuccess;
   final VoidCallback? onBack;
-  final String? baseUrl;
 
-  const PQRWidget({
+  const PqrCrudWidget({
     Key? key,
     required this.token,
     this.onSuccess,
     this.onBack,
-    this.baseUrl,
   }) : super(key: key);
 
   @override
-  _PQRWidgetState createState() => _PQRWidgetState();
+  State<PqrCrudWidget> createState() => _PqrCrudWidgetState();
 }
 
-class _PQRWidgetState extends State<PQRWidget> {
-  final _formKey = GlobalKey<FormState>();
-  final _idController = TextEditingController();
-  final _descriptionController = TextEditingController();
-  final _identificationController = TextEditingController();
-  final _fechaController = TextEditingController();
+class _PqrCrudWidgetState extends State<PqrCrudWidget>
+    with TickerProviderStateMixin, AutomaticKeepAliveClientMixin {
+  late TabController _tabController;
+  late PqrApiService _apiService;
+  bool _isLoading = false;
+  String? _message;
+  MessageType? _messageType;
 
-  PQROperation _operation = PQROperation.create;
-  PQRType? _selectedType;
-  bool _loading = false;
-  String? _response;
-  String? _error;
-  
+  List<PqrModel> _allPqrs = [];
+  List<PqrModel> _userPqrs = [];
+
+  final Map<String, PqrFormController> _formControllers = {};
+
+  @override
+  bool get wantKeepAlive => true;
 
   @override
   void initState() {
     super.initState();
-    _fechaController.text = DateTime.now().toString().split(' ')[0];
-    _fetchNextId();
+    _tabController = TabController(length: 5, vsync: this);
+    _apiService = PqrApiService(token: widget.token);
+    _formControllers['create'] = PqrFormController();
+    _formControllers['update'] = PqrFormController();
+    _formControllers['delete'] = PqrFormController();
+    _formControllers['findByUser'] = PqrFormController();
+    _initializeData();
   }
 
-  @override
-  void dispose() {
-    _idController.dispose();
-    _descriptionController.dispose();
-    _identificationController.dispose();
-    _fechaController.dispose();
-    super.dispose();
+  Future<void> _initializeData() async {
+    await Future.wait([
+      _loadNextId(),
+      _loadAllPqrs(),
+    ]);
   }
 
-  void _clearMessages() {
-    setState(() {
-      _response = null;
-      _error = null;
-    });
+  Future<void> _loadNextId() async {
+    final response = await _apiService.getNextId();
+    if (response.isSuccess && response.data != null) {
+      _formControllers['create']?.idController.text = response.data.toString();
+    }
   }
 
-  void _showSnackBar(String message, {bool isError = false}) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: isError ? Colors.red : Colors.green,
-        behavior: SnackBarBehavior.floating,
-        action: SnackBarAction(
-          label: 'OK',
-          textColor: Colors.white,
-          onPressed: () {},
-        ),
-      ),
+  Future<void> _createPqr() async {
+    final controller = _formControllers['create']!;
+    if (!controller.formKey.currentState!.validate()) return;
+    setState(() => _isLoading = true);
+    final pqr = PqrModel(
+      id: controller.idController.text.trim(),
+      iduser: controller.iduserController.text.trim(),
+      tipo: controller.tipoController.text.trim(),
+      descripcion: controller.descripcionController.text.trim(),
+      estado: controller.estadoController.text.trim(),
+      fecha: controller.fechaController.text.trim(),
     );
-  }
-
-  String _getOperationEndpoint() {
-    switch (_operation) {
-      case PQROperation.create:
-        return '/pqr/create';
-      case PQROperation.update:
-        return '/pqr/update';
-      case PQROperation.delete:
-        return '/pqr/delete';
+    final response = await _apiService.createPqr(pqr);
+    setState(() => _isLoading = false);
+    if (response.isSuccess) {
+      controller.clear();
+      await Future.wait([_loadNextId(), _loadAllPqrs()]);
+      widget.onSuccess?.call();
     }
   }
 
-  Map<String, dynamic> _buildRequestBody() {
-    final body = <String, dynamic>{
-      'ID': _idController.text,
-    };
-
-    if (_operation != PQROperation.delete) {
-      body.addAll({
-        'type': _selectedType?.name ?? '',
-        'description': _descriptionController.text,
-        'fecha': _fechaController.text,
-        'identificationuser': _identificationController.text,
-      });
-    }
-
-    return body;
-  }
-  Future<void> _fetchNextId() async {
-    try {
-      final response = await http.get(
-        Uri.parse('${AppConfig.baseUrl}/pqr/administrador/pqrs'),
-        headers: {
-          'Authorization': 'Bearer ${widget.token}',
-          'accept': 'application/json',
-        },
-      );
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        final nextId = (data['cantidad'] ?? 0) + 1;
-        setState(() {
-          _idController.text = nextId.toString();
-        });
-      } else {
-        setState(() {
-          _error = 'No se pudo obtener el siguiente ID. (${response.body})';
-        });
-      }
-    } catch (e) {
-      setState(() {
-        _error = 'Error de conexión al consultar el ID.';
-      });
-    }
-  }
-  Future<void> _submitForm() async {
-    if (!_formKey.currentState!.validate()) return;
-
-    _clearMessages();
-    setState(() => _loading  = true);
-
-    try {
-      final response = await http.post(
-        Uri.parse('$AppConfig.baseUrl${_getOperationEndpoint()}'),
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer ${widget.token}',
-        },
-        body: json.encode(_buildRequestBody()),
-      );
-
-      if (response.statusCode >= 200 && response.statusCode < 300) {
-        final operationText = _operation == PQROperation.create
-            ? 'creado'
-            : _operation == PQROperation.update
-                ? 'actualizado'
-                : 'eliminado';
-
-        setState(() {
-          _response = 'PQR $operationText exitosamente';
-        });
-
-        _showSnackBar('PQR $operationText correctamente');
-
-        if (_operation == PQROperation.create) {
-          _clearForm();
-        }
-
-        widget.onSuccess?.call();
-      } else {
-        final errorData = json.decode(response.body);
-        throw Exception(errorData['message'] ?? 'Error ${response.statusCode}');
-      }
-    } catch (e) {
-      setState(() {
-        _error = e.toString().replaceFirst('Exception: ', '');
-      });
-      _showSnackBar(_error!, isError: true);
-    } finally {
-      setState(() => _loading  = false);
+  Future<void> _updatePqr() async {
+    final controller = _formControllers['update']!;
+    if (!controller.formKey.currentState!.validate()) return;
+    setState(() => _isLoading = true);
+    final pqr = PqrModel(
+      id: controller.idController.text.trim(),
+      iduser: controller.iduserController.text.trim(),
+      tipo: controller.tipoController.text.trim(),
+      descripcion: controller.descripcionController.text.trim(),
+      estado: controller.estadoController.text.trim(),
+      fecha: controller.fechaController.text.trim(),
+    );
+    final response = await _apiService.updatePqr(pqr);
+    setState(() => _isLoading = false);
+    if (response.isSuccess) {
+      await _loadAllPqrs();
     }
   }
 
-  void _clearForm() {
-    _idController.clear();
-    _descriptionController.clear();
-    _identificationController.clear();
-    _fechaController.text = DateTime.now().toString().split(' ')[0];
+  Future<void> _deletePqr() async {
+    final controller = _formControllers['delete']!;
+    if (!controller.formKey.currentState!.validate()) return;
+    final confirmed = await _showDeleteConfirmation();
+    if (!confirmed) return;
+    setState(() => _isLoading = true);
+    final response = await _apiService.deletePqr(controller.idController.text.trim());
+    setState(() => _isLoading = false);
+    if (response.isSuccess) {
+      controller.clear();
+      await Future.wait([_loadNextId(), _loadAllPqrs()]);
+    }
+  }
+
+  Future<bool> _showDeleteConfirmation() async {
+    return await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Confirmar eliminación'),
+        content: const Text('¿Está seguro de que desea eliminar esta PQR?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            child: const Text('Eliminar'),
+          ),
+        ],
+      ),
+    ) ?? false;
+  }
+
+  Future<void> _loadAllPqrs() async {
+    setState(() => _isLoading = true);
+    final response = await _apiService.getAllPqrs();
     setState(() {
-      _selectedType = null;
+      _isLoading = false;
+      if (response.isSuccess) {
+        _allPqrs = response.data ?? [];
+      }
     });
   }
 
-  Future<void> _selectDate() async {
+  Future<void> _findPqrsByUser() async {
+    final controller = _formControllers['findByUser']!;
+    if (!controller.formKey.currentState!.validate()) return;
+    setState(() => _isLoading = true);
+    final response = await _apiService.getPqrsByUser(controller.iduserController.text.trim());
+    setState(() {
+      _isLoading = false;
+      if (response.isSuccess) {
+        _userPqrs = response.data ?? [];
+      }
+    });
+  }
+
+  Future<void> _selectDate(TextEditingController controller) async {
     final DateTime? picked = await showDatePicker(
       context: context,
       initialDate: DateTime.now(),
@@ -4712,386 +4924,404 @@ class _PQRWidgetState extends State<PQRWidget> {
       lastDate: DateTime(2030),
     );
     if (picked != null) {
-      _fechaController.text = picked.toString().split(' ')[0];
+      controller.text = picked.toString().split(' ')[0];
     }
-  }
-
-  Widget _buildOperationSelector() {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              'Seleccionar operación',
-              style: Theme.of(context).textTheme.titleMedium,
-            ),
-            const SizedBox(height: 12),
-            Wrap(
-              spacing: 8,
-              children: PQROperation.values.map((operation) {
-                final isSelected = _operation == operation;
-                final labels = {
-                  PQROperation.create: 'Crear',
-                  PQROperation.update: 'Actualizar',
-                  PQROperation.delete: 'Eliminar',
-                };
-                final colors = {
-                  PQROperation.create: Colors.blue,
-                  PQROperation.update: Colors.orange,
-                  PQROperation.delete: Colors.red,
-                };
-
-                return FilterChip(
-                  label: Text(labels[operation]!),
-                  selected: isSelected,
-                  onSelected: (selected) {
-                    if (selected) {
-                      setState(() {
-                        _operation = operation;
-                        _clearMessages();
-                      });
-                    }
-                  },
-                  selectedColor: colors[operation]?.withOpacity(0.2),
-                  checkmarkColor: colors[operation],
-                );
-              }).toList(),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildFormFields() {
-    final fields = <Widget>[
-      if (_operation == PQROperation.create) ...[
-        const SizedBox(height: 16),
-        // Campos del formulario
-        TextFormField(
-          controller: _idController,
-          keyboardType: TextInputType.number,
-          decoration: InputDecoration(
-                labelText: 'ID de PQR',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.confirmation_number),
-                ),
-              enabled: false,
-            ),
-         const SizedBox(height: 16),
-        DropdownButtonFormField<PQRType>(
-          value: _selectedType,
-          decoration: const InputDecoration(
-            labelText: 'Tipo *',
-            hintText: 'Seleccione el tipo de PQR',
-            prefixIcon: Icon(Icons.category),
-          ),
-          items: PQRType.values.map((type) {
-            final labels = {
-              PQRType.peticion: 'Petición',
-              PQRType.queja: 'Queja',
-              PQRType.reclamo: 'Reclamo',
-              PQRType.sugerencia: 'Sugerencia',
-            };
-            return DropdownMenuItem(
-              value: type,
-              child: Text(labels[type]!),
-            );
-          }).toList(),
-          onChanged: (value) {
-            setState(() => _selectedType = value);
-          },
-          validator: (value) {
-            if (value == null) return 'Tipo es requerido';
-            return null;
-          },
-        ),
-        const SizedBox(height: 16),
-        TextFormField(
-          controller: _descriptionController,
-          decoration: const InputDecoration(
-            labelText: 'Descripción *',
-            hintText: 'Describa detalladamente su PQR...',
-            prefixIcon: Icon(Icons.description),
-          ),
-          maxLines: 4,
-          validator: (value) {
-            if (value == null || value.trim().isEmpty) {
-              return 'Descripción es requerida';
-            }
-            if (value.length < 10) {
-              return 'La descripción debe tener al menos 10 caracteres';
-            }
-            return null;
-          },
-        ),
-        const SizedBox(height: 16),
-        TextFormField(
-          controller: _fechaController,
-          decoration: InputDecoration(
-            labelText: 'Fecha *',
-            hintText: 'YYYY-MM-DD',
-            prefixIcon: const Icon(Icons.calendar_today),
-            suffixIcon: IconButton(
-              icon: const Icon(Icons.date_range),
-              onPressed: _selectDate,
-            ),
-          ),
-          readOnly: true,
-          validator: (value) {
-            if (value == null || value.isEmpty) {
-              return 'Fecha es requerida';
-            }
-            return null;
-          },
-        ),
-        const SizedBox(height: 16),
-        TextFormField(
-          controller: _identificationController,
-          decoration: const InputDecoration(
-            labelText: 'Número de identificación *',
-            hintText: 'Ingrese su número de identificación',
-            prefixIcon: Icon(Icons.person),
-          ),
-          keyboardType: TextInputType.number,
-          validator: (value) {
-            if (value == null || value.isEmpty) {
-              return 'Identificación es requerida';
-            }
-            if (value.length < 6) {
-              return 'La identificación debe tener al menos 6 dígitos';
-            }
-            return null;
-          },
-        ),
-      ],
-      if (_operation == PQROperation.update || _operation == PQROperation.delete)
-        TextFormField(
-          controller: _idController,
-          decoration: const InputDecoration(
-            labelText: 'ID *',
-            hintText: 'Ingrese el ID del PQR',
-            prefixIcon: Icon(Icons.tag),
-          ),
-          keyboardType: TextInputType.number,
-          validator: (value) {
-            if (value == null || value.isEmpty) {
-              return 'ID es requerido para esta operación';
-            }
-            return null;
-          },
-        ),
-      if (_operation == PQROperation.update) ...[
-        const SizedBox(height: 16),
-        DropdownButtonFormField<PQRType>(
-          value: _selectedType,
-          decoration: const InputDecoration(
-            labelText: 'Tipo *',
-            hintText: 'Seleccione el tipo de PQR',
-            prefixIcon: Icon(Icons.category),
-          ),
-          items: PQRType.values.map((type) {
-            final labels = {
-              PQRType.peticion: 'Petición',
-              PQRType.queja: 'Queja',
-              PQRType.reclamo: 'Reclamo',
-              PQRType.sugerencia: 'Sugerencia',
-            };
-            return DropdownMenuItem(
-              value: type,
-              child: Text(labels[type]!),
-            );
-          }).toList(),
-          onChanged: (value) {
-            setState(() => _selectedType = value);
-          },
-          validator: (value) {
-            if (value == null) return 'Tipo es requerido';
-            return null;
-          },
-        ),
-        const SizedBox(height: 16),
-        TextFormField(
-          controller: _descriptionController,
-          decoration: const InputDecoration(
-            labelText: 'Descripción *',
-            hintText: 'Describa detalladamente su PQR...',
-            prefixIcon: Icon(Icons.description),
-          ),
-          maxLines: 4,
-          validator: (value) {
-            if (value == null || value.trim().isEmpty) {
-              return 'Descripción es requerida';
-            }
-            if (value.length < 10) {
-              return 'La descripción debe tener al menos 10 caracteres';
-            }
-            return null;
-          },
-        ),
-        const SizedBox(height: 16),
-        TextFormField(
-          controller: _fechaController,
-          decoration: InputDecoration(
-            labelText: 'Fecha *',
-            hintText: 'YYYY-MM-DD',
-            prefixIcon: const Icon(Icons.calendar_today),
-            suffixIcon: IconButton(
-              icon: const Icon(Icons.date_range),
-              onPressed: _selectDate,
-            ),
-          ),
-          readOnly: true,
-          validator: (value) {
-            if (value == null || value.isEmpty) {
-              return 'Fecha es requerida';
-            }
-            return null;
-          },
-        ),
-        const SizedBox(height: 16),
-        TextFormField(
-          controller: _identificationController,
-          decoration: const InputDecoration(
-            labelText: 'Número de identificación *',
-            hintText: 'Ingrese su número de identificación',
-            prefixIcon: Icon(Icons.person),
-          ),
-          keyboardType: TextInputType.number,
-          validator: (value) {
-            if (value == null || value.isEmpty) {
-              return 'Identificación es requerida';
-            }
-            if (value.length < 6) {
-              return 'La identificación debe tener al menos 6 dígitos';
-            }
-            return null;
-          },
-        ),
-      ],
-      
-    ];
-
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(children: fields),
-      ),
-    );
-  }
-
-  Widget _buildSubmitButton() {
-    final operationLabels = {
-      PQROperation.create: 'Crear PQR',
-      PQROperation.update: 'Actualizar PQR',
-      PQROperation.delete: 'Eliminar PQR',
-    };
-
-    final operationColors = {
-      PQROperation.create: Colors.blue,
-      PQROperation.update: Colors.orange,
-      PQROperation.delete: Colors.red,
-    };
-
-    return SizedBox(
-      width: double.infinity,
-      child: ElevatedButton.icon(
-        onPressed: _loading  ? null : _submitForm,
-        icon: _loading 
-            ? const SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(strokeWidth: 2),
-              )
-            : Icon(_operation == PQROperation.delete ? Icons.delete : Icons.send),
-        label: Text(_loading  ? 'Procesando...' : operationLabels[_operation]!),
-        style: ElevatedButton.styleFrom(
-          backgroundColor: operationColors[_operation],
-          foregroundColor: Colors.white,
-          padding: const EdgeInsets.symmetric(vertical: 16),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildMessages() {
-    if (_response == null && _error == null) {
-      return const SizedBox.shrink();
-    }
-
-    return Card(
-      color: _response != null ? Colors.green.shade50 : Colors.red.shade50,
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Row(
-          children: [
-            Icon(
-              _response != null ? Icons.check_circle : Icons.error,
-              color: _response != null ? Colors.green : Colors.red,
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                _response ?? _error!,
-                style: TextStyle(
-                  color: _response != null ? Colors.green.shade800 : Colors.red.shade800,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
   }
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      elevation: 8,
-      margin: const EdgeInsets.all(16),
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Form(
-          key: _formKey,
-          child: SingleChildScrollView( // <--- El cambio importante aquí!
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
+    super.build(context);
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Gestión de PQRs'),
+        backgroundColor: Colors.blue,
+        foregroundColor: Colors.white,
+        elevation: 2,
+        leading: widget.onBack != null
+            ? IconButton(
+                icon: const Icon(Icons.arrow_back),
+                onPressed: widget.onBack,
+              )
+            : null,
+        bottom: TabBar(
+          controller: _tabController,
+          isScrollable: true,
+          indicatorColor: Colors.white,
+          labelColor: Colors.white,
+          unselectedLabelColor: Colors.white70,
+          tabs: const [
+            Tab(icon: Icon(Icons.add), text: 'Crear'),
+            Tab(icon: Icon(Icons.edit), text: 'Actualizar'),
+            Tab(icon: Icon(Icons.delete), text: 'Eliminar'),
+            Tab(icon: Icon(Icons.list), text: 'Todas'),
+            Tab(icon: Icon(Icons.person_search), text: 'Por Usuario'),
+          ],
+        ),
+      ),
+      body: Column(
+        children: [
+          if (_message != null) _buildMessageBanner(),
+          Expanded(
+            child: TabBarView(
+              controller: _tabController,
               children: [
-                Row(
-                  children: [
-                    if (widget.onBack != null)
-                      IconButton(
-                        icon: const Icon(Icons.arrow_back),
-                        tooltip: 'Regresar',
-                        onPressed: widget.onBack,
-                      ),
-                    Expanded(
-                      child: Text(
-                        'Gestión de PQR',
-                        style: Theme.of(context).textTheme.headlineLarge,
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 20),
-                _buildOperationSelector(),
-                const SizedBox(height: 16),
-                _buildFormFields(),
-                const SizedBox(height: 20),
-                _buildSubmitButton(),
-                const SizedBox(height: 16),
-                _buildMessages(),
+                _buildFormTab('create', _createPqr, 'Crear PQR', Colors.blue, isCreate: true),
+                _buildFormTab('update', _updatePqr, 'Actualizar PQR', Colors.purple),
+                _buildDeleteTab(),
+                _buildAllPqrsTab(),
+                _buildPqrsByUserTab(),
               ],
             ),
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMessageBanner() {
+    final isError = _messageType == MessageType.error;
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      color: isError ? Colors.red[50] : Colors.green[50],
+      child: Row(
+        children: [
+          Icon(
+            isError ? Icons.error : Icons.check_circle,
+            color: isError ? Colors.red[700] : Colors.green[700],
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              _message!,
+              style: TextStyle(
+                color: isError ? Colors.red[900] : Colors.green[900],
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.close),
+            onPressed: () => setState(() {
+              _message = null;
+              _messageType = null;
+            }),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFormTab(String formKey, VoidCallback onSubmit, String buttonText, Color buttonColor, {bool isCreate = false}) {
+    final controller = _formControllers[formKey]!;
+    return Form(
+      key: controller.formKey,
+      child: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          CustomTextFormField(
+            controller: controller.idController,
+            label: 'ID',
+            keyboardType: TextInputType.number,
+            enabled: isCreate ? false : true, // Solo lectura en crear
+            validator: (v) => v == null || v.isEmpty ? 'Ingrese el ID' : null,
+          ),
+          const SizedBox(height: 16),
+          CustomTextFormField(
+            controller: controller.iduserController,
+            label: 'ID Usuario',
+            keyboardType: TextInputType.number,
+            validator: (v) => v == null || v.isEmpty ? 'Ingrese el ID del usuario' : null,
+          ),
+          const SizedBox(height: 16),
+          CustomTextFormField(
+            controller: controller.tipoController,
+            label: 'Tipo',
+            keyboardType: TextInputType.text,
+            validator: (v) => v == null || v.isEmpty ? 'Ingrese el tipo de PQR' : null,
+          ),
+          const SizedBox(height: 16),
+          CustomTextFormField(
+            controller: controller.descripcionController,
+            label: 'Descripción',
+            keyboardType: TextInputType.text,
+            validator: (v) => v == null || v.isEmpty ? 'Ingrese la descripción' : null,
+          ),
+          const SizedBox(height: 16),
+          CustomTextFormField(
+            controller: controller.estadoController,
+            label: 'Estado',
+            keyboardType: TextInputType.text,
+            validator: (v) => v == null || v.isEmpty ? 'Ingrese el estado' : null,
+          ),
+          const SizedBox(height: 16),
+          CustomDateField(
+            controller: controller.fechaController,
+            label: 'Fecha',
+            onTap: () => _selectDate(controller.fechaController),
+            validator: (v) => v == null || v.isEmpty ? 'Seleccione la fecha' : null,
+          ),
+          const SizedBox(height: 32),
+          CustomElevatedButton(
+            onPressed: _isLoading ? null : onSubmit,
+            backgroundColor: buttonColor,
+            isLoading: _isLoading,
+            child: Text(buttonText),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDeleteTab() {
+    final controller = _formControllers['delete']!;
+    return Form(
+      key: controller.formKey,
+      child: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          CustomTextFormField(
+            controller: controller.idController,
+            label: 'ID a eliminar',
+            keyboardType: TextInputType.number,
+            validator: (v) => v == null || v.isEmpty ? 'Ingrese el ID a eliminar' : null,
+          ),
+          const SizedBox(height: 32),
+          CustomElevatedButton(
+            onPressed: _isLoading ? null : _deletePqr,
+            backgroundColor: Colors.red,
+            isLoading: _isLoading,
+            child: const Text('Eliminar PQR'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAllPqrsTab() {
+    if (_isLoading && _allPqrs.isEmpty) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    if (_allPqrs.isEmpty) {
+      return const Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.inbox, size: 64, color: Colors.grey),
+            SizedBox(height: 16),
+            Text('No hay PQRs registradas', style: TextStyle(fontSize: 18, color: Colors.grey)),
+          ],
+        ),
+      );
+    }
+    return RefreshIndicator(
+      onRefresh: _loadAllPqrs,
+      child: ListView.builder(
+        padding: const EdgeInsets.all(8),
+        itemCount: _allPqrs.length,
+        itemBuilder: (context, index) {
+          final pqr = _allPqrs[index];
+          return PqrCard(pqr: pqr);
+        },
+      ),
+    );
+  }
+
+  Widget _buildPqrsByUserTab() {
+    final controller = _formControllers['findByUser']!;
+    return Form(
+      key: controller.formKey,
+      child: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          CustomTextFormField(
+            controller: controller.iduserController,
+            label: 'ID Usuario',
+            keyboardType: TextInputType.number,
+            validator: (v) => v == null || v.isEmpty ? 'Ingrese ID de usuario' : null,
+          ),
+          const SizedBox(height: 16),
+          CustomElevatedButton(
+            onPressed: _isLoading ? null : _findPqrsByUser,
+            backgroundColor: Colors.blue,
+            isLoading: _isLoading,
+            child: const Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.person_search),
+                SizedBox(width: 8),
+                Text('Buscar'),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
+          if (_userPqrs.isEmpty && !_isLoading)
+            const Text(
+              'No hay PQRs para ese usuario.',
+              style: TextStyle(color: Colors.grey),
+            ),
+          ..._userPqrs.map((pqr) => Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: PqrCard(pqr: pqr),
+          )),
+        ],
+      ),
+    );
+  }
+}
+
+// WIDGETS PERSONALIZADOS
+class CustomTextFormField extends StatelessWidget {
+  final TextEditingController controller;
+  final String label;
+  final TextInputType? keyboardType;
+  final bool enabled;
+  final String? Function(String?)? validator;
+
+  const CustomTextFormField({
+    Key? key,
+    required this.controller,
+    required this.label,
+    this.keyboardType,
+    this.enabled = true,
+    this.validator,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return TextFormField(
+      controller: controller,
+      keyboardType: keyboardType,
+      enabled: enabled,
+      decoration: InputDecoration(
+        labelText: label,
+        border: const OutlineInputBorder(),
+        filled: !enabled,
+        fillColor: enabled ? null : Colors.grey[100],
+      ),
+      validator: validator,
+    );
+  }
+}
+
+class CustomDateField extends StatelessWidget {
+  final TextEditingController controller;
+  final String label;
+  final VoidCallback onTap;
+  final String? Function(String?)? validator;
+
+  const CustomDateField({
+    Key? key,
+    required this.controller,
+    required this.label,
+    required this.onTap,
+    this.validator,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return TextFormField(
+      controller: controller,
+      readOnly: true,
+      decoration: InputDecoration(
+        labelText: label,
+        border: const OutlineInputBorder(),
+        suffixIcon: const Icon(Icons.calendar_today),
+      ),
+      onTap: onTap,
+      validator: validator,
+    );
+  }
+}
+
+class CustomElevatedButton extends StatelessWidget {
+  final VoidCallback? onPressed;
+  final Widget child;
+  final Color backgroundColor;
+  final bool isLoading;
+
+  const CustomElevatedButton({
+    Key? key,
+    required this.onPressed,
+    required this.child,
+    required this.backgroundColor,
+    this.isLoading = false,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      height: 48,
+      child: ElevatedButton(
+        onPressed: onPressed,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: backgroundColor,
+          foregroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+        ),
+        child: isLoading
+            ? const SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: Colors.white,
+                ),
+              )
+            : child,
+      ),
+    );
+  }
+}
+
+class PqrCard extends StatelessWidget {
+  final PqrModel pqr;
+
+  const PqrCard({Key? key, required this.pqr}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      elevation: 2,
+      margin: const EdgeInsets.symmetric(vertical: 4),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Text(
+                  'ID: ${pqr.id ?? 'N/A'}',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.grey,
+                  ),
+                ),
+                const Spacer(),
+                Text(
+                  pqr.fecha ?? 'Sin fecha',
+                  style: TextStyle(color: Colors.grey[700]),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text('Usuario: ${pqr.iduser ?? 'N/A'}'),
+            Text('Tipo: ${pqr.tipo ?? 'N/A'}'),
+            Text('Descripción: ${pqr.descripcion ?? 'N/A'}'),
+            Text('Estado: ${pqr.estado ?? 'N/A'}'),
+          ],
         ),
       ),
     );
   }
 }
+////
+///
+///
 // Widget para asignar ruta a una unidad (solo permite modificar IDRuta)
 class AsignarRutaUnidadWidget extends StatefulWidget {
   final String token;
@@ -5206,6 +5436,1361 @@ class _AsignarRutaUnidadWidgetState extends State<AsignarRutaUnidadWidget> {
               const SizedBox(height: 8),
               Text(_error!, style: TextStyle(color: Colors.red)),
             ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+///
+/// Rendimiento Widget
+// MODELO
+class BehaviorModel {
+  final String? id;
+  final String? iduser;
+  final String? cantidadrutas;
+  final String? horastrabajadas;
+  final String? observaciones;
+  final String? fecha;
+
+  BehaviorModel({
+    this.id,
+    this.iduser,
+    this.cantidadrutas,
+    this.horastrabajadas,
+    this.observaciones,
+    this.fecha,
+  });
+
+  factory BehaviorModel.fromJson(Map<String, dynamic> json) {
+    return BehaviorModel(
+      id: json['ID']?.toString(),
+      iduser: json['iduser']?.toString(),
+      cantidadrutas: json['cantidadrutas']?.toString(),
+      horastrabajadas: json['horastrabajadas']?.toString(),
+      observaciones: json['observaciones'],
+      fecha: json['fecha'],
+    );
+  }
+
+  Map<String, String> toFormData() {
+    return {
+      if (id != null) 'ID': id!,
+      if (iduser != null) 'iduser': iduser!,
+      if (cantidadrutas != null) 'cantidadrutas': cantidadrutas!,
+      if (horastrabajadas != null) 'horastrabajadas': horastrabajadas!,
+      if (observaciones != null) 'observaciones': observaciones!,
+      if (fecha != null) 'fecha': fecha!,
+    };
+  }
+}
+
+// SERVICIO API
+class BehaviorApiService {
+  final String token;
+  static const String _defaultBaseUrl = AppConfig.baseUrl;
+
+  BehaviorApiService({required this.token});
+  String get baseUrl => _defaultBaseUrl;
+
+  Map<String, String> get _headers => {
+    'Authorization': 'Bearer $token',
+    'accept': 'application/json',
+  };
+
+  Map<String, String> get _formHeaders => {
+    ..._headers,
+    'Content-Type': 'application/x-www-form-urlencoded',
+  };
+
+  Future<ApiResponse<int>> getNextId() async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/behavior/rendimientos'),
+        headers: _headers,
+      );
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final rendimientos = (data['rendimientos'] as List?) ?? [];
+        int nextId = 1;
+        if (rendimientos.isNotEmpty) {
+          final ids = rendimientos.map((e) => int.tryParse(e['ID'].toString()) ?? 0).toList();
+          nextId = (ids.isNotEmpty ? (ids.reduce((a, b) => a > b ? a : b)) : 0) + 1;
+        }
+        return ApiResponse.success(nextId);
+      } else {
+        return ApiResponse.error('No se pudo obtener el siguiente ID');
+      }
+    } catch (e) {
+      return ApiResponse.error('Error de conexión al consultar el ID');
+    }
+  }
+
+  Future<ApiResponse<String>> createBehavior(BehaviorModel behavior) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/behavior/create'),
+        headers: _formHeaders,
+        body: behavior.toFormData(),
+      );
+      if (response.statusCode == 201 || response.statusCode == 200) {
+        return ApiResponse.success('Rendimiento creado exitosamente');
+      } else {
+        return ApiResponse.error('No se pudo crear el rendimiento: ${response.body}');
+      }
+    } catch (e) {
+      return ApiResponse.error('Error de conexión al crear rendimiento');
+    }
+  }
+
+  Future<ApiResponse<String>> updateBehavior(BehaviorModel behavior) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/behavior/update'),
+        headers: _formHeaders,
+        body: behavior.toFormData(),
+      );
+      if (response.statusCode == 200) {
+        return ApiResponse.success('Rendimiento actualizado exitosamente');
+      } else {
+        return ApiResponse.error('No se pudo actualizar el rendimiento: ${response.body}');
+      }
+    } catch (e) {
+      return ApiResponse.error('Error de conexión al actualizar rendimiento');
+    }
+  }
+
+  Future<ApiResponse<String>> deleteBehavior(String id) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/behavior/delete'),
+        headers: _formHeaders,
+        body: {'ID': id},
+      );
+      if (response.statusCode == 200) {
+        return ApiResponse.success('Rendimiento eliminado exitosamente');
+      } else {
+        return ApiResponse.error('No se pudo eliminar el rendimiento: ${response.body}');
+      }
+    } catch (e) {
+      return ApiResponse.error('Error de conexión al eliminar rendimiento');
+    }
+  }
+
+  Future<ApiResponse<List<BehaviorModel>>> getAllBehaviors() async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/behavior/rendimientos'),
+        headers: _headers,
+      );
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final behaviors = (data['rendimientos'] as List?)
+            ?.map((json) => BehaviorModel.fromJson(json))
+            .toList() ?? [];
+        return ApiResponse.success(behaviors);
+      } else {
+        return ApiResponse.error('Error al cargar rendimientos: ${response.body}');
+      }
+    } catch (e) {
+      return ApiResponse.error('Error de conexión al cargar rendimientos');
+    }
+  }
+
+  Future<ApiResponse<List<BehaviorModel>>> getBehaviorsByUser(String iduser) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/behavior/byuser?iduser=$iduser'),
+        headers: _headers,
+      );
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final behaviors = (data['rendimientos'] as List?)
+            ?.map((json) => BehaviorModel.fromJson(json))
+            .toList() ?? [];
+        return ApiResponse.success(behaviors);
+      } else {
+        return ApiResponse.error('No se encontraron rendimientos para ese usuario');
+      }
+    } catch (e) {
+      return ApiResponse.error('Error de conexión al buscar rendimientos del usuario');
+    }
+  }
+}
+// CONTROLADOR DE FORMULARIO
+class BehaviorFormController {
+  final GlobalKey<FormState> formKey = GlobalKey<FormState>();
+  final TextEditingController idController = TextEditingController();
+  final TextEditingController iduserController = TextEditingController();
+  final TextEditingController cantidadrutasController = TextEditingController();
+  final TextEditingController horastrabajadasController = TextEditingController();
+  final TextEditingController observacionesController = TextEditingController();
+  final TextEditingController fechaController = TextEditingController();
+
+  void clear() {
+    idController.clear();
+    iduserController.clear();
+    cantidadrutasController.clear();
+    horastrabajadasController.clear();
+    observacionesController.clear();
+    fechaController.clear();
+  }
+
+  void dispose() {
+    idController.dispose();
+    iduserController.dispose();
+    cantidadrutasController.dispose();
+    horastrabajadasController.dispose();
+    observacionesController.dispose();
+    fechaController.dispose();
+  }
+}
+
+// WIDGET PRINCIPAL
+class BehaviorCrudWidget extends StatefulWidget {
+  final String token;
+  final VoidCallback? onSuccess;
+  final VoidCallback? onBack;
+
+  const BehaviorCrudWidget({
+    Key? key,
+    required this.token,
+    this.onSuccess,
+    this.onBack,
+  }) : super(key: key);
+
+  @override
+  State<BehaviorCrudWidget> createState() => _BehaviorCrudWidgetState();
+}
+
+class _BehaviorCrudWidgetState extends State<BehaviorCrudWidget>
+    with TickerProviderStateMixin, AutomaticKeepAliveClientMixin {
+  late TabController _tabController;
+  late BehaviorApiService _apiService;
+  bool _isLoading = false;
+  String? _message;
+  MessageType? _messageType;
+
+  List<BehaviorModel> _allBehaviors = [];
+  List<BehaviorModel> _userBehaviors = [];
+
+  final Map<String, BehaviorFormController> _formControllers = {};
+
+  @override
+  bool get wantKeepAlive => true;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 5, vsync: this);
+    _apiService = BehaviorApiService(token: widget.token);
+    _formControllers['create'] = BehaviorFormController();
+    _formControllers['update'] = BehaviorFormController();
+    _formControllers['delete'] = BehaviorFormController();
+    _formControllers['findByUser'] = BehaviorFormController();
+    _initializeData();
+  }
+
+  Future<void> _initializeData() async {
+    await Future.wait([
+      _loadNextId(),
+      _loadAllBehaviors(),
+    ]);
+  }
+
+  Future<void> _loadNextId() async {
+    final response = await _apiService.getNextId();
+    if (response.isSuccess && response.data != null) {
+      _formControllers['create']?.idController.text = response.data.toString();
+    }
+  }
+
+  Future<void> _createBehavior() async {
+    final controller = _formControllers['create']!;
+    if (!controller.formKey.currentState!.validate()) return;
+    setState(() => _isLoading = true);
+    final behavior = BehaviorModel(
+      id: controller.idController.text.trim(),
+      iduser: controller.iduserController.text.trim(),
+      cantidadrutas: controller.cantidadrutasController.text.trim(),
+      horastrabajadas: controller.horastrabajadasController.text.trim(),
+      observaciones: controller.observacionesController.text.trim(),
+      fecha: controller.fechaController.text.trim(),
+    );
+    final response = await _apiService.createBehavior(behavior);
+    setState(() => _isLoading = false);
+    if (response.isSuccess) {
+      controller.clear();
+      await Future.wait([_loadNextId(), _loadAllBehaviors()]);
+    }
+  }
+
+  Future<void> _updateBehavior() async {
+    final controller = _formControllers['update']!;
+    if (!controller.formKey.currentState!.validate()) return;
+    setState(() => _isLoading = true);
+    final behavior = BehaviorModel(
+      id: controller.idController.text.trim(),
+      iduser: controller.iduserController.text.trim(),
+      cantidadrutas: controller.cantidadrutasController.text.trim(),
+      horastrabajadas: controller.horastrabajadasController.text.trim(),
+      observaciones: controller.observacionesController.text.trim(),
+      fecha: controller.fechaController.text.trim(),
+    );
+    final response = await _apiService.updateBehavior(behavior);
+    setState(() => _isLoading = false);
+    if (response.isSuccess) {
+      await _loadAllBehaviors();
+    }
+  }
+
+  Future<void> _deleteBehavior() async {
+    final controller = _formControllers['delete']!;
+    if (!controller.formKey.currentState!.validate()) return;
+    final confirmed = await _showDeleteConfirmation();
+    if (!confirmed) return;
+    setState(() => _isLoading = true);
+    final response = await _apiService.deleteBehavior(controller.idController.text.trim());
+    setState(() => _isLoading = false);
+    if (response.isSuccess) {
+      controller.clear();
+      await Future.wait([_loadNextId(), _loadAllBehaviors()]);
+    }
+  }
+
+  Future<bool> _showDeleteConfirmation() async {
+    return await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Confirmar eliminación'),
+        content: const Text('¿Está seguro de que desea eliminar este rendimiento?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            child: const Text('Eliminar'),
+          ),
+        ],
+      ),
+    ) ?? false;
+  }
+
+  Future<void> _loadAllBehaviors() async {
+    setState(() => _isLoading = true);
+    final response = await _apiService.getAllBehaviors();
+    setState(() {
+      _isLoading = false;
+      if (response.isSuccess) {
+        _allBehaviors = response.data ?? [];
+      }
+    });
+  }
+
+  Future<void> _findBehaviorsByUser() async {
+    final controller = _formControllers['findByUser']!;
+    if (!controller.formKey.currentState!.validate()) return;
+    setState(() => _isLoading = true);
+    final response = await _apiService.getBehaviorsByUser(controller.iduserController.text.trim());
+    setState(() {
+      _isLoading = false;
+      if (response.isSuccess) {
+        _userBehaviors = response.data ?? [];
+      }
+    });
+  }
+
+  Future<void> _selectDate(TextEditingController controller) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(2020),
+      lastDate: DateTime(2035),
+    );
+    if (picked != null) {
+      controller.text = picked.toString().split(' ')[0];
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    super.build(context);
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Gestión de Rendimientos'),
+        backgroundColor: Colors.blue,
+        foregroundColor: Colors.white,
+        elevation: 2,
+        leading: widget.onBack != null
+            ? IconButton(
+                icon: const Icon(Icons.arrow_back),
+                onPressed: widget.onBack,
+              )
+            : null,
+        bottom: TabBar(
+          controller: _tabController,
+          isScrollable: true,
+          indicatorColor: Colors.white,
+          labelColor: Colors.white,
+          unselectedLabelColor: Colors.white70,
+          tabs: const [
+            Tab(icon: Icon(Icons.add), text: 'Crear'),
+            Tab(icon: Icon(Icons.edit), text: 'Actualizar'),
+            Tab(icon: Icon(Icons.delete), text: 'Eliminar'),
+            Tab(icon: Icon(Icons.list), text: 'Todos'),
+            Tab(icon: Icon(Icons.person_search), text: 'Por Usuario'),
+          ],
+        ),
+      ),
+      body: Column(
+        children: [
+          if (_message != null) _buildMessageBanner(),
+          Expanded(
+            child: TabBarView(
+              controller: _tabController,
+              children: [
+                _buildFormTab('create', _createBehavior, 'Crear Rendimiento', Colors.blue, isCreate: true),
+                _buildFormTab('update', _updateBehavior, 'Actualizar Rendimiento', Colors.purple),
+                _buildDeleteTab(),
+                _buildAllBehaviorsTab(),
+                _buildBehaviorsByUserTab(),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMessageBanner() {
+    final isError = _messageType == MessageType.error;
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      color: isError ? Colors.red[50] : Colors.green[50],
+      child: Row(
+        children: [
+          Icon(
+            isError ? Icons.error : Icons.check_circle,
+            color: isError ? Colors.red[700] : Colors.green[700],
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              _message!,
+              style: TextStyle(
+                color: isError ? Colors.red[900] : Colors.green[900],
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.close),
+            onPressed: () => setState(() {
+              _message = null;
+              _messageType = null;
+            }),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFormTab(String formKey, VoidCallback onSubmit, String buttonText, Color buttonColor, {bool isCreate = false}) {
+    final controller = _formControllers[formKey]!;
+    return Form(
+      key: controller.formKey,
+      child: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          CustomTextFormField(
+            controller: controller.idController,
+            label: 'ID',
+            keyboardType: TextInputType.number,
+            enabled: isCreate ? false : true, // Solo lectura en crear
+            validator: (v) => v == null || v.isEmpty ? 'Ingrese el ID' : null,
+          ),
+          const SizedBox(height: 16),
+          CustomTextFormField(
+            controller: controller.iduserController,
+            label: 'Identificacion de Usuario',
+            keyboardType: TextInputType.number,
+            validator: (v) => v == null || v.isEmpty ? 'Ingrese el Identificacion del usuario' : null,
+          ),
+          const SizedBox(height: 16),
+          CustomTextFormField(
+            controller: controller.cantidadrutasController,
+            label: 'Cantidad de Rutas',
+            keyboardType: TextInputType.number,
+            validator: (v) => v == null || v.isEmpty ? 'Ingrese la cantidad de rutas' : null,
+          ),
+          const SizedBox(height: 16),
+          CustomTextFormField(
+            controller: controller.horastrabajadasController,
+            label: 'Horas Trabajadas',
+            keyboardType: TextInputType.number,
+            validator: (v) => v == null || v.isEmpty ? 'Ingrese las horas trabajadas' : null,
+          ),
+          const SizedBox(height: 16),
+          CustomTextFormField(
+            controller: controller.observacionesController,
+            label: 'Observaciones',
+            keyboardType: TextInputType.text,
+            validator: (v) => v == null || v.isEmpty ? 'Ingrese observaciones' : null,
+          ),
+          const SizedBox(height: 16),
+          CustomDateField(
+            controller: controller.fechaController,
+            label: 'Fecha',
+            onTap: () => _selectDate(controller.fechaController),
+            validator: (v) => v == null || v.isEmpty ? 'Seleccione la fecha' : null,
+          ),
+          const SizedBox(height: 32),
+          CustomElevatedButton(
+            onPressed: _isLoading ? null : onSubmit,
+            backgroundColor: buttonColor,
+            isLoading: _isLoading,
+            child: Text(buttonText),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDeleteTab() {
+    final controller = _formControllers['delete']!;
+    return Form(
+      key: controller.formKey,
+      child: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          CustomTextFormField(
+            controller: controller.idController,
+            label: 'ID a eliminar',
+            keyboardType: TextInputType.number,
+            validator: (v) => v == null || v.isEmpty ? 'Ingrese el ID a eliminar' : null,
+          ),
+          const SizedBox(height: 32),
+          CustomElevatedButton(
+            onPressed: _isLoading ? null : _deleteBehavior,
+            backgroundColor: Colors.red,
+            isLoading: _isLoading,
+            child: const Text('Eliminar Rendimiento'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAllBehaviorsTab() {
+    if (_isLoading && _allBehaviors.isEmpty) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    if (_allBehaviors.isEmpty) {
+      return const Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.inbox, size: 64, color: Colors.grey),
+            SizedBox(height: 16),
+            Text('No hay rendimientos registrados', style: TextStyle(fontSize: 18, color: Colors.grey)),
+          ],
+        ),
+      );
+    }
+    return RefreshIndicator(
+      onRefresh: _loadAllBehaviors,
+      child: ListView.builder(
+        padding: const EdgeInsets.all(8),
+        itemCount: _allBehaviors.length,
+        itemBuilder: (context, index) {
+          final beh = _allBehaviors[index];
+          return BehaviorCard(behavior: beh);
+        },
+      ),
+    );
+  }
+
+  Widget _buildBehaviorsByUserTab() {
+    final controller = _formControllers['findByUser']!;
+    return Form(
+      key: controller.formKey,
+      child: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          CustomTextFormField(
+            controller: controller.iduserController,
+            label: 'Identificacion de Usuario',
+            keyboardType: TextInputType.number,
+            validator: (v) => v == null || v.isEmpty ? 'Ingrese Identificacion de usuario' : null,
+          ),
+          const SizedBox(height: 16),
+          CustomElevatedButton(
+            onPressed: _isLoading ? null : _findBehaviorsByUser,
+            backgroundColor: Colors.blue,
+            isLoading: _isLoading,
+            child: const Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.person_search),
+                SizedBox(width: 8),
+                Text('Buscar'),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
+          if (_userBehaviors.isEmpty && !_isLoading)
+            const Text(
+              'No hay rendimientos para ese usuario.',
+              style: TextStyle(color: Colors.grey),
+            ),
+          ..._userBehaviors.map((behavior) => Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: BehaviorCard(behavior: behavior),
+          )),
+        ],
+      ),
+    );
+  }
+}
+
+// WIDGETS PERSONALIZADOS
+class BehaviorCard extends StatelessWidget {
+  final BehaviorModel behavior;
+
+  const BehaviorCard({Key? key, required this.behavior}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      elevation: 2,
+      margin: const EdgeInsets.symmetric(vertical: 4),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Text(
+                  'ID: ${behavior.id ?? 'N/A'}',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.grey,
+                  ),
+                ),
+                const Spacer(),
+                Text(
+                  behavior.fecha ?? 'Sin fecha',
+                  style: TextStyle(color: Colors.grey[700]),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text('Usuario: ${behavior.iduser ?? 'N/A'}'),
+            Text('Cantidad de rutas: ${behavior.cantidadrutas ?? 'N/A'}'),
+            Text('Horas trabajadas: ${behavior.horastrabajadas ?? 'N/A'}'),
+            Text('Observaciones: ${behavior.observaciones ?? 'N/A'}'),
+          ],
+        ),
+      ),
+    );
+  }
+}
+////Asistencia Widget Service
+// MODELO
+class AsistanceModel {
+  final String? id;
+  final String? iduser;
+  final String? horainicio;
+  final String? horafinal;
+  final String? fecha;
+
+  AsistanceModel({
+    this.id,
+    this.iduser,
+    this.horainicio,
+    this.horafinal,
+    this.fecha,
+  });
+
+  factory AsistanceModel.fromJson(Map<String, dynamic> json) {
+    return AsistanceModel(
+      id: json['ID']?.toString(),
+      iduser: json['iduser']?.toString(),
+      horainicio: json['horainicio'],
+      horafinal: json['horafinal'],
+      fecha: json['fecha'],
+    );
+  }
+
+  Map<String, String> toFormData() {
+    return {
+      if (id != null) 'id': id!,
+      if (iduser != null) 'iduser': iduser!,
+      if (horainicio != null) 'horainicio': horainicio!,
+      if (horafinal != null) 'horafinal': horafinal!,
+      if (fecha != null) 'fecha': fecha!,
+    };
+  }
+}
+
+// SERVICIO API
+class AsistanceApiService {
+  final String token;
+  static const String _defaultBaseUrl = AppConfig.baseUrl;
+
+  AsistanceApiService({required this.token});
+  String get baseUrl => _defaultBaseUrl;
+
+  Map<String, String> get _headers => {
+    'Authorization': 'Bearer $token',
+    'accept': 'application/json',
+  };
+
+  Map<String, String> get _formHeaders => {
+    ..._headers,
+    'Content-Type': 'application/x-www-form-urlencoded',
+  };
+
+  Future<ApiResponse<int>> getNextId() async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/asistance/asistencias'),
+        headers: _headers,
+      );
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final asistencias = (data['asistencias'] as List?) ?? [];
+        int nextId = 1;
+        if (asistencias.isNotEmpty) {
+          final ids = asistencias.map((e) => int.tryParse(e['ID'].toString()) ?? 0).toList();
+          nextId = (ids.isNotEmpty ? (ids.reduce((a, b) => a > b ? a : b)) : 0) + 1;
+        }
+        return ApiResponse.success(nextId);
+      } else {
+        return ApiResponse.error('No se pudo obtener el siguiente ID');
+      }
+    } catch (e) {
+      return ApiResponse.error('Error de conexión al consultar el ID');
+    }
+  }
+
+  Future<ApiResponse<String>> createAsistance(AsistanceModel asistance) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/asistance/create'),
+        headers: _formHeaders,
+        body: asistance.toFormData(),
+      );
+      if (response.statusCode == 201 || response.statusCode == 200) {
+        return ApiResponse.success('Asistencia creada exitosamente');
+      } else {
+        return ApiResponse.error('No se pudo crear la asistencia: ${response.body}');
+      }
+    } catch (e) {
+      return ApiResponse.error('Error de conexión al crear asistencia');
+    }
+  }
+
+  Future<ApiResponse<String>> updateAsistance(AsistanceModel asistance) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/asistance/update'),
+        headers: _formHeaders,
+        body: asistance.toFormData(),
+      );
+      if (response.statusCode == 200) {
+        return ApiResponse.success('Asistencia actualizada exitosamente');
+      } else {
+        return ApiResponse.error('No se pudo actualizar la asistencia: ${response.body}');
+      }
+    } catch (e) {
+      return ApiResponse.error('Error de conexión al actualizar asistencia');
+    }
+  }
+
+  Future<ApiResponse<String>> deleteAsistance(String id) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/asistance/delete'),
+        headers: _formHeaders,
+        body: {'id': id},
+      );
+      if (response.statusCode == 200) {
+        return ApiResponse.success('Asistencia eliminada exitosamente');
+      } else {
+        return ApiResponse.error('No se pudo eliminar la asistencia: ${response.body}');
+      }
+    } catch (e) {
+      return ApiResponse.error('Error de conexión al eliminar asistencia');
+    }
+  }
+
+  Future<ApiResponse<List<AsistanceModel>>> getAllAsistances() async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/asistance/asistencias'),
+        headers: _headers,
+      );
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final asistencias = (data['asistencias'] as List?)
+            ?.map((json) => AsistanceModel.fromJson(json))
+            .toList() ?? [];
+        return ApiResponse.success(asistencias);
+      } else {
+        return ApiResponse.error('Error al cargar asistencias: ${response.body}');
+      }
+    } catch (e) {
+      return ApiResponse.error('Error de conexión al cargar asistencias');
+    }
+  }
+
+  Future<ApiResponse<List<AsistanceModel>>> getAsistancesByUser(String iduser) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/asistance/user?iduser=$iduser'),
+        headers: _headers,
+      );
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final asistencias = (data['asistencias'] as List?)
+            ?.map((json) => AsistanceModel.fromJson(json))
+            .toList() ?? [];
+        return ApiResponse.success(asistencias);
+      } else {
+        return ApiResponse.error('No se encontraron asistencias para ese usuario');
+      }
+    } catch (e) {
+      return ApiResponse.error('Error de conexión al buscar asistencias del usuario');
+    }
+  }
+}
+
+// CONTROLADOR DE FORMULARIO
+class AsistanceFormController {
+  final GlobalKey<FormState> formKey = GlobalKey<FormState>();
+  final TextEditingController idController = TextEditingController();
+  final TextEditingController iduserController = TextEditingController();
+  final TextEditingController horainicioController = TextEditingController();
+  final TextEditingController horafinalController = TextEditingController();
+  final TextEditingController fechaController = TextEditingController();
+
+  void clear() {
+    idController.clear();
+    iduserController.clear();
+    horainicioController.clear();
+    horafinalController.clear();
+    fechaController.clear();
+  }
+
+  void dispose() {
+    idController.dispose();
+    iduserController.dispose();
+    horainicioController.dispose();
+    horafinalController.dispose();
+    fechaController.dispose();
+  }
+}
+
+// WIDGET PRINCIPAL
+class AsistanceCrudWidget extends StatefulWidget {
+  final String token;
+  final VoidCallback? onSuccess;
+  final VoidCallback? onBack;
+
+  const AsistanceCrudWidget({
+    Key? key,
+    required this.token,
+    this.onSuccess,
+    this.onBack,
+  }) : super(key: key);
+
+  @override
+  State<AsistanceCrudWidget> createState() => _AsistanceCrudWidgetState();
+}
+
+class _AsistanceCrudWidgetState extends State<AsistanceCrudWidget>
+    with TickerProviderStateMixin, AutomaticKeepAliveClientMixin {
+  late TabController _tabController;
+  late AsistanceApiService _apiService;
+  bool _isLoading = false;
+  String? _message;
+  MessageType? _messageType;
+
+  List<AsistanceModel> _allAsistances = [];
+  List<AsistanceModel> _userAsistances = [];
+
+  final Map<String, AsistanceFormController> _formControllers = {};
+
+  @override
+  bool get wantKeepAlive => true;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 5, vsync: this);
+    _apiService = AsistanceApiService(token: widget.token);
+    _formControllers['create'] = AsistanceFormController();
+    _formControllers['update'] = AsistanceFormController();
+    _formControllers['delete'] = AsistanceFormController();
+    _formControllers['findByUser'] = AsistanceFormController();
+    _initializeData();
+  }
+
+  Future<void> _initializeData() async {
+    await Future.wait([
+      _loadNextId(),
+      _loadAllAsistances(),
+    ]);
+  }
+
+  Future<void> _loadNextId() async {
+    final response = await _apiService.getNextId();
+    if (response.isSuccess && response.data != null) {
+      _formControllers['create']?.idController.text = response.data.toString();
+    }
+  }
+
+  Future<void> _createAsistance() async {
+    final controller = _formControllers['create']!;
+    if (!controller.formKey.currentState!.validate()) return;
+    setState(() => _isLoading = true);
+    final asistance = AsistanceModel(
+      id: controller.idController.text.trim(),
+      iduser: controller.iduserController.text.trim(),
+      horainicio: controller.horainicioController.text.trim(),
+      horafinal: controller.horafinalController.text.trim(),
+      fecha: controller.fechaController.text.trim(),
+    );
+    final response = await _apiService.createAsistance(asistance);
+    setState(() => _isLoading = false);
+    if (response.isSuccess) {
+      controller.clear();
+      await Future.wait([_loadNextId(), _loadAllAsistances()]);
+      widget.onSuccess?.call();
+    }
+  }
+
+  Future<void> _updateAsistance() async {
+    final controller = _formControllers['update']!;
+    if (!controller.formKey.currentState!.validate()) return;
+    setState(() => _isLoading = true);
+    final asistance = AsistanceModel(
+      id: controller.idController.text.trim(),
+      iduser: controller.iduserController.text.trim(),
+      horainicio: controller.horainicioController.text.trim(),
+      horafinal: controller.horafinalController.text.trim(),
+      fecha: controller.fechaController.text.trim(),
+    );
+    final response = await _apiService.updateAsistance(asistance);
+    setState(() => _isLoading = false);
+    if (response.isSuccess) {
+      await _loadAllAsistances();
+    }
+  }
+
+  Future<void> _deleteAsistance() async {
+    final controller = _formControllers['delete']!;
+    if (!controller.formKey.currentState!.validate()) return;
+    final confirmed = await _showDeleteConfirmation();
+    if (!confirmed) return;
+    setState(() => _isLoading = true);
+    final response = await _apiService.deleteAsistance(controller.idController.text.trim());
+    setState(() => _isLoading = false);
+    if (response.isSuccess) {
+      controller.clear();
+      await Future.wait([_loadNextId(), _loadAllAsistances()]);
+    }
+  }
+
+  Future<bool> _showDeleteConfirmation() async {
+    return await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Confirmar eliminación'),
+        content: const Text('¿Está seguro de que desea eliminar esta asistencia?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: const Text('Cancelar'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            child: const Text('Eliminar'),
+          ),
+        ],
+      ),
+    ) ?? false;
+  }
+
+  Future<void> _loadAllAsistances() async {
+    setState(() => _isLoading = true);
+    final response = await _apiService.getAllAsistances();
+    setState(() {
+      _isLoading = false;
+      if (response.isSuccess) {
+        _allAsistances = response.data ?? [];
+      }
+    });
+  }
+
+  Future<void> _findAsistancesByUser() async {
+    final controller = _formControllers['findByUser']!;
+    if (!controller.formKey.currentState!.validate()) return;
+    setState(() => _isLoading = true);
+    final response = await _apiService.getAsistancesByUser(controller.iduserController.text.trim());
+    setState(() {
+      _isLoading = false;
+      if (response.isSuccess) {
+        _userAsistances = response.data ?? [];
+      }
+    });
+  }
+
+  Future<void> _selectTime(TextEditingController controller) async {
+    final TimeOfDay? picked = await showTimePicker(
+      context: context,
+      initialTime: TimeOfDay.now(),
+    );
+    if (picked != null) {
+      controller.text = picked.format(context);
+    }
+  }
+
+  Future<void> _selectDate(TextEditingController controller) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(2020),
+      lastDate: DateTime(2030),
+    );
+    if (picked != null) {
+      controller.text = picked.toString().split(' ')[0];
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    super.build(context);
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Gestión de Asistencias'),
+        backgroundColor: Colors.blue,
+        foregroundColor: Colors.white,
+        elevation: 2,
+        leading: widget.onBack != null
+            ? IconButton(
+                icon: const Icon(Icons.arrow_back),
+                onPressed: widget.onBack,
+              )
+            : null,
+        bottom: TabBar(
+          controller: _tabController,
+          isScrollable: true,
+          indicatorColor: Colors.white,
+          labelColor: Colors.white,
+          unselectedLabelColor: Colors.white70,
+          tabs: const [
+            Tab(icon: Icon(Icons.add), text: 'Crear'),
+            Tab(icon: Icon(Icons.edit), text: 'Actualizar'),
+            Tab(icon: Icon(Icons.delete), text: 'Eliminar'),
+            Tab(icon: Icon(Icons.list), text: 'Todas'),
+            Tab(icon: Icon(Icons.person_search), text: 'Por Usuario'),
+          ],
+        ),
+      ),
+      body: Column(
+        children: [
+          if (_message != null) _buildMessageBanner(),
+          Expanded(
+            child: TabBarView(
+              controller: _tabController,
+              children: [
+                _buildFormTab('create', _createAsistance, 'Crear Asistencia', Colors.blue, isCreate: true),
+                _buildFormTab('update', _updateAsistance, 'Actualizar Asistencia', Colors.purple),
+                _buildDeleteTab(),
+                _buildAllAsistancesTab(),
+                _buildAllAsistancesByUserIDTab(),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMessageBanner() {
+    final isError = _messageType == MessageType.error;
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      color: isError ? Colors.red[50] : Colors.green[50],
+      child: Row(
+        children: [
+          Icon(
+            isError ? Icons.error : Icons.check_circle,
+            color: isError ? Colors.red[700] : Colors.green[700],
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              _message!,
+              style: TextStyle(
+                color: isError ? Colors.red[900] : Colors.green[900],
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.close),
+            onPressed: () => setState(() {
+              _message = null;
+              _messageType = null;
+            }),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFormTab(String formKey, VoidCallback onSubmit, String buttonText, Color buttonColor, {bool isCreate = false}) {
+    final controller = _formControllers[formKey]!;
+    return Form(
+      key: controller.formKey,
+      child: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          CustomTextFormField(
+            controller: controller.idController,
+            label: 'ID',
+            keyboardType: TextInputType.number,
+            enabled: isCreate ? false : true, // Solo lectura en crear
+            validator: (v) => v == null || v.isEmpty ? 'Ingrese el ID' : null,
+          ),
+          const SizedBox(height: 16),
+          CustomTextFormField(
+            controller: controller.iduserController,
+            label: 'ID Usuario',
+            keyboardType: TextInputType.number,
+            validator: (v) => v == null || v.isEmpty ? 'Ingrese el ID del usuario' : null,
+          ),
+          const SizedBox(height: 16),
+          CustomTimeField(
+            controller: controller.horainicioController,
+            label: 'Hora Inicio',
+            onTap: () => _selectTime(controller.horainicioController),
+            validator: (v) => v == null || v.isEmpty ? 'Seleccione la hora de inicio' : null,
+          ),
+          const SizedBox(height: 16),
+          CustomTimeField(
+            controller: controller.horafinalController,
+            label: 'Hora Final',
+            onTap: () => _selectTime(controller.horafinalController),
+            validator: (v) => v == null || v.isEmpty ? 'Seleccione la hora de finalización' : null,
+          ),
+          const SizedBox(height: 16),
+          CustomDateField(
+            controller: controller.fechaController,
+            label: 'Fecha',
+            onTap: () => _selectDate(controller.fechaController),
+            validator: (v) => v == null || v.isEmpty ? 'Seleccione la fecha' : null,
+          ),
+          const SizedBox(height: 32),
+          CustomElevatedButton(
+            onPressed: _isLoading ? null : onSubmit,
+            backgroundColor: buttonColor,
+            isLoading: _isLoading,
+            child: Text(buttonText),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDeleteTab() {
+    final controller = _formControllers['delete']!;
+    return Form(
+      key: controller.formKey,
+      child: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          CustomTextFormField(
+            controller: controller.idController,
+            label: 'ID a eliminar',
+            keyboardType: TextInputType.number,
+            validator: (v) => v == null || v.isEmpty ? 'Ingrese el ID a eliminar' : null,
+          ),
+          const SizedBox(height: 32),
+          CustomElevatedButton(
+            onPressed: _isLoading ? null : _deleteAsistance,
+            backgroundColor: Colors.red,
+            isLoading: _isLoading,
+            child: const Text('Eliminar Asistencia'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildAllAsistancesTab() {
+    if (_isLoading && _allAsistances.isEmpty) {
+      return const Center(child: CircularProgressIndicator());
+    }
+    if (_allAsistances.isEmpty) {
+      return const Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.inbox, size: 64, color: Colors.grey),
+            SizedBox(height: 16),
+            Text('No hay asistencias registradas', style: TextStyle(fontSize: 18, color: Colors.grey)),
+          ],
+        ),
+      );
+    }
+    return RefreshIndicator(
+      onRefresh: _loadAllAsistances,
+      child: ListView.builder(
+        padding: const EdgeInsets.all(8),
+        itemCount: _allAsistances.length,
+        itemBuilder: (context, index) {
+          final asis = _allAsistances[index];
+          return AsistanceCard(asistance: asis);
+        },
+      ),
+    );
+  }
+
+  Widget _buildAllAsistancesByUserIDTab() {
+    final controller = _formControllers['findByUser']!;
+    return Form(
+      key: controller.formKey,
+      child: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          CustomTextFormField(
+            controller: controller.iduserController,
+            label: 'ID Usuario',
+            keyboardType: TextInputType.number,
+            validator: (v) => v == null || v.isEmpty ? 'Ingrese ID de usuario' : null,
+          ),
+          const SizedBox(height: 16),
+          CustomElevatedButton(
+            onPressed: _isLoading ? null : _findAsistancesByUser,
+            backgroundColor: Colors.blue,
+            isLoading: _isLoading,
+            child: const Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.person_search),
+                SizedBox(width: 8),
+                Text('Buscar'),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
+          if (_userAsistances.isEmpty && !_isLoading)
+            const Text(
+              'No hay asistencias para ese usuario.',
+              style: TextStyle(color: Colors.grey),
+            ),
+          ..._userAsistances.map((asistencia) => Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: AsistanceCard(asistance: asistencia),
+          )),
+        ],
+      ),
+    );
+  }
+}
+
+// WIDGETS PERSONALIZADOS
+
+class CustomTimeField extends StatelessWidget {
+  final TextEditingController controller;
+  final String label;
+  final VoidCallback onTap;
+  final String? Function(String?)? validator;
+
+  const CustomTimeField({
+    Key? key,
+    required this.controller,
+    required this.label,
+    required this.onTap,
+    this.validator,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return TextFormField(
+      controller: controller,
+      readOnly: true,
+      decoration: InputDecoration(
+        labelText: label,
+        border: const OutlineInputBorder(),
+        suffixIcon: const Icon(Icons.access_time),
+      ),
+      onTap: onTap,
+      validator: validator,
+    );
+  }
+}
+
+class AsistanceCard extends StatelessWidget {
+  final AsistanceModel asistance;
+
+  const AsistanceCard({Key? key, required this.asistance}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      elevation: 2,
+      margin: const EdgeInsets.symmetric(vertical: 4),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Text(
+                  'ID: ${asistance.id ?? 'N/A'}',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.grey,
+                  ),
+                ),
+                const Spacer(),
+                Text(
+                  asistance.fecha ?? 'Sin fecha',
+                  style: TextStyle(color: Colors.grey[700]),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Icon(Icons.person, size: 16, color: Colors.grey[600]),
+                const SizedBox(width: 4),
+                Text(
+                  'Usuario: ${asistance.iduser ?? 'N/A'}',
+                  style: TextStyle(color: Colors.grey[600]),
+                ),
+                const Spacer(),
+                Icon(Icons.access_time, size: 16, color: Colors.grey[600]),
+                const SizedBox(width: 4),
+                Text(
+                  '${asistance.horainicio ?? ''} - ${asistance.horafinal ?? ''}',
+                  style: TextStyle(color: Colors.grey[600]),
+                ),
+              ],
+            ),
           ],
         ),
       ),
