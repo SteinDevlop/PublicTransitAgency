@@ -13,15 +13,14 @@ jobs:
     steps:
       - name: Escanear API con OWASP ZAP (docker run manual)
         run: |
-          echo "Comando real:"
-          echo "docker run --name zapscan --network=host ghcr.io/zaproxy/zaproxy:stable zap-baseline.py -t http://127.0.0.1:8000/docs -J /tmp/report_json.json -w /tmp/report_md.md -r /tmp/report_html.html"
           docker run --name zapscan --network=host \
             ghcr.io/zaproxy/zaproxy:stable zap-baseline.py \
               -t http://127.0.0.1:8000/docs \
-              -J /tmp/report_json.json \
-              -w /tmp/report_md.md \
-              -r /tmp/report_html.html
-          docker logs zapscan
-          docker cp zapscan:/tmp/report_html.html ./report_html.html
-          docker cp zapscan:/tmp/report_md.md ./report_md.md
-          docker rm -f zapscan
+              -J report_json.json \
+              -w report_md.md \
+              -r report_html.html \
+              -o /tmp/
+          docker logs zapscan || echo "No logs disponibles"
+          docker cp zapscan:/tmp/report_html.html ./report_html.html || echo "No se pudo copiar report_html.html"
+          docker cp zapscan:/tmp/report_md.md ./report_md.md || echo "No se pudo copiar report_md.md"
+          docker rm -f zapscan || true
