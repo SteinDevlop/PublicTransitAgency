@@ -31,13 +31,15 @@ jobs:
       - name: Escanear API con OWASP ZAP (docker run manual)
         run: |
           docker run --rm \
-            -v ${{ github.workspace }}:/zap/wrk/:rw \
             --network=host \
+            -v ${{ github.workspace }}:/zap/wrk/:rw \
             ghcr.io/zaproxy/zaproxy:stable zap-baseline.py \
               -t http://localhost:8000/docs \
-              -J report_json.json \
-              -w report_md.md \
-              -r report_html.html
+              -J /tmp/report_json.json \
+              -w /tmp/report_md.md \
+              -r /tmp/report_html.html
+          docker cp $(docker ps -alq):/tmp/report_html.html ${{ github.workspace }}/report_html.html || true
+          docker cp $(docker ps -alq):/tmp/report_md.md ${{ github.workspace }}/report_md.md || true
 
       - name: Mostrar reporte ZAP en logs (markdown)
         run: |
