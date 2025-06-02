@@ -19,7 +19,7 @@ jobs:
           docker run -d --name app -p 8000:8000 \
             -e DATABASE_URL="jdbc:sqlserver://nodossolutions.com:1435;databaseName=${{ secrets.SQL_DATABASE_NAME }}" \
             -e DB_USER=${{ secrets.SQL_USER }} \
-            -e DB_PASS=${{ secrets.SQL_PASSWORD }} \
+            -e DB_PASSWORD=${{ secrets.SQL_PASSWORD }} \
             gitzerohub/publictransitagency:latest
           sleep 20
 
