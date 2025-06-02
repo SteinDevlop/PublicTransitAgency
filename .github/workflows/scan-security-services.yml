@@ -13,21 +13,24 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Instalar dependencias y levantar FastAPI
+      - name: Instalar dependencias
         run: |
           pip install -r requirements.txt
-          # Cambia 'app.main:app' por el módulo y objeto de tu app FastAPI
-          uvicorn src.backend.app.api.main:app --host 0.0.0.0 --port 8000 &
-          sleep 8  # Espera a que el servidor arranque
 
-      - name: Escanear API con OWASP ZAP (usando Swagger/OpenAPI)
+      - name: Exporta PYTHONPATH y levanta FastAPI
+        run: |
+          export PYTHONPATH=$PYTHONPATH:$(pwd)/src
+          uvicorn backend.app.api.main:app --host 0.0.0.0 --port 8000 &
+          sleep 10
+
+      - name: Escanear API con OWASP ZAP
         uses: zaproxy/action-baseline@v0.10.0
         with:
-          target: 'http://127.0.0.1:8000/docs'
-          report: 'zap_report.html'
+          target: 'http://localhost:8000/docs'
+          artifact_name: 'zap-report'
 
       - name: Subir reporte de ZAP como artefacto
         uses: actions/upload-artifact@v4
         with:
           name: zap-report
-          path: zap_report.html
+          path: report_html.html
