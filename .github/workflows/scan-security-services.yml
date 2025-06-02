@@ -25,9 +25,6 @@ jobs:
             gitzerohub/publictransitagency:latest
           sleep 20
 
-      - name: Muestra logs del contenedor FastAPI (si falla)
-        run: docker logs app || true
-
       - name: Verifica que FastAPI responde
         run: curl http://localhost:8000/docs
 
@@ -35,13 +32,9 @@ jobs:
         uses: zaproxy/action-baseline@v0.10.0
         with:
           target: 'http://localhost:8000/docs'
-          artifact_name: 'zap'    # <--- cambia a zapreport, sin guion
 
-      - name: Lista archivos para depuración
-        run: ls -lh
-
-      - name: Subir reporte de ZAP como artefacto
-        uses: actions/upload-artifact@v4
-        with:
-          name: zap
-          path: report_html.html
+      - name: Mostrar reporte ZAP en logs
+        run: |
+          echo "========== INICIO REPORTE ZAP (HTML) =========="
+          cat report_html.html
+          echo "========== FIN REPORTE ZAP (HTML) =========="
