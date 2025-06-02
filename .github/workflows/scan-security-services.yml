@@ -31,8 +31,14 @@ jobs:
       - name: Verifica que FastAPI responde
         run: curl http://localhost:8000/docs
 
+      - name: Debug path
+        run: |
+          echo "Workspace: ${{ github.workspace }}"
+          ls -la ${{ github.workspace }}
+
       - name: Escanear API con OWASP ZAP (docker run manual)
         run: |
+          echo "Comando: zap-baseline.py -t http://localhost:8000/docs -J /zap/wrk/report_json.json -w /zap/wrk/report_md.md -r /zap/wrk/report_html.html"
           docker run --rm \
             -v ${{ github.workspace }}:/zap/wrk/:rw \
             --network=host \
