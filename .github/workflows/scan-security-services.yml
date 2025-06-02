@@ -25,28 +25,21 @@ jobs:
             gitzerohub/publictransitagency:latest
           sleep 20
 
-      - name: Da permisos de escritura a la carpeta de trabajo
-        run: chmod -R 777 ${{ github.workspace }}
-
       - name: Verifica que FastAPI responde
         run: curl http://localhost:8000/docs
 
-      - name: Debug path
-        run: |
-          echo "Workspace: ${{ github.workspace }}"
-          ls -la ${{ github.workspace }}
-
       - name: Escanear API con OWASP ZAP (docker run manual)
         run: |
-          docker run --rm \
-            --network=host \
+          docker run -d --name zapscan --network=host \
             ghcr.io/zaproxy/zaproxy:stable zap-baseline.py \
               -t http://localhost:8000/docs \
               -J /tmp/report_json.json \
               -w /tmp/report_md.md \
               -r /tmp/report_html.html
-          docker cp $(docker ps -alq):/tmp/report_html.html ./report_html.html || echo "No se pudo copiar report_html.html"
-          docker cp $(docker ps -alq):/tmp/report_md.md ./report_md.md || echo "No se pudo copiar report_md.md"
+          docker logs -f zapscan
+          docker cp zapscan:/tmp/report_html.html ./report_html.html || echo "No se pudo copiar report_html.html"
+          docker cp zapscan:/tmp/report_md.md ./report_md.md || echo "No se pudo copiar report_md.md"
+          docker rm -f zapscan
 
       - name: Mostrar reporte ZAP en logs (markdown)
         run: |
