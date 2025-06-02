@@ -17,7 +17,7 @@ jobs:
         run: |
           docker pull gitzerohub/publictransitagency:latest
           docker run -d --name app -p 8000:8000 \
-            -e DATABASE_URL="jdbc:sqlserver://nodossolutions.com:1435;databaseName=${{ secrets.SQL_DATABASE_NAME }}" \
+            -e DATABASE_URL="jdbc:sqlserver://nodossolutions.com:1435;databaseName=${{ secrets.DB }}" \
             -e DB_USER=${{ secrets.USER }} \
             -e PASSWORD=${{ secrets.PASSWORD }} \
             gitzerohub/publictransitagency:latest
