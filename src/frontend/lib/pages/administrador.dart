@@ -649,21 +649,6 @@ _buildMenuItem(
                             color: primaryColor,
                             buttons: [
                               _buildCrudButton(
-                                  '➕ Añadir Tarifa',
-                                  () => showDialog(
-                                  context: context,
-                                  builder: (_) => Dialog(
-                                    child: Padding(
-                                      padding: const EdgeInsets.all(24),
-                                      child: _PriceCreateWidget(
-                                        token: token,
-                                        onBack: () => Navigator.of(context).pop(),
-                                        onSuccess: () => Navigator.pop(context)),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              _buildCrudButton(
                                   '📄 Leer Tarifa',
                                   () => Navigator.pushNamed(
                                       context, '/price/consultar')),
