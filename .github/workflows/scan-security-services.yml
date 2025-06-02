@@ -36,7 +36,9 @@ jobs:
               -J /tmp/report_json.json \
               -w /tmp/report_md.md \
               -r /tmp/report_html.html || echo "ZAP terminó con error"
+          echo "=== LOGS DE ZAP ==="
           docker logs zapscan || echo "No logs disponibles"
+          echo "=== FIN LOGS DE ZAP ==="
           docker cp zapscan:/tmp/report_html.html ./report_html.html || echo "No se pudo copiar report_html.html"
           docker cp zapscan:/tmp/report_md.md ./report_md.md || echo "No se pudo copiar report_md.md"
           docker rm -f zapscan || true
