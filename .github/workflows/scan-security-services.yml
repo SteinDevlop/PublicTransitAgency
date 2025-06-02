@@ -33,7 +33,13 @@ jobs:
         with:
           target: 'http://localhost:8000/docs'
 
-      - name: Mostrar reporte ZAP en logs
+      - name: Mostrar reporte ZAP en logs (markdown)
+        run: |
+          echo "========== INICIO REPORTE ZAP (MD) =========="
+          cat report_md.md
+          echo "========== FIN REPORTE ZAP (MD) =========="
+
+      - name: Mostrar reporte ZAP en logs (html)
         run: |
           echo "========== INICIO REPORTE ZAP (HTML) =========="
           cat report_html.html
