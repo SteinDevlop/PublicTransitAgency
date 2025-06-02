@@ -11,44 +11,17 @@ jobs:
   zap_scan:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v3
-
-      - name: Levanta el contenedor FastAPI
-        run: |
-          docker pull gitzerohub/publictransitagency:latest
-          docker run -d --name app -p 8000:8000 \
-            -e HOST=${{ secrets.HOST }} \
-            -e PORT=${{ secrets.PORT }} \
-            -e DB=${{ secrets.DB }} \
-            -e USER=${{ secrets.USER }} \
-            -e PASSWORD=${{ secrets.PASSWORD }} \
-            gitzerohub/publictransitagency:latest
-          sleep 25
-
-      - name: Verifica que FastAPI responde
-        run: curl --retry 10 --retry-delay 5 http://127.0.0.1:8000/docs
-
       - name: Escanear API con OWASP ZAP (docker run manual)
         run: |
+          echo "Comando real:"
+          echo "docker run --name zapscan --network=host ghcr.io/zaproxy/zaproxy:stable zap-baseline.py -t http://127.0.0.1:8000/docs -J /tmp/report_json.json -w /tmp/report_md.md -r /tmp/report_html.html"
           docker run --name zapscan --network=host \
             ghcr.io/zaproxy/zaproxy:stable zap-baseline.py \
               -t http://127.0.0.1:8000/docs \
               -J /tmp/report_json.json \
               -w /tmp/report_md.md \
-              -r /tmp/report_html.html || echo "ZAP terminó con error"
-          docker logs zapscan || echo "No logs disponibles"
-          docker cp zapscan:/tmp/report_html.html ./report_html.html || echo "No se pudo copiar report_html.html"
-          docker cp zapscan:/tmp/report_md.md ./report_md.md || echo "No se pudo copiar report_md.md"
-          docker rm -f zapscan || true
-
-      - name: Mostrar reporte ZAP en logs (markdown)
-        run: |
-          echo "========== INICIO REPORTE ZAP (MD) =========="
-          cat report_md.md || echo "No se generó el archivo report_md.md"
-          echo "========== FIN REPORTE ZAP (MD) =========="
-
-      - name: Mostrar reporte ZAP en logs (html)
-        run: |
-          echo "========== INICIO REPORTE ZAP (HTML) =========="
-          cat report_html.html || echo "No se generó el archivo report_html.html"
-          echo "========== FIN REPORTE ZAP (HTML) =========="
+              -r /tmp/report_html.html
+          docker logs zapscan
+          docker cp zapscan:/tmp/report_html.html ./report_html.html
+          docker cp zapscan:/tmp/report_md.md ./report_md.md
+          docker rm -f zapscan
