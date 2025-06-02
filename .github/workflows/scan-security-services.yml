@@ -20,7 +20,7 @@ jobs:
             -e HOST=${{ secrets.HOST }} \
             -e PORT=${{ secrets.PORT }} \
             -e DB=${{ secrets.DB }} \
-            -e USER=${{ secrets.USER}}\
+            -e USER=${{ secrets.USER }} \
             -e PASSWORD=${{ secrets.PASSWORD }} \
             gitzerohub/publictransitagency:latest
           sleep 20
@@ -35,7 +35,7 @@ jobs:
         uses: zaproxy/action-baseline@v0.10.0
         with:
           target: 'http://localhost:8000/docs'
-          artifact_name: 'zap-report'
+          artifact_name: 'zapreport'    # <--- cambia a zapreport, sin guion
 
       - name: Lista archivos para depuración
         run: ls -lh
