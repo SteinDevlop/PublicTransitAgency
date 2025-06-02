@@ -37,8 +37,11 @@ jobs:
           target: 'http://localhost:8000/docs'
           artifact_name: 'zap-report'
 
+      - name: Lista archivos para depuración
+        run: ls -lh
+
       - name: Subir reporte de ZAP como artefacto
         uses: actions/upload-artifact@v4
         with:
-          name: zap-report
+          name: zapreport
           path: report_html.html
