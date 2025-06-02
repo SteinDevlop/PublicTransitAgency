@@ -10,7 +10,7 @@ app_for_test.mount("/static", StaticFiles(directory="src/frontend/static"), name
 client = TestClient(app_for_test)
 
 def test_create_movement():
-    response = client.post("/movement/create", data={"ID": 1, "IDTipoMovimiento": 2, "Monto": 100}, headers=headers)
+    response = client.post("/movement/create", data={"ID": 1, "IDTipoMovimiento": 2, "Monto": 100,"IDTarjeta":1}, headers=headers)
     assert response.status_code == 201
     data = response.json()
     assert data["success"] is True
@@ -19,7 +19,7 @@ def test_create_movement():
 
 def test_update_movement_existing():
     # Primero lo creamos si no existe
-    response = client.post("/movement/update", data={"ID": 1, "IDTipoMovimiento": 2, "Monto": 90000}, headers=headers)
+    response = client.post("/movement/update", data={"ID": 1, "IDTipoMovimiento": 2, "Monto": 90000,"IDTarjeta":1}, headers=headers)
     assert response.status_code == 200
     data = response.json()
     assert data["success"] is True
@@ -28,7 +28,7 @@ def test_update_movement_existing():
     assert data["data"]["Monto"] == 90000
 
 def test_update_movement_not_found():
-    response = client.post("/movement/update", data={"ID": 99, "IDTipoMovimiento": 5, "Monto": 2200}, headers=headers)
+    response = client.post("/movement/update", data={"ID": 99, "IDTipoMovimiento": 5, "Monto": 2200,"IDTarjeta":1}, headers=headers)
     assert response.status_code == 404
     assert response.json()["detail"] == "Movement not found"
 

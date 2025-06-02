@@ -44,12 +44,13 @@ def test_get_movement_by_id_found(monkeypatch):
     Prueba que la ruta '/movement/administrador/byid' devuelve un movimiento correcto en JSON.
     """
     # Puedes cambiar el ID a uno existente en tus fixtures o en la base de datos de test
-    response = client.get("/movement/administrador/byid?ID=2", headers=headers)
+    response = client.get("/movement/administrador/byid?ID=12190770", headers=headers)
     assert response.status_code == 200
     data = response.json()
     assert "ID" in data
     assert "IDTipoMovimiento" in data
     assert "Monto" in data
+    assert "IDTarjeta" in data
 
 def test_get_movement_by_id_not_found(monkeypatch):
     """
