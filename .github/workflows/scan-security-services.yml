@@ -16,11 +16,14 @@ jobs:
       - name: Levanta el contenedor FastAPI
         run: |
           docker pull gitzerohub/publictransitagency:latest
-          docker run -d --name app -p 8000:8000 gitzerohub/publictransitagency:latest
-          sleep 20  # Ajusta si tu app tarda más en levantar
+          docker run -d --name app -p 8000:8000 \
+            -e DATABASE_URL="jdbc:sqlserver://nodossolutions.com:1435;databaseName=${{ secrets.SQL_DATABASE_NAME }}" \
+            -e DB_USER=${{ secrets.SQL_USER }} \
+            -e DB_PASS=${{ secrets.SQL_PASSWORD }} \
+            gitzerohub/publictransitagency:latest
+          sleep 20
 
       - name: Muestra logs del contenedor FastAPI (si falla)
-        if: failure()
         run: docker logs app || true
 
       - name: Verifica que FastAPI responde
