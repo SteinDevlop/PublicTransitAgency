@@ -650,8 +650,19 @@ _buildMenuItem(
                             buttons: [
                               _buildCrudButton(
                                   '➕ Añadir Tarifa',
-                                  () => Navigator.pushNamed(
-                                      context, '/price/crear')),
+                                  () => showDialog(
+                                  context: context,
+                                  builder: (_) => Dialog(
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(24),
+                                      child: _PriceCreateWidget(
+                                        token: token,
+                                        onBack: () => Navigator.of(context).pop(),
+                                        onSuccess: () => Navigator.pop(context)),
+                                      ),
+                                    ),
+                                  ),
+                                ),
                               _buildCrudButton(
                                   '📄 Leer Tarifa',
                                   () => Navigator.pushNamed(
@@ -4542,7 +4553,6 @@ class PqrModel {
   final String? iduser;
   final String? tipo;
   final String? descripcion;
-  final String? estado;
   final String? fecha;
 
   PqrModel({
@@ -4550,7 +4560,6 @@ class PqrModel {
     this.iduser,
     this.tipo,
     this.descripcion,
-    this.estado,
     this.fecha,
   });
 
@@ -4560,7 +4569,6 @@ class PqrModel {
       iduser: json['iduser']?.toString(),
       tipo: json['tipo'],
       descripcion: json['descripcion'],
-      estado: json['estado'],
       fecha: json['fecha'],
     );
   }
@@ -4571,7 +4579,6 @@ class PqrModel {
       if (iduser != null) 'iduser': iduser!,
       if (tipo != null) 'tipo': tipo!,
       if (descripcion != null) 'descripcion': descripcion!,
-      if (estado != null) 'estado': estado!,
       if (fecha != null) 'fecha': fecha!,
     };
   }
@@ -4734,7 +4741,6 @@ class PqrFormController {
   final TextEditingController iduserController = TextEditingController();
   final TextEditingController tipoController = TextEditingController();
   final TextEditingController descripcionController = TextEditingController();
-  final TextEditingController estadoController = TextEditingController();
   final TextEditingController fechaController = TextEditingController();
 
   void clear() {
@@ -4742,7 +4748,6 @@ class PqrFormController {
     iduserController.clear();
     tipoController.clear();
     descripcionController.clear();
-    estadoController.clear();
     fechaController.clear();
   }
 
@@ -4751,12 +4756,21 @@ class PqrFormController {
     iduserController.dispose();
     tipoController.dispose();
     descripcionController.dispose();
-    estadoController.dispose();
     fechaController.dispose();
   }
 }
 
 enum MessageType { success, error }
+
+// TIPOS DE PQR
+const List<String> kTipoPqrOptions = [
+  "Petición",
+  "Queja",
+  "Reclamo",
+  "Sugerencia",
+  "Felicitación",
+  "Otro",
+];
 
 // WIDGET PRINCIPAL
 class PqrCrudWidget extends StatefulWidget {
@@ -4781,6 +4795,7 @@ class _PqrCrudWidgetState extends State<PqrCrudWidget>
   late PqrApiService _apiService;
   bool _isLoading = false;
   String? _message;
+  String? _lastLoadedId;
   MessageType? _messageType;
 
   List<PqrModel> _allPqrs = [];
@@ -4791,7 +4806,7 @@ class _PqrCrudWidgetState extends State<PqrCrudWidget>
   @override
   bool get wantKeepAlive => true;
 
-  @override
+    @override
   void initState() {
     super.initState();
     _tabController = TabController(length: 5, vsync: this);
@@ -4813,10 +4828,12 @@ class _PqrCrudWidgetState extends State<PqrCrudWidget>
   Future<void> _loadNextId() async {
     final response = await _apiService.getNextId();
     if (response.isSuccess && response.data != null) {
-      _formControllers['create']?.idController.text = response.data.toString();
+      setState(() {
+        _formControllers['create']?.idController.text = response.data.toString();
+        _lastLoadedId = response.data.toString(); // <--- fuerza rebuild
+      });
     }
   }
-
   Future<void> _createPqr() async {
     final controller = _formControllers['create']!;
     if (!controller.formKey.currentState!.validate()) return;
@@ -4826,7 +4843,6 @@ class _PqrCrudWidgetState extends State<PqrCrudWidget>
       iduser: controller.iduserController.text.trim(),
       tipo: controller.tipoController.text.trim(),
       descripcion: controller.descripcionController.text.trim(),
-      estado: controller.estadoController.text.trim(),
       fecha: controller.fechaController.text.trim(),
     );
     final response = await _apiService.createPqr(pqr);
@@ -4847,7 +4863,6 @@ class _PqrCrudWidgetState extends State<PqrCrudWidget>
       iduser: controller.iduserController.text.trim(),
       tipo: controller.tipoController.text.trim(),
       descripcion: controller.descripcionController.text.trim(),
-      estado: controller.estadoController.text.trim(),
       fecha: controller.fechaController.text.trim(),
     );
     final response = await _apiService.updatePqr(pqr);
@@ -5012,13 +5027,20 @@ class _PqrCrudWidgetState extends State<PqrCrudWidget>
     );
   }
 
-  Widget _buildFormTab(String formKey, VoidCallback onSubmit, String buttonText, Color buttonColor, {bool isCreate = false}) {
+  Widget _buildFormTab(
+    String formKey,
+    VoidCallback onSubmit,
+    String buttonText,
+    Color buttonColor, {
+    bool isCreate = false,
+  }) {
     final controller = _formControllers[formKey]!;
     return Form(
       key: controller.formKey,
       child: ListView(
         padding: const EdgeInsets.all(16),
         children: [
+          const SizedBox(height: 16),
           CustomTextFormField(
             controller: controller.idController,
             label: 'ID',
@@ -5034,11 +5056,12 @@ class _PqrCrudWidgetState extends State<PqrCrudWidget>
             validator: (v) => v == null || v.isEmpty ? 'Ingrese el ID del usuario' : null,
           ),
           const SizedBox(height: 16),
-          CustomTextFormField(
+          // Menú desplegable para tipo
+          CustomDropdownFormField(
             controller: controller.tipoController,
             label: 'Tipo',
-            keyboardType: TextInputType.text,
-            validator: (v) => v == null || v.isEmpty ? 'Ingrese el tipo de PQR' : null,
+            items: kTipoPqrOptions,
+            validator: (v) => v == null || v.isEmpty ? 'Seleccione el tipo de PQR' : null,
           ),
           const SizedBox(height: 16),
           CustomTextFormField(
@@ -5046,13 +5069,6 @@ class _PqrCrudWidgetState extends State<PqrCrudWidget>
             label: 'Descripción',
             keyboardType: TextInputType.text,
             validator: (v) => v == null || v.isEmpty ? 'Ingrese la descripción' : null,
-          ),
-          const SizedBox(height: 16),
-          CustomTextFormField(
-            controller: controller.estadoController,
-            label: 'Estado',
-            keyboardType: TextInputType.text,
-            validator: (v) => v == null || v.isEmpty ? 'Ingrese el estado' : null,
           ),
           const SizedBox(height: 16),
           CustomDateField(
@@ -5204,6 +5220,42 @@ class CustomTextFormField extends StatelessWidget {
   }
 }
 
+class CustomDropdownFormField extends StatelessWidget {
+  final TextEditingController controller;
+  final String label;
+  final List<String> items;
+  final String? Function(String?)? validator;
+
+  const CustomDropdownFormField({
+    Key? key,
+    required this.controller,
+    required this.label,
+    required this.items,
+    this.validator,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return DropdownButtonFormField<String>(
+      value: controller.text.isNotEmpty && items.contains(controller.text) ? controller.text : null,
+      items: items
+          .map((item) => DropdownMenuItem<String>(
+                value: item,
+                child: Text(item),
+              ))
+          .toList(),
+      onChanged: (value) {
+        controller.text = value ?? '';
+      },
+      decoration: InputDecoration(
+        labelText: label,
+        border: const OutlineInputBorder(),
+      ),
+      validator: validator,
+    );
+  }
+}
+
 class CustomDateField extends StatelessWidget {
   final TextEditingController controller;
   final String label;
@@ -5312,7 +5364,6 @@ class PqrCard extends StatelessWidget {
             Text('Usuario: ${pqr.iduser ?? 'N/A'}'),
             Text('Tipo: ${pqr.tipo ?? 'N/A'}'),
             Text('Descripción: ${pqr.descripcion ?? 'N/A'}'),
-            Text('Estado: ${pqr.estado ?? 'N/A'}'),
           ],
         ),
       ),
@@ -6792,6 +6843,205 @@ class AsistanceCard extends StatelessWidget {
               ],
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+///
+///PRICE CUD SERVICE
+//CREATE
+// MODELO
+class PriceModel {
+  final int id;
+  final int idTipoTransporte;
+  final double monto;
+
+  PriceModel({
+    required this.id,
+    required this.idTipoTransporte,
+    required this.monto,
+  });
+
+  Map<String, String> toFormData() {
+    return {
+      "ID": id.toString(),
+      "IDTipoTransporte": idTipoTransporte.toString(),
+      "Monto": monto.toString(),
+    };
+  }
+}
+
+// SERVICIO API
+class PriceApiService {
+  final String baseUrl;
+  final String token;
+
+  PriceApiService({required this.baseUrl, required this.token});
+
+  Future<ApiResponse<String>> createPrice(PriceModel price) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/create'),
+        headers: {
+          'Authorization': 'Bearer $token',
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'Accept': 'application/json',
+        },
+        body: price.toFormData(),
+      );
+      if (response.statusCode == 201) {
+        final data = json.decode(response.body);
+        return ApiResponse.success(data["message"] ?? "Creado correctamente");
+      } else {
+        final data = json.decode(response.body);
+        return ApiResponse.error(data["detail"] ?? "Error al crear precio");
+      }
+    } catch (e) {
+      return ApiResponse.error("Error de conexión: $e");
+    }
+  }
+}
+
+// WIDGET
+class PriceCreateWidget extends StatefulWidget {
+  final String baseUrl;
+  final String token;
+  final VoidCallback? onSuccess;
+  final VoidCallback? onBack;
+  const PriceCreateWidget({Key? key, 
+    required this.baseUrl,
+    required this.token,
+    this.onSuccess,
+    this.onBack,
+    }) : super(key: key);
+
+  @override
+  State<PriceCreateWidget> createState() => _PriceCreateWidgetState();
+}
+
+class _PriceCreateWidgetState extends State<PriceCreateWidget> {
+  final _formKey = GlobalKey<FormState>();
+  final _idController = TextEditingController();
+  final _idTipoTransporteController = TextEditingController();
+  final _montoController = TextEditingController();
+
+  bool _isLoading = false;
+  String? _message;
+  bool _isSuccess = false;
+
+  late PriceApiService _apiService;
+
+  @override
+  void initState() {
+    super.initState();
+    _apiService = PriceApiService(baseUrl: widget.baseUrl, token: widget.token);
+  }
+
+  @override
+  void dispose() {
+    _idController.dispose();
+    _idTipoTransporteController.dispose();
+    _montoController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _submit() async {
+    if (!_formKey.currentState!.validate()) return;
+    setState(() {
+      _isLoading = true;
+      _message = null;
+    });
+
+    final price = PriceModel(
+      id: int.parse(_idController.text),
+      idTipoTransporte: int.parse(_idTipoTransporteController.text),
+      monto: double.parse(_montoController.text),
+    );
+
+    final response = await _apiService.createPrice(price);
+    setState(() {
+      _isLoading = false;
+      _message = response.isSuccess ? response.data : response.error;
+      _isSuccess = response.isSuccess;
+      if (response.isSuccess) {
+        _formKey.currentState?.reset();
+      }
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Crear Precio')),
+      body: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Form(
+          key: _formKey,
+          child: ListView(
+            children: [
+              if (_message != null)
+                Container(
+                  margin: const EdgeInsets.only(bottom: 20),
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: _isSuccess ? Colors.green[100] : Colors.red[100],
+                    borderRadius: BorderRadius.circular(6),
+                  ),
+                  child: Text(
+                    _message!,
+                    style: TextStyle(
+                      color: _isSuccess ? Colors.green[800] : Colors.red[800],
+                    ),
+                  ),
+                ),
+              TextFormField(
+                controller: _idController,
+                decoration: const InputDecoration(
+                  labelText: 'ID',
+                  border: OutlineInputBorder(),
+                ),
+                keyboardType: TextInputType.number,
+                validator: (v) => v == null || v.isEmpty ? 'Ingrese el ID' : null,
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _idTipoTransporteController,
+                decoration: const InputDecoration(
+                  labelText: 'ID Tipo Transporte',
+                  border: OutlineInputBorder(),
+                ),
+                keyboardType: TextInputType.number,
+                validator: (v) => v == null || v.isEmpty ? 'Ingrese el ID de Tipo de Transporte' : null,
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _montoController,
+                decoration: const InputDecoration(
+                  labelText: 'Monto',
+                  border: OutlineInputBorder(),
+                ),
+                keyboardType: TextInputType.numberWithOptions(decimal: true),
+                validator: (v) {
+                  if (v == null || v.isEmpty) return 'Ingrese el monto';
+                  final val = double.tryParse(v);
+                  if (val == null || val <= 0) return 'Monto no válido';
+                  return null;
+                },
+              ),
+              const SizedBox(height: 32),
+              SizedBox(
+                width: double.infinity,
+                height: 48,
+                child: ElevatedButton(
+                  onPressed: _isLoading ? null : _submit,
+                  child: _isLoading
+                      ? const CircularProgressIndicator(color: Colors.white)
+                      : const Text('Crear Precio'),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
