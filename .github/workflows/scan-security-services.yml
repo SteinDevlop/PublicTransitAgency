@@ -40,14 +40,16 @@ jobs:
           head -30 openapi.json
           jq . < openapi.json || echo "No es JSON válido"
 
-      - name: Asegura que el OpenAPI spec tiene servers
+      - name: Asegura que el OpenAPI spec tiene servers (host.docker.internal)
         run: |
           if ! jq '.servers' openapi.json | grep http; then
-            jq '. + {servers: [{"url": "http://localhost:8000"}]}' openapi.json > openapi.fixed.json
+            jq '. + {servers: [{"url": "http://host.docker.internal:8000"}]}' openapi.json > openapi.fixed.json
             mv openapi.fixed.json openapi.json
             echo "Agregado servers al spec"
           else
-            echo "El spec ya tiene servers"
+            jq '.servers[0].url = "http://host.docker.internal:8000"' openapi.json > openapi.fixed.json
+            mv openapi.fixed.json openapi.json
+            echo "Modificado servers en el spec"
           fi
 
       - name: Da permisos de escritura al workspace
