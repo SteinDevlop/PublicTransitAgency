@@ -37,6 +37,9 @@ jobs:
             sleep 5
           done
 
+      - name: Da permisos de escritura al workspace
+        run: sudo chmod -R 777 ${{ github.workspace }}
+
       - name: Descarga y muestra el esquema OpenAPI
         run: |
           docker run --rm --network zapnet -v ${{ github.workspace }}:/output curlimages/curl:8.8.0 \
@@ -51,9 +54,6 @@ jobs:
             '.servers[0].url = $url' openapi.json > openapi.fixed.json
           mv openapi.fixed.json openapi.json
           echo "Modificado servers en el spec a app:8000"
-
-      - name: Da permisos de escritura al workspace
-        run: sudo chmod -R 777 ${{ github.workspace }}
 
       - name: Escanear toda la API con OWASP ZAP usando OpenAPI (red zapnet)
         run: |
