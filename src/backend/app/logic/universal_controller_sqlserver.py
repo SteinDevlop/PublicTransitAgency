@@ -496,4 +496,56 @@ ORDER BY
         except Exception as e:
             logger.error(f"Error al obtener solo nombres de ruta y parada: {e}")
             raise RuntimeError("Error al obtener solo nombres de ruta y parada")
+    def get_all_units_with_schedules(self) -> list[dict]:
+        """
+        Devuelve todas las unidades de transporte, cada una con su horario (según IDRuta -> Ruta -> IDHorario -> Horario).
+        """
+        try:
+            from backend.app.models.transport import UnidadTransporte
+            from backend.app.models.routes import Ruta
+            from backend.app.models.schedule import Schedule
+
+            unidades = self.read_all(UnidadTransporte)
+            rutas = self.read_all(Ruta)
+            horarios = self.read_all(Schedule)
+
+            # Indexar rutas y horarios por ID
+            rutas_by_id = {r['ID'] if isinstance(r, dict) else getattr(r, 'ID', None): r for r in rutas}
+            horarios_by_id = {h['ID'] if isinstance(h, dict) else getattr(h, 'ID', None): h for h in horarios}
+
+            for unidad in unidades:
+                id_ruta = unidad.get('IDRuta') if isinstance(unidad, dict) else getattr(unidad, 'IDRuta', None)
+                ruta = rutas_by_id.get(id_ruta)
+                id_horario = ruta.get('IDHorario') if ruta else None
+                horario = horarios_by_id.get(id_horario)
+                unidad['horarios'] = [horario] if horario else []
+            return unidades
+        except Exception as e:
+            logger.error(f"Error al obtener unidades con horarios: {e}")
+            raise RuntimeError(f"Error al obtener unidades con horarios: {e}")
+
+    def get_all_units_with_names(self) -> list[dict]:
+        """
+        Devuelve todas las unidades de transporte, ocultando IDRuta y IDTipo,
+        pero trayendo los nombres de la ruta y el tipo de transporte.
+        """
+        query = """
+            SELECT 
+                u.ID,
+                u.Ubicacion,
+                u.Capacidad,
+                r.Nombre AS NombreRuta,
+                t.TipoTransporte AS NombreTipoTransporte
+            FROM UnidadTransporte u
+            LEFT JOIN Rutas r ON u.IDRuta = r.ID
+            LEFT JOIN TipoTransporte t ON u.IDTipo = t.ID
+        """
+        try:
+            self.cursor.execute(query)
+            rows = self.cursor.fetchall()
+            columns = [column[0] for column in self.cursor.description]
+            return [dict(zip(columns, row)) for row in rows]
+        except Exception as e:
+            logger.error(f"Error al obtener unidades con nombres: {e}")
+            raise RuntimeError(f"Error al obtener unidades con nombres: {e}")
 

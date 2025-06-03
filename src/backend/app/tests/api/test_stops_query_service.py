@@ -25,9 +25,11 @@ def setup_and_teardown():
 def test_listar_paradas(setup_and_teardown):
     response = client.get("/stops/", headers=headers)
     assert response.status_code == 200
-    assert "Parada de Prueba" in response.text
+    paradas = response.json()
+    assert isinstance(paradas, list)
+    assert any(p.get("Nombre") == "Parada de Prueba" for p in paradas)
     logger.info("Test listar_paradas ejecutado correctamente.")
-
+    
 def test_detalle_parada_existente(setup_and_teardown):
     parada = setup_and_teardown
     response = client.get(f"/stops/{parada.ID}", headers=headers)

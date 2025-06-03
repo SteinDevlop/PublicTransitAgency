@@ -22,12 +22,15 @@ def test_listar_tickets():
         controller.add(ticket)
         response = client.get("/tickets/", headers=headers)
         assert response.status_code == 200
-        assert "Abierto Test" in response.text or str(ticket_id) in response.text
+        tickets = response.json()
+        assert isinstance(tickets, list)
+        assert any(t.get("ID") == ticket_id for t in tickets)
         logger.info("Test listar_tickets ejecutado correctamente.")
     finally:
         ticket = controller.get_by_id(Ticket, ticket_id)
         if ticket:
             controller.delete(ticket)
+
 
 def test_detalle_ticket_existente():
     ticket_id = 9999

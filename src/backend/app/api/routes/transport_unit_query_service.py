@@ -29,7 +29,37 @@ def listar_unidades_transporte():
             status_code=500,
             content={"detail": "Error al listar unidades de transporte."}
         )
+@app.get("/with_names", response_class=JSONResponse)
+def listar_unidades_con_nombres():
+    """
+    Lista todas las unidades de transporte mostrando los nombres de ruta y tipo de transporte.
+    """
+    try:
+        unidades = controller.get_all_units_with_names()
+        logger.info("[GET /transport_units/with_names] Unidades de transporte con nombres listadas.")
+        return unidades
+    except Exception as e:
+        logger.error("[GET /transport_units/with_names] Error: %s", e)
+        return JSONResponse(
+            status_code=500,
+            content={"detail": "Error al listar unidades de transporte con nombres."}
+        )
 
+@app.get("/with_schedules", response_class=JSONResponse)
+def listar_unidades_con_horarios():
+    """
+    Lista todas las unidades de transporte con sus horarios asociados (por IDRuta).
+    """
+    try:
+        unidades = controller.get_all_units_with_schedules()
+        logger.info("[GET /transport_units/with_schedules] Unidades de transporte con horarios listadas.")
+        return unidades
+    except Exception as e:
+        logger.error("[GET /transport_units/with_schedules] Error: %s", e)
+        return JSONResponse(
+            status_code=500,
+            content={"detail": "Error al listar unidades de transporte con horarios."}
+        )
 @app.get("/{ID}", response_class=JSONResponse)
 def detalle_unidad_transporte(ID: str):
     safe_id = re.sub(r"[^\w\-]", "_", ID)
@@ -54,3 +84,4 @@ def detalle_unidad_transporte(ID: str):
             status_code=500,
             content={"detail": "Error interno al consultar detalle de unidad de transporte."}
         )
+

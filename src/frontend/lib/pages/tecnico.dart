@@ -287,82 +287,7 @@ class TecnicoPanel extends StatelessWidget {
                   valueListenable: selectedSection,
                   builder: (context, section, _) {
                     if (section == 'itinerario') {
-                      // ITINERARIO: Mostrar los schedules
-                      return FutureBuilder<List<Map<String, dynamic>>>(
-                        future: fetchItinerario(),
-                        builder: (context, snapshot) {
-                          if (snapshot.connectionState == ConnectionState.waiting) {
-                            return const Center(
-                              child: CircularProgressIndicator(),
-                            );
-                          } else if (snapshot.hasError) {
-                            return Center(
-                              child: Text(
-                                'Error al cargar el itinerario: ${snapshot.error}',
-                                style: const TextStyle(color: Colors.red),
-                              ),
-                            );
-                          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                            return const Center(
-                              child: Text('No hay itinerarios disponibles.'),
-                            );
-                          }
-                          final itinerarios = snapshot.data!;
-                          return SingleChildScrollView(
-                            padding: const EdgeInsets.all(24),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                const Text(
-                                  'Itinerario de Buses',
-                                  style: TextStyle(
-                                    fontSize: 22,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                                const SizedBox(height: 24),
-                                Container(
-                                  decoration: BoxDecoration(
-                                    color: Colors.white,
-                                    borderRadius: BorderRadius.circular(16),
-                                    boxShadow: [
-                                      BoxShadow(
-                                        color: Colors.black12,
-                                        blurRadius: 8,
-                                        offset: Offset(0, 2),
-                                      ),
-                                    ],
-                                  ),
-                                  child: DataTable(
-                                    headingRowColor: MaterialStateProperty.all(
-                                        primaryColor.withOpacity(0.1)),
-                                    columns: const [
-                                      DataColumn(label: Text('ID')),
-                                      DataColumn(label: Text('Unidad')),
-                                      DataColumn(label: Text('Ruta')),
-                                      DataColumn(label: Text('Parada')),
-                                      DataColumn(label: Text('Llegada')),
-                                      DataColumn(label: Text('Salida')),
-                                    ],
-                                    rows: itinerarios.map((item) {
-                                      return DataRow(
-                                        cells: [
-                                          DataCell(Text(item['ID']?.toString() ?? '-')),
-                                          DataCell(Text(item['IDUnidad']?.toString() ?? '-')),
-                                          DataCell(Text(item['IDRuta']?.toString() ?? '-')),
-                                          DataCell(Text(item['IDParada']?.toString() ?? '-')),
-                                          DataCell(Text(item['Llegada']?.toString() ?? '-')),
-                                          DataCell(Text(item['Salida']?.toString() ?? '-')),
-                                        ],
-                                      );
-                                    }).toList(),
-                                  ),
-                                ),
-                              ],
-                            ),
-                          );
-                        },
-                      );
+                      return ItinerarioBusesWidget(token: token);
                     } else if (section == 'alertas') {
                       return ValueListenableBuilder<bool>(
                         valueListenable: loadingAlertas,
@@ -401,6 +326,8 @@ class TecnicoPanel extends StatelessWidget {
                     } else if (section == 'registrar') {
                       // Formulario de registrar mantenimiento (igual a admin)
                       return AgendarMantenimientoScreen(token: token);
+                    } else if (section == 'historial') {
+                      return ConsultarHistorialUnidadWidget(token: token);
                     } else {
                       // Dashboard por defecto
                       return SingleChildScrollView(
@@ -848,6 +775,261 @@ class _AgendarMantenimientoScreenState
           ),
         ),
       ),
+    );
+  }
+}
+
+class ConsultarHistorialUnidadWidget extends StatefulWidget {
+  final String token;
+  const ConsultarHistorialUnidadWidget({required this.token, Key? key}) : super(key: key);
+
+  @override
+  State<ConsultarHistorialUnidadWidget> createState() => _ConsultarHistorialUnidadWidgetState();
+}
+
+class _ConsultarHistorialUnidadWidgetState extends State<ConsultarHistorialUnidadWidget> {
+  final _idController = TextEditingController();
+  bool _loading = false;
+  String? _error;
+  Map<String, dynamic>? _unidad;
+
+  Future<void> _buscarUnidad() async {
+    setState(() {
+      _loading = true;
+      _error = null;
+      _unidad = null;
+    });
+    try {
+      final response = await http.get(
+        Uri.parse('${AppConfig.baseUrl}/transport_units/${_idController.text.trim()}'),
+        headers: {
+          'Authorization': 'Bearer ${widget.token}',
+          'accept': 'application/json',
+        },
+      );
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final unidad = data is Map && data.containsKey('data') ? data['data'] : data;
+        setState(() {
+          _unidad = unidad;
+        });
+      } else {
+        setState(() {
+          _error = 'No se encontró la unidad de transporte.';
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _error = 'Error de conexión.';
+      });
+    } finally {
+      setState(() {
+        _loading = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Consultar historial de bus',
+              style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 20),
+          Row(
+            children: [
+              Expanded(
+                child: TextFormField(
+                  controller: _idController,
+                  decoration: InputDecoration(
+                    labelText: 'ID de unidad de transporte',
+                    border: OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.directions_bus),
+                  ),
+                  keyboardType: TextInputType.text,
+                ),
+              ),
+              const SizedBox(width: 12),
+              ElevatedButton.icon(
+                icon: _loading
+                    ? SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                    : Icon(Icons.search),
+                label: Text(_loading ? 'Buscando...' : 'Buscar'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: TecnicoPanel.secondaryColor,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 18),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+                onPressed: _loading ? null : _buscarUnidad,
+              ),
+            ],
+          ),
+          if (_error != null) ...[
+            const SizedBox(height: 18),
+            Text(_error!, style: TextStyle(color: Colors.red)),
+          ],
+          if (_unidad != null) ...[
+            const SizedBox(height: 24),
+            Card(
+              color: Colors.green[50],
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              child: Padding(
+                padding: const EdgeInsets.all(18),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text('Unidad #${_unidad!['ID'] ?? '-'}',
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18, color: Colors.green[900])),
+                    const SizedBox(height: 8),
+                    Text('Ubicación: ${_unidad!['Ubicacion'] ?? '-'}'),
+                    Text('Capacidad: ${_unidad!['Capacidad'] ?? '-'}'),
+                    Text('Ruta: ${_unidad!['IDRuta'] ?? '-'}'),
+                    Text('Tipo: ${_unidad!['IDTipo'] ?? '-'}'),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+class ItinerarioBusesWidget extends StatefulWidget {
+  final String token;
+  const ItinerarioBusesWidget({required this.token, Key? key}) : super(key: key);
+
+  @override
+  State<ItinerarioBusesWidget> createState() => _ItinerarioBusesWidgetState();
+}
+
+class _ItinerarioBusesWidgetState extends State<ItinerarioBusesWidget> {
+  late Future<List<Map<String, dynamic>>> _futureBuses;
+
+  @override
+  void initState() {
+    super.initState();
+    _futureBuses = fetchBusesWithSchedules();
+  }
+
+  Future<List<Map<String, dynamic>>> fetchBusesWithSchedules() async {
+    final response = await http.get(
+      Uri.parse('${AppConfig.baseUrl}/transport_units/with_schedules'),
+      headers: {
+        'Authorization': 'Bearer ${widget.token}',
+        'accept': 'application/json',
+      },
+    );
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      if (data is List) {
+        return List<Map<String, dynamic>>.from(data);
+      }
+      return [];
+    } else {
+      throw Exception('Error al cargar buses: ${response.body}');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<List<Map<String, dynamic>>>(
+      future: _futureBuses,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        } else if (snapshot.hasError) {
+          return Center(
+            child: Text(
+              'Error al cargar el itinerario: ${snapshot.error}',
+              style: const TextStyle(color: Colors.red),
+            ),
+          );
+        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          return const Center(
+            child: Text('No hay buses ni itinerarios disponibles.'),
+          );
+        }
+        final buses = snapshot.data!;
+        return SingleChildScrollView(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Itinerario de Buses',
+                style: TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 24),
+              ...buses.map((bus) => Card(
+                    elevation: 3,
+                    margin: const EdgeInsets.symmetric(vertical: 12),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16)),
+                    child: Padding(
+                      padding: const EdgeInsets.all(18),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              CircleAvatar(
+                                backgroundColor: TecnicoPanel.primaryColor,
+                                child: Icon(Icons.directions_bus, color: Colors.white),
+                              ),
+                              const SizedBox(width: 12),
+                              Text(
+                                'Unidad #${bus['ID'] ?? '-'}',
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 18,
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 10),
+                          Text('Ubicación: ${bus['Ubicacion'] ?? '-'}'),
+                          Text('Capacidad: ${bus['Capacidad'] ?? '-'}'),
+                          Text('Ruta: ${bus['IDRuta'] ?? '-'}'),
+                          Text('Tipo: ${bus['IDTipo'] ?? '-'}'),
+                          const SizedBox(height: 10),
+                          Text(
+                            'Horarios:',
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: TecnicoPanel.secondaryColor,
+                            ),
+                          ),
+                          if (bus['horarios'] != null && (bus['horarios'] as List).isNotEmpty)
+                            ...((bus['horarios'] as List).map((h) => Padding(
+                                  padding: const EdgeInsets.symmetric(vertical: 2.0),
+                                  child: Row(
+                                    children: [
+                                      Icon(Icons.schedule, color: TecnicoPanel.accentColor, size: 20),
+                                      const SizedBox(width: 8),
+                                      Text(
+                                        'De ${h['Llegada'] ?? '-'} a ${h['Salida'] ?? '-'}',
+                                        style: const TextStyle(fontSize: 15),
+                                      ),
+                                    ],
+                                  )),
+                                )),
+                        ],
+                      ),
+                    ),
+                  )),
+            ],
+          ),
+        );
+      },
     );
   }
 }

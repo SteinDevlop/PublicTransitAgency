@@ -277,6 +277,17 @@ class PassengerPanel extends StatelessWidget {
                             icon: Icons.notifications_active_outlined,
                             title: 'Noticias y Alertas',
                             color: primaryColor,
+                            onTap: () {
+                              showDialog(
+                                context: context,
+                                builder: (_) => Dialog(
+                                  child: SizedBox(
+                                    width: 500,
+                                    child: IncidenciasPasajeroWidget(token: token),
+                                  ),
+                                ),
+                              );
+                            },
                           ),
                           _buildMenuItem(
                             icon: Icons.history_outlined,
@@ -311,6 +322,22 @@ class PassengerPanel extends StatelessWidget {
                                 builder: (_) => Dialog(
                                   child:
                                       RecargaWidget(token: token, user: user),
+                                ),
+                              );
+                            },
+                          ),
+                          _buildMenuItem(
+                            icon: Icons.alt_route,
+                            title: 'Las rutas y sus paradas',
+                            color: primaryColor,
+                            onTap: () {
+                              showDialog(
+                                context: context,
+                                builder: (_) => Dialog(
+                                  child: SizedBox(
+                                    width: 500,
+                                    child: RutasParadasPasajeroWidget(token: token),
+                                  ),
                                 ),
                               );
                             },
@@ -1376,8 +1403,7 @@ class _PagoWidgetState extends State<PagoWidget> {
                       ),
           ),
         ),
-      ),
-    );
+      ));
   }
 
   Widget _buildDetallePago(
@@ -1699,8 +1725,7 @@ class _RecargaWidgetState extends State<RecargaWidget> {
                       ),
           ),
         ),
-      ),
-    );
+      ));
   }
 
   Widget _buildDetalleRecarga(
@@ -1753,6 +1778,184 @@ class _RecargaWidgetState extends State<RecargaWidget> {
           ),
         ),
       ],
+    );
+  }
+}
+
+class IncidenciasPasajeroWidget extends StatefulWidget {
+  final String token;
+  const IncidenciasPasajeroWidget({Key? key, required this.token}) : super(key: key);
+
+  @override
+  State<IncidenciasPasajeroWidget> createState() => _IncidenciasPasajeroWidgetState();
+}
+
+class _IncidenciasPasajeroWidgetState extends State<IncidenciasPasajeroWidget> {
+  bool _loading = true;
+  String? _error;
+  List<dynamic> _incidencias = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _fetch();
+  }
+
+  Future<void> _fetch() async {
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+    try {
+      final response = await http.get(
+        Uri.parse('${AppConfig.baseUrl}/incidences/'),
+        headers: {
+          'Authorization': 'Bearer ${widget.token}',
+          'accept': 'application/json',
+        },
+      );
+      if (response.statusCode == 200) {
+        setState(() {
+          _incidencias = json.decode(response.body);
+        });
+      } else {
+        setState(() {
+          _error = 'No se pudo obtener la lista. (${response.body})';
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _error = 'Error de conexión.';
+      });
+    } finally {
+      setState(() {
+        _loading = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text('Noticias y Alertas', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
+          const SizedBox(height: 16),
+          if (_loading)
+            Center(child: CircularProgressIndicator())
+          else if (_error != null)
+            Text(_error!, style: TextStyle(color: Colors.red))
+          else if (_incidencias.isEmpty)
+            Text('No hay incidencias registradas.')
+          else
+            Expanded(
+              child: ListView.separated(
+                shrinkWrap: true,
+                itemCount: _incidencias.length,
+                separatorBuilder: (_, __) => Divider(),
+                itemBuilder: (context, i) {
+                  final inc = _incidencias[i];
+                  return ListTile(
+                    leading: Icon(Icons.warning_amber_rounded, color: Colors.orange),
+                    title: Text(inc['Descripcion'] ?? 'Sin descripción'),
+                    subtitle: Text('Tipo: ${inc['Tipo'] ?? '-'} | Unidad: ${inc['IDUnidad'] ?? '-'}'),
+                  );
+                },
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class RutasParadasPasajeroWidget extends StatefulWidget {
+  final String token;
+  const RutasParadasPasajeroWidget({Key? key, required this.token}) : super(key: key);
+
+  @override
+  State<RutasParadasPasajeroWidget> createState() => _RutasParadasPasajeroWidgetState();
+}
+
+class _RutasParadasPasajeroWidgetState extends State<RutasParadasPasajeroWidget> {
+  bool _loading = true;
+  String? _error;
+  List<dynamic> _relaciones = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _fetch();
+  }
+
+  Future<void> _fetch() async {
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+    try {
+      final response = await http.get(
+        Uri.parse('${AppConfig.baseUrl}/ruta_parada/solo_nombres'),
+        headers: {
+          'Authorization': 'Bearer ${widget.token}',
+          'accept': 'application/json',
+        },
+      );
+      if (response.statusCode == 200) {
+        setState(() {
+          _relaciones = json.decode(response.body);
+        });
+      } else {
+        setState(() {
+          _error = 'No se pudo obtener la lista. (${response.body})';
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _error = 'Error de conexión.';
+      });
+    } finally {
+      setState(() {
+        _loading = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text('Rutas y sus Paradas', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
+          const SizedBox(height: 16),
+          if (_loading)
+            Center(child: CircularProgressIndicator())
+          else if (_error != null)
+            Text(_error!, style: TextStyle(color: Colors.red))
+          else if (_relaciones.isEmpty)
+            Text('No hay relaciones registradas.')
+          else
+            Expanded(
+              child: ListView.separated(
+                shrinkWrap: true,
+                itemCount: _relaciones.length,
+                separatorBuilder: (_, __) => Divider(),
+                itemBuilder: (context, i) {
+                  final rel = _relaciones[i];
+                  return ListTile(
+                    leading: Icon(Icons.directions_bus, color: Colors.blue),
+                    title: Text('Ruta: ${rel['NombreRuta'] ?? '-'}'),
+                    subtitle: Text('Parada: ${rel['NombreParada'] ?? '-'}'),
+                  );
+                },
+              ),
+            ),
+        ],
+      ),
     );
   }
 }

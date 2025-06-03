@@ -24,7 +24,9 @@ def setup_and_teardown():
 def test_listar_turnos(setup_and_teardown):
     response = client.get("/shifts/", headers=headers)
     assert response.status_code == 200
-    assert "Prueba" in response.text
+    turnos = response.json()
+    assert isinstance(turnos, list)
+    assert any(t.get("TipoTurno") == "Prueba" for t in turnos)
     logger.info("Test listar_turnos ejecutado correctamente.")
 
 def test_obtener_turnos(setup_and_teardown):

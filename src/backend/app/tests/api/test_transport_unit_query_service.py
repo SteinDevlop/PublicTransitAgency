@@ -30,8 +30,8 @@ def test_listar_unidades_transporte(setup_and_teardown):
     response = client.get("/transport_units/", headers=headers)
     assert response.status_code == 200
     response_json = response.json()
-    assert "data" in response_json
-    assert any(u["Ubicacion"] == "Depósito Central" for u in response_json["data"])
+    assert isinstance(response_json, list), "La respuesta debe ser una lista"
+    assert any(u["Ubicacion"] == "Depósito Central" for u in response_json)
     logger.info("Test listar_unidades_transporte ejecutado correctamente.")
 
 def test_listar_unidades_transporte_formato_json(setup_and_teardown):
@@ -41,9 +41,8 @@ def test_listar_unidades_transporte_formato_json(setup_and_teardown):
     response = client.get("/transport_units/", headers=headers)
     assert response.status_code == 200, f"Error inesperado: {response.status_code}"
     response_json = response.json()
-    assert "data" in response_json, "La respuesta no contiene la clave 'data'."
-    assert isinstance(response_json["data"], list), "La respuesta no contiene una lista de unidades de transporte."
-    assert len(response_json["data"]) > 0, "La lista de unidades de transporte está vacía."
+    assert isinstance(response_json, list), "La respuesta debe ser una lista de unidades de transporte."
+    assert len(response_json) > 0, "La lista de unidades de transporte está vacía."
     logger.info("Test listar_unidades_transporte_formato_json ejecutado correctamente.")
 
 def test_detalle_unidad_transporte_existente(setup_and_teardown):
@@ -92,3 +91,35 @@ def test_detalle_unidad_transporte_error_interno():
         assert "detail" in response_json, "La respuesta no contiene la clave 'detail'."
         assert "Error interno al consultar detalle de unidad de transporte." in response_json["detail"], "El mensaje de error no es el esperado."
         logger.error("Test detalle_unidad_transporte_error_interno ejecutado correctamente.")
+def test_listar_unidades_con_horarios(setup_and_teardown):
+    """
+    Prueba para listar todas las unidades de transporte con sus horarios.
+    """
+    response = client.get("/transport_units/with_schedules", headers=headers)
+    assert response.status_code == 200
+    unidades = response.json()
+    assert isinstance(unidades, list), "La respuesta debe ser una lista"
+    assert any("horarios" in u for u in unidades), "Cada unidad debe tener la clave 'horarios'"
+    # Si hay unidades con IDRuta, debe haber una lista (puede estar vacía)
+    for u in unidades:
+        assert "horarios" in u
+        assert isinstance(u["horarios"], list)
+    logger.info("Test listar_unidades_con_horarios ejecutado correctamente.")
+
+def test_listar_unidades_con_nombres(setup_and_teardown):
+    """
+    Prueba para listar todas las unidades de transporte mostrando los nombres de ruta y tipo de transporte.
+    """
+    response = client.get("/transport_units/with_names", headers=headers)
+    assert response.status_code == 200
+    unidades = response.json()
+    assert isinstance(unidades, list), "La respuesta debe ser una lista"
+    for u in unidades:
+        assert "ID" in u
+        assert "Ubicacion" in u
+        assert "Capacidad" in u
+        assert "NombreRuta" in u
+        assert "NombreTipoTransporte" in u
+        assert "IDRuta" not in u
+        assert "IDTipo" not in u
+    logger.info("Test listar_unidades_con_nombres ejecutado correctamente.")

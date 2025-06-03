@@ -115,6 +115,5 @@ def test_listar_rutaparada_solo_nombres(monkeypatch):
     response = client.get("/ruta_parada/solo_nombres")
     assert response.status_code == 200
     json_data = response.json()
-    assert "data" in json_data
-    assert isinstance(json_data["data"], list)
-    assert json_data["data"] == datos_mock
+    assert isinstance(json_data, list)
+    assert json_data == datos_mock

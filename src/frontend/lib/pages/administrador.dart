@@ -37,9 +37,9 @@ class AdminPanel extends StatelessWidget {
     }
   }
 
-  Future<List<dynamic>> fetchTransportUnits() async {
+    Future<List<dynamic>> fetchTransportUnits() async {
     final response = await http.get(
-      Uri.parse('${AppConfig.baseUrl}/transport_units/'),
+      Uri.parse('${AppConfig.baseUrl}/transport_units/with_names'),
       headers: {
         'Authorization': 'Bearer $token',
         'accept': 'application/json',
@@ -51,7 +51,6 @@ class AdminPanel extends StatelessWidget {
       throw Exception('Error al cargar unidades de transporte');
     }
   }
-
   Future<bool> createTransportUnit(Map<String, dynamic> data) async {
     final response = await http.post(
       Uri.parse('${AppConfig.baseUrl}/transport_units/create'),
@@ -255,6 +254,22 @@ class AdminPanel extends StatelessWidget {
                             color: primaryColor,
                             isActive: true,
                           ),
+                          _buildMenuItem(
+  icon: Icons.alt_route,
+  title: 'Gestión Ruta-Parada',
+  color: primaryColor,
+  onTap: () {
+    showDialog(
+      context: context,
+      builder: (_) => Dialog(
+        child: SizedBox(
+          width: 500,
+          child: RutaParadaCrudWidget(token: token),
+        ),
+      ),
+    );
+  },
+),
 _buildMenuItem(
   icon: Icons.directions_bus,
   title: 'Actualizar Flota',
@@ -983,78 +998,78 @@ _buildMenuItem(
           return Center(child: Text('No hay unidades registradas.'));
         }
         final units = snapshot.data!;
-        return DataTable(
-          columns: const [
-            DataColumn(label: Text('ID')),
-            DataColumn(label: Text('Ubicación')),
-            DataColumn(label: Text('Capacidad')),
-            DataColumn(label: Text('Ruta')),
-            DataColumn(label: Text('Tipo')),
-            DataColumn(label: Text('Acciones')),
+return DataTable(
+  columns: const [
+    DataColumn(label: Text('ID')),
+    DataColumn(label: Text('Ubicación')),
+    DataColumn(label: Text('Capacidad')),
+    DataColumn(label: Text('Ruta')),
+    DataColumn(label: Text('Tipo')),
+    DataColumn(label: Text('Acciones')),
+  ],
+  rows: units.map<DataRow>((unit) {
+    return DataRow(
+      cells: [
+        DataCell(Text(unit['ID']?.toString() ?? '-')),
+        DataCell(Text(unit['Ubicacion']?.toString() ?? '-')),
+        DataCell(Text(unit['Capacidad']?.toString() ?? '-')),
+        DataCell(Text(unit['NombreRuta']?.toString() ?? '-')), // Cambiado
+        DataCell(Text(unit['NombreTipoTransporte']?.toString() ?? '-')), // Cambiado
+        DataCell(Row(
+          children: [
+            IconButton(
+              icon: Icon(Icons.edit, color: Colors.blue),
+              tooltip: 'Editar',
+              onPressed: () {
+                showDialog(
+                  context: context,
+                  builder: (_) => Dialog(
+                    child: EditarUnidadWidget(
+                      token: token,
+                      unidad: unit,
+                      onUpdated: () =>
+                          (context as Element).markNeedsBuild(),
+                    ),
+                  ),
+                );
+              },
+            ),
+            IconButton(
+              icon: Icon(Icons.delete, color: Colors.red),
+              tooltip: 'Eliminar',
+              onPressed: () async {
+                final confirm = await showDialog<bool>(
+                  context: context,
+                  builder: (_) => AlertDialog(
+                    title: Text('Eliminar unidad'),
+                    content: Text(
+                        '¿Seguro que deseas eliminar esta unidad?'),
+                    actions: [
+                      TextButton(
+                        onPressed: () =>
+                            Navigator.pop(context, false),
+                        child: Text('Cancelar'),
+                      ),
+                      TextButton(
+                        onPressed: () =>
+                            Navigator.pop(context, true),
+                        child: Text('Eliminar'),
+                      ),
+                    ],
+                  ),
+                );
+                if (confirm == true) {
+                  await deleteTransportUnit(unit['ID'].toString());
+                  (context as Element).markNeedsBuild();
+                }
+              },
+            ),
           ],
-          rows: units.map<DataRow>((unit) {
-            return DataRow(
-              cells: [
-                DataCell(Text(unit['ID']?.toString() ?? '-')),
-                DataCell(Text(unit['Ubicacion']?.toString() ?? '-')),
-                DataCell(Text(unit['Capacidad']?.toString() ?? '-')),
-                DataCell(Text(unit['IDRuta']?.toString() ?? '-')),
-                DataCell(Text(unit['IDTipo']?.toString() ?? '-')),
-                DataCell(Row(
-                  children: [
-                    IconButton(
-                      icon: Icon(Icons.edit, color: Colors.blue),
-                      tooltip: 'Editar',
-                      onPressed: () {
-                        showDialog(
-                          context: context,
-                          builder: (_) => Dialog(
-                            child: EditarUnidadWidget(
-                              token: token,
-                              unidad: unit,
-                              onUpdated: () =>
-                                  (context as Element).markNeedsBuild(),
-                            ),
-                          ),
-                        );
-                      },
-                    ),
-                    IconButton(
-                      icon: Icon(Icons.delete, color: Colors.red),
-                      tooltip: 'Eliminar',
-                      onPressed: () async {
-                        final confirm = await showDialog<bool>(
-                          context: context,
-                          builder: (_) => AlertDialog(
-                            title: Text('Eliminar unidad'),
-                            content: Text(
-                                '¿Seguro que deseas eliminar esta unidad?'),
-                            actions: [
-                              TextButton(
-                                onPressed: () =>
-                                    Navigator.pop(context, false),
-                                child: Text('Cancelar'),
-                              ),
-                              TextButton(
-                                onPressed: () =>
-                                    Navigator.pop(context, true),
-                                child: Text('Eliminar'),
-                              ),
-                            ],
-                          ),
-                        );
-                        if (confirm == true) {
-                          await deleteTransportUnit(unit['ID'].toString());
-                          (context as Element).markNeedsBuild();
-                        }
-                      },
-                    ),
-                  ],
-                )),
-              ],
-            );
-          }).toList(),
-        );
+        )),
+      ],
+    );
+  }).toList(),
+);
       },
     );
   }
@@ -7028,6 +7043,195 @@ class _PriceCreateWidgetState extends State<PriceCreateWidget> {
             ],
           ),
         ),
+      ),
+    );
+  }
+}class RutaParadaCrudWidget extends StatefulWidget {
+  final String token;
+  const RutaParadaCrudWidget({Key? key, required this.token}) : super(key: key);
+
+  @override
+  State<RutaParadaCrudWidget> createState() => _RutaParadaCrudWidgetState();
+}
+
+class _RutaParadaCrudWidgetState extends State<RutaParadaCrudWidget> {
+  bool _loading = true;
+  String? _error;
+  List<dynamic> _relaciones = [];
+
+  final _formKey = GlobalKey<FormState>();
+  final _idRutaController = TextEditingController();
+  final _idParadaController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _fetch();
+  }
+
+  Future<void> _fetch() async {
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+    try {
+      final response = await http.get(
+        Uri.parse('${AppConfig.baseUrl}/ruta_parada/solo_nombres'),
+        headers: {
+          'Authorization': 'Bearer ${widget.token}',
+          'accept': 'application/json',
+        },
+      );
+      if (response.statusCode == 200) {
+        setState(() {
+          _relaciones = json.decode(response.body);
+        });
+      } else {
+        setState(() {
+          _error = 'No se pudo obtener la lista. (${response.body})';
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _error = 'Error de conexión.';
+      });
+    } finally {
+      setState(() {
+        _loading = false;
+      });
+    }
+  }
+
+  Future<void> _crear() async {
+    if (!_formKey.currentState!.validate()) return;
+    setState(() => _loading = true);
+    try {
+      final response = await http.post(
+        Uri.parse('${AppConfig.baseUrl}/rutaparada/create'),
+        headers: {
+          'Authorization': 'Bearer ${widget.token}',
+          'accept': 'application/json',
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: {
+          'IDRuta': _idRutaController.text.trim(),
+          'IDParada': _idParadaController.text.trim(),
+        },
+      );
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        _idRutaController.clear();
+        _idParadaController.clear();
+        await _fetch();
+      } else {
+        setState(() {
+          _error = 'No se pudo crear la relación. (${response.body})';
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _error = 'Error de conexión.';
+      });
+    } finally {
+      setState(() {
+        _loading = false;
+      });
+    }
+  }
+
+  Future<void> _eliminar(Map<String, dynamic> rel) async {
+    setState(() => _loading = true);
+    try {
+      final response = await http.post(
+        Uri.parse('${AppConfig.baseUrl}/rutaparada/delete'),
+        headers: {
+          'Authorization': 'Bearer ${widget.token}',
+          'accept': 'application/json',
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: {
+          'IDRuta': rel['IDRuta'].toString(),
+          'IDParada': rel['IDParada'].toString(),
+        },
+      );
+      if (response.statusCode == 200) {
+        await _fetch();
+      } else {
+        setState(() {
+          _error = 'No se pudo eliminar la relación. (${response.body})';
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _error = 'Error de conexión.';
+      });
+    } finally {
+      setState(() {
+        _loading = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text('Gestión Ruta-Parada', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
+          const SizedBox(height: 16),
+          Form(
+            key: _formKey,
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextFormField(
+                    controller: _idRutaController,
+                    decoration: InputDecoration(labelText: 'ID Ruta'),
+                    validator: (v) => v == null || v.isEmpty ? 'Ingrese ID Ruta' : null,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: TextFormField(
+                    controller: _idParadaController,
+                    decoration: InputDecoration(labelText: 'ID Parada'),
+                    validator: (v) => v == null || v.isEmpty ? 'Ingrese ID Parada' : null,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                ElevatedButton(
+                  onPressed: _loading ? null : _crear,
+                  child: _loading ? SizedBox(width: 18, height: 18, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white)) : Text('Crear'),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
+          if (_loading)
+            Center(child: CircularProgressIndicator())
+          else if (_error != null)
+            Text(_error!, style: TextStyle(color: Colors.red))
+          else
+            Expanded(
+              child: ListView.separated(
+                shrinkWrap: true,
+                itemCount: _relaciones.length,
+                separatorBuilder: (_, __) => Divider(),
+                itemBuilder: (context, i) {
+                  final rel = _relaciones[i];
+                  return ListTile(
+                    title: Text('Ruta: ${rel['NombreRuta'] ?? '-'}'),
+                    subtitle: Text('Parada: ${rel['NombreParada'] ?? '-'}'),
+                    trailing: IconButton(
+                      icon: Icon(Icons.delete, color: Colors.red),
+                      onPressed: _loading ? null : () => _eliminar(rel),
+                    ),
+                  );
+                },
+              ),
+            ),
+        ],
       ),
     );
   }

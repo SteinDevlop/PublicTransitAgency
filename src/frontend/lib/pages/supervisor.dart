@@ -56,7 +56,7 @@ class _SupervisorDashboardState extends State<SupervisorDashboard> {
 
   Future<List<dynamic>> fetchTransportUnits() async {
     final response = await http.get(
-      Uri.parse('${AppConfig.baseUrl}/transport_units/'),
+      Uri.parse('${AppConfig.baseUrl}/transport_units/with_names'),
       headers: {
         'Authorization': 'Bearer ${widget.token}',
         'accept': 'application/json',
@@ -444,8 +444,8 @@ class _SupervisorDashboardState extends State<SupervisorDashboard> {
                           children: [
                             Text('Ubicación: ${unit['Ubicacion'] ?? '-'}'),
                             Text('Capacidad: ${unit['Capacidad'] ?? '-'}'),
-                            Text('Ruta: ${unit['IDRuta'] ?? '-'}'),
-                            Text('Tipo: ${unit['IDTipo'] ?? '-'}'),
+                            Text('Ruta: ${unit['NombreRuta'] ?? '-'}'), // Cambiado
+                            Text('Tipo: ${unit['NombreTipoTransporte'] ?? '-'}'), // Cambiado
                           ],
                         ),
                       ),
@@ -953,7 +953,7 @@ class _UserShiftUpdateFormState extends State<UserShiftUpdateForm> {
                   .map<DropdownMenuItem<int>>(
                     (s) => DropdownMenuItem<int>(
                       value: s['ID'],
-                      child: Text('${s['TipoTurno']} (${s['HoraInicio']} - ${s['HoraFin']})'),
+                      child: Text(s['TipoTurno'] ?? 'Turno'),
                     ),
                   )
                   .toList(),

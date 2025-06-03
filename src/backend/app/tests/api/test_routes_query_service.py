@@ -29,8 +29,9 @@ def test_listar_rutas(setup_and_teardown):
     """
     response = client.get("/routes/", headers=headers)
     assert response.status_code == 200, f"Error inesperado: {response.status_code}"
-    assert "data" in response.json(), "La respuesta no contiene el campo 'data'."
-    assert isinstance(response.json()["data"], list), "El campo 'data' no es una lista."
+    rutas = response.json()
+    assert isinstance(rutas, list), "La respuesta debe ser una lista."
+    assert any(r.get("Nombre") == "Ruta de Prueba" for r in rutas), "No se encontró la ruta de prueba en la lista."
     logger.info("Test listar_rutas ejecutado correctamente.")
 
 def test_detalle_ruta_existente(setup_and_teardown):

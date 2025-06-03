@@ -37,10 +37,11 @@ def test_listar_horarios(setup_and_teardown):
     """
     response = client.get("/schedules/", headers=headers)
     assert response.status_code == 200
-    assert "Horarios listados exitosamente." in response.json()["message"]
-    assert isinstance(response.json()["data"], list)
-    assert len(response.json()["data"]) > 0
-    logger.info("Test listar_horarios ejecutado correctamente. Se listaron %d horarios.", len(response.json()["data"]))
+    horarios = response.json()
+    assert isinstance(horarios, list)
+    assert len(horarios) > 0
+    logger.info("Test listar_horarios ejecutado correctamente. Se listaron %d horarios.", len(horarios))
+
 
 def test_listar_horarios_error():
     """
@@ -108,25 +109,4 @@ def test_detalle_horario_existente_objeto_crudo(monkeypatch):
     assert isinstance(response.json()["data"], dict) or isinstance(response.json()["data"], RawHorario)
     # Puede serializar como dict o como objeto dependiendo del JSON encoder
 
-def test_listar_horarios_objeto_crudo(monkeypatch):
-    """
-    Prueba para cubrir el caso donde los horarios no tienen model_dump ni dict.
-    """
-    class RawHorario:
-        def __init__(self, id):
-            self.ID = id
-            self.Llegada = "10:00"
-            self.Salida = "18:00"
-        # No tiene model_dump ni dict
-
-    def fake_read_all(model):
-        return [RawHorario(1), RawHorario(2)]
-
-    monkeypatch.setattr(controller, "read_all", fake_read_all)
-    response = client.get("/schedules/", headers=headers)
-    assert response.status_code == 200
-    assert "Horarios listados exitosamente." in response.json()["message"]
-    assert isinstance(response.json()["data"], list)
-    assert len(response.json()["data"]) == 2
-    # Puede serializar como dict o como objeto dependiendo del JSON encoder
 

@@ -271,6 +271,8 @@ class _OperarioPanelState extends State<OperarioPanel> {
             );
           },
         );
+      case 'report':
+        return CrearIncidenciaWidget(token: widget.token);
       case 'info':
       default:
         return FutureBuilder<Map<String, dynamic>>(
