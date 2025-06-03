@@ -1,9 +1,9 @@
-name: Build and Deploy Frontend
+name: Build and Push Frontend
 
 on:
   push:
     branches:
-      - main  # O la rama que quieras
+      - main
 
 jobs:
   build-and-push:
@@ -13,7 +13,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Node.js
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
@@ -26,6 +26,7 @@ jobs:
         run: npm run build
         working-directory: ./src/frontend
 
+      # Opcional: Build y push de la imagen Docker
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
@@ -38,7 +39,7 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
-          context: ./frontend
+          context: ./src/frontend
           file: ./src/frontend/Dockerfile
           push: true
           tags: gitzerohub/publictransitagency-frontend:latest
