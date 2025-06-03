@@ -22,6 +22,14 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
+      - name: Instala dependencias
+        run: npm install
+        working-directory: ./src/frontend
+      
+      - name: Build del frontend
+        run: npm run build
+        working-directory: ./src/frontend
+        
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
