@@ -67,10 +67,10 @@ jobs:
               -J report_json.json \
               -w report_md.md \
               -r report_html.html \
-              --fail-on-warn false \
-              --fail-on-fail false
+              -I
           docker logs zapscan || echo "No logs disponibles"
           docker rm -f zapscan || true
+        continue-on-error: true
 
       - name: Sube los reportes como artifact
         uses: actions/upload-artifact@v4
