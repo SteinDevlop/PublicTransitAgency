@@ -43,7 +43,7 @@ jobs:
       - name: Da permisos de escritura al workspace
         run: sudo chmod -R 777 ${{ github.workspace }}
 
-      - name: Escanear toda la API con OWASP ZAP usando OpenAPI
+      - name: Escanear toda la API con OWASP ZAP usando OpenAPI (archivo local)
         run: |
           docker run --name zapscan \
             -v ${{ github.workspace }}:/zap/wrk \
@@ -51,7 +51,7 @@ jobs:
             ghcr.io/zaproxy/zaproxy:stable zap-api-scan.py \
               -d \
               -f openapi \
-              -t http://host.docker.internal:8000/openapi.json \
+              -t /zap/wrk/openapi.json \
               -J report_json.json \
               -w report_md.md \
               -r report_html.html
