@@ -147,9 +147,12 @@ class _OperarioPanelState extends State<OperarioPanel> {
                         color: primaryColor,
                         isActive: selectedSection == 'asistencia',
                         onTap: () {
-                          setState(() {
                             selectedSection = 'asistencia';
-                          });
+                            Navigator.of(context).push(
+                            MaterialPageRoute(
+                            builder: (_) => CrearAsistenciaScreen(token: widget.token),
+                            ),
+                          );
                         },
                       ),
                       _buildMenuItem(
@@ -617,6 +620,332 @@ class _CrearIncidenciaWidgetState extends State<CrearIncidenciaWidget> {
               if (_success != null) ...[
                 const SizedBox(height: 12),
                 Text(_success!, style: TextStyle(color: Colors.green)),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+// Screen para crear asistencia
+class CrearAsistenciaScreen extends StatefulWidget {
+  final String token;
+  const CrearAsistenciaScreen({Key? key, required this.token})
+      : super(key: key);
+
+  static const primaryColor = Color(0xFF1A73E8);
+
+  @override
+  State<CrearAsistenciaScreen> createState() =>
+      _CrearAsistenciaScreenState();
+}
+
+class _CrearAsistenciaScreenState extends State<CrearAsistenciaScreen> {
+  final _formKey = GlobalKey<FormState>();
+  final TextEditingController _idController = TextEditingController();
+  final TextEditingController _idUserController = TextEditingController();
+  final TextEditingController _horaInicioController = TextEditingController();
+  final TextEditingController _horaFinalController = TextEditingController();
+  final TextEditingController _fechaController = TextEditingController();
+  bool _loading = false;
+  String? _response;
+  String? _error;
+  TimeOfDay? _horaInicio;
+  TimeOfDay? _horaFinal;
+  DateTime? _fechaSeleccionada;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchNextId();
+  }
+
+  String timeOfDayToString(TimeOfDay? t) {
+    if (t == null) return '';
+    final h = t.hour.toString().padLeft(2, '0');
+    final m = t.minute.toString().padLeft(2, '0');
+    return "$h:$m:00";
+  }
+
+  String dateToString(DateTime? d) {
+    if (d == null) return '';
+    return "${d.year.toString().padLeft(4, '0')}-${d.month.toString().padLeft(2, '0')}-${d.day.toString().padLeft(2, '0')}";
+  }
+
+  Future<void> _selectHoraInicio(BuildContext context) async {
+    final TimeOfDay? picked = await showTimePicker(
+      context: context,
+      initialTime: _horaInicio ?? TimeOfDay.now(),
+    );
+    if (picked != null) {
+      setState(() {
+        _horaInicio = picked;
+        _horaInicioController.text = picked.format(context);
+      });
+    }
+  }
+
+  Future<void> _selectHoraFinal(BuildContext context) async {
+    final TimeOfDay? picked = await showTimePicker(
+      context: context,
+      initialTime: _horaFinal ?? TimeOfDay.now(),
+    );
+    if (picked != null) {
+      setState(() {
+        _horaFinal = picked;
+        _horaFinalController.text = picked.format(context);
+      });
+    }
+  }
+
+  Future<void> _selectFecha(BuildContext context) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: _fechaSeleccionada ?? DateTime.now(),
+      firstDate: DateTime(2000), // Límite inferior (puedes ajustar)
+      lastDate: DateTime(2100),  // Límite superior (puedes ajustar)
+    );
+    if (picked != null) {
+      setState(() {
+        _fechaSeleccionada = picked;
+        _fechaController.text = dateToString(picked);
+      });
+    }
+  }
+
+  Future<void> _fetchNextId() async {
+    try {
+      final response = await http.get(
+        Uri.parse('${AppConfig.baseUrl}/asistance/asistencias'),
+        headers: {
+          'Authorization': 'Bearer ${widget.token}',
+          'accept': 'application/json',
+        },
+      );
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final nextId = (data['count'] ?? 0) + 1;
+        setState(() {
+          _idController.text = nextId.toString();
+        });
+      } else {
+        setState(() {
+          _error = 'No se pudo obtener el siguiente ID. (${response.body})';
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _error = 'Error de conexión al consultar el ID.';
+      });
+    }
+  }
+
+  Future<void> _crearAsistencia() async {
+    if (!_formKey.currentState!.validate()) return;
+    setState(() {
+      _loading = true;
+      _response = null;
+      _error = null;
+    });
+    try {
+      final response = await http.post(
+        Uri.parse('${AppConfig.baseUrl}/asistance/create'),
+        headers: {
+          'Authorization': 'Bearer ${widget.token}',
+          'accept': 'application/json',
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: {
+          'id': _idController.text.trim(),
+          'iduser': _idUserController.text.trim(),
+          'horainicio': timeOfDayToString(_horaInicio),
+          'horafinal': timeOfDayToString(_horaFinal),
+          'fecha': dateToString(_fechaSeleccionada),
+        },
+      );
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        setState(() {
+          _response = 'Asistencia creada exitosamente.';
+        });
+        _fetchNextId();
+      } else {
+        setState(() {
+          _error = 'No se pudo crear la asistencia. (${response.body})';
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _error = 'Error de conexión.';
+      });
+    } finally {
+      setState(() {
+        _loading = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Crear Asistencia'),
+        backgroundColor: CrearAsistenciaScreen.primaryColor,
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(24.0),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('Complete los datos para crear una asistencia:',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 24),
+              TextFormField(
+                controller: _idController,
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(
+                  labelText: 'ID Asistencia',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.confirmation_number),
+                ),
+                enabled: false,
+              ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _idUserController,
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(
+                  labelText: 'ID Usuario',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.person),
+                ),
+                validator: (value) => value == null || value.isEmpty
+                    ? 'Ingrese el ID Usuario'
+                    : null,
+              ),
+              const SizedBox(height: 16),
+              GestureDetector(
+                onTap: () => _selectHoraInicio(context),
+                child: AbsorbPointer(
+                  child: TextFormField(
+                    controller: _horaInicioController,
+                    readOnly: true,
+                    decoration: InputDecoration(
+                      labelText: 'Hora de Inicio (HH:MM:SS)',
+                      border: OutlineInputBorder(),
+                      prefixIcon: Icon(Icons.access_time),
+                    ),
+                    validator: (value) =>
+                        value == null || value.isEmpty ? 'Seleccione la hora de inicio' : null,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              GestureDetector(
+                onTap: () => _selectHoraFinal(context),
+                child: AbsorbPointer(
+                  child: TextFormField(
+                    controller: _horaFinalController,
+                    readOnly: true,
+                    decoration: InputDecoration(
+                      labelText: 'Hora Final (HH:MM:SS)',
+                      border: OutlineInputBorder(),
+                      prefixIcon: Icon(Icons.access_time_filled),
+                    ),
+                    validator: (value) =>
+                        value == null || value.isEmpty ? 'Seleccione la hora final' : null,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              GestureDetector(
+                onTap: () => _selectFecha(context),
+                child: AbsorbPointer(
+                  child: TextFormField(
+                    controller: _fechaController,
+                    readOnly: true,
+                    decoration: InputDecoration(
+                      labelText: 'Fecha (YYYY-MM-DD)',
+                      border: OutlineInputBorder(),
+                      prefixIcon: Icon(Icons.date_range),
+                    ),
+                    validator: (value) =>
+                        value == null || value.isEmpty ? 'Seleccione la fecha' : null,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: _loading ? null : _crearAsistencia,
+                  child: _loading
+                      ? SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                              strokeWidth: 2, color: Colors.white),
+                        )
+                      : Text('Crear Asistencia'),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: CrearAsistenciaScreen.primaryColor,
+                    foregroundColor: Colors.white,
+                    padding: EdgeInsets.symmetric(vertical: 14),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                ),
+              ),
+              if (_response != null) ...[
+                const SizedBox(height: 24),
+                Card(
+                  color: Colors.green[50],
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Row(
+                      children: [
+                        Icon(Icons.check_circle, color: Colors.green[700]),
+                        const SizedBox(width: 12),
+                        Expanded(
+                            child: Text(_response!,
+                                style: TextStyle(
+                                    color: Colors.green[900],
+                                    fontWeight: FontWeight.bold))),
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+              if (_error != null) ...[
+                const SizedBox(height: 24),
+                Card(
+                  color: Colors.red[50],
+                  elevation: 0,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Row(
+                      children: [
+                        Icon(Icons.error, color: Colors.red[700]),
+                        const SizedBox(width: 12),
+                        Expanded(
+                            child: Text(_error!,
+                                style: TextStyle(
+                                    color: Colors.red[900],
+                                    fontWeight: FontWeight.bold))),
+                      ],
+                    ),
+                  ),
+                ),
               ],
             ],
           ),

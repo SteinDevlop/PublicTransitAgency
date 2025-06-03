@@ -20,7 +20,7 @@ def consultar():
 
 @router.get("/typetransports", response_class=JSONResponse)
 def get_typetransport(
-    current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
+    current_user: dict = Security(get_current_user, scopes=["system", "administrador","pasajero"])
 ):
     """
     Devuelve todos los tipos de transporte registrados.

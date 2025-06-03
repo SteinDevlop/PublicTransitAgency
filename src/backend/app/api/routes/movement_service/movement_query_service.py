@@ -17,8 +17,9 @@ async def get_all_pasajero_movements():
     """
     movimientos = controller.read_all(MovementOut)
     logger.info(f"[GET /pasajero/movements] Número de Movimientos encontrados: {len(movimientos)}")
-    # Si movimientos ya son dicts, devuélvelos directamente
-    return JSONResponse(content=movimientos)
+    # Convert to dicts if needed
+    movimientos_dicts = [m.model_dump() if hasattr(m, "model_dump") else m.dict() if hasattr(m, "dict") else m for m in movimientos]
+    return JSONResponse(content=movimientos_dicts)
 
 @router.get("/administrador/movements", response_class=JSONResponse)
 async def get_all_admin_movements():
@@ -27,8 +28,8 @@ async def get_all_admin_movements():
     """
     movimientos = controller.read_all(MovementOut)
     logger.info(f"[GET /administrador/movements] Número de Movimientos encontrados: {len(movimientos)}")
-    # Si movimientos ya son dicts, devuélvelos directamente
-    return JSONResponse(content=movimientos)
+    movimientos_dicts = [m.model_dump() if hasattr(m, "model_dump") else m.dict() if hasattr(m, "dict") else m for m in movimientos]
+    return JSONResponse(content=movimientos_dicts)
 
 @router.get("/administrador/byid", response_class=JSONResponse)
 async def get_movement_by_id(
@@ -38,14 +39,32 @@ async def get_movement_by_id(
     """
     Returns a movement by its ID as JSON. Requires administrator scope.
     """
-    #logger.info(f"[GET /administrador/byid] Usuario: {current_user['user_id']} - Consultando movimiento con id={ID}")
     result = controller.get_by_column(MovementOut, "ID", ID)
     if result:
-        # Si result ya es dict, devuélvelo directamente
-        return JSONResponse(content=result.to_dict())
+        return JSONResponse(content=result.model_dump() if hasattr(result, "model_dump") else result.dict())
     else:
         logger.warning(f"[GET /administrador/byid] No se encontró movimiento con id={ID}")
         return JSONResponse(
             status_code=status.HTTP_404_NOT_FOUND,
             content={"detail": f"Movimiento con id={ID} no encontrado"}
+        )
+
+@router.get("/pasajero/bycardid", response_class=JSONResponse)
+async def get_movement_by_cardid(
+    ID: int = Query(...),
+    current_user: dict = Security(get_current_user, scopes=["system", "administrador","pasajero"])
+):
+    result = controller.get_by_column(MovementOut, "IDTarjeta", ID)
+    if result:
+        # Always return a list
+        if isinstance(result, list):
+            movements = [r.model_dump() if hasattr(r,"model_dump") else r.dict() if hasattr(r,"dict") else r for r in result]
+        else:
+            movements = [result.model_dump() if hasattr(result,"model_dump") else result.dict() if hasattr(result,"dict") else result]
+        return JSONResponse(content=movements)
+    else:
+        logger.warning(f"[GET /administrador/cardbyid] No se encontró movimiento con id={ID}")
+        return JSONResponse(
+            status_code=status.HTTP_404_NOT_FOUND,
+            content=[]
         )

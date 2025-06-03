@@ -663,18 +663,66 @@ _buildMenuItem(
                             title: 'Tarifa',
                             color: primaryColor,
                             buttons: [
+                            _buildCrudButton(
+                                '➕ Añadir Tarifa',
+                                () => showDialog(
+                                  context: context,
+                                  builder: (_) => Dialog(
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(24),
+                                      child: CreatePriceWidget(
+                                        token: token,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
                               _buildCrudButton(
-                                  '📄 Leer Tarifa',
-                                  () => Navigator.pushNamed(
-                                      context, '/price/consultar')),
+                                '📄 Leer Tarifa',
+                                () => showDialog(
+                                  context: context,
+                                  builder: (_) => Dialog(
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(24),
+                                      child: SizedBox(
+                                        width: 360,
+                                        child: AdminPricesListWidget(
+                                          token: token,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ),
                               _buildCrudButton(
                                   '🖊️ Actualizar Tarifa',
-                                  () => Navigator.pushNamed(
-                                      context, '/price/actualizar')),
+                                () => showDialog(
+                                  context: context,
+                                  builder: (_) => Dialog(
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(24),
+                                      child: UpdatePriceFlow(
+                                        token: token,
+                                        onCancel: () => Navigator.of(context).pop(),
+                                        onSuccess: () => Navigator.pop(context)),
+                                      ),
+                                    ),
+                                  ),
+                                ),
                               _buildCrudButton(
                                   '🗑️ Eliminar Tarifa',
-                                  () => Navigator.pushNamed(
-                                      context, '/price/eliminar')),
+                                  () => showDialog(
+                                  context: context,
+                                  builder: (_) => Dialog(
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(24),
+                                      child: DeletePriceWidget(
+                                        token: token,
+                                        onCancel: () => Navigator.of(context).pop(),
+                                        onSuccess: () => Navigator.pop(context)),
+                                      ),
+                                    ),
+                                  ),),
                             ],
                           ),
                           // CRUD: Otros
@@ -712,9 +760,19 @@ _buildMenuItem(
                                   ),
                               ),
                               _buildCrudButton(
-                                  '📄 Extraer Servicios de Transporte',
-                                  () => Navigator.pushNamed(
-                                      context, '/typetransport/consultar')),
+                                  '📄 Gestion de Servicios de Transporte',
+                                  () => showDialog(
+                                  context: context,
+                                  builder: (_) => Dialog(
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(24),
+                                      child: TypeTransportCrudTabsWidget(
+                                        token: token,
+                                        onSuccess: () => Navigator.pop(context),
+                                      ),
+                                    ),
+                                  ),
+                                  ),),
                             ],
                           ),
                         ],
@@ -946,6 +1004,19 @@ _buildMenuItem(
                                       label: 'Generar Reporte',
                                       icon: Icons.assessment_outlined,
                                       color: accentColor,
+                                    ),
+                                    _buildActionButton(
+                                      label: 'Registrar Asistencia',
+                                      icon: Icons.person_add_outlined,
+                                      color: const Color.fromARGB(255, 232, 36, 26),
+                                      onPressed: () => showDialog(
+                                        context: context,
+                                        builder: (_) => Dialog(
+                                          child: CrearAsistenciaScreen(
+                                            token: token,
+                                          ),
+                                        ),
+                                      ),
                                     ),
                                   ],
                                 ),
@@ -2603,7 +2674,7 @@ class _RutaDeleteWidgetState extends State<_RutaDeleteWidget> {
     );
   }
 }
-// Screen para crear usuario
+// Screen para crear asistencia
 class CrearAsistenciaScreen extends StatefulWidget {
   final String token;
   const CrearAsistenciaScreen({Key? key, required this.token})
@@ -6916,7 +6987,7 @@ class PriceApiService {
         return ApiResponse.success(data["message"] ?? "Creado correctamente");
       } else {
         final data = json.decode(response.body);
-        return ApiResponse.error(data["detail"] ?? "Error al crear precio");
+        return ApiResponse.error(data["detail"] ?? "Error al crear tarifa");
       }
     } catch (e) {
       return ApiResponse.error("Error de conexión: $e");
@@ -6994,7 +7065,7 @@ class _PriceCreateWidgetState extends State<PriceCreateWidget> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Crear Precio')),
+      appBar: AppBar(title: const Text('Crear Tarifa')),
       body: Padding(
         padding: const EdgeInsets.all(16),
         child: Form(
@@ -7058,7 +7129,7 @@ class _PriceCreateWidgetState extends State<PriceCreateWidget> {
                   onPressed: _isLoading ? null : _submit,
                   child: _isLoading
                       ? const CircularProgressIndicator(color: Colors.white)
-                      : const Text('Crear Precio'),
+                      : const Text('Crear Tarifa'),
                 ),
               ),
             ],
@@ -9224,6 +9295,927 @@ class _TypeTransportCrudTabsWidgetState extends State<TypeTransportCrudTabsWidge
           ),
         ],
       ),
+    );
+  }
+}
+////
+///PRICE CRUD SERVICE
+///CREATE
+class CreatePriceWidget extends StatefulWidget {
+  final String token;
+  final VoidCallback? onSuccess;
+  final VoidCallback? onCancel;
+
+  const CreatePriceWidget({
+    Key? key,
+    required this.token,
+    this.onSuccess,
+    this.onCancel,
+  }) : super(key: key);
+
+  @override
+  State<CreatePriceWidget> createState() => _CreatePriceWidgetState();
+}
+
+class _CreatePriceWidgetState extends State<CreatePriceWidget> {
+  final _formKey = GlobalKey<FormState>();
+  final _montoController = TextEditingController();
+
+  int? _newId;
+  List<TypeTransport> _typeTransports = [];
+  TypeTransport? _selectedTransport;
+  bool _loading = true;
+  bool _submitting = false;
+  String? _message;
+  bool _success = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _initData();
+  }
+
+  @override
+  void dispose() {
+    _montoController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _initData() async {
+    setState(() => _loading = true);
+    try {
+      await _fetchTypeTransports();
+      await _fetchLastId();
+    } catch (e) {
+      _showMessage("Error al cargar datos iniciales: $e", isError: true);
+    } finally {
+      setState(() => _loading = false);
+    }
+  }
+
+  Future<void> _fetchTypeTransports() async {
+    final response = await http.get(
+      Uri.parse('${AppConfig.baseUrl}/typetransport/typetransports'),
+      headers: {'Authorization': 'Bearer ${widget.token}'},
+    );
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      final rawList = data['typetransports'] ?? [];
+      _typeTransports = List<TypeTransport>.from(
+        rawList.map((e) => TypeTransport.fromJson(e)),
+      );
+      if (_typeTransports.isNotEmpty) {
+        _selectedTransport = _typeTransports.first;
+      }
+    } else {
+      throw Exception('Error tipos de transporte: ${response.statusCode}');
+    }
+  }
+
+  Future<void> _fetchLastId() async {
+    final response = await http.get(
+      Uri.parse('${AppConfig.baseUrl}/price/administrador/prices'),
+      headers: {'Authorization': 'Bearer ${widget.token}'},
+    );
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      final List<dynamic> prices = data['prices'] ?? [];
+      final lastId = prices.isNotEmpty
+          ? (prices.map((e) => e['ID'] ?? 0).reduce((a, b) => a > b ? a : b))
+          : 0;
+      _newId = lastId + 1;
+    } else {
+      _newId = 1;
+    }
+  }
+
+  void _showMessage(String message, {bool isError = false}) {
+    setState(() {
+      _message = message;
+      _success = !isError;
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: isError ? Colors.red : Colors.green,
+      ),
+    );
+  }
+
+  Future<void> _submit() async {
+    if (!_formKey.currentState!.validate() || _selectedTransport == null) {
+      _showMessage("Complete todos los campos correctamente", isError: true);
+      return;
+    }
+    final monto = double.tryParse(_montoController.text);
+    if (monto == null || monto <= 0) {
+      _showMessage("Ingrese un monto válido", isError: true);
+      return;
+    }
+
+    setState(() {
+      _submitting = true;
+      _message = null;
+    });
+
+    try {
+      final uri = Uri.parse('${AppConfig.baseUrl}/price/create');
+      final request = http.MultipartRequest('POST', uri)
+        ..headers['Authorization'] = 'Bearer ${widget.token}'
+        ..fields['ID'] = _newId.toString()
+        ..fields['IDTipoTransporte'] = _selectedTransport!.id.toString()
+        ..fields['Monto'] = monto.toStringAsFixed(2);
+
+      final streamedResponse = await request.send();
+      final resp = await http.Response.fromStream(streamedResponse);
+
+      final data = json.decode(resp.body);
+      if (resp.statusCode == 201 && data['success'] == true) {
+        _showMessage("¡Precio creado!");
+        _clearForm();
+        await _fetchLastId();
+        widget.onSuccess?.call();
+      } else {
+        _showMessage(data['detail'] ?? data['message'] ?? "Error al crear tarifa", isError: true);
+      }
+    } catch (e) {
+      _showMessage("Error de conexión: $e", isError: true);
+    } finally {
+      setState(() => _submitting = false);
+    }
+  }
+
+  void _clearForm() {
+    _montoController.clear();
+    if (_typeTransports.isNotEmpty) {
+      setState(() {
+        _selectedTransport = _typeTransports.first;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_loading) {
+      return Center(child: CircularProgressIndicator());
+    }
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Form(
+        key: _formKey,
+        child: ListView(
+          shrinkWrap: true,
+          children: [
+            Text('ID: ${_newId ?? "Cargando..."}', style: TextStyle(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 8),
+            DropdownButtonFormField<TypeTransport>(
+              decoration: InputDecoration(
+                labelText: 'Tipo de Transporte',
+                border: OutlineInputBorder(),
+              ),
+              value: _selectedTransport,
+              items: _typeTransports
+                  .map((t) => DropdownMenuItem<TypeTransport>(
+                        value: t,
+                        child: Text('${t.tipoTransporte} (ID: ${t.id})'),
+                      ))
+                  .toList(),
+              onChanged: (t) => setState(() => _selectedTransport = t),
+              validator: (v) => v == null ? 'Seleccione un tipo de transporte' : null,
+            ),
+            const SizedBox(height: 8),
+            TextFormField(
+              controller: _montoController,
+              keyboardType: TextInputType.numberWithOptions(decimal: true),
+              inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}'))],
+              decoration: InputDecoration(
+                labelText: 'Monto',
+                suffixText: 'USD',
+                border: OutlineInputBorder(),
+                helperText: 'Ingrese el precio en dólares',
+              ),
+              validator: (value) {
+                if (value == null || value.isEmpty) return 'Ingrese el monto';
+                final amount = double.tryParse(value);
+                if (amount == null) return 'Monto inválido';
+                if (amount <= 0) return 'El monto debe ser mayor a 0';
+                if (amount > 999999) return 'Monto demasiado alto';
+                return null;
+              },
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: _submitting ? null : _submit,
+                    child: _submitting
+                        ? SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2))
+                        : Text('Crear Tarifa'),
+                  ),
+                ),
+                if (widget.onCancel != null)
+                  Expanded(
+                    child: TextButton(
+                      onPressed: widget.onCancel,
+                      child: Text('Cancelar'),
+                    ),
+                  ),
+              ],
+            ),
+            if (_message != null)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                child: Text(
+                  _message!,
+                  style: TextStyle(
+                    color: _success ? Colors.green : Colors.red,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+///UPDATE
+// MODELOS
+class PriceData {
+  final int id;
+  final int idTipoTransporte;
+  final double monto;
+
+  PriceData({
+    required this.id,
+    required this.idTipoTransporte,
+    required this.monto,
+  });
+
+  factory PriceData.fromJson(Map<String, dynamic> json) => PriceData(
+        id: json['ID'],
+        idTipoTransporte: json['IDTipoTransporte'],
+        monto: (json['Monto'] is int)
+            ? (json['Monto'] as int).toDouble()
+            : (json['Monto'] as double),
+      );
+}
+
+// ROOT FLOW
+class UpdatePriceFlow extends StatefulWidget {
+  final String token;
+  final VoidCallback? onCancel;
+  final VoidCallback? onSuccess;
+
+  const UpdatePriceFlow({
+    super.key,
+    required this.token,
+    this.onCancel,
+    this.onSuccess,
+  });
+
+  @override
+  State<UpdatePriceFlow> createState() => _UpdatePriceFlowState();
+}
+
+class _UpdatePriceFlowState extends State<UpdatePriceFlow> {
+  int? _priceId;
+
+  @override
+  Widget build(BuildContext context) {
+    return _priceId == null
+        ? _IdPromptWidget(onIdEntered: (id) => setState(() => _priceId = id))
+        : UpdatePriceWidget(
+            token: widget.token,
+            id: _priceId!,
+            onCancel: widget.onCancel,
+            onSuccess: widget.onSuccess,
+          );
+  }
+}
+
+// ID PROMPT
+class _IdPromptWidget extends StatefulWidget {
+  final void Function(int id) onIdEntered;
+  const _IdPromptWidget({required this.onIdEntered});
+
+  @override
+  State<_IdPromptWidget> createState() => _IdPromptWidgetState();
+}
+
+class _IdPromptWidgetState extends State<_IdPromptWidget> {
+  final _controller = TextEditingController();
+  String? _error;
+
+  void _submit() {
+    final id = int.tryParse(_controller.text.trim());
+    if (id != null && id > 0) {
+      widget.onIdEntered(id);
+    } else {
+      setState(() => _error = 'Ingrese un ID válido');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text("ID del precio a editar:"),
+          const SizedBox(height: 8),
+          TextField(
+            controller: _controller,
+            keyboardType: TextInputType.number,
+            decoration: InputDecoration(
+              labelText: "ID de precio",
+              errorText: _error,
+              border: OutlineInputBorder(),
+            ),
+            onSubmitted: (_) => _submit(),
+          ),
+          const SizedBox(height: 8),
+          ElevatedButton(
+            onPressed: _submit,
+            child: const Text("Buscar"),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+// UPDATE WIDGET
+class UpdatePriceWidget extends StatefulWidget {
+  final String token;
+  final int id;
+  final VoidCallback? onSuccess;
+  final VoidCallback? onCancel;
+
+  const UpdatePriceWidget({
+    Key? key,
+    required this.token,
+    required this.id,
+    this.onSuccess,
+    this.onCancel,
+  }) : super(key: key);
+
+  @override
+  State<UpdatePriceWidget> createState() => _UpdatePriceWidgetState();
+}
+
+class _UpdatePriceWidgetState extends State<UpdatePriceWidget> {
+  final _formKey = GlobalKey<FormState>();
+  final _montoController = TextEditingController();
+
+  List<TypeTransport> _typeTransports = [];
+  TypeTransport? _selectedTransport;
+  PriceData? _originalPrice;
+  bool _loading = true;
+  bool _submitting = false;
+  String? _message;
+  bool _success = false;
+  bool _hasChanges = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _initData();
+    _montoController.addListener(_checkForChanges);
+  }
+
+  @override
+  void dispose() {
+    _montoController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _initData() async {
+    setState(() => _loading = true);
+    try {
+      await _fetchTypeTransports();
+      await _fetchPriceData();
+    } catch (e) {
+      _showMessage("Error al cargar datos: $e", isError: true);
+    } finally {
+      setState(() => _loading = false);
+    }
+  }
+
+  Future<void> _fetchTypeTransports() async {
+    final response = await http.get(
+      Uri.parse('${AppConfig.baseUrl}/typetransport/typetransports'),
+      headers: {'Authorization': 'Bearer ${widget.token}'},
+    );
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      final rawList = data['typetransports'] ?? [];
+      _typeTransports = List<TypeTransport>.from(
+        rawList.map((e) => TypeTransport.fromJson(e)),
+      );
+    } else {
+      throw Exception('Tipos de transporte: ${response.statusCode}');
+    }
+  }
+
+  Future<void> _fetchPriceData() async {
+    final response = await http.get(
+      Uri.parse('${AppConfig.baseUrl}/price/administrador/precio?id=${widget.id}'),
+      headers: {'Authorization': 'Bearer ${widget.token}'},
+    );
+    if (response.statusCode == 200) {
+      final data = json.decode(response.body);
+      _originalPrice = PriceData.fromJson(data);
+      _montoController.text = _originalPrice!.monto.toStringAsFixed(2);
+      _selectedTransport = _typeTransports.firstWhere(
+        (tt) => tt.id == _originalPrice!.idTipoTransporte,
+        orElse: () => _typeTransports.first,
+      );
+    } else {
+      throw Exception('Precio no encontrado');
+    }
+  }
+
+  void _checkForChanges() {
+    if (_originalPrice == null) return;
+    final currentMonto = double.tryParse(_montoController.text) ?? 0.0;
+    final currentTransportId = _selectedTransport?.id ?? 0;
+    final hasChanges = currentMonto != _originalPrice!.monto ||
+        currentTransportId != _originalPrice!.idTipoTransporte;
+    if (hasChanges != _hasChanges) {
+      setState(() => _hasChanges = hasChanges);
+    }
+  }
+
+  void _showMessage(String message, {bool isError = false}) {
+    setState(() {
+      _message = message;
+      _success = !isError;
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: isError ? Colors.red : Colors.green,
+      ),
+    );
+  }
+
+  Future<void> _submit() async {
+    if (!_formKey.currentState!.validate() || _selectedTransport == null) {
+      _showMessage("Complete todos los campos correctamente", isError: true);
+      return;
+    }
+    if (!_hasChanges) {
+      _showMessage("No se han detectado cambios", isError: true);
+      return;
+    }
+    final monto = double.tryParse(_montoController.text);
+    if (monto == null || monto <= 0) {
+      _showMessage("Ingrese un monto válido", isError: true);
+      return;
+    }
+    if (!await _showConfirmationDialog()) return;
+
+    setState(() {
+      _submitting = true;
+      _message = null;
+    });
+
+    try {
+      final uri = Uri.parse('${AppConfig.baseUrl}/price/update');
+      final request = http.MultipartRequest('POST', uri)
+        ..headers['Authorization'] = 'Bearer ${widget.token}'
+        ..fields['ID'] = widget.id.toString()
+        ..fields['IDTipoTransporte'] = _selectedTransport!.id.toString()
+        ..fields['Monto'] = monto.toStringAsFixed(2);
+
+      final streamedResponse = await request.send();
+      final resp = await http.Response.fromStream(streamedResponse);
+
+      final data = json.decode(resp.body);
+      if (resp.statusCode == 200 && data['success'] == true) {
+        _showMessage("¡Precio actualizado!");
+        await _fetchPriceData();
+        widget.onSuccess?.call();
+      } else {
+        _showMessage(data['detail'] ?? data['message'] ?? "Error al actualizar precio", isError: true);
+      }
+    } catch (e) {
+      _showMessage("Error de conexión: $e", isError: true);
+    } finally {
+      setState(() => _submitting = false);
+    }
+  }
+
+  Future<bool> _showConfirmationDialog() async {
+    final originalMonto = _originalPrice?.monto ?? 0.0;
+    final newMonto = double.tryParse(_montoController.text) ?? 0.0;
+    final difference = newMonto - originalMonto;
+
+    return await showDialog<bool>(
+          context: context,
+          builder: (context) => AlertDialog(
+            title: Text("Confirmar"),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text("¿Actualizar el precio?"),
+                SizedBox(height: 8),
+                Text("Antes: \$${originalMonto.toStringAsFixed(2)}"),
+                Text("Nuevo: \$${newMonto.toStringAsFixed(2)}"),
+                Text("Diferencia: ${difference >= 0 ? '+' : ''}\$${difference.toStringAsFixed(2)}"),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.of(context).pop(false),
+                child: Text("Cancelar"),
+              ),
+              ElevatedButton(
+                onPressed: () => Navigator.of(context).pop(true),
+                child: Text("Confirmar"),
+              ),
+            ],
+          ),
+        ) ??
+        false;
+  }
+
+  void _resetForm() {
+    if (_originalPrice != null) {
+      _montoController.text = _originalPrice!.monto.toStringAsFixed(2);
+      setState(() {
+        _selectedTransport = _typeTransports.firstWhere(
+          (tt) => tt.id == _originalPrice!.idTipoTransporte,
+          orElse: () => _typeTransports.first,
+        );
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_loading) {
+      return Center(child: CircularProgressIndicator());
+    }
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Form(
+        key: _formKey,
+        child: ListView(
+          shrinkWrap: true,
+          children: [
+            Text('ID: ${widget.id}', style: TextStyle(fontWeight: FontWeight.bold)),
+            const SizedBox(height: 8),
+            DropdownButtonFormField<TypeTransport>(
+              decoration: InputDecoration(
+                labelText: 'Tipo de Transporte',
+                border: OutlineInputBorder(),
+              ),
+              value: _selectedTransport,
+              items: _typeTransports
+                  .map((t) => DropdownMenuItem<TypeTransport>(
+                        value: t,
+                        child: Text('${t.tipoTransporte} (ID: ${t.id})'),
+                      ))
+                  .toList(),
+              onChanged: (t) {
+                setState(() => _selectedTransport = t);
+                _checkForChanges();
+              },
+              validator: (v) => v == null ? 'Seleccione un tipo de transporte' : null,
+            ),
+            const SizedBox(height: 8),
+            TextFormField(
+              controller: _montoController,
+              keyboardType: TextInputType.numberWithOptions(decimal: true),
+              inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}'))],
+              decoration: InputDecoration(
+                labelText: 'Monto',
+                suffixText: 'USD',
+                border: OutlineInputBorder(),
+                helperText: _originalPrice != null
+                    ? 'Monto original: \$${_originalPrice!.monto.toStringAsFixed(2)}'
+                    : null,
+              ),
+              validator: (value) {
+                if (value == null || value.isEmpty) return 'Ingrese el monto';
+                final amount = double.tryParse(value);
+                if (amount == null) return 'Monto inválido';
+                if (amount <= 0) return 'El monto debe ser mayor a 0';
+                if (amount > 999999) return 'Monto demasiado alto';
+                return null;
+              },
+            ),
+            const SizedBox(height: 12),
+            Row(
+              children: [
+                Expanded(
+                  child: OutlinedButton(
+                    onPressed: _resetForm,
+                    child: Text('Restablecer'),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: (_submitting || !_hasChanges) ? null : _submit,
+                    child: _submitting ? SizedBox(width: 16, height: 16, child: CircularProgressIndicator(strokeWidth: 2)) : Text('Actualizar'),
+                  ),
+                ),
+              ],
+            ),
+            if (widget.onCancel != null)
+              TextButton(
+                onPressed: widget.onCancel,
+                child: Text('Cancelar'),
+              ),
+            if (_message != null)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                child: Text(
+                  _message!,
+                  style: TextStyle(
+                    color: _success ? Colors.green : Colors.red,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+////DELETE
+class DeletePriceWidget extends StatefulWidget {
+  final String token;
+  final VoidCallback? onSuccess;
+  final VoidCallback? onCancel;
+
+  const DeletePriceWidget({
+    Key? key,
+    required this.token,
+    this.onSuccess,
+    this.onCancel,
+  }) : super(key: key);
+
+  @override
+  State<DeletePriceWidget> createState() => _DeletePriceWidgetState();
+}
+
+class _DeletePriceWidgetState extends State<DeletePriceWidget> {
+  final _formKey = GlobalKey<FormState>();
+  final _idController = TextEditingController();
+
+  bool _loading = false;
+  String? _message;
+  bool _success = false;
+
+  @override
+  void dispose() {
+    _idController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _deletePrice() async {
+    final id = int.tryParse(_idController.text.trim());
+    if (id == null || id < 0) {
+      setState(() {
+        _message = "Ingrese un ID válido";
+        _success = false;
+      });
+      return;
+    }
+    setState(() {
+      _loading = true;
+      _message = null;
+    });
+
+    try {
+      final uri = Uri.parse('${AppConfig.baseUrl}/price/delete');
+      final request = http.MultipartRequest('POST', uri)
+        ..headers['Authorization'] = 'Bearer ${widget.token}'
+        ..fields['ID'] = id.toString();
+
+      final streamedResponse = await request.send();
+      final resp = await http.Response.fromStream(streamedResponse);
+      final data = json.decode(resp.body);
+
+      if (resp.statusCode == 200 && data['success'] == true) {
+        setState(() {
+          _message = data['message'] ?? "Eliminado exitosamente.";
+          _success = true;
+        });
+        widget.onSuccess?.call();
+      } else {
+        setState(() {
+          _message = data['detail'] ?? data['message'] ?? "Error al eliminar.";
+          _success = false;
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _message = "Error de conexión: $e";
+        _success = false;
+      });
+    } finally {
+      setState(() {
+        _loading = false;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.all(16),
+      child: Form(
+        key: _formKey,
+        child: ListView(
+          shrinkWrap: true,
+          children: [
+            Text(
+              'Eliminar Precio',
+              style: Theme.of(context).textTheme.headlineLarge,
+            ),
+            const SizedBox(height: 16),
+            TextFormField(
+              controller: _idController,
+              keyboardType: TextInputType.number,
+              decoration: InputDecoration(
+                labelText: 'ID de precio a eliminar',
+                border: OutlineInputBorder(),
+              ),
+              validator: (value) {
+                final id = int.tryParse(value ?? '');
+                if (id == null || id <= 0) return 'Ingrese un ID válido';
+                return null;
+              },
+              enabled: !_loading,
+            ),
+            const SizedBox(height: 16),
+            Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: _loading
+                        ? null
+                        : () {
+                            if (_formKey.currentState?.validate() ?? false) {
+                              _deletePrice();
+                            }
+                          },
+                    child: _loading
+                        ? SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : Text('Eliminar'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.red,
+                      foregroundColor: Colors.white,
+                    ),
+                  ),
+                ),
+                if (widget.onCancel != null)
+                  Expanded(
+                    child: TextButton(
+                      onPressed: widget.onCancel,
+                      child: Text('Cancelar'),
+                    ),
+                  ),
+              ],
+            ),
+            if (_message != null)
+              Padding(
+                padding: const EdgeInsets.symmetric(vertical: 8),
+                child: Text(
+                  _message!,
+                  style: TextStyle(
+                    color: _success ? Colors.green : Colors.red,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+////
+///Consultar
+// Modelo mínimo para el precio
+class Price {
+  final int id;
+  final int idTipoTransporte;
+  final double monto;
+
+  Price({required this.id, required this.idTipoTransporte, required this.monto});
+
+  factory Price.fromJson(Map<String, dynamic> json) => Price(
+        id: json['ID'],
+        idTipoTransporte: json['IDTipoTransporte'],
+        monto: (json['Monto'] is int)
+            ? (json['Monto'] as int).toDouble()
+            : (json['Monto'] as double),
+      );
+}
+
+class AdminPricesListWidget extends StatefulWidget {
+  final String token;
+  final VoidCallback? onRefresh;
+
+  const AdminPricesListWidget({
+    Key? key,
+    required this.token,
+    this.onRefresh,
+  }) : super(key: key);
+
+  @override
+  State<AdminPricesListWidget> createState() => _AdminPricesListWidgetState();
+}
+
+class _AdminPricesListWidgetState extends State<AdminPricesListWidget> {
+  List<Price>? _prices;
+  bool _loading = true;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchPrices();
+  }
+
+  Future<void> _fetchPrices() async {
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+    try {
+      final response = await http.get(
+        Uri.parse('${AppConfig.baseUrl}/price/administrador/prices'),
+        headers: {'Authorization': 'Bearer ${widget.token}'},
+      );
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final List<dynamic> rawList = data['prices'] ?? [];
+        _prices = rawList.map((e) => Price.fromJson(e)).toList();
+      } else {
+        _error = "Error al obtener precios (${response.statusCode})";
+      }
+    } catch (e) {
+      _error = "Error de red: $e";
+    } finally {
+      setState(() {
+        _loading = false;
+      });
+    }
+  }
+
+  Widget _buildList() {
+    if (_prices == null || _prices!.isEmpty) {
+      return Center(child: Text("No hay precios registrados."));
+    }
+    return ListView.separated(
+      itemCount: _prices!.length,
+      separatorBuilder: (_, __) => Divider(),
+      itemBuilder: (context, index) {
+        final price = _prices![index];
+        return ListTile(
+          leading: CircleAvatar(
+            child: Text(price.id.toString()),
+          ),
+          title: Text('Monto: \$${price.monto.toStringAsFixed(2)}'),
+          subtitle: Text('ID Tipo Transporte: ${price.idTipoTransporte}'),
+        );
+      },
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Lista de Tarifas'),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.refresh),
+            onPressed: _loading ? null : _fetchPrices,
+            tooltip: "Refrescar",
+          ),
+        ],
+      ),
+      body: _loading
+          ? Center(child: CircularProgressIndicator())
+          : _error != null
+              ? Center(child: Text(_error!, style: TextStyle(color: Colors.red)))
+              : _buildList(),
     );
   }
 }

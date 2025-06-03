@@ -272,6 +272,17 @@ class PassengerPanel extends StatelessWidget {
                             icon: Icons.attach_money_outlined,
                             title: 'Tarifas y peajes',
                             color: primaryColor,
+                            onTap: () {
+                              showDialog(
+                                context: context,
+                                builder: (_) => Dialog(
+                                  child: SizedBox(
+                                    width: 500,
+                                    child: AdminPricesAndTypesWidget(token: token),
+                                  ),
+                                ),
+                              );
+                            },
                           ),
                           _buildMenuItem(
                             icon: Icons.notifications_active_outlined,
@@ -293,11 +304,30 @@ class PassengerPanel extends StatelessWidget {
                             icon: Icons.history_outlined,
                             title: 'Movimientos',
                             color: primaryColor,
+                            onTap: () {
+                              showDialog(
+                                context: context,
+                                builder: (_) => Dialog(
+                                  child: SizedBox(
+                                    width: 500,
+                                    child: CardIdInputWidget(token: token),
+                                  ),
+                                ),
+                              );
+                            },
                           ),
                           _buildMenuItem(
                             icon: Icons.feedback_outlined,
                             title: 'Sugerencias y Quejas',
                             color: primaryColor,
+                            onTap: () {
+                              showDialog(
+                                context: context,
+                                builder: (_) => Dialog(
+                                  child: PqrCrudWidget(token: token),
+                                ),
+                              );
+                            },
                           ),
                           _buildMenuItem(
                             icon: Icons.payment_outlined,
@@ -1955,6 +1985,1662 @@ class _RutasParadasPasajeroWidgetState extends State<RutasParadasPasajeroWidget>
               ),
             ),
         ],
+      ),
+    );
+  }
+}
+///
+// Modelo para el precio
+class Price {
+  final int id;
+  final int idTipoTransporte;
+  final double monto;
+
+  Price({
+    required this.id,
+    required this.idTipoTransporte,
+    required this.monto,
+  });
+
+  factory Price.fromJson(Map<String, dynamic> json) => Price(
+        id: json['ID'],
+        idTipoTransporte: json['IDTipoTransporte'],
+        monto: (json['Monto'] is int)
+            ? (json['Monto'] as int).toDouble()
+            : (json['Monto'] as double),
+      );
+}
+
+// Modelo para el tipo de transporte
+class TypeTransport {
+  final int id;
+  final String nombre;
+
+  TypeTransport({required this.id, required this.nombre});
+
+  factory TypeTransport.fromJson(Map<String, dynamic> json) => TypeTransport(
+        id: json['ID'],
+        nombre: json['TipoTransporte'],
+      );
+}
+
+class AdminPricesAndTypesWidget extends StatefulWidget {
+  final String token;
+
+  const AdminPricesAndTypesWidget({
+    Key? key,
+    required this.token,
+  }) : super(key: key);
+
+  @override
+  State<AdminPricesAndTypesWidget> createState() => _AdminPricesAndTypesWidgetState();
+}
+
+class _AdminPricesAndTypesWidgetState extends State<AdminPricesAndTypesWidget> {
+  List<Price>? _prices;
+  List<TypeTransport>? _types;
+  bool _loading = false;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchAll();
+  }
+
+  void _setLoading(bool value) {
+    setState(() {
+      _loading = value;
+    });
+  }
+
+  void _showMessage(String msg, {bool isError = false}) {
+    setState(() {
+      _error = msg;
+    });
+  }
+
+  Future<void> _fetchAll() async {
+    _setLoading(true);
+    _error = null;
+
+    try {
+      // Consultar precios
+      final responsePrecios = await http.get(
+        Uri.parse('${AppConfig.baseUrl}/price/pasajero/prices'),
+        headers: {'Authorization': 'Bearer ${widget.token}'},
+      );
+      if (responsePrecios.statusCode == 200) {
+        final List<dynamic> data = json.decode(responsePrecios.body)['prices'];
+        _prices = data.map((e) => Price.fromJson(e)).toList();
+      } else {
+        _showMessage("Error al consultar precios: ${responsePrecios.body}", isError: true);
+        _setLoading(false);
+        return;
+      }
+
+      // Consultar tipos de transporte
+      final responseTipos = await http.get(
+        Uri.parse('${AppConfig.baseUrl}/typetransport/typetransports'),
+        headers: {'Authorization': 'Bearer ${widget.token}'},
+      );
+      if (responseTipos.statusCode == 200) {
+        final List<dynamic> data = json.decode(responseTipos.body)['typetransports'];
+        _types = data.map((e) => TypeTransport.fromJson(e)).toList();
+      } else {
+        _showMessage("Error al consultar tipos de transporte: ${responseTipos.body}", isError: true);
+      }
+    } catch (e) {
+      _showMessage("Error de conexión: $e", isError: true);
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  Widget _buildPricesTable() {
+    if (_prices == null || _prices!.isEmpty) {
+      return Center(child: Text("No hay precios registrados."));
+    }
+    return DataTable(
+      columns: const [
+        DataColumn(label: Text("ID")),
+        DataColumn(label: Text("ID Tipo Transporte")),
+        DataColumn(label: Text("Monto")),
+      ],
+      rows: _prices!
+          .map(
+            (price) => DataRow(
+              cells: [
+                DataCell(Text(price.id.toString())),
+                DataCell(Text(price.idTipoTransporte.toString())),
+                DataCell(Text('\$${price.monto.toStringAsFixed(2)}')),
+              ],
+            ),
+          )
+          .toList(),
+    );
+  }
+
+  Widget _buildTypeTransportTable() {
+    if (_types == null || _types!.isEmpty) {
+      return Center(child: Text("No hay tipos de transporte registrados."));
+    }
+    return DataTable(
+      columns: const [
+        DataColumn(label: Text("ID")),
+        DataColumn(label: Text("Tipo de Transporte")),
+      ],
+      rows: _types!
+          .map(
+            (type) => DataRow(
+              cells: [
+                DataCell(Text(type.id.toString())),
+                DataCell(Text(type.nombre)),
+              ],
+            ),
+          )
+          .toList(),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Precios y Tipos de Transporte'),
+        actions: [
+          IconButton(
+            icon: Icon(Icons.refresh),
+            onPressed: _loading ? null : _fetchAll,
+            tooltip: "Refrescar",
+          ),
+        ],
+      ),
+      body: _loading
+          ? Center(child: CircularProgressIndicator())
+          : _error != null
+              ? Center(child: Text(_error!, style: TextStyle(color: Colors.red)))
+              : SingleChildScrollView(
+                  padding: EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('Tabla de Precios', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                      SizedBox(height: 8),
+                      SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: _buildPricesTable(),
+                      ),
+                      SizedBox(height: 32),
+                      Text('Tabla de Tipos de Transporte', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                      SizedBox(height: 8),
+                      SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: _buildTypeTransportTable(),
+                      ),
+                    ],
+                  ),
+                ),
+    );
+  }
+}
+
+///
+///
+class Movement {
+  final int id;
+  final int cardId;
+  final String? tipoMovimiento;
+  final String? tipoTransporte;
+  final double? monto;
+  final DateTime? fecha;
+  final String? origen;
+  final String? destino;
+  final String? estado;
+
+  Movement({
+    required this.id,
+    required this.cardId,
+    this.tipoMovimiento,
+    this.tipoTransporte,
+    this.monto,
+    this.fecha,
+    this.origen,
+    this.destino,
+    this.estado,
+  });
+
+  factory Movement.fromJson(Map<String, dynamic> json) {
+    return Movement(
+      id: json['ID'] ?? 0,
+      cardId: json['CardID'] ?? json['IDTarjeta'] ?? 0,
+      tipoMovimiento: json['TipoMovimiento'],
+      tipoTransporte: json['TipoTransporte'],
+      monto: json['Monto'] != null 
+          ? (json['Monto'] is int ? (json['Monto'] as int).toDouble() : json['Monto'] as double)
+          : null,
+      fecha: json['Fecha'] != null ? DateTime.tryParse(json['Fecha']) : null,
+      origen: json['Origen'],
+      destino: json['Destino'],
+      estado: json['Estado'],
+    );
+  }
+}
+
+class CardIdInputWidget extends StatefulWidget {
+  final String token;
+  final Function(int)? onCardSelected;
+
+  const CardIdInputWidget({
+    Key? key, 
+    required this.token,
+    this.onCardSelected,
+  }) : super(key: key);
+
+  @override
+  State<CardIdInputWidget> createState() => _CardIdInputWidgetState();
+}
+
+class _CardIdInputWidgetState extends State<CardIdInputWidget>
+    with TickerProviderStateMixin {
+  final _controller = TextEditingController();
+  final _formKey = GlobalKey<FormState>();
+  
+  int? _cardId;
+  bool _showMovements = false;
+  bool _isSearching = false;
+  String? _errorMessage;
+  
+  late AnimationController _animationController;
+  late Animation<double> _fadeAnimation;
+  late Animation<double> _slideAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _setupAnimations();
+  }
+
+  void _setupAnimations() {
+    _animationController = AnimationController(
+      duration: Duration(milliseconds: 600),
+      vsync: this,
+    );
+
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
+    );
+
+    _slideAnimation = Tween<double>(begin: 30.0, end: 0.0).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeOutBack),
+    );
+
+    _animationController.forward();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    _animationController.dispose();
+    super.dispose();
+  }
+
+  void _consultarMovimientos() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    final cardId = int.tryParse(_controller.text);
+    if (cardId == null) {
+      setState(() {
+        _errorMessage = "ID de tarjeta inválido";
+      });
+      return;
+    }
+
+    setState(() {
+      _isSearching = true;
+      _errorMessage = null;
+      _showMovements = false;
+    });
+
+    // Simulate search delay for better UX
+    await Future.delayed(Duration(milliseconds: 500));
+
+    setState(() {
+      _cardId = cardId;
+      _showMovements = true;
+      _isSearching = false;
+    });
+
+    widget.onCardSelected?.call(cardId);
+  }
+
+  void _clearSearch() {
+    setState(() {
+      _controller.clear();
+      _cardId = null;
+      _showMovements = false;
+      _errorMessage = null;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _animationController,
+      builder: (context, child) {
+        return Transform.translate(
+          offset: Offset(0, _slideAnimation.value),
+          child: FadeTransition(
+            opacity: _fadeAnimation,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // Search Card
+                Card(
+                  elevation: 4,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: Padding(
+                    padding: EdgeInsets.all(20),
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          // Header
+                          Row(
+                            children: [
+                              Container(
+                                padding: EdgeInsets.all(12),
+                                decoration: BoxDecoration(
+                                  color: Theme.of(context).primaryColor.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Icon(
+                                  Icons.credit_card,
+                                  color: Theme.of(context).primaryColor,
+                                  size: 24,
+                                ),
+                              ),
+                              SizedBox(width: 16),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Consultar Movimientos',
+                                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                    Text(
+                                      'Ingrese el ID de la tarjeta',
+                                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                        color: Colors.grey[600],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+
+                          SizedBox(height: 20),
+
+                          // Card ID Input
+                          TextFormField(
+                            controller: _controller,
+                            keyboardType: TextInputType.number,
+                            inputFormatters: [
+                              FilteringTextInputFormatter.digitsOnly,
+                              LengthLimitingTextInputFormatter(10),
+                            ],
+                            decoration: InputDecoration(
+                              labelText: 'ID de la Tarjeta',
+                              hintText: 'Ej: 12345',
+                              prefixIcon: Icon(Icons.credit_card),
+                              suffixIcon: _controller.text.isNotEmpty
+                                  ? IconButton(
+                                      icon: Icon(Icons.clear),
+                                      onPressed: _clearSearch,
+                                    )
+                                  : null,
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              contentPadding: EdgeInsets.symmetric(
+                                horizontal: 16, 
+                                vertical: 16,
+                              ),
+                            ),
+                            validator: (value) {
+                              if (value == null || value.isEmpty) {
+                                return 'Ingrese el ID de la tarjeta';
+                              }
+                              if (int.tryParse(value) == null) {
+                                return 'ID debe ser un número válido';
+                              }
+                              return null;
+                            },
+                            onChanged: (value) {
+                              setState(() {
+                                _errorMessage = null;
+                              });
+                            },
+                            onFieldSubmitted: (value) => _consultarMovimientos(),
+                          ),
+
+                          SizedBox(height: 20),
+
+                          // Search Button
+                          AnimatedContainer(
+                            duration: Duration(milliseconds: 300),
+                            height: 56,
+                            child: ElevatedButton.icon(
+                              onPressed: _isSearching ? null : _consultarMovimientos,
+                              icon: _isSearching
+                                  ? SizedBox(
+                                      width: 20,
+                                      height: 20,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 2,
+                                        valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                      ),
+                                    )
+                                  : Icon(Icons.search),
+                              label: Text(
+                                _isSearching ? 'Buscando...' : 'Consultar Movimientos',
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                              style: ElevatedButton.styleFrom(
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                elevation: _isSearching ? 0 : 4,
+                              ),
+                            ),
+                          ),
+
+                          // Error Message
+                          if (_errorMessage != null) ...[
+                            SizedBox(height: 16),
+                            Container(
+                              padding: EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: Colors.red[50],
+                                borderRadius: BorderRadius.circular(8),
+                                border: Border.all(color: Colors.red[200]!),
+                              ),
+                              child: Row(
+                                children: [
+                                  Icon(Icons.error, color: Colors.red, size: 20),
+                                  SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      _errorMessage!,
+                                      style: TextStyle(color: Colors.red[800]),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+
+                SizedBox(height: 16),
+
+                // Movements Display
+                if (_showMovements && _cardId != null)
+                  Expanded(
+                    child: MovementByCardIdWidget(
+                      cardId: _cardId!,
+                      token: widget.token,
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class MovementByCardIdWidget extends StatefulWidget {
+  final int cardId;
+  final String token;
+
+  const MovementByCardIdWidget({
+    Key? key,
+    required this.cardId,
+    required this.token,
+  }) : super(key: key);
+
+  @override
+  State<MovementByCardIdWidget> createState() => _MovementByCardIdWidgetState();
+}
+
+class _MovementByCardIdWidgetState extends State<MovementByCardIdWidget>
+    with TickerProviderStateMixin {
+  late Future<List<Movement>> _futureMovements;
+  late AnimationController _listAnimationController;
+  
+  @override
+  void initState() {
+    super.initState();
+    _listAnimationController = AnimationController(
+      duration: Duration(milliseconds: 800),
+      vsync: this,
+    );
+    _futureMovements = fetchMovements();
+    _listAnimationController.forward();
+  }
+
+  @override
+  void didUpdateWidget(MovementByCardIdWidget oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.cardId != widget.cardId) {
+      _futureMovements = fetchMovements();
+      _listAnimationController.reset();
+      _listAnimationController.forward();
+    }
+  }
+
+  @override
+  void dispose() {
+    _listAnimationController.dispose();
+    super.dispose();
+  }
+
+  Future<List<Movement>> fetchMovements() async {
+    try {
+      final url = Uri.parse(
+        '${AppConfig.baseUrl}/movement/pasajero/bycardid?ID=${widget.cardId}',
+      );
+      
+      final response = await http.get(
+        url,
+        headers: {
+          'Authorization': 'Bearer ${widget.token}',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        if (data is List) {
+          return data.map((json) => Movement.fromJson(json)).toList();
+        } else {
+          return [];
+        }
+      } else if (response.statusCode == 404) {
+        return [];
+      } else {
+        throw Exception('Error ${response.statusCode}: ${response.body}');
+      }
+    } catch (e) {
+      throw Exception('Error de conexión: $e');
+    }
+  }
+
+  void _refreshMovements() {
+    setState(() {
+      _futureMovements = fetchMovements();
+    });
+  }
+
+  IconData _getMovementIcon(String? tipoMovimiento) {
+    if (tipoMovimiento == null) return Icons.swap_horiz;
+    
+    final tipo = tipoMovimiento.toLowerCase();
+    if (tipo.contains('entrada') || tipo.contains('ingreso')) {
+      return Icons.login;
+    } else if (tipo.contains('salida') || tipo.contains('egreso')) {
+      return Icons.logout;
+    } else if (tipo.contains('2')) {
+      return Icons.add_circle;
+    } else if (tipo.contains('1')) {
+      return Icons.payment;
+    } else {
+      return Icons.swap_horiz;
+    }
+  }
+
+  Color _getMovementColor(String? tipoMovimiento) {
+    if (tipoMovimiento == null) return Colors.grey;
+    
+    final tipo = tipoMovimiento.toLowerCase();
+    if (tipo.contains('entrada') || tipo.contains('ingreso') || tipo.contains('recarga')) {
+      return Colors.green;
+    } else if (tipo.contains('salida') || tipo.contains('egreso') || tipo.contains('pago')) {
+      return Colors.red;
+    } else {
+      return Colors.blue;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      elevation: 4,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Column(
+        children: [
+          // Header
+          Container(
+            padding: EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              color: Theme.of(context).primaryColor.withOpacity(0.1),
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(16),
+                topRight: Radius.circular(16),
+              ),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.history,
+                  color: Theme.of(context).primaryColor,
+                ),
+                SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Movimientos de la Tarjeta',
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                      Text(
+                        'ID: ${widget.cardId}',
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: Colors.grey[600],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                IconButton(
+                  onPressed: _refreshMovements,
+                  icon: Icon(Icons.refresh),
+                  tooltip: 'Actualizar',
+                ),
+              ],
+            ),
+          ),
+
+          // Content
+          Expanded(
+            child: FutureBuilder<List<Movement>>(
+              future: _futureMovements,
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return _buildLoadingState();
+                } else if (snapshot.hasError) {
+                  return _buildErrorState(snapshot.error.toString());
+                } else if (snapshot.hasData) {
+                  final movements = snapshot.data!;
+                  if (movements.isEmpty) {
+                    return _buildEmptyState();
+                  }
+                  return _buildMovementsList(movements);
+                } else {
+                  return _buildEmptyState();
+                }
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildLoadingState() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          CircularProgressIndicator(
+            valueColor: AlwaysStoppedAnimation<Color>(Theme.of(context).primaryColor),
+          ),
+          SizedBox(height: 16),
+          Text(
+            'Cargando movimientos...',
+            style: Theme.of(context).textTheme.bodyLarge,
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildErrorState(String error) {
+    return Center(
+      child: Padding(
+        padding: EdgeInsets.all(20),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.error_outline,
+              size: 64,
+              color: Colors.red,
+            ),
+            SizedBox(height: 16),
+            Text(
+              'Error al cargar movimientos',
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            SizedBox(height: 8),
+            Text(
+              error,
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Colors.grey[600]),
+            ),
+            SizedBox(height: 16),
+            ElevatedButton.icon(
+              onPressed: _refreshMovements,
+              icon: Icon(Icons.refresh),
+              label: Text('Reintentar'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return Center(
+      child: Padding(
+        padding: EdgeInsets.all(20),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(
+              Icons.inbox,
+              size: 64,
+              color: Colors.grey,
+            ),
+            SizedBox(height: 16),
+            Text(
+              'No hay movimientos',
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            SizedBox(height: 8),
+            Text(
+              'Esta tarjeta no tiene movimientos registrados',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Colors.grey[600]),
+            ),
+            SizedBox(height: 16),
+            TextButton.icon(
+              onPressed: _refreshMovements,
+              icon: Icon(Icons.refresh),
+              label: Text('Actualizar'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMovementsList(List<Movement> movements) {
+    return AnimatedBuilder(
+      animation: _listAnimationController,
+      builder: (context, child) {
+        return ListView.builder(
+          padding: EdgeInsets.all(16),
+          itemCount: movements.length,
+          itemBuilder: (context, index) {
+            final movement = movements[index];
+            final delay = index * 0.1;
+            final animation = Tween<double>(begin: 0.0, end: 1.0).animate(
+              CurvedAnimation(
+                parent: _listAnimationController,
+                curve: Interval(delay, 1.0, curve: Curves.easeOutBack),
+              ),
+            );
+
+            return FadeTransition(
+              opacity: animation,
+              child: SlideTransition(
+                position: Tween<Offset>(
+                  begin: Offset(0.3, 0),
+                  end: Offset.zero,
+                ).animate(animation),
+                child: Container(
+                  margin: EdgeInsets.only(bottom: 12),
+                  child: Card(
+                    elevation: 2,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: ListTile(
+                      contentPadding: EdgeInsets.all(16),
+                      leading: Container(
+                        padding: EdgeInsets.all(8),
+                        decoration: BoxDecoration(
+                          color: _getMovementColor(movement.tipoMovimiento).withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Icon(
+                          _getMovementIcon(movement.tipoMovimiento),
+                          color: _getMovementColor(movement.tipoMovimiento),
+                        ),
+                      ),
+                      title: Text(
+                        movement.tipoMovimiento ?? 'Movimiento #${movement.id}',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          if (movement.tipoTransporte != null) ...[
+                            SizedBox(height: 4),
+                            Row(
+                              children: [
+                                Icon(Icons.directions, size: 16, color: Colors.grey),
+                                SizedBox(width: 4),
+                                Text(movement.tipoTransporte!),
+                              ],
+                            ),
+                          ],
+                          if (movement.origen != null || movement.destino != null) ...[
+                            SizedBox(height: 4),
+                            Row(
+                              children: [
+                                Icon(Icons.location_on, size: 16, color: Colors.grey),
+                                SizedBox(width: 4),
+                                Expanded(
+                                  child: Text(
+                                    '${movement.origen ?? "N/A"} → ${movement.destino ?? "N/A"}',
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                          if (movement.fecha != null) ...[
+                            SizedBox(height: 4),
+                            Row(
+                              children: [
+                                Icon(Icons.access_time, size: 16, color: Colors.grey),
+                                SizedBox(width: 4),
+                                Text(
+                                  '${movement.fecha!.day}/${movement.fecha!.month}/${movement.fecha!.year} ${movement.fecha!.hour}:${movement.fecha!.minute.toString().padLeft(2, '0')}',
+                                ),
+                              ],
+                            ),
+                          ],
+                        ],
+                      ),
+                      trailing: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          if (movement.monto != null)
+                            Text(
+                              '\$${movement.monto!.toStringAsFixed(2)}',
+                              style: TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: _getMovementColor(movement.tipoMovimiento),
+                                fontSize: 16,
+                              ),
+                            ),
+                          if (movement.estado != null) ...[
+                            SizedBox(height: 4),
+                            Container(
+                              padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                              decoration: BoxDecoration(
+                                color: movement.estado == 'Completado' 
+                                    ? Colors.green.withOpacity(0.1)
+                                    : Colors.orange.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Text(
+                                movement.estado!,
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: movement.estado == 'Completado' 
+                                      ? Colors.green[700]
+                                      : Colors.orange[700],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+}
+///PQR CRUD SERVICE
+// MODELO
+class PqrModel {
+  final String? id;
+  final String? iduser;
+  final String? tipo;
+  final String? descripcion;
+  final String? fecha;
+
+  PqrModel({
+    this.id,
+    this.iduser,
+    this.tipo,
+    this.descripcion,
+    this.fecha,
+  });
+
+  factory PqrModel.fromJson(Map<String, dynamic> json) {
+    return PqrModel(
+      id: json['ID']?.toString(),
+      iduser: json['iduser']?.toString(),
+      tipo: json['tipo'],
+      descripcion: json['descripcion'],
+      fecha: json['fecha'],
+    );
+  }
+
+  Map<String, String> toFormData() {
+    return {
+      if (id != null) 'ID': id!,
+      if (iduser != null) 'iduser': iduser!,
+      if (tipo != null) 'tipo': tipo!,
+      if (descripcion != null) 'descripcion': descripcion!,
+      if (fecha != null) 'fecha': fecha!,
+    };
+  }
+}
+
+// SERVICIO API
+class PqrApiService {
+  final String token;
+  static const String _defaultBaseUrl = AppConfig.baseUrl;
+
+  PqrApiService({required this.token});
+  String get baseUrl => _defaultBaseUrl;
+
+  Map<String, String> get _headers => {
+    'Authorization': 'Bearer $token',
+    'accept': 'application/json',
+  };
+
+  Map<String, String> get _formHeaders => {
+    ..._headers,
+    'Content-Type': 'application/x-www-form-urlencoded',
+  };
+
+  Future<ApiResponse<int>> getNextId() async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/pqr/pasajero/pqrs'),
+        headers: _headers,
+      );
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final pqrs = (data['pqrs'] as List?) ?? [];
+        int nextId = 1;
+        if (pqrs.isNotEmpty) {
+          final ids = pqrs.map((e) => int.tryParse(e['ID'].toString()) ?? 0).toList();
+          nextId = (ids.isNotEmpty ? (ids.reduce((a, b) => a > b ? a : b)) : 0) + 1;
+        }
+        return ApiResponse.success(nextId);
+      } else {
+        return ApiResponse.error('No se pudo obtener el siguiente ID');
+      }
+    } catch (e) {
+      return ApiResponse.error('Error de conexión al consultar el ID');
+    }
+  }
+
+  Future<ApiResponse<String>> createPqr(PqrModel pqr) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/pqr/create'),
+        headers: _formHeaders,
+        body: pqr.toFormData(),
+      );
+      if (response.statusCode == 201 || response.statusCode == 200) {
+        return ApiResponse.success('PQR creada exitosamente');
+      } else {
+        return ApiResponse.error('No se pudo crear la PQR: ${response.body}');
+      }
+    } catch (e) {
+      return ApiResponse.error('Error de conexión al crear PQR');
+    }
+  }
+
+  Future<ApiResponse<String>> updatePqr(PqrModel pqr) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/pqr/update'),
+        headers: _formHeaders,
+        body: pqr.toFormData(),
+      );
+      if (response.statusCode == 200) {
+        return ApiResponse.success('PQR actualizada exitosamente');
+      } else {
+        return ApiResponse.error('No se pudo actualizar la PQR: ${response.body}');
+      }
+    } catch (e) {
+      return ApiResponse.error('Error de conexión al actualizar PQR');
+    }
+  }
+
+  Future<ApiResponse<String>> deletePqr(String id) async {
+    try {
+      final response = await http.post(
+        Uri.parse('$baseUrl/pqr/delete'),
+        headers: _formHeaders,
+        body: {'ID': id},
+      );
+      if (response.statusCode == 200) {
+        return ApiResponse.success('PQR eliminada exitosamente');
+      } else {
+        return ApiResponse.error('No se pudo eliminar la PQR: ${response.body}');
+      }
+    } catch (e) {
+      return ApiResponse.error('Error de conexión al eliminar PQR');
+    }
+  }
+
+  Future<ApiResponse<List<PqrModel>>> getAllPqrs() async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/pqr/pqrs'),
+        headers: _headers,
+      );
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final pqrs = (data['pqrs'] as List?)
+            ?.map((json) => PqrModel.fromJson(json))
+            .toList() ?? [];
+        return ApiResponse.success(pqrs);
+      } else {
+        return ApiResponse.error('Error al cargar PQRs: ${response.body}');
+      }
+    } catch (e) {
+      return ApiResponse.error('Error de conexión al cargar PQRs');
+    }
+  }
+
+  Future<ApiResponse<List<PqrModel>>> getPqrsByUser(String iduser) async {
+    try {
+      final response = await http.get(
+        Uri.parse('$baseUrl/pqr/byuser?iduser=$iduser'),
+        headers: _headers,
+      );
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final pqrs = (data['pqrs'] as List?)
+            ?.map((json) => PqrModel.fromJson(json))
+            .toList() ?? [];
+        return ApiResponse.success(pqrs);
+      } else {
+        return ApiResponse.error('No se encontraron PQRs para ese usuario');
+      }
+    } catch (e) {
+      return ApiResponse.error('Error de conexión al buscar PQRs del usuario');
+    }
+  }
+}
+
+// RESPUESTA API
+class ApiResponse<T> {
+  final T? data;
+  final String? error;
+  final bool isSuccess;
+
+  ApiResponse._({this.data, this.error, required this.isSuccess});
+
+  factory ApiResponse.success(T data) {
+    return ApiResponse._(data: data, isSuccess: true);
+  }
+
+  factory ApiResponse.error(String error) {
+    return ApiResponse._(error: error, isSuccess: false);
+  }
+}
+
+// CONTROLADOR DE FORMULARIO
+class PqrFormController {
+  final GlobalKey<FormState> formKey = GlobalKey<FormState>();
+  final TextEditingController idController = TextEditingController();
+  final TextEditingController iduserController = TextEditingController();
+  final TextEditingController tipoController = TextEditingController();
+  final TextEditingController descripcionController = TextEditingController();
+  final TextEditingController fechaController = TextEditingController();
+
+  void clear() {
+    idController.clear();
+    iduserController.clear();
+    tipoController.clear();
+    descripcionController.clear();
+    fechaController.clear();
+  }
+
+  void dispose() {
+    idController.dispose();
+    iduserController.dispose();
+    tipoController.dispose();
+    descripcionController.dispose();
+    fechaController.dispose();
+  }
+}
+
+enum MessageType { success, error }
+
+// TIPOS DE PQR
+const List<String> kTipoPqrOptions = [
+  "Petición",
+  "Queja",
+  "Reclamo",
+  "Sugerencia",
+  "Felicitación",
+  "Otro",
+];
+
+// WIDGET PRINCIPAL
+class PqrCrudWidget extends StatefulWidget {
+  final String token;
+  final VoidCallback? onSuccess;
+  final VoidCallback? onBack;
+
+  const PqrCrudWidget({
+    Key? key,
+    required this.token,
+    this.onSuccess,
+    this.onBack,
+  }) : super(key: key);
+
+  @override
+  State<PqrCrudWidget> createState() => _PqrCrudWidgetState();
+}
+
+class _PqrCrudWidgetState extends State<PqrCrudWidget>
+    with TickerProviderStateMixin, AutomaticKeepAliveClientMixin {
+  late TabController _tabController;
+  late PqrApiService _apiService;
+  bool _isLoading = false;
+  String? _message;
+  String? _lastLoadedId;
+  MessageType? _messageType;
+
+  List<PqrModel> _allPqrs = [];
+  List<PqrModel> _userPqrs = [];
+
+  final Map<String, PqrFormController> _formControllers = {};
+
+  @override
+  bool get wantKeepAlive => true;
+
+    @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 5, vsync: this);
+    _apiService = PqrApiService(token: widget.token);
+    _formControllers['create'] = PqrFormController();
+    _formControllers['findByUser'] = PqrFormController();
+    _initializeData();
+  }
+
+  Future<void> _initializeData() async {
+    await Future.wait([
+      _loadNextId(),
+      _loadAllPqrs(),
+    ]);
+  }
+
+  Future<void> _loadNextId() async {
+    final response = await _apiService.getNextId();
+    if (response.isSuccess && response.data != null) {
+      setState(() {
+        _formControllers['create']?.idController.text = response.data.toString();
+        _lastLoadedId = response.data.toString(); // <--- fuerza rebuild
+      });
+    }
+  }
+  Future<void> _createPqr() async {
+    final controller = _formControllers['create']!;
+    if (!controller.formKey.currentState!.validate()) return;
+    setState(() => _isLoading = true);
+    final pqr = PqrModel(
+      id: controller.idController.text.trim(),
+      iduser: controller.iduserController.text.trim(),
+      tipo: controller.tipoController.text.trim(),
+      descripcion: controller.descripcionController.text.trim(),
+      fecha: controller.fechaController.text.trim(),
+    );
+    final response = await _apiService.createPqr(pqr);
+    setState(() => _isLoading = false);
+    if (response.isSuccess) {
+      controller.clear();
+      await Future.wait([_loadNextId(), _loadAllPqrs()]);
+      widget.onSuccess?.call();
+    }
+  }
+
+  Future<void> _loadAllPqrs() async {
+    setState(() => _isLoading = true);
+    final response = await _apiService.getAllPqrs();
+    setState(() {
+      _isLoading = false;
+      if (response.isSuccess) {
+        _allPqrs = response.data ?? [];
+      }
+    });
+  }
+
+  Future<void> _findPqrsByUser() async {
+    final controller = _formControllers['findByUser']!;
+    if (!controller.formKey.currentState!.validate()) return;
+    setState(() => _isLoading = true);
+    final response = await _apiService.getPqrsByUser(controller.iduserController.text.trim());
+    setState(() {
+      _isLoading = false;
+      if (response.isSuccess) {
+        _userPqrs = response.data ?? [];
+      }
+    });
+  }
+
+  Future<void> _selectDate(TextEditingController controller) async {
+    final DateTime? picked = await showDatePicker(
+      context: context,
+      initialDate: DateTime.now(),
+      firstDate: DateTime(2020),
+      lastDate: DateTime(2030),
+    );
+    if (picked != null) {
+      controller.text = picked.toString().split(' ')[0];
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    super.build(context);
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Gestión de PQRs'),
+        backgroundColor: Colors.blue,
+        foregroundColor: Colors.white,
+        elevation: 2,
+        leading: widget.onBack != null
+            ? IconButton(
+                icon: const Icon(Icons.arrow_back),
+                onPressed: widget.onBack,
+              )
+            : null,
+        bottom: TabBar(
+          controller: _tabController,
+          isScrollable: true,
+          indicatorColor: Colors.white,
+          labelColor: Colors.white,
+          unselectedLabelColor: Colors.white70,
+          tabs: const [
+            Tab(icon: Icon(Icons.add), text: 'Crear'),
+            Tab(icon: Icon(Icons.person_search), text: 'Por Usuario'),
+          ],
+        ),
+      ),
+      body: Column(
+        children: [
+          if (_message != null) _buildMessageBanner(),
+          Expanded(
+            child: TabBarView(
+              controller: _tabController,
+              children: [
+                _buildFormTab('create', _createPqr, 'Crear PQR', Colors.blue, isCreate: true),
+                _buildPqrsByUserTab(),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMessageBanner() {
+    final isError = _messageType == MessageType.error;
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(16),
+      color: isError ? Colors.red[50] : Colors.green[50],
+      child: Row(
+        children: [
+          Icon(
+            isError ? Icons.error : Icons.check_circle,
+            color: isError ? Colors.red[700] : Colors.green[700],
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              _message!,
+              style: TextStyle(
+                color: isError ? Colors.red[900] : Colors.green[900],
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+          IconButton(
+            icon: const Icon(Icons.close),
+            onPressed: () => setState(() {
+              _message = null;
+              _messageType = null;
+            }),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFormTab(
+    String formKey,
+    VoidCallback onSubmit,
+    String buttonText,
+    Color buttonColor, {
+    bool isCreate = false,
+  }) {
+    final controller = _formControllers[formKey]!;
+    return Form(
+      key: controller.formKey,
+      child: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          const SizedBox(height: 16),
+          CustomTextFormField(
+            controller: controller.idController,
+            label: 'ID',
+            keyboardType: TextInputType.number,
+            enabled: isCreate ? false : true, // Solo lectura en crear
+            validator: (v) => v == null || v.isEmpty ? 'Ingrese el ID' : null,
+          ),
+          const SizedBox(height: 16),
+          CustomTextFormField(
+            controller: controller.iduserController,
+            label: 'ID Usuario',
+            keyboardType: TextInputType.number,
+            validator: (v) => v == null || v.isEmpty ? 'Ingrese el ID del usuario' : null,
+          ),
+          const SizedBox(height: 16),
+          // Menú desplegable para tipo
+          CustomDropdownFormField(
+            controller: controller.tipoController,
+            label: 'Tipo',
+            items: kTipoPqrOptions,
+            validator: (v) => v == null || v.isEmpty ? 'Seleccione el tipo de PQR' : null,
+          ),
+          const SizedBox(height: 16),
+          CustomTextFormField(
+            controller: controller.descripcionController,
+            label: 'Descripción',
+            keyboardType: TextInputType.text,
+            validator: (v) => v == null || v.isEmpty ? 'Ingrese la descripción' : null,
+          ),
+          const SizedBox(height: 16),
+          CustomDateField(
+            controller: controller.fechaController,
+            label: 'Fecha',
+            onTap: () => _selectDate(controller.fechaController),
+            validator: (v) => v == null || v.isEmpty ? 'Seleccione la fecha' : null,
+          ),
+          const SizedBox(height: 32),
+          CustomElevatedButton(
+            onPressed: _isLoading ? null : onSubmit,
+            backgroundColor: buttonColor,
+            isLoading: _isLoading,
+            child: Text(buttonText),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildPqrsByUserTab() {
+    final controller = _formControllers['findByUser']!;
+    return Form(
+      key: controller.formKey,
+      child: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          CustomTextFormField(
+            controller: controller.iduserController,
+            label: 'ID Usuario',
+            keyboardType: TextInputType.number,
+            validator: (v) => v == null || v.isEmpty ? 'Ingrese ID de usuario' : null,
+          ),
+          const SizedBox(height: 16),
+          CustomElevatedButton(
+            onPressed: _isLoading ? null : _findPqrsByUser,
+            backgroundColor: Colors.blue,
+            isLoading: _isLoading,
+            child: const Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.person_search),
+                SizedBox(width: 8),
+                Text('Buscar'),
+              ],
+            ),
+          ),
+          const SizedBox(height: 24),
+          if (_userPqrs.isEmpty && !_isLoading)
+            const Text(
+              'No hay PQRs para ese usuario.',
+              style: TextStyle(color: Colors.grey),
+            ),
+          ..._userPqrs.map((pqr) => Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: PqrCard(pqr: pqr),
+          )),
+        ],
+      ),
+    );
+  }
+}
+
+// WIDGETS PERSONALIZADOS
+class CustomTextFormField extends StatelessWidget {
+  final TextEditingController controller;
+  final String label;
+  final TextInputType? keyboardType;
+  final bool enabled;
+  final String? Function(String?)? validator;
+
+  const CustomTextFormField({
+    Key? key,
+    required this.controller,
+    required this.label,
+    this.keyboardType,
+    this.enabled = true,
+    this.validator,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return TextFormField(
+      controller: controller,
+      keyboardType: keyboardType,
+      enabled: enabled,
+      decoration: InputDecoration(
+        labelText: label,
+        border: const OutlineInputBorder(),
+        filled: !enabled,
+        fillColor: enabled ? null : Colors.grey[100],
+      ),
+      validator: validator,
+    );
+  }
+}
+
+class CustomDropdownFormField extends StatelessWidget {
+  final TextEditingController controller;
+  final String label;
+  final List<String> items;
+  final String? Function(String?)? validator;
+
+  const CustomDropdownFormField({
+    Key? key,
+    required this.controller,
+    required this.label,
+    required this.items,
+    this.validator,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return DropdownButtonFormField<String>(
+      value: controller.text.isNotEmpty && items.contains(controller.text) ? controller.text : null,
+      items: items
+          .map((item) => DropdownMenuItem<String>(
+                value: item,
+                child: Text(item),
+              ))
+          .toList(),
+      onChanged: (value) {
+        controller.text = value ?? '';
+      },
+      decoration: InputDecoration(
+        labelText: label,
+        border: const OutlineInputBorder(),
+      ),
+      validator: validator,
+    );
+  }
+}
+
+class CustomDateField extends StatelessWidget {
+  final TextEditingController controller;
+  final String label;
+  final VoidCallback onTap;
+  final String? Function(String?)? validator;
+
+  const CustomDateField({
+    Key? key,
+    required this.controller,
+    required this.label,
+    required this.onTap,
+    this.validator,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return TextFormField(
+      controller: controller,
+      readOnly: true,
+      decoration: InputDecoration(
+        labelText: label,
+        border: const OutlineInputBorder(),
+        suffixIcon: const Icon(Icons.calendar_today),
+      ),
+      onTap: onTap,
+      validator: validator,
+    );
+  }
+}
+
+class CustomElevatedButton extends StatelessWidget {
+  final VoidCallback? onPressed;
+  final Widget child;
+  final Color backgroundColor;
+  final bool isLoading;
+
+  const CustomElevatedButton({
+    Key? key,
+    required this.onPressed,
+    required this.child,
+    required this.backgroundColor,
+    this.isLoading = false,
+  }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      width: double.infinity,
+      height: 48,
+      child: ElevatedButton(
+        onPressed: onPressed,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: backgroundColor,
+          foregroundColor: Colors.white,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+        ),
+        child: isLoading
+            ? const SizedBox(
+                width: 20,
+                height: 20,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  color: Colors.white,
+                ),
+              )
+            : child,
+      ),
+    );
+  }
+}
+
+class PqrCard extends StatelessWidget {
+  final PqrModel pqr;
+
+  const PqrCard({Key? key, required this.pqr}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      elevation: 2,
+      margin: const EdgeInsets.symmetric(vertical: 4),
+      child: Padding(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Text(
+                  'ID: ${pqr.id ?? 'N/A'}',
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.grey,
+                  ),
+                ),
+                const Spacer(),
+                Text(
+                  pqr.fecha ?? 'Sin fecha',
+                  style: TextStyle(color: Colors.grey[700]),
+                ),
+              ],
+            ),
+            const SizedBox(height: 8),
+            Text('Usuario: ${pqr.iduser ?? 'N/A'}'),
+            Text('Tipo: ${pqr.tipo ?? 'N/A'}'),
+            Text('Descripción: ${pqr.descripcion ?? 'N/A'}'),
+          ],
+        ),
       ),
     );
   }

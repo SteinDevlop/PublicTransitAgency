@@ -52,6 +52,25 @@ def test_get_movement_by_id_found(monkeypatch):
     assert "Monto" in data
     assert "IDTarjeta" in data
 
+def test_get_movement_by_cardid_found(monkeypatch):
+    monkeypatch.setattr(
+        "backend.app.core.auth.get_current_user",
+        lambda *a, **kw: {"user_id": "test_admin"}
+    )
+    # Puedes cambiar el ID a uno existente en tus fixtures o en la base de datos de test
+    response = client.get("/movement/pasajero/bycardid?ID=42", headers=headers)
+    assert response.status_code == 200
+    assert isinstance(response.json(), list)
+
+def test_get_movement_by_cardid_not_found(monkeypatch):
+    monkeypatch.setattr(
+        "backend.app.core.auth.get_current_user",
+        lambda *a, **kw: {"user_id": "test_admin"}
+    )
+    # Puedes cambiar el ID a uno existente en tus fixtures o en la base de datos de test
+    response = client.get("/movement/pasajero/bycardid?ID=999", headers=headers)
+    assert response.status_code == 404
+
 def test_get_movement_by_id_not_found(monkeypatch):
     """
     Prueba que la ruta '/movement/administrador/byid' devuelve 404 si el movimiento no existe.
