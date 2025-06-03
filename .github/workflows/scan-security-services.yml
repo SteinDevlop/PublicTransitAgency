@@ -39,8 +39,8 @@ jobs:
 
       - name: Descarga y muestra el esquema OpenAPI
         run: |
-          docker run --rm --network zapnet curlimages/curl:8.8.0 \
-            curl -o openapi.json http://app:8000/openapi.json
+          docker run --rm --network zapnet -v ${{ github.workspace }}:/output curlimages/curl:8.8.0 \
+            curl -o /output/openapi.json http://app:8000/openapi.json
           ls -lh openapi.json
           head -30 openapi.json
           jq . < openapi.json || echo "No es JSON válido"
