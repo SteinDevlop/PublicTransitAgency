@@ -3031,41 +3031,7 @@ class PqrApiService {
       return ApiResponse.error('Error de conexión al crear PQR');
     }
   }
-
-  Future<ApiResponse<String>> updatePqr(PqrModel pqr) async {
-    try {
-      final response = await http.post(
-        Uri.parse('$baseUrl/pqr/update'),
-        headers: _formHeaders,
-        body: pqr.toFormData(),
-      );
-      if (response.statusCode == 200) {
-        return ApiResponse.success('PQR actualizada exitosamente');
-      } else {
-        return ApiResponse.error('No se pudo actualizar la PQR: ${response.body}');
-      }
-    } catch (e) {
-      return ApiResponse.error('Error de conexión al actualizar PQR');
-    }
-  }
-
-  Future<ApiResponse<String>> deletePqr(String id) async {
-    try {
-      final response = await http.post(
-        Uri.parse('$baseUrl/pqr/delete'),
-        headers: _formHeaders,
-        body: {'ID': id},
-      );
-      if (response.statusCode == 200) {
-        return ApiResponse.success('PQR eliminada exitosamente');
-      } else {
-        return ApiResponse.error('No se pudo eliminar la PQR: ${response.body}');
-      }
-    } catch (e) {
-      return ApiResponse.error('Error de conexión al eliminar PQR');
-    }
-  }
-
+  
   Future<ApiResponse<List<PqrModel>>> getAllPqrs() async {
     try {
       final response = await http.get(
