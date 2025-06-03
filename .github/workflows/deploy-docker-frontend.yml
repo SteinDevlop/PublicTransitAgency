@@ -1,4 +1,4 @@
-name: Build Docker and Deploy Frontend to DockerHub
+name: Build and Deploy Frontend
 
 on:
   push:
@@ -38,7 +38,7 @@ jobs:
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
-          context: ./src/frontend
+          context: ./frontend
           file: ./src/frontend/Dockerfile
           push: true
           tags: gitzerohub/publictransitagency-frontend:latest
