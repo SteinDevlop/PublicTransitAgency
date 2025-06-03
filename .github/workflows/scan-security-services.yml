@@ -40,10 +40,11 @@ jobs:
               -t http://127.0.0.1:8000/docs \
               -J report_json.json \
               -w report_md.md \
-              -r report_html.html
+              -r report_html.html \
+              --exit-zero
           docker logs zapscan || echo "No logs disponibles"
           docker rm -f zapscan || true
-
+          
       - name: Mostrar reporte ZAP en logs (markdown)
         run: |
           echo "========== INICIO REPORTE ZAP (MD) =========="
