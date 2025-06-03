@@ -1,4 +1,4 @@
-name: Build and Push Frontend
+name: Test Frontend Install
 
 on:
   push:
@@ -6,9 +6,23 @@ on:
       - main
 
 jobs:
-  build-and-push:
+  test-frontend:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Lista todo en src/frontend
-        run: ls -lR ./src/frontend
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Verifica que frontend existe
+        run: ls -lR src
+
+      - name: Verifica que package.json existe
+        run: ls -l src/frontend/package.json
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Instala dependencias
+        run: npm install
+        working-directory: ./src/frontend
