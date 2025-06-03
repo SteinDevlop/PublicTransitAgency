@@ -10,39 +10,5 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Verifica package.json existe
-        run: ls -l ./src/frontend/package.json
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-
-      - name: Install dependencies
-        run: npm install
-        working-directory: ./src/frontend
-
-      - name: Build frontend
-        run: npm run build
-        working-directory: ./src/frontend
-
-      # Opcional: Build y push de la imagen Docker
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Login to DockerHub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      - name: Build and push Docker image
-        uses: docker/build-push-action@v5
-        with:
-          context: ./src/frontend
-          file: ./src/frontend/Dockerfile
-          push: true
-          tags: gitzerohub/publictransitagency-frontend:latest
+      - name: Lista todo en src/frontend
+        run: ls -lR ./src/frontend
