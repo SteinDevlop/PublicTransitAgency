@@ -683,13 +683,34 @@ _buildMenuItem(
                             color: primaryColor,
                             buttons: [
                               _buildCrudButton(
-                                  '📄 Extraer Tipo de Usuario',
-                                  () => Navigator.pushNamed(
-                                      context, '/roluser/consultar')),
+                                  '📄 Gestión de Tipo de Usuario',
+                                () => showDialog(
+                                  context: context,
+                                  builder: (_) => Dialog(
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(24),
+                                      child: RolUserCrudTabsWidget(
+                                        token: token,
+                                        onSuccess: () => Navigator.pop(context),
+                                      ),
+                                    ),
+                                  ),
+                                ),),
                               _buildCrudButton(
-                                  '📄 Extraer Tipo de Movimiento',
-                                  () => Navigator.pushNamed(
-                                      context, '/typemovement/consultar')),
+                                  '📄 Gestión de Tipo de Movimiento',
+                                  () => showDialog(
+                                  context: context,
+                                  builder: (_) => Dialog(
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(24),
+                                      child: TypeMovementCrudTabsWidget(
+                                        token: token,
+                                        onSuccess: () => Navigator.pop(context),
+                                      ),
+                                    ),
+                                  ),
+                                  ),
+                              ),
                               _buildCrudButton(
                                   '📄 Extraer Servicios de Transporte',
                                   () => Navigator.pushNamed(
@@ -7231,6 +7252,1976 @@ class _RutaParadaCrudWidgetState extends State<RutaParadaCrudWidget> {
                 },
               ),
             ),
+        ],
+      ),
+    );
+  }
+}
+/// Rol User Widget
+class RolUser {
+  final int id;
+  final String rol;
+  
+  RolUser({required this.id, required this.rol});
+  
+  factory RolUser.fromJson(Map<String, dynamic> json) =>
+      RolUser(id: json['ID'], rol: json['Rol']);
+      
+  Map<String, dynamic> toJson() => {
+    'ID': id,
+    'Rol': rol,
+  };
+}
+
+class RolUserCrudTabsWidget extends StatefulWidget {
+  final String token;
+  final VoidCallback onSuccess;
+
+  const RolUserCrudTabsWidget({
+    Key? key,
+    required this.token,
+    required this.onSuccess,
+  }) : super(key: key);
+
+  @override
+  State<RolUserCrudTabsWidget> createState() => _RolUserCrudTabsWidgetState();
+}
+
+class _RolUserCrudTabsWidgetState extends State<RolUserCrudTabsWidget>
+    with SingleTickerProviderStateMixin {
+  final _formKey = GlobalKey<FormState>();
+  final _idController = TextEditingController();
+  final _rolController = TextEditingController();
+  
+  String? _output;
+  List<RolUser> _rolUsers = [];
+  bool _isLoading = false;
+  late TabController _tabController;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 4, vsync: this);
+    _consultar(); // Load data on init
+  }
+
+  @override
+  void dispose() {
+    _idController.dispose();
+    _rolController.dispose();
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  void _setLoading(bool loading) {
+    setState(() {
+      _isLoading = loading;
+    });
+  }
+
+  void _showMessage(String message, {bool isError = false}) {
+    setState(() {
+      _output = message;
+    });
+    
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: isError ? Colors.red : Colors.green,
+        duration: Duration(seconds: 3),
+      ),
+    );
+  }
+
+  void _clearForm() {
+    _idController.clear();
+    _rolController.clear();
+    setState(() {
+      _output = null;
+    });
+  }
+
+  Future<void> _agregar() async {
+    if (!_formKey.currentState!.validate()) return;
+    
+    final rolText = _rolController.text.trim();
+    if (rolText.isEmpty) {
+      _showMessage("El campo Rol es requerido", isError: true);
+      return;
+    }
+
+    _setLoading(true);
+    
+    try {
+      // Get next available ID
+      final response = await http.get(
+        Uri.parse('${AppConfig.baseUrl}/roluser/administrador/rolusers'),
+        headers: {'Authorization': 'Bearer ${widget.token}'},
+      );
+      
+      int nextId = 1;
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body)['rolusers'];
+        if (data.isNotEmpty) {
+          nextId = data.map((e) => e['ID'] as int).reduce((a, b) => a > b ? a : b) + 1;
+        }
+      } else {
+        _showMessage("Error al consultar roles: ${response.body}", isError: true);
+        return;
+      }
+
+      // Create new role
+      final createResponse = await http.post(
+        Uri.parse('${AppConfig.baseUrl}/roluser/create'),
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'Authorization': 'Bearer ${widget.token}',
+        },
+        body: {
+          'ID': nextId.toString(),
+          'Rol': rolText,
+        },
+      );
+
+      if (createResponse.statusCode == 201 || createResponse.statusCode == 200) {
+        _showMessage("Rol creado exitosamente");
+        await _consultar(); // Refresh the list
+      } else {
+        _showMessage("Error al crear rol: ${createResponse.body}", isError: true);
+      }
+    } catch (e) {
+      _showMessage("Error de conexión: $e", isError: true);
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  Future<void> _actualizar() async {
+    if (!_formKey.currentState!.validate()) return;
+    
+    final idText = _idController.text.trim();
+    final rolText = _rolController.text.trim();
+    
+    if (idText.isEmpty || rolText.isEmpty) {
+      _showMessage("Todos los campos son requeridos", isError: true);
+      return;
+    }
+
+    _setLoading(true);
+    
+    try {
+      final response = await http.post(
+        Uri.parse('${AppConfig.baseUrl}/roluser/update'),
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'Authorization': 'Bearer ${widget.token}',
+        },
+        body: {
+          'ID': idText,
+          'Rol': rolText,
+        },
+      );
+
+      if (response.statusCode == 200) {
+        _showMessage("Rol actualizado exitosamente");
+        await _consultar(); // Refresh the list
+      } else {
+        _showMessage("Error al actualizar rol: ${response.body}", isError: true);
+      }
+    } catch (e) {
+      _showMessage("Error de conexión: $e", isError: true);
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  Future<void> _eliminar() async {
+    final idText = _idController.text.trim();
+    
+    if (idText.isEmpty) {
+      _showMessage("El campo ID es requerido", isError: true);
+      return;
+    }
+
+    // Show confirmation dialog
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text("Confirmar eliminación"),
+        content: Text("¿Está seguro de que desea eliminar el rol con ID $idText?"),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text("Cancelar"),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: Text("Eliminar"),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) return;
+
+    _setLoading(true);
+    
+    try {
+      final response = await http.post(
+        Uri.parse('${AppConfig.baseUrl}/roluser/delete'),
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'Authorization': 'Bearer ${widget.token}',
+        },
+        body: {
+          'ID': idText,
+        },
+      );
+
+      if (response.statusCode == 200) {
+        _showMessage("Rol eliminado exitosamente");
+        await _consultar(); // Refresh the list
+      } else {
+        _showMessage("Error al eliminar rol: ${response.body}", isError: true);
+      }
+    } catch (e) {
+      _showMessage("Error de conexión: $e", isError: true);
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  Future<void> _consultar() async {
+    _setLoading(true);
+    
+    try {
+      final response = await http.get(
+        Uri.parse('${AppConfig.baseUrl}/roluser/administrador/rolusers'),
+        headers: {
+          'Authorization': 'Bearer ${widget.token}',
+        },
+      );
+      
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body)['rolusers'];
+        setState(() {
+          _rolUsers = data.map((e) => RolUser.fromJson(e)).toList();
+          _output = null;
+        });
+      } else {
+        _showMessage("Error al consultar roles: ${response.body}", isError: true);
+      }
+    } catch (e) {
+      _showMessage("Error de conexión: $e", isError: true);
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  void _selectRolFromList(RolUser rolUser) {
+    setState(() {
+      _idController.text = rolUser.id.toString();
+      _rolController.text = rolUser.rol;
+    });
+    _tabController.animateTo(1); // Switch to update tab
+  }
+
+  Widget _buildLoadingOverlay({required Widget child}) {
+    return Stack(
+      children: [
+        child,
+        if (_isLoading)
+          Container(
+            color: Colors.black26,
+            child: Center(
+              child: CircularProgressIndicator(),
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildFormField({
+    required TextEditingController controller,
+    required String label,
+    TextInputType? keyboardType,
+    String? Function(String?)? validator,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: TextFormField(
+        controller: controller,
+        decoration: InputDecoration(
+          labelText: label,
+          border: OutlineInputBorder(),
+          contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        ),
+        keyboardType: keyboardType,
+        validator: validator,
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return DefaultTabController(
+      length: 4,
+      child: Column(
+        children: [
+          Container(
+            decoration: BoxDecoration(
+              color: Theme.of(context).cardColor,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black12,
+                  blurRadius: 4,
+                  offset: Offset(0, 2),
+                ),
+              ],
+            ),
+            child: TabBar(
+              controller: _tabController,
+              labelColor: Theme.of(context).primaryColor,
+              unselectedLabelColor: Colors.grey,
+              indicatorColor: Theme.of(context).primaryColor,
+              tabs: [
+                Tab(icon: Icon(Icons.add), text: "Agregar"),
+                Tab(icon: Icon(Icons.edit), text: "Actualizar"),
+                Tab(icon: Icon(Icons.delete), text: "Eliminar"),
+                Tab(icon: Icon(Icons.list), text: "Consultar"),
+              ],
+            ),
+          ),
+          Expanded(
+            child: _buildLoadingOverlay(
+              child: TabBarView(
+                controller: _tabController,
+                children: [
+                  // AGREGAR TAB
+                  SingleChildScrollView(
+                    padding: const EdgeInsets.all(16),
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Text(
+                            "Crear Nuevo Rol",
+                            style: Theme.of(context).textTheme.headlineSmall,
+                          ),
+                          SizedBox(height: 16),
+                          _buildFormField(
+                            controller: _rolController,
+                            label: "Nombre del Rol",
+                            validator: (value) {
+                              if (value == null || value.trim().isEmpty) {
+                                return "Este campo es requerido";
+                              }
+                              if (value.trim().length < 2) {
+                                return "El rol debe tener al menos 2 caracteres";
+                              }
+                              return null;
+                            },
+                          ),
+                          SizedBox(height: 24),
+                          ElevatedButton.icon(
+                            onPressed: _isLoading ? null : _agregar,
+                            icon: Icon(Icons.add),
+                            label: Text("Crear Rol"),
+                            style: ElevatedButton.styleFrom(
+                              padding: EdgeInsets.symmetric(vertical: 16),
+                            ),
+                          ),
+                          if (_output != null) ...[
+                            SizedBox(height: 16),
+                            Container(
+                              padding: EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: Colors.grey[100],
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Text(
+                                "Respuesta:\n$_output",
+                                style: TextStyle(fontFamily: 'monospace'),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ),
+                  
+                  // ACTUALIZAR TAB
+                  SingleChildScrollView(
+                    padding: const EdgeInsets.all(16),
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Text(
+                            "Actualizar Rol",
+                            style: Theme.of(context).textTheme.headlineSmall,
+                          ),
+                          SizedBox(height: 16),
+                          _buildFormField(
+                            controller: _idController,
+                            label: "ID del Rol",
+                            keyboardType: TextInputType.number,
+                            validator: (value) {
+                              if (value == null || value.trim().isEmpty) {
+                                return "Este campo es requerido";
+                              }
+                              if (int.tryParse(value.trim()) == null) {
+                                return "Debe ser un número válido";
+                              }
+                              return null;
+                            },
+                          ),
+                          _buildFormField(
+                            controller: _rolController,
+                            label: "Nuevo Nombre del Rol",
+                            validator: (value) {
+                              if (value == null || value.trim().isEmpty) {
+                                return "Este campo es requerido";
+                              }
+                              if (value.trim().length < 2) {
+                                return "El rol debe tener al menos 2 caracteres";
+                              }
+                              return null;
+                            },
+                          ),
+                          SizedBox(height: 24),
+                          ElevatedButton.icon(
+                            onPressed: _isLoading ? null : _actualizar,
+                            icon: Icon(Icons.update),
+                            label: Text("Actualizar Rol"),
+                            style: ElevatedButton.styleFrom(
+                              padding: EdgeInsets.symmetric(vertical: 16),
+                            ),
+                          ),
+                          if (_output != null) ...[
+                            SizedBox(height: 16),
+                            Container(
+                              padding: EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: Colors.grey[100],
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Text(
+                                "Respuesta:\n$_output",
+                                style: TextStyle(fontFamily: 'monospace'),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ),
+                  
+                  // ELIMINAR TAB
+                  SingleChildScrollView(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Text(
+                          "Eliminar Rol",
+                          style: Theme.of(context).textTheme.headlineSmall,
+                        ),
+                        SizedBox(height: 16),
+                        Container(
+                          padding: EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.red[50],
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: Colors.red[200]!),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(Icons.warning, color: Colors.red),
+                              SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  "Esta acción no se puede deshacer",
+                                  style: TextStyle(color: Colors.red[700]),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        SizedBox(height: 16),
+                        _buildFormField(
+                          controller: _idController,
+                          label: "ID del Rol a Eliminar",
+                          keyboardType: TextInputType.number,
+                        ),
+                        SizedBox(height: 24),
+                        ElevatedButton.icon(
+                          onPressed: _isLoading ? null : _eliminar,
+                          icon: Icon(Icons.delete),
+                          label: Text("Eliminar Rol"),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.red,
+                            foregroundColor: Colors.white,
+                            padding: EdgeInsets.symmetric(vertical: 16),
+                          ),
+                        ),
+                        if (_output != null) ...[
+                          SizedBox(height: 16),
+                          Container(
+                            padding: EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: Colors.grey[100],
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              "Respuesta:\n$_output",
+                              style: TextStyle(fontFamily: 'monospace'),
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                  
+                  // CONSULTAR TAB
+                  Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              "Lista de Roles",
+                              style: Theme.of(context).textTheme.headlineSmall,
+                            ),
+                            IconButton(
+                              onPressed: _isLoading ? null : _consultar,
+                              icon: Icon(Icons.refresh),
+                              tooltip: "Actualizar lista",
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: 16),
+                        Expanded(
+                          child: _rolUsers.isEmpty
+                              ? Center(
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(
+                                        Icons.inbox,
+                                        size: 64,
+                                        color: Colors.grey,
+                                      ),
+                                      SizedBox(height: 16),
+                                      Text(
+                                        "No hay roles para mostrar",
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          color: Colors.grey[600],
+                                        ),
+                                      ),
+                                      SizedBox(height: 8),
+                                      TextButton.icon(
+                                        onPressed: _consultar,
+                                        icon: Icon(Icons.refresh),
+                                        label: Text("Recargar"),
+                                      ),
+                                    ],
+                                  ),
+                                )
+                              : ListView.builder(
+                                  itemCount: _rolUsers.length,
+                                  itemBuilder: (context, index) {
+                                    final rolUser = _rolUsers[index];
+                                    return Card(
+                                      margin: EdgeInsets.symmetric(vertical: 4),
+                                      child: ListTile(
+                                        leading: CircleAvatar(
+                                          child: Text('${rolUser.id}'),
+                                          backgroundColor: Theme.of(context).primaryColor,
+                                          foregroundColor: Colors.white,
+                                        ),
+                                        title: Text(
+                                          rolUser.rol,
+                                          style: TextStyle(fontWeight: FontWeight.w500),
+                                        ),
+                                        subtitle: Text('ID: ${rolUser.id}'),
+                                        trailing: PopupMenuButton(
+                                          itemBuilder: (context) => [
+                                            PopupMenuItem(
+                                              value: 'edit',
+                                              child: Row(
+                                                children: [
+                                                  Icon(Icons.edit, size: 16),
+                                                  SizedBox(width: 8),
+                                                  Text('Editar'),
+                                                ],
+                                              ),
+                                            ),
+                                            PopupMenuItem(
+                                              value: 'delete',
+                                              child: Row(
+                                                children: [
+                                                  Icon(Icons.delete, size: 16, color: Colors.red),
+                                                  SizedBox(width: 8),
+                                                  Text('Eliminar', style: TextStyle(color: Colors.red)),
+                                                ],
+                                              ),
+                                            ),
+                                          ],
+                                          onSelected: (value) {
+                                            if (value == 'edit') {
+                                              _selectRolFromList(rolUser);
+                                            } else if (value == 'delete') {
+                                              _idController.text = rolUser.id.toString();
+                                              _tabController.animateTo(2); // Switch to delete tab
+                                            }
+                                          },
+                                        ),
+                                        onTap: () => _selectRolFromList(rolUser),
+                                      ),
+                                    );
+                                  },
+                                ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+////
+///TypeMovement widget
+class TypeMovement {
+  final int id;
+  final String tipoMovimiento;
+
+  TypeMovement({required this.id, required this.tipoMovimiento});
+  
+  factory TypeMovement.fromJson(Map<String, dynamic> json) =>
+      TypeMovement(id: json['ID'], tipoMovimiento: json['TipoMovimiento']);
+      
+  Map<String, dynamic> toJson() => {
+    'ID': id,
+    'TipoMovimiento': tipoMovimiento,
+  };
+}
+
+class TypeMovementCrudTabsWidget extends StatefulWidget {
+  final String token;
+  final VoidCallback onSuccess;
+
+  const TypeMovementCrudTabsWidget({
+    Key? key,
+    required this.token,
+    required this.onSuccess,
+  }) : super(key: key);
+
+  @override
+  State<TypeMovementCrudTabsWidget> createState() => _TypeMovementCrudTabsWidgetState();
+}
+
+class _TypeMovementCrudTabsWidgetState extends State<TypeMovementCrudTabsWidget>
+    with SingleTickerProviderStateMixin {
+  final _formKey = GlobalKey<FormState>();
+  final _idController = TextEditingController();
+  final _tipoMovimientoController = TextEditingController();
+  
+  String? _output;
+  List<TypeMovement> _typeMovements = [];
+  bool _isLoading = false;
+  late TabController _tabController;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 4, vsync: this);
+    _consultar(); // Load data on init
+  }
+
+  @override
+  void dispose() {
+    _idController.dispose();
+    _tipoMovimientoController.dispose();
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  void _setLoading(bool loading) {
+    setState(() {
+      _isLoading = loading;
+    });
+  }
+
+  void _showMessage(String message, {bool isError = false}) {
+    setState(() {
+      _output = message;
+    });
+    
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: isError ? Colors.red : Colors.green,
+        duration: Duration(seconds: 3),
+      ),
+    );
+  }
+
+  void _clearForm() {
+    _idController.clear();
+    _tipoMovimientoController.clear();
+    setState(() {
+      _output = null;
+    });
+  }
+
+  Future<void> _agregar() async {
+    if (!_formKey.currentState!.validate()) return;
+    
+    final tipoMovimientoText = _tipoMovimientoController.text.trim();
+    if (tipoMovimientoText.isEmpty) {
+      _showMessage("El campo Tipo de Movimiento es requerido", isError: true);
+      return;
+    }
+
+    _setLoading(true);
+    
+    try {
+      // Get next available ID
+      final response = await http.get(
+        Uri.parse('${AppConfig.baseUrl}/typemovement/typemovements'),
+        headers: {'Authorization': 'Bearer ${widget.token}'},
+      );
+      
+      int nextId = 1;
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body)['typemovements'];
+        if (data.isNotEmpty) {
+          nextId = data.map((e) => e['ID'] as int).reduce((a, b) => a > b ? a : b) + 1;
+        }
+      } else {
+        _showMessage("Error al consultar tipos de movimiento: ${response.body}", isError: true);
+        return;
+      }
+
+      // Create new movement type
+      final createResponse = await http.post(
+        Uri.parse('${AppConfig.baseUrl}/typemovement/create'),
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'Authorization': 'Bearer ${widget.token}',
+        },
+        body: {
+          'ID': nextId.toString(),
+          'TipoMovimiento': tipoMovimientoText,
+        },
+      );
+
+      if (createResponse.statusCode == 201 || createResponse.statusCode == 200) {
+        _showMessage("Tipo de movimiento creado exitosamente");
+        _clearForm();
+        await _consultar(); // Refresh the list
+      } else {
+        _showMessage("Error al crear tipo de movimiento: ${createResponse.body}", isError: true);
+      }
+    } catch (e) {
+      _showMessage("Error de conexión: $e", isError: true);
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  Future<void> _actualizar() async {
+    if (!_formKey.currentState!.validate()) return;
+    
+    final idText = _idController.text.trim();
+    final tipoMovimientoText = _tipoMovimientoController.text.trim();
+    
+    if (idText.isEmpty || tipoMovimientoText.isEmpty) {
+      _showMessage("Todos los campos son requeridos", isError: true);
+      return;
+    }
+
+    _setLoading(true);
+    
+    try {
+      final response = await http.post(
+        Uri.parse('${AppConfig.baseUrl}/typemovement/update'),
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'Authorization': 'Bearer ${widget.token}',
+        },
+        body: {
+          'ID': idText,
+          'TipoMovimiento': tipoMovimientoText,
+        },
+      );
+
+      if (response.statusCode == 200) {
+        _showMessage("Tipo de movimiento actualizado exitosamente");
+        _clearForm();
+        await _consultar(); // Refresh the list
+      } else {
+        _showMessage("Error al actualizar tipo de movimiento: ${response.body}", isError: true);
+      }
+    } catch (e) {
+      _showMessage("Error de conexión: $e", isError: true);
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  Future<void> _eliminar() async {
+    final idText = _idController.text.trim();
+    
+    if (idText.isEmpty) {
+      _showMessage("El campo ID es requerido", isError: true);
+      return;
+    }
+
+    // Show confirmation dialog
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text("Confirmar eliminación"),
+        content: Text("¿Está seguro de que desea eliminar el tipo de movimiento con ID $idText?"),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text("Cancelar"),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: Text("Eliminar"),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) return;
+
+    _setLoading(true);
+    
+    try {
+      final response = await http.post(
+        Uri.parse('${AppConfig.baseUrl}/typemovement/delete'),
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'Authorization': 'Bearer ${widget.token}',
+        },
+        body: {
+          'ID': idText,
+        },
+      );
+
+      if (response.statusCode == 200) {
+        _showMessage("Tipo de movimiento eliminado exitosamente");
+        _clearForm();
+      } else {
+        _showMessage("Error al eliminar tipo de movimiento: ${response.body}", isError: true);
+      }
+    } catch (e) {
+      _showMessage("Error de conexión: $e", isError: true);
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  Future<void> _consultar() async {
+    _setLoading(true);
+    
+    try {
+      final response = await http.get(
+        Uri.parse('${AppConfig.baseUrl}/typemovement/typemovements'),
+        headers: {
+          'Authorization': 'Bearer ${widget.token}',
+        },
+      );
+      
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body)['typemovements'];
+        setState(() {
+          _typeMovements = data.map((e) => TypeMovement.fromJson(e)).toList();
+          _output = null;
+        });
+      } else {
+        _showMessage("Error al consultar tipos de movimiento: ${response.body}", isError: true);
+      }
+    } catch (e) {
+      _showMessage("Error de conexión: $e", isError: true);
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  void _selectTypeMovementFromList(TypeMovement typeMovement) {
+    setState(() {
+      _idController.text = typeMovement.id.toString();
+      _tipoMovimientoController.text = typeMovement.tipoMovimiento;
+    });
+    _tabController.animateTo(1); // Switch to update tab
+  }
+
+  Widget _buildLoadingOverlay({required Widget child}) {
+    return Stack(
+      children: [
+        child,
+        if (_isLoading)
+          Container(
+            color: Colors.black26,
+            child: Center(
+              child: CircularProgressIndicator(),
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildFormField({
+    required TextEditingController controller,
+    required String label,
+    TextInputType? keyboardType,
+    String? Function(String?)? validator,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: TextFormField(
+        controller: controller,
+        decoration: InputDecoration(
+          labelText: label,
+          border: OutlineInputBorder(),
+          contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        ),
+        keyboardType: keyboardType,
+        validator: validator,
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return DefaultTabController(
+      length: 4,
+      child: Column(
+        children: [
+          Container(
+            decoration: BoxDecoration(
+              color: Theme.of(context).cardColor,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black12,
+                  blurRadius: 4,
+                  offset: Offset(0, 2),
+                ),
+              ],
+            ),
+            child: TabBar(
+              controller: _tabController,
+              labelColor: Theme.of(context).primaryColor,
+              unselectedLabelColor: Colors.grey,
+              indicatorColor: Theme.of(context).primaryColor,
+              tabs: [
+                Tab(icon: Icon(Icons.add), text: "Agregar"),
+                Tab(icon: Icon(Icons.edit), text: "Actualizar"),
+                Tab(icon: Icon(Icons.delete), text: "Eliminar"),
+                Tab(icon: Icon(Icons.list), text: "Consultar"),
+              ],
+            ),
+          ),
+          Expanded(
+            child: _buildLoadingOverlay(
+              child: TabBarView(
+                controller: _tabController,
+                children: [
+                  // AGREGAR TAB
+                  SingleChildScrollView(
+                    padding: const EdgeInsets.all(16),
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Text(
+                            "Crear Nuevo Tipo de Movimiento",
+                            style: Theme.of(context).textTheme.headlineSmall,
+                          ),
+                          SizedBox(height: 16),
+                          _buildFormField(
+                            controller: _tipoMovimientoController,
+                            label: "Tipo de Movimiento",
+                            validator: (value) {
+                              if (value == null || value.trim().isEmpty) {
+                                return "Este campo es requerido";
+                              }
+                              if (value.trim().length < 2) {
+                                return "El tipo de movimiento debe tener al menos 2 caracteres";
+                              }
+                              return null;
+                            },
+                          ),
+                          SizedBox(height: 24),
+                          ElevatedButton.icon(
+                            onPressed: _isLoading ? null : _agregar,
+                            icon: Icon(Icons.add),
+                            label: Text("Crear Tipo de Movimiento"),
+                            style: ElevatedButton.styleFrom(
+                              padding: EdgeInsets.symmetric(vertical: 16),
+                            ),
+                          ),
+                          if (_output != null) ...[
+                            SizedBox(height: 16),
+                            Container(
+                              padding: EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: Colors.grey[100],
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Text(
+                                "Respuesta:\n$_output",
+                                style: TextStyle(fontFamily: 'monospace'),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ),
+                  
+                  // ACTUALIZAR TAB
+                  SingleChildScrollView(
+                    padding: const EdgeInsets.all(16),
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Text(
+                            "Actualizar Tipo de Movimiento",
+                            style: Theme.of(context).textTheme.headlineSmall,
+                          ),
+                          SizedBox(height: 16),
+                          _buildFormField(
+                            controller: _idController,
+                            label: "ID del Tipo de Movimiento",
+                            keyboardType: TextInputType.number,
+                            validator: (value) {
+                              if (value == null || value.trim().isEmpty) {
+                                return "Este campo es requerido";
+                              }
+                              if (int.tryParse(value.trim()) == null) {
+                                return "Debe ser un número válido";
+                              }
+                              return null;
+                            },
+                          ),
+                          _buildFormField(
+                            controller: _tipoMovimientoController,
+                            label: "Nuevo Tipo de Movimiento",
+                            validator: (value) {
+                              if (value == null || value.trim().isEmpty) {
+                                return "Este campo es requerido";
+                              }
+                              if (value.trim().length < 2) {
+                                return "El tipo de movimiento debe tener al menos 2 caracteres";
+                              }
+                              return null;
+                            },
+                          ),
+                          SizedBox(height: 24),
+                          ElevatedButton.icon(
+                            onPressed: _isLoading ? null : _actualizar,
+                            icon: Icon(Icons.update),
+                            label: Text("Actualizar Tipo de Movimiento"),
+                            style: ElevatedButton.styleFrom(
+                              padding: EdgeInsets.symmetric(vertical: 16),
+                            ),
+                          ),
+                          if (_output != null) ...[
+                            SizedBox(height: 16),
+                            Container(
+                              padding: EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: Colors.grey[100],
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Text(
+                                "Respuesta:\n$_output",
+                                style: TextStyle(fontFamily: 'monospace'),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ),
+                  
+                  // ELIMINAR TAB
+                  SingleChildScrollView(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Text(
+                          "Eliminar Tipo de Movimiento",
+                          style: Theme.of(context).textTheme.headlineSmall,
+                        ),
+                        SizedBox(height: 16),
+                        Container(
+                          padding: EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.red[50],
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: Colors.red[200]!),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(Icons.warning, color: Colors.red),
+                              SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  "Esta acción no se puede deshacer",
+                                  style: TextStyle(color: Colors.red[700]),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        SizedBox(height: 16),
+                        _buildFormField(
+                          controller: _idController,
+                          label: "ID del Tipo de Movimiento a Eliminar",
+                          keyboardType: TextInputType.number,
+                        ),
+                        SizedBox(height: 24),
+                        ElevatedButton.icon(
+                          onPressed: _isLoading ? null : _eliminar,
+                          icon: Icon(Icons.delete),
+                          label: Text("Eliminar Tipo de Movimiento"),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.red,
+                            foregroundColor: Colors.white,
+                            padding: EdgeInsets.symmetric(vertical: 16),
+                          ),
+                        ),
+                        if (_output != null) ...[
+                          SizedBox(height: 16),
+                          Container(
+                            padding: EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: Colors.grey[100],
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              "Respuesta:\n$_output",
+                              style: TextStyle(fontFamily: 'monospace'),
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                  
+                  // CONSULTAR TAB
+                  Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              "Lista de Tipos de Movimiento",
+                              style: Theme.of(context).textTheme.headlineSmall,
+                            ),
+                            IconButton(
+                              onPressed: _isLoading ? null : _consultar,
+                              icon: Icon(Icons.refresh),
+                              tooltip: "Actualizar lista",
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: 16),
+                        Expanded(
+                          child: _typeMovements.isEmpty
+                              ? Center(
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(
+                                        Icons.inbox,
+                                        size: 64,
+                                        color: Colors.grey,
+                                      ),
+                                      SizedBox(height: 16),
+                                      Text(
+                                        "No hay tipos de movimiento para mostrar",
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          color: Colors.grey[600],
+                                        ),
+                                      ),
+                                      SizedBox(height: 8),
+                                      TextButton.icon(
+                                        onPressed: _consultar,
+                                        icon: Icon(Icons.refresh),
+                                        label: Text("Recargar"),
+                                      ),
+                                    ],
+                                  ),
+                                )
+                              : ListView.builder(
+                                  itemCount: _typeMovements.length,
+                                  itemBuilder: (context, index) {
+                                    final typeMovement = _typeMovements[index];
+                                    return Card(
+                                      margin: EdgeInsets.symmetric(vertical: 4),
+                                      child: ListTile(
+                                        leading: CircleAvatar(
+                                          child: Text('${typeMovement.id}'),
+                                          backgroundColor: Theme.of(context).primaryColor,
+                                          foregroundColor: Colors.white,
+                                        ),
+                                        title: Text(
+                                          typeMovement.tipoMovimiento,
+                                          style: TextStyle(fontWeight: FontWeight.w500),
+                                        ),
+                                        subtitle: Text('ID: ${typeMovement.id}'),
+                                        trailing: PopupMenuButton(
+                                          itemBuilder: (context) => [
+                                            PopupMenuItem(
+                                              value: 'edit',
+                                              child: Row(
+                                                children: [
+                                                  Icon(Icons.edit, size: 16),
+                                                  SizedBox(width: 8),
+                                                  Text('Editar'),
+                                                ],
+                                              ),
+                                            ),
+                                            PopupMenuItem(
+                                              value: 'delete',
+                                              child: Row(
+                                                children: [
+                                                  Icon(Icons.delete, size: 16, color: Colors.red),
+                                                  SizedBox(width: 8),
+                                                  Text('Eliminar', style: TextStyle(color: Colors.red)),
+                                                ],
+                                              ),
+                                            ),
+                                          ],
+                                          onSelected: (value) {
+                                            if (value == 'edit') {
+                                              _selectTypeMovementFromList(typeMovement);
+                                            } else if (value == 'delete') {
+                                              _idController.text = typeMovement.id.toString();
+                                              _tabController.animateTo(2); // Switch to delete tab
+                                            }
+                                          },
+                                        ),
+                                        onTap: () => _selectTypeMovementFromList(typeMovement),
+                                      ),
+                                    );
+                                  },
+                                ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+////
+///Type Movement Widget
+class TypeTransport {
+  final int id;
+  final String tipoTransporte;
+
+  TypeTransport({required this.id, required this.tipoTransporte});
+  
+  factory TypeTransport.fromJson(Map<String, dynamic> json) =>
+      TypeTransport(id: json['ID'], tipoTransporte: json['TipoTransporte']);
+      
+  Map<String, dynamic> toJson() => {
+    'ID': id,
+    'TipoTransporte': tipoTransporte,
+  };
+}
+
+class TypeTransportCrudTabsWidget extends StatefulWidget {
+  final String token;
+  final VoidCallback onSuccess;
+
+  const TypeTransportCrudTabsWidget({
+    Key? key,
+    required this.token,
+    required this.onSuccess,
+  }) : super(key: key);
+
+  @override
+  State<TypeTransportCrudTabsWidget> createState() => _TypeTransportCrudTabsWidgetState();
+}
+
+class _TypeTransportCrudTabsWidgetState extends State<TypeTransportCrudTabsWidget>
+    with SingleTickerProviderStateMixin {
+  final _formKey = GlobalKey<FormState>();
+  final _idController = TextEditingController();
+  final _tipoTransporteController = TextEditingController();
+  
+  String? _output;
+  List<TypeTransport> _typeTransports = [];
+  bool _isLoading = false;
+  late TabController _tabController;
+
+  @override
+  void initState() {
+    super.initState();
+    _tabController = TabController(length: 4, vsync: this);
+    _consultar(); // Load data on init
+  }
+
+  @override
+  void dispose() {
+    _idController.dispose();
+    _tipoTransporteController.dispose();
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  void _setLoading(bool loading) {
+    setState(() {
+      _isLoading = loading;
+    });
+  }
+
+  void _showMessage(String message, {bool isError = false}) {
+    setState(() {
+      _output = message;
+    });
+    
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: isError ? Colors.red : Colors.green,
+        duration: Duration(seconds: 3),
+      ),
+    );
+  }
+
+  void _clearForm() {
+    _idController.clear();
+    _tipoTransporteController.clear();
+    setState(() {
+      _output = null;
+    });
+  }
+
+  Future<void> _agregar() async {
+    if (!_formKey.currentState!.validate()) return;
+    
+    final tipoTransporteText = _tipoTransporteController.text.trim();
+    if (tipoTransporteText.isEmpty) {
+      _showMessage("El campo Tipo de Transporte es requerido", isError: true);
+      return;
+    }
+
+    _setLoading(true);
+    
+    try {
+      // Get next available ID
+      final response = await http.get(
+        Uri.parse('${AppConfig.baseUrl}/typetransport/typetransports'),
+        headers: {'Authorization': 'Bearer ${widget.token}'},
+      );
+      
+      int nextId = 1;
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body)['typetransports'];
+        if (data.isNotEmpty) {
+          nextId = data.map((e) => e['ID'] as int).reduce((a, b) => a > b ? a : b) + 1;
+        }
+      } else {
+        _showMessage("Error al consultar tipos de transporte: ${response.body}", isError: true);
+        return;
+      }
+
+      // Create new transport type
+      final createResponse = await http.post(
+        Uri.parse('${AppConfig.baseUrl}/typetransport/create'),
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'Authorization': 'Bearer ${widget.token}',
+        },
+        body: {
+          'ID': nextId.toString(),
+          'TipoTransporte': tipoTransporteText,
+        },
+      );
+
+      if (createResponse.statusCode == 201 || createResponse.statusCode == 200) {
+        _showMessage("Tipo de transporte creado exitosamente");
+        _clearForm();
+        await _consultar(); // Refresh the list
+      } else {
+        _showMessage("Error al crear tipo de transporte: ${createResponse.body}", isError: true);
+      }
+    } catch (e) {
+      _showMessage("Error de conexión: $e", isError: true);
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  Future<void> _actualizar() async {
+    if (!_formKey.currentState!.validate()) return;
+    
+    final idText = _idController.text.trim();
+    final tipoTransporteText = _tipoTransporteController.text.trim();
+    
+    if (idText.isEmpty || tipoTransporteText.isEmpty) {
+      _showMessage("Todos los campos son requeridos", isError: true);
+      return;
+    }
+
+    _setLoading(true);
+    
+    try {
+      final response = await http.post(
+        Uri.parse('${AppConfig.baseUrl}/typetransport/update'),
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'Authorization': 'Bearer ${widget.token}',
+        },
+        body: {
+          'ID': idText,
+          'TipoTransporte': tipoTransporteText,
+        },
+      );
+
+      if (response.statusCode == 200) {
+        _showMessage("Tipo de transporte actualizado exitosamente");
+        _clearForm();
+        await _consultar(); // Refresh the list
+      } else {
+        _showMessage("Error al actualizar tipo de transporte: ${response.body}", isError: true);
+      }
+    } catch (e) {
+      _showMessage("Error de conexión: $e", isError: true);
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  Future<void> _eliminar() async {
+    final idText = _idController.text.trim();
+    
+    if (idText.isEmpty) {
+      _showMessage("El campo ID es requerido", isError: true);
+      return;
+    }
+
+    // Show confirmation dialog
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text("Confirmar eliminación"),
+        content: Text("¿Está seguro de que desea eliminar el tipo de transporte con ID $idText?"),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text("Cancelar"),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: Text("Eliminar"),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) return;
+
+    _setLoading(true);
+    
+    try {
+      final response = await http.post(
+        Uri.parse('${AppConfig.baseUrl}/typetransport/delete'),
+        headers: {
+          'Content-Type': 'application/x-www-form-urlencoded',
+          'Authorization': 'Bearer ${widget.token}',
+        },
+        body: {
+          'ID': idText,
+        },
+      );
+
+      if (response.statusCode == 200) {
+        _showMessage("Tipo de transporte eliminado exitosamente");
+        _clearForm();
+        await _consultar(); // Refresh the list
+      } else {
+        _showMessage("Error al eliminar tipo de transporte: ${response.body}", isError: true);
+      }
+    } catch (e) {
+      _showMessage("Error de conexión: $e", isError: true);
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  Future<void> _consultar() async {
+    _setLoading(true);
+    
+    try {
+      final response = await http.get(
+        Uri.parse('${AppConfig.baseUrl}/typetransport/typetransports'),
+        headers: {
+          'Authorization': 'Bearer ${widget.token}',
+        },
+      );
+      
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body)['typetransports'];
+        setState(() {
+          _typeTransports = data.map((e) => TypeTransport.fromJson(e)).toList();
+          _output = null;
+        });
+      } else {
+        _showMessage("Error al consultar tipos de transporte: ${response.body}", isError: true);
+      }
+    } catch (e) {
+      _showMessage("Error de conexión: $e", isError: true);
+    } finally {
+      _setLoading(false);
+    }
+  }
+
+  void _selectTypeTransportFromList(TypeTransport typeTransport) {
+    setState(() {
+      _idController.text = typeTransport.id.toString();
+      _tipoTransporteController.text = typeTransport.tipoTransporte;
+    });
+    _tabController.animateTo(1); // Switch to update tab
+  }
+
+  Widget _buildLoadingOverlay({required Widget child}) {
+    return Stack(
+      children: [
+        child,
+        if (_isLoading)
+          Container(
+            color: Colors.black26,
+            child: Center(
+              child: CircularProgressIndicator(),
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildFormField({
+    required TextEditingController controller,
+    required String label,
+    TextInputType? keyboardType,
+    String? Function(String?)? validator,
+    IconData? prefixIcon,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: TextFormField(
+        controller: controller,
+        decoration: InputDecoration(
+          labelText: label,
+          prefixIcon: prefixIcon != null ? Icon(prefixIcon) : null,
+          border: OutlineInputBorder(),
+          contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        ),
+        keyboardType: keyboardType,
+        validator: validator,
+      ),
+    );
+  }
+
+  IconData _getTransportIcon(String transportType) {
+    final type = transportType.toLowerCase();
+    if (type.contains('auto') || type.contains('carro') || type.contains('vehiculo')) {
+      return Icons.directions_car;
+    } else if (type.contains('bus') || type.contains('autobus')) {
+      return Icons.directions_bus;
+    } else if (type.contains('tren') || type.contains('metro')) {
+      return Icons.train;
+    } else if (type.contains('avion') || type.contains('aereo')) {
+      return Icons.flight;
+    } else if (type.contains('barco') || type.contains('maritimo')) {
+      return Icons.directions_boat;
+    } else if (type.contains('bici') || type.contains('cicla')) {
+      return Icons.directions_bike;
+    } else if (type.contains('camion') || type.contains('truck')) {
+      return Icons.local_shipping;
+    } else {
+      return Icons.directions;
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return DefaultTabController(
+      length: 4,
+      child: Column(
+        children: [
+          Container(
+            decoration: BoxDecoration(
+              color: Theme.of(context).cardColor,
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black12,
+                  blurRadius: 4,
+                  offset: Offset(0, 2),
+                ),
+              ],
+            ),
+            child: TabBar(
+              controller: _tabController,
+              labelColor: Theme.of(context).primaryColor,
+              unselectedLabelColor: Colors.grey,
+              indicatorColor: Theme.of(context).primaryColor,
+              tabs: [
+                Tab(icon: Icon(Icons.add), text: "Agregar"),
+                Tab(icon: Icon(Icons.edit), text: "Actualizar"),
+                Tab(icon: Icon(Icons.delete), text: "Eliminar"),
+                Tab(icon: Icon(Icons.list), text: "Consultar"),
+              ],
+            ),
+          ),
+          Expanded(
+            child: _buildLoadingOverlay(
+              child: TabBarView(
+                controller: _tabController,
+                children: [
+                  // AGREGAR TAB
+                  SingleChildScrollView(
+                    padding: const EdgeInsets.all(16),
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Text(
+                            "Crear Nuevo Tipo de Transporte",
+                            style: Theme.of(context).textTheme.headlineSmall,
+                          ),
+                          SizedBox(height: 16),
+                          _buildFormField(
+                            controller: _tipoTransporteController,
+                            label: "Tipo de Transporte",
+                            prefixIcon: Icons.directions,
+                            validator: (value) {
+                              if (value == null || value.trim().isEmpty) {
+                                return "Este campo es requerido";
+                              }
+                              if (value.trim().length < 2) {
+                                return "El tipo de transporte debe tener al menos 2 caracteres";
+                              }
+                              return null;
+                            },
+                          ),
+                          SizedBox(height: 24),
+                          ElevatedButton.icon(
+                            onPressed: _isLoading ? null : _agregar,
+                            icon: Icon(Icons.add),
+                            label: Text("Crear Tipo de Transporte"),
+                            style: ElevatedButton.styleFrom(
+                              padding: EdgeInsets.symmetric(vertical: 16),
+                            ),
+                          ),
+                          if (_output != null) ...[
+                            SizedBox(height: 16),
+                            Container(
+                              padding: EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: Colors.grey[100],
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Text(
+                                "Respuesta:\n$_output",
+                                style: TextStyle(fontFamily: 'monospace'),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ),
+                  
+                  // ACTUALIZAR TAB
+                  SingleChildScrollView(
+                    padding: const EdgeInsets.all(16),
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Text(
+                            "Actualizar Tipo de Transporte",
+                            style: Theme.of(context).textTheme.headlineSmall,
+                          ),
+                          SizedBox(height: 16),
+                          _buildFormField(
+                            controller: _idController,
+                            label: "ID del Tipo de Transporte",
+                            prefixIcon: Icons.tag,
+                            keyboardType: TextInputType.number,
+                            validator: (value) {
+                              if (value == null || value.trim().isEmpty) {
+                                return "Este campo es requerido";
+                              }
+                              if (int.tryParse(value.trim()) == null) {
+                                return "Debe ser un número válido";
+                              }
+                              return null;
+                            },
+                          ),
+                          _buildFormField(
+                            controller: _tipoTransporteController,
+                            label: "Nuevo Tipo de Transporte",
+                            prefixIcon: Icons.directions,
+                            validator: (value) {
+                              if (value == null || value.trim().isEmpty) {
+                                return "Este campo es requerido";
+                              }
+                              if (value.trim().length < 2) {
+                                return "El tipo de transporte debe tener al menos 2 caracteres";
+                              }
+                              return null;
+                            },
+                          ),
+                          SizedBox(height: 24),
+                          ElevatedButton.icon(
+                            onPressed: _isLoading ? null : _actualizar,
+                            icon: Icon(Icons.update),
+                            label: Text("Actualizar Tipo de Transporte"),
+                            style: ElevatedButton.styleFrom(
+                              padding: EdgeInsets.symmetric(vertical: 16),
+                            ),
+                          ),
+                          if (_output != null) ...[
+                            SizedBox(height: 16),
+                            Container(
+                              padding: EdgeInsets.all(12),
+                              decoration: BoxDecoration(
+                                color: Colors.grey[100],
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Text(
+                                "Respuesta:\n$_output",
+                                style: TextStyle(fontFamily: 'monospace'),
+                              ),
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                  ),
+                  
+                  // ELIMINAR TAB
+                  SingleChildScrollView(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Text(
+                          "Eliminar Tipo de Transporte",
+                          style: Theme.of(context).textTheme.headlineSmall,
+                        ),
+                        SizedBox(height: 16),
+                        Container(
+                          padding: EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: Colors.red[50],
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: Colors.red[200]!),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(Icons.warning, color: Colors.red),
+                              SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  "Esta acción no se puede deshacer",
+                                  style: TextStyle(color: Colors.red[700]),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        SizedBox(height: 16),
+                        _buildFormField(
+                          controller: _idController,
+                          label: "ID del Tipo de Transporte a Eliminar",
+                          prefixIcon: Icons.tag,
+                          keyboardType: TextInputType.number,
+                        ),
+                        SizedBox(height: 24),
+                        ElevatedButton.icon(
+                          onPressed: _isLoading ? null : _eliminar,
+                          icon: Icon(Icons.delete),
+                          label: Text("Eliminar Tipo de Transporte"),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.red,
+                            foregroundColor: Colors.white,
+                            padding: EdgeInsets.symmetric(vertical: 16),
+                          ),
+                        ),
+                        if (_output != null) ...[
+                          SizedBox(height: 16),
+                          Container(
+                            padding: EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: Colors.grey[100],
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: Text(
+                              "Respuesta:\n$_output",
+                              style: TextStyle(fontFamily: 'monospace'),
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                  
+                  // CONSULTAR TAB
+                  Padding(
+                    padding: const EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              "Lista de Tipos de Transporte",
+                              style: Theme.of(context).textTheme.headlineSmall,
+                            ),
+                            IconButton(
+                              onPressed: _isLoading ? null : _consultar,
+                              icon: Icon(Icons.refresh),
+                              tooltip: "Actualizar lista",
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: 16),
+                        Expanded(
+                          child: _typeTransports.isEmpty
+                              ? Center(
+                                  child: Column(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(
+                                        Icons.directions,
+                                        size: 64,
+                                        color: Colors.grey,
+                                      ),
+                                      SizedBox(height: 16),
+                                      Text(
+                                        "No hay tipos de transporte para mostrar",
+                                        style: TextStyle(
+                                          fontSize: 16,
+                                          color: Colors.grey[600],
+                                        ),
+                                      ),
+                                      SizedBox(height: 8),
+                                      TextButton.icon(
+                                        onPressed: _consultar,
+                                        icon: Icon(Icons.refresh),
+                                        label: Text("Recargar"),
+                                      ),
+                                    ],
+                                  ),
+                                )
+                              : ListView.builder(
+                                  itemCount: _typeTransports.length,
+                                  itemBuilder: (context, index) {
+                                    final typeTransport = _typeTransports[index];
+                                    final transportIcon = _getTransportIcon(typeTransport.tipoTransporte);
+                                    
+                                    return Card(
+                                      margin: EdgeInsets.symmetric(vertical: 4),
+                                      child: ListTile(
+                                        leading: CircleAvatar(
+                                          child: Icon(transportIcon, color: Colors.white),
+                                          backgroundColor: Theme.of(context).primaryColor,
+                                        ),
+                                        title: Text(
+                                          typeTransport.tipoTransporte,
+                                          style: TextStyle(fontWeight: FontWeight.w500),
+                                        ),
+                                        subtitle: Text('ID: ${typeTransport.id}'),
+                                        trailing: PopupMenuButton(
+                                          itemBuilder: (context) => [
+                                            PopupMenuItem(
+                                              value: 'edit',
+                                              child: Row(
+                                                children: [
+                                                  Icon(Icons.edit, size: 16),
+                                                  SizedBox(width: 8),
+                                                  Text('Editar'),
+                                                ],
+                                              ),
+                                            ),
+                                            PopupMenuItem(
+                                              value: 'delete',
+                                              child: Row(
+                                                children: [
+                                                  Icon(Icons.delete, size: 16, color: Colors.red),
+                                                  SizedBox(width: 8),
+                                                  Text('Eliminar', style: TextStyle(color: Colors.red)),
+                                                ],
+                                              ),
+                                            ),
+                                          ],
+                                          onSelected: (value) {
+                                            if (value == 'edit') {
+                                              _selectTypeTransportFromList(typeTransport);
+                                            } else if (value == 'delete') {
+                                              _idController.text = typeTransport.id.toString();
+                                              _tabController.animateTo(2); // Switch to delete tab
+                                            }
+                                          },
+                                        ),
+                                        onTap: () => _selectTypeTransportFromList(typeTransport),
+                                      ),
+                                    );
+                                  },
+                                ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
         ],
       ),
     );
