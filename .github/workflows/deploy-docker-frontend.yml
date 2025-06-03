@@ -1,4 +1,4 @@
-name: Build and Push Frontend to Docker Hub
+name: Build and Push Flutter Web Frontend to Docker Hub
 
 on:
   push:
@@ -13,8 +13,14 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+
+      - name: Run Flutter build web
+        run: flutter build web
+        working-directory: ./src/frontend
 
       - name: Login to Docker Hub
         uses: docker/login-action@v3
@@ -22,14 +28,6 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Instala dependencias
-        run: npm install
-        working-directory: ./src/frontend
-      
-      - name: Build del frontend
-        run: npm run build
-        working-directory: ./src/frontend
-        
       - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
