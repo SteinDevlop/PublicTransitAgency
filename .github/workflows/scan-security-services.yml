@@ -13,10 +13,13 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Levanta el contenedor FastAPI
+      - name: Crea red Docker
+        run: docker network create zapnet
+
+      - name: Levanta el contenedor FastAPI en red zapnet
         run: |
           docker pull gitzerohub/publictransitagency:latest
-          docker run -d --name app -p 8000:8000 \
+          docker run -d --name app --network zapnet -p 8000:8000 \
             -e HOST=${{ secrets.HOST }} \
             -e PORT=${{ secrets.PORT }} \
             -e DB=${{ secrets.DB }} \
@@ -28,31 +31,33 @@ jobs:
       - name: Espera que la API esté lista
         run: |
           for i in {1..20}; do
-            curl -f http://localhost:8000/openapi.json && break
+            docker run --rm --network zapnet curlimages/curl:8.8.0 \
+              curl -f http://app:8000/openapi.json && break
             echo "Esperando..."
             sleep 5
           done
 
       - name: Descarga y muestra el esquema OpenAPI
         run: |
-          curl -o openapi.json http://localhost:8000/openapi.json
+          docker run --rm --network zapnet curlimages/curl:8.8.0 \
+            curl -o openapi.json http://app:8000/openapi.json
           ls -lh openapi.json
           head -30 openapi.json
           jq . < openapi.json || echo "No es JSON válido"
 
-      - name: Actualiza el OpenAPI spec para usar host.docker.internal
+      - name: Actualiza el OpenAPI spec para usar http://app:8000
         run: |
-          jq --arg url "http://host.docker.internal:8000" \
+          jq --arg url "http://app:8000" \
             '.servers[0].url = $url' openapi.json > openapi.fixed.json
           mv openapi.fixed.json openapi.json
-          echo "Modificado servers en el spec a host.docker.internal"
+          echo "Modificado servers en el spec a app:8000"
 
       - name: Da permisos de escritura al workspace
         run: sudo chmod -R 777 ${{ github.workspace }}
 
-      - name: Escanear toda la API con OWASP ZAP usando OpenAPI (archivo local)
+      - name: Escanear toda la API con OWASP ZAP usando OpenAPI (red zapnet)
         run: |
-          docker run --name zapscan \
+          docker run --name zapscan --network zapnet \
             -v ${{ github.workspace }}:/zap/wrk \
             -w /zap/wrk \
             ghcr.io/zaproxy/zaproxy:stable zap-api-scan.py \
