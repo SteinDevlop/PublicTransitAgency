@@ -33,8 +33,12 @@ jobs:
             sleep 5
           done
 
-      - name: Descarga el esquema OpenAPI
-        run: curl -o openapi.json http://localhost:8000/openapi.json
+      - name: Descarga y muestra el esquema OpenAPI
+        run: |
+          curl -o openapi.json http://localhost:8000/openapi.json
+          ls -lh openapi.json
+          head -30 openapi.json
+          jq . < openapi.json || echo "No es JSON válido"
 
       - name: Da permisos de escritura al workspace
         run: sudo chmod -R 777 ${{ github.workspace }}
@@ -45,6 +49,7 @@ jobs:
             -v ${{ github.workspace }}:/zap/wrk \
             -w /zap/wrk \
             ghcr.io/zaproxy/zaproxy:stable zap-api-scan.py \
+              -d \
               -f openapi \
               -t http://host.docker.internal:8000/openapi.json \
               -J report_json.json \
