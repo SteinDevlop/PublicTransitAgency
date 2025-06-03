@@ -41,7 +41,7 @@ jobs:
               -J report_json.json \
               -w report_md.md \
               -r report_html.html \
-              --exit-zero
+              -I
           docker logs zapscan || echo "No logs disponibles"
           docker rm -f zapscan || true
           
