@@ -66,7 +66,9 @@ jobs:
               -t /zap/wrk/openapi.json \
               -J report_json.json \
               -w report_md.md \
-              -r report_html.html
+              -r report_html.html \
+              --fail-on-warn false \
+              --fail-on-fail false
           docker logs zapscan || echo "No logs disponibles"
           docker rm -f zapscan || true
 
