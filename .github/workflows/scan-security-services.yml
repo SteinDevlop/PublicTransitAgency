@@ -25,23 +25,28 @@ jobs:
             gitzerohub/publictransitagency:latest
           sleep 25
 
-      - name: Verifica que FastAPI responde
-        run: curl --retry 10 --retry-delay 5 http://127.0.0.1:8000/openapi.json
+      - name: Espera que la API esté lista
+        run: |
+          for i in {1..20}; do
+            curl -f http://localhost:8000/openapi.json && break
+            echo "Esperando..."
+            sleep 5
+          done
 
       - name: Descarga el esquema OpenAPI
-        run: curl -o openapi.json http://127.0.0.1:8000/openapi.json
+        run: curl -o openapi.json http://localhost:8000/openapi.json
 
       - name: Da permisos de escritura al workspace
         run: sudo chmod -R 777 ${{ github.workspace }}
 
       - name: Escanear toda la API con OWASP ZAP usando OpenAPI
         run: |
-          docker run --name zapscan --network=host \
+          docker run --name zapscan \
             -v ${{ github.workspace }}:/zap/wrk \
             -w /zap/wrk \
             ghcr.io/zaproxy/zaproxy:stable zap-api-scan.py \
               -f openapi \
-              -t http://127.0.0.1:8000/openapi.json \
+              -t http://host.docker.internal:8000/openapi.json \
               -J report_json.json \
               -w report_md.md \
               -r report_html.html
