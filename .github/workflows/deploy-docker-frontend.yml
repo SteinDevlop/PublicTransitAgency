@@ -11,4 +11,4 @@ jobs:
 
     steps:
       - name: Lista todo en src/frontend
-        run: ls -lR ./src/frontend
+        run: ls -lR ./frontend
