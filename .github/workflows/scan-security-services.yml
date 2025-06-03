@@ -40,14 +40,16 @@ jobs:
           head -30 openapi.json
           jq . < openapi.json || echo "No es JSON válido"
 
-      - name: Asegura que el OpenAPI spec tiene servers (host.docker.internal)
+      - name: Detecta la IP del host y actualiza el OpenAPI spec
         run: |
+          HOST_IP=$(ip route | awk '/default/ { print $3 }')
+          echo "La IP del host es $HOST_IP"
           if ! jq '.servers' openapi.json | grep http; then
-            jq '. + {servers: [{"url": "http://host.docker.internal:8000"}]}' openapi.json > openapi.fixed.json
+            jq --arg url "http://$HOST_IP:8000" '. + {servers: [{"url": $url}]}' openapi.json > openapi.fixed.json
             mv openapi.fixed.json openapi.json
             echo "Agregado servers al spec"
           else
-            jq '.servers[0].url = "http://host.docker.internal:8000"' openapi.json > openapi.fixed.json
+            jq --arg url "http://$HOST_IP:8000" '.servers[0].url = $url' openapi.json > openapi.fixed.json
             mv openapi.fixed.json openapi.json
             echo "Modificado servers en el spec"
           fi
