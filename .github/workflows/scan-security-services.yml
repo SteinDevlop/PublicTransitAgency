@@ -1,4 +1,4 @@
-name: Escaneo de Seguridad OWASP ZAP
+name: Escaneo Completo API OWASP ZAP
 
 on:
   push:
@@ -26,36 +26,27 @@ jobs:
           sleep 25
 
       - name: Verifica que FastAPI responde
-        run: curl --retry 10 --retry-delay 5 http://127.0.0.1:8000/docs
+        run: curl --retry 10 --retry-delay 5 http://127.0.0.1:8000/openapi.json
+
+      - name: Descarga el esquema OpenAPI
+        run: curl -o openapi.json http://127.0.0.1:8000/openapi.json
 
       - name: Da permisos de escritura al workspace
         run: sudo chmod -R 777 ${{ github.workspace }}
 
-      - name: Escanear API con OWASP ZAP (docker run manual)
+      - name: Escanear toda la API con OWASP ZAP usando OpenAPI
         run: |
           docker run --name zapscan --network=host \
             -v ${{ github.workspace }}:/zap/wrk \
             -w /zap/wrk \
-            ghcr.io/zaproxy/zaproxy:stable zap-baseline.py \
-              -t http://127.0.0.1:8000/docs \
+            ghcr.io/zaproxy/zaproxy:stable zap-api-scan.py \
+              -f openapi \
+              -t http://127.0.0.1:8000/openapi.json \
               -J report_json.json \
               -w report_md.md \
-              -r report_html.html \
-              -I
+              -r report_html.html
           docker logs zapscan || echo "No logs disponibles"
           docker rm -f zapscan || true
-          
-      - name: Mostrar reporte ZAP en logs (markdown)
-        run: |
-          echo "========== INICIO REPORTE ZAP (MD) =========="
-          cat report_md.md || echo "No se generó el archivo report_md.md"
-          echo "========== FIN REPORTE ZAP (MD) =========="
-
-      - name: Mostrar reporte ZAP en logs (html)
-        run: |
-          echo "========== INICIO REPORTE ZAP (HTML) =========="
-          cat report_html.html || echo "No se generó el archivo report_html.html"
-          echo "========== FIN REPORTE ZAP (HTML) =========="
 
       - name: Sube los reportes como artifact
         uses: actions/upload-artifact@v4
