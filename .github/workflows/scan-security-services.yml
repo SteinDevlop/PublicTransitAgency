@@ -40,6 +40,16 @@ jobs:
           head -30 openapi.json
           jq . < openapi.json || echo "No es JSON válido"
 
+      - name: Asegura que el OpenAPI spec tiene servers
+        run: |
+          if ! jq '.servers' openapi.json | grep http; then
+            jq '. + {servers: [{"url": "http://localhost:8000"}]}' openapi.json > openapi.fixed.json
+            mv openapi.fixed.json openapi.json
+            echo "Agregado servers al spec"
+          else
+            echo "El spec ya tiene servers"
+          fi
+
       - name: Da permisos de escritura al workspace
         run: sudo chmod -R 777 ${{ github.workspace }}
 
