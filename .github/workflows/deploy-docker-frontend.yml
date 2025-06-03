@@ -1,39 +1,30 @@
-name: Build & Deploy Flutter Web Frontend to Azure
+name: Build and Push Docker Image - FrontEnd
 
 on:
   push:
     branches:
-      - main
+      - main  # o la rama que prefieras
 
 jobs:
-  build-and-push-frontend:
+  build:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout código
-        uses: actions/checkout@v3
+    - name: Checkout code
+      uses: actions/checkout@v4
 
-      - name: Set up Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          flutter-version: '3.22.0'  # Ajusta si usas otra versión
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
 
-      - name: Limpiar build anterior
-        working-directory: ./src/frontend
-        run: flutter clean
+    - name: Login to DockerHub
+      uses: docker/login-action@v3
+      with:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Build Flutter Web (con BACKEND_URL de Railway)
-        working-directory: ./src/frontend
-        run: flutter build web --dart-define=BACKEND_URL=https://publictransitagency-production.up.railway.app
-
-      - name: Login to Docker Hub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      - name: Build Docker image
-        run: docker build -t ${{ secrets.DOCKERHUB_USERNAME }}/publictransitagency-frontend:latest -f ./src/frontend/Dockerfile ./src/frontend
-
-      - name: Push Docker image
-        run: docker push ${{ secrets.DOCKERHUB_USERNAME }}/publictransitagency-frontend:latest
+    - name: Build and push image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        push: true
+        tags: tudockerhubusuario/tuimagen:latest
