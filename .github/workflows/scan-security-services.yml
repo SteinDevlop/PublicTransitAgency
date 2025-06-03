@@ -28,6 +28,9 @@ jobs:
       - name: Verifica que FastAPI responde
         run: curl --retry 10 --retry-delay 5 http://127.0.0.1:8000/docs
 
+      - name: Da permisos de escritura al workspace para todos los usuarios
+        run: sudo chmod -R 777 ${{ github.workspace }}
+
       - name: Escanear API con OWASP ZAP (docker run manual)
         run: |
           docker run --name zapscan --network=host \
@@ -39,7 +42,6 @@ jobs:
               -r report_html.html
           docker logs zapscan || echo "No logs disponibles"
           docker rm -f zapscan || true
-
       - name: Mostrar reporte ZAP en logs (markdown)
         run: |
           echo "========== INICIO REPORTE ZAP (MD) =========="
