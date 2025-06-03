@@ -32,13 +32,13 @@ jobs:
         run: |
           docker run --name zapscan --network=host \
             -v ${{ github.workspace }}:/zap/wrk \
-            -w /zap/wrk \
             ghcr.io/zaproxy/zaproxy:stable zap-baseline.py \
               -t http://127.0.0.1:8000/docs \
-              --output-dir . \
-              -J report_json.json \
-              -w report_md.md \
-              -r report_html.html
+              -J /zap/wrk/report_json.json \
+              -w /zap/wrk/report_md.md \
+              -r /zap/wrk/report_html.html
+          docker logs zapscan || echo "No logs disponibles"
+          docker rm -f zapscan || true
 
       - name: Mostrar reporte ZAP en logs (markdown)
         run: |
@@ -51,3 +51,11 @@ jobs:
           echo "========== INICIO REPORTE ZAP (HTML) =========="
           cat report_html.html || echo "No se generó el archivo report_html.html"
           echo "========== FIN REPORTE ZAP (HTML) =========="
+
+      - name: Sube los reportes como artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: zap-reportes
+          path: |
+            report_html.html
+            report_md.md
