@@ -34,9 +34,9 @@ jobs:
             -v ${{ github.workspace }}:/zap/wrk \
             ghcr.io/zaproxy/zaproxy:stable zap-baseline.py \
               -t http://127.0.0.1:8000/docs \
-              -J /zap/wrk/report_json.json \
-              -w /zap/wrk/report_md.md \
-              -r /zap/wrk/report_html.html
+              -J report_json.json \
+              -w report_md.md \
+              -r report_html.html
           docker logs zapscan || echo "No logs disponibles"
           docker rm -f zapscan || true
 
