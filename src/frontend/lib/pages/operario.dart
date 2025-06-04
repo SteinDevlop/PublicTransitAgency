@@ -166,6 +166,50 @@ class _OperarioPanelState extends State<OperarioPanel> {
                           });
                         },
                       ),
+                      _buildMenuItem(
+                        icon: Icons.list_alt,
+                        title: 'Ver todas las incidencias',
+                        color: primaryColor,
+                        isActive: selectedSection == 'incidencias_all',
+                        onTap: () {
+                          setState(() {
+                            selectedSection = 'incidencias_all';
+                          });
+                        },
+                      ),
+                      _buildMenuItem(
+                        icon: Icons.search,
+                        title: 'Buscar incidencia por ID',
+                        color: primaryColor,
+                        isActive: selectedSection == 'incidencia_by_id',
+                        onTap: () {
+                          setState(() {
+                            selectedSection = 'incidencia_by_id';
+                          });
+                        },
+                      ),
+                      _buildMenuItem(
+                        icon: Icons.edit,
+                        title: 'Actualizar incidencia',
+                        color: primaryColor,
+                        isActive: selectedSection == 'incidencia_update',
+                        onTap: () {
+                          setState(() {
+                            selectedSection = 'incidencia_update';
+                          });
+                        },
+                      ),
+                      _buildMenuItem(
+                        icon: Icons.delete,
+                        title: 'Eliminar incidencia',
+                        color: primaryColor,
+                        isActive: selectedSection == 'incidencia_delete',
+                        onTap: () {
+                          setState(() {
+                            selectedSection = 'incidencia_delete';
+                          });
+                        },
+                      ),
                     ],
                   ),
                 ),
@@ -201,6 +245,14 @@ class _OperarioPanelState extends State<OperarioPanel> {
     Color cardColor,
   ) {
     switch (section) {
+      case 'incidencias_all':
+        return VerTodasIncidenciasWidget(token: widget.token);
+      case 'incidencia_by_id':
+        return BuscarIncidenciaPorIdWidget(token: widget.token);
+      case 'incidencia_update':
+        return ActualizarIncidenciaWidget(token: widget.token);
+      case 'incidencia_delete':
+        return EliminarIncidenciaWidget(token: widget.token);
       case 'incidences':
         return FutureBuilder<List<dynamic>>(
           future: fetchIncidences(),
@@ -482,13 +534,51 @@ class CrearIncidenciaWidget extends StatefulWidget {
 
 class _CrearIncidenciaWidgetState extends State<CrearIncidenciaWidget> {
   final _formKey = GlobalKey<FormState>();
-  final _ticketController = TextEditingController();
+  String? _incidenciaId; // Nuevo campo para el ID de la incidencia
+  String? _selectedTicketId;
+  String? _selectedUnidadId;
   final _descripcionController = TextEditingController();
   final _tipoController = TextEditingController();
-  final _unidadController = TextEditingController();
   bool _loading = false;
   String? _error;
   String? _success;
+
+  List<dynamic> _tickets = [];
+  List<dynamic> _unidades = [];
+  bool _loadingDropdowns = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchDropdownData();
+  }
+
+  Future<void> _fetchDropdownData() async {
+    setState(() => _loadingDropdowns = true);
+    try {
+      final ticketResp = await http.get(
+        Uri.parse('${AppConfig.baseUrl}/tickets/'),
+        headers: {
+          'Authorization': 'Bearer ${widget.token}',
+          'accept': 'application/json',
+        },
+      );
+      final unidadResp = await http.get(
+        Uri.parse('${AppConfig.baseUrl}/transport_units/with_names'),
+        headers: {
+          'Authorization': 'Bearer ${widget.token}',
+          'accept': 'application/json',
+        },
+      );
+      if (ticketResp.statusCode == 200 && unidadResp.statusCode == 200) {
+        setState(() {
+          _tickets = json.decode(ticketResp.body);
+          _unidades = json.decode(unidadResp.body);
+        });
+      }
+    } catch (_) {}
+    setState(() => _loadingDropdowns = false);
+  }
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
@@ -505,20 +595,22 @@ class _CrearIncidenciaWidgetState extends State<CrearIncidenciaWidget> {
         'Content-Type': 'application/x-www-form-urlencoded',
       },
       body: {
-        'IDTicket': _ticketController.text.trim(),
+        'ID': _incidenciaId ?? '',
+        'IDTicket': _selectedTicketId ?? '',
         'Descripcion': _descripcionController.text.trim(),
         'Tipo': _tipoController.text.trim(),
-        'IDUnidad': _unidadController.text.trim(),
+        'IDUnidad': _selectedUnidadId ?? '',
       },
     );
     setState(() => _loading = false);
     if (response.statusCode == 200) {
       setState(() {
         _success = 'Incidencia reportada exitosamente.';
-        _ticketController.clear();
+        _incidenciaId = null;
+        _selectedTicketId = null;
+        _selectedUnidadId = null;
         _descripcionController.clear();
         _tipoController.clear();
-        _unidadController.clear();
       });
       if (widget.onCreated != null) widget.onCreated!();
     } else {
@@ -541,89 +633,119 @@ class _CrearIncidenciaWidgetState extends State<CrearIncidenciaWidget> {
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
       child: Padding(
         padding: const EdgeInsets.all(24),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                'Reportar Incidencia o Falla',
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 20,
-                  color: Theme.of(context).primaryColor,
+        child: _loadingDropdowns
+            ? Center(child: CircularProgressIndicator())
+            : Form(
+                key: _formKey,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'Reportar Incidencia o Falla',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 20,
+                        color: Theme.of(context).primaryColor,
+                      ),
+                    ),
+                    const SizedBox(height: 18),
+                    // Campo para ID de Incidencia
+                    TextFormField(
+                      decoration: InputDecoration(
+                        labelText: 'ID de Incidencia',
+                        prefixIcon: Icon(Icons.confirmation_number),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      keyboardType: TextInputType.number,
+                      onChanged: (val) => setState(() => _incidenciaId = val),
+                      validator: (v) => v == null || v.isEmpty ? 'Ingrese el ID de la incidencia' : null,
+                    ),
+                    const SizedBox(height: 12),
+                    DropdownButtonFormField<String>(
+                      value: _selectedTicketId,
+                      decoration: InputDecoration(
+                        labelText: 'ID Ticket',
+                        prefixIcon: Icon(Icons.receipt_long),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      items: _tickets
+                          .map<DropdownMenuItem<String>>((t) => DropdownMenuItem(
+                                value: t['ID'].toString(),
+                                child: Text(
+                                  'Ticket #${t['ID']}'
+                                  '${t['EstadoIncidencia'] != null && t['EstadoIncidencia'].toString().trim().isNotEmpty ? ' - ${t['EstadoIncidencia']}' : ''}',
+                                ),
+                              ))
+                          .toList(),
+                      onChanged: (val) => setState(() => _selectedTicketId = val),
+                      validator: (v) => v == null || v.isEmpty ? 'Seleccione un ticket' : null,
+                    ),
+                    const SizedBox(height: 12),
+                    TextFormField(
+                      controller: _descripcionController,
+                      decoration: InputDecoration(
+                        labelText: 'Descripción',
+                        prefixIcon: Icon(Icons.description),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      maxLines: 2,
+                      validator: (v) => v == null || v.isEmpty ? 'Ingrese la descripción' : null,
+                    ),
+                    const SizedBox(height: 12),
+                    TextFormField(
+                      controller: _tipoController,
+                      decoration: InputDecoration(
+                        labelText: 'Tipo',
+                        prefixIcon: Icon(Icons.category),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      validator: (v) => v == null || v.isEmpty ? 'Ingrese el tipo' : null,
+                    ),
+                    const SizedBox(height: 12),
+                    DropdownButtonFormField<String>(
+                      value: _selectedUnidadId,
+                      decoration: InputDecoration(
+                        labelText: 'ID Unidad',
+                        prefixIcon: Icon(Icons.directions_bus),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      items: _unidades
+                          .map<DropdownMenuItem<String>>((u) => DropdownMenuItem(
+                                value: u['ID'].toString(),
+                                child: Text('Unidad #${u['ID']} - ${u['NombreRuta'] ?? "-"}'),
+                              ))
+                          .toList(),
+                      onChanged: (val) => setState(() => _selectedUnidadId = val),
+                      validator: (v) => v == null || v.isEmpty ? 'Seleccione una unidad' : null,
+                    ),
+                    const SizedBox(height: 20),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
+                        icon: _loading
+                            ? SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                            : Icon(Icons.report),
+                        label: Text(_loading ? 'Enviando...' : 'Reportar'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Theme.of(context).primaryColor,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
+                        onPressed: _loading ? null : _submit,
+                      ),
+                    ),
+                    if (_error != null) ...[
+                      const SizedBox(height: 12),
+                      Text(_error!, style: TextStyle(color: Colors.red)),
+                    ],
+                    if (_success != null) ...[
+                      const SizedBox(height: 12),
+                      Text(_success!, style: TextStyle(color: Colors.green)),
+                    ],
+                  ],
                 ),
               ),
-              const SizedBox(height: 18),
-              TextFormField(
-                controller: _ticketController,
-                decoration: InputDecoration(
-                  labelText: 'ID Ticket',
-                  prefixIcon: Icon(Icons.receipt_long),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                ),
-                keyboardType: TextInputType.number,
-                validator: (v) => v == null || v.isEmpty ? 'Ingrese el ID del ticket' : null,
-              ),
-              const SizedBox(height: 12),
-              TextFormField(
-                controller: _descripcionController,
-                decoration: InputDecoration(
-                  labelText: 'Descripción',
-                  prefixIcon: Icon(Icons.description),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                ),
-                maxLines: 2,
-                validator: (v) => v == null || v.isEmpty ? 'Ingrese la descripción' : null,
-              ),
-              const SizedBox(height: 12),
-              TextFormField(
-                controller: _tipoController,
-                decoration: InputDecoration(
-                  labelText: 'Tipo',
-                  prefixIcon: Icon(Icons.category),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                ),
-                validator: (v) => v == null || v.isEmpty ? 'Ingrese el tipo' : null,
-              ),
-              const SizedBox(height: 12),
-              TextFormField(
-                controller: _unidadController,
-                decoration: InputDecoration(
-                  labelText: 'ID Unidad',
-                  prefixIcon: Icon(Icons.directions_bus),
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                ),
-                validator: (v) => v == null || v.isEmpty ? 'Ingrese el ID de la unidad' : null,
-              ),
-              const SizedBox(height: 20),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton.icon(
-                  icon: _loading
-                      ? SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                      : Icon(Icons.report),
-                  label: Text(_loading ? 'Enviando...' : 'Reportar'),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Theme.of(context).primaryColor,
-                    foregroundColor: Colors.white,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  ),
-                  onPressed: _loading ? null : _submit,
-                ),
-              ),
-              if (_error != null) ...[
-                const SizedBox(height: 12),
-                Text(_error!, style: TextStyle(color: Colors.red)),
-              ],
-              if (_success != null) ...[
-                const SizedBox(height: 12),
-                Text(_success!, style: TextStyle(color: Colors.green)),
-              ],
-            ],
-          ),
-        ),
       ),
     );
   }
@@ -950,6 +1072,594 @@ class _CrearAsistenciaScreenState extends State<CrearAsistenciaScreen> {
             ],
           ),
         ),
+      ),
+    );
+  }
+}
+
+class VerTodasIncidenciasWidget extends StatelessWidget {
+  final String token;
+  const VerTodasIncidenciasWidget({required this.token, Key? key}) : super(key: key);
+
+  Future<List<dynamic>> _fetchIncidencias() async {
+    final response = await http.get(
+      Uri.parse('${AppConfig.baseUrl}/incidences/'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'accept': 'application/json',
+      },
+    );
+    if (response.statusCode == 200) {
+      return json.decode(response.body);
+    } else {
+      throw Exception('Error al cargar incidencias');
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 24, horizontal: 8),
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: FutureBuilder<List<dynamic>>(
+          future: _fetchIncidencias(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return Center(child: CircularProgressIndicator());
+            } else if (snapshot.hasError) {
+              return Text('Error al cargar incidencias', style: TextStyle(color: Colors.red));
+            } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+              return Text('No hay incidencias registradas.');
+            }
+            final incidencias = snapshot.data!;
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Todas las incidencias', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
+                const SizedBox(height: 18),
+                ...incidencias.map((inc) => Card(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  child: ListTile(
+                    leading: Icon(Icons.report, color: Colors.orange),
+                    title: Text('Incidencia #${inc['ID']}'),
+                    subtitle: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('Descripción: ${inc['Descripcion'] ?? "-"}'),
+                        Text('Tipo: ${inc['Tipo'] ?? "-"}'),
+                        Text('Unidad: ${inc['IDUnidad'] ?? "-"}'),
+                        Text('Estado: ${inc['EstadoIncidencia'] ?? "-"}'),
+                      ],
+                    ),
+                  ),
+                )),
+              ],
+            );
+          },
+        ),
+      ),
+    );
+  }
+}
+class BuscarIncidenciaPorIdWidget extends StatefulWidget {
+  final String token;
+  const BuscarIncidenciaPorIdWidget({required this.token, Key? key}) : super(key: key);
+
+  @override
+  State<BuscarIncidenciaPorIdWidget> createState() => _BuscarIncidenciaPorIdWidgetState();
+}
+
+class _BuscarIncidenciaPorIdWidgetState extends State<BuscarIncidenciaPorIdWidget> {
+  String? _selectedId;
+  Map<String, dynamic>? _incidencia;
+  String? _error;
+  bool _loading = false;
+  List<dynamic> _incidencias = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchIncidencias();
+  }
+
+  Future<void> _fetchIncidencias() async {
+    setState(() => _loading = true);
+    try {
+      final resp = await http.get(
+        Uri.parse('${AppConfig.baseUrl}/incidences/'),
+        headers: {
+          'Authorization': 'Bearer ${widget.token}',
+          'accept': 'application/json',
+        },
+      );
+      if (resp.statusCode == 200) {
+        setState(() {
+          _incidencias = json.decode(resp.body);
+        });
+      }
+    } catch (_) {}
+    setState(() => _loading = false);
+  }
+
+  Future<void> _buscar() async {
+    if (_selectedId == null) return;
+    setState(() {
+      _loading = true;
+      _error = null;
+      _incidencia = null;
+    });
+    final resp = await http.get(
+      Uri.parse('${AppConfig.baseUrl}/incidences/${_selectedId}'),
+      headers: {
+        'Authorization': 'Bearer ${widget.token}',
+        'accept': 'application/json',
+      },
+    );
+    setState(() => _loading = false);
+    if (resp.statusCode == 200) {
+      final data = json.decode(resp.body);
+      setState(() {
+        _incidencia = data['data'] ?? {};
+      });
+    } else {
+      setState(() {
+        _error = 'No se encontró la incidencia';
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 24, horizontal: 8),
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text('Buscar incidencia por ID', style: TextStyle(fontWeight: FontWeight.bold, fontSize: 20)),
+            const SizedBox(height: 16),
+            DropdownButtonFormField<String>(
+              value: _selectedId,
+              decoration: InputDecoration(
+                labelText: 'ID de Incidencia',
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              items: _incidencias
+                  .map<DropdownMenuItem<String>>((i) => DropdownMenuItem(
+                        value: i['ID'].toString(),
+                        child: Text('Incidencia #${i['ID']}'),
+                      ))
+                  .toList(),
+              onChanged: (val) => setState(() => _selectedId = val),
+              validator: (v) => v == null || v.isEmpty ? 'Seleccione una incidencia' : null,
+            ),
+            const SizedBox(height: 12),
+            ElevatedButton(
+              onPressed: _loading ? null : _buscar,
+              child: _loading ? CircularProgressIndicator() : Text('Buscar'),
+            ),
+            if (_error != null) ...[
+              const SizedBox(height: 12),
+              Text(_error!, style: TextStyle(color: Colors.red)),
+            ],
+            if (_incidencia != null) ...[
+              const SizedBox(height: 18),
+              Text('ID: ${_incidencia!['ID']}'),
+              Text('Ticket: ${_incidencia!['IDTicket']}'),
+              Text('Descripción: ${_incidencia!['Descripcion']}'),
+              Text('Tipo: ${_incidencia!['Tipo']}'),
+              Text('Unidad: ${_incidencia!['IDUnidad']}'),
+              Text('Estado: ${_incidencia!['EstadoIncidencia'] ?? "-"}'),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+class ActualizarIncidenciaWidget extends StatefulWidget {
+  final String token;
+  const ActualizarIncidenciaWidget({required this.token, Key? key}) : super(key: key);
+
+  @override
+  State<ActualizarIncidenciaWidget> createState() => _ActualizarIncidenciaWidgetState();
+}
+
+class _ActualizarIncidenciaWidgetState extends State<ActualizarIncidenciaWidget> {
+  final _formKey = GlobalKey<FormState>();
+  List<dynamic> _incidencias = [];
+  List<dynamic> _tickets = [];
+  List<dynamic> _unidades = [];
+  String? _selectedId;
+  String? _selectedTicketId;
+  String? _selectedUnidadId;
+  Map<String, dynamic>? _incidencia;
+  final _descripcionController = TextEditingController();
+  final _tipoController = TextEditingController();
+  final _estadoController = TextEditingController();
+  bool _loading = false;
+  String? _error;
+  String? _success;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchDropdownData();
+  }
+
+  Future<void> _fetchDropdownData() async {
+    setState(() => _loading = true);
+    try {
+      final incResp = await http.get(
+        Uri.parse('${AppConfig.baseUrl}/incidences/'),
+        headers: {
+          'Authorization': 'Bearer ${widget.token}',
+          'accept': 'application/json',
+        },
+      );
+      final ticketResp = await http.get(
+        Uri.parse('${AppConfig.baseUrl}/tickets/'),
+        headers: {
+          'Authorization': 'Bearer ${widget.token}',
+          'accept': 'application/json',
+        },
+      );
+      final unidadResp = await http.get(
+        Uri.parse('${AppConfig.baseUrl}/transport_units/with_names'),
+        headers: {
+          'Authorization': 'Bearer ${widget.token}',
+          'accept': 'application/json',
+        },
+      );
+      if (incResp.statusCode == 200 && ticketResp.statusCode == 200 && unidadResp.statusCode == 200) {
+        setState(() {
+          _incidencias = json.decode(incResp.body);
+          _tickets = json.decode(ticketResp.body);
+          _unidades = json.decode(unidadResp.body);
+        });
+      }
+    } catch (_) {}
+    setState(() => _loading = false);
+  }
+
+  void _onIncidenciaSelected(String? id) {
+    setState(() {
+      _selectedId = id;
+      _incidencia = _incidencias.firstWhere((i) => i['ID'].toString() == id, orElse: () => null);
+      _descripcionController.text = _incidencia?['Descripcion'] ?? '';
+      _tipoController.text = _incidencia?['Tipo'] ?? '';
+      _estadoController.text = _incidencia?['EstadoIncidencia'] ?? '';
+      _selectedTicketId = _incidencia?['IDTicket']?.toString();
+      _selectedUnidadId = _incidencia?['IDUnidad']?.toString();
+    });
+  }
+
+  Future<void> _submit() async {
+    if (!_formKey.currentState!.validate()) return;
+    setState(() {
+      _loading = true;
+      _error = null;
+      _success = null;
+    });
+    final response = await http.post(
+      Uri.parse('${AppConfig.baseUrl}/incidences/update'),
+      headers: {
+        'Authorization': 'Bearer ${widget.token}',
+        'accept': 'application/json',
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: {
+        'ID': _selectedId ?? '',
+        'IDTicket': _selectedTicketId ?? '',
+        'Descripcion': _descripcionController.text.trim(),
+        'Tipo': _tipoController.text.trim(),
+        'IDUnidad': _selectedUnidadId ?? '',
+      },
+    );
+    setState(() => _loading = false);
+    if (response.statusCode == 200) {
+      setState(() {
+        _success = 'Incidencia actualizada exitosamente.';
+      });
+      await _fetchDropdownData();
+    } else {
+      String msg = 'Error al actualizar incidencia';
+      try {
+        final data = json.decode(response.body);
+        msg = data['detail']?.toString() ?? msg;
+      } catch (_) {}
+      setState(() {
+        _error = msg;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 24, horizontal: 8),
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: _loading && _incidencias.isEmpty
+            ? Center(child: CircularProgressIndicator())
+            : Form(
+                key: _formKey,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'Actualizar Incidencia',
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 20,
+                        color: Theme.of(context).primaryColor,
+                      ),
+                    ),
+                    const SizedBox(height: 18),
+                    DropdownButtonFormField<String>(
+                      value: _selectedId,
+                      decoration: InputDecoration(
+                        labelText: 'ID de Incidencia',
+                        prefixIcon: Icon(Icons.confirmation_number),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      items: _incidencias
+                          .map<DropdownMenuItem<String>>((i) => DropdownMenuItem(
+                                value: i['ID'].toString(),
+                                child: Text('Incidencia #${i['ID']} - ${i['Descripcion'] ?? ""}'),
+                              ))
+                          .toList(),
+                      onChanged: _onIncidenciaSelected,
+                      validator: (v) => v == null || v.isEmpty ? 'Seleccione una incidencia' : null,
+                    ),
+                    const SizedBox(height: 12),
+                    DropdownButtonFormField<String>(
+                      value: _selectedTicketId,
+                      decoration: InputDecoration(
+                        labelText: 'ID Ticket',
+                        prefixIcon: Icon(Icons.receipt_long),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      items: _tickets
+                          .map<DropdownMenuItem<String>>((t) => DropdownMenuItem(
+                                value: t['ID'].toString(),
+                                child: Text(
+                                  'Ticket #${t['ID']}'
+                                  '${t['EstadoIncidencia'] != null && t['EstadoIncidencia'].toString().trim().isNotEmpty ? ' - ${t['EstadoIncidencia']}' : ''}',
+                                ),
+                              ))
+                          .toList(),
+                      onChanged: (val) => setState(() => _selectedTicketId = val),
+                      validator: (v) => v == null || v.isEmpty ? 'Seleccione un ticket' : null,
+                    ),
+                    const SizedBox(height: 12),
+                    TextFormField(
+                      controller: _descripcionController,
+                      decoration: InputDecoration(
+                        labelText: 'Descripción',
+                        prefixIcon: Icon(Icons.description),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      maxLines: 2,
+                      validator: (v) => v == null || v.isEmpty ? 'Ingrese la descripción' : null,
+                    ),
+                    const SizedBox(height: 12),
+                    TextFormField(
+                      controller: _tipoController,
+                      decoration: InputDecoration(
+                        labelText: 'Tipo',
+                        prefixIcon: Icon(Icons.category),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      validator: (v) => v == null || v.isEmpty ? 'Ingrese el tipo' : null,
+                    ),
+                    const SizedBox(height: 12),
+                    DropdownButtonFormField<String>(
+                      value: _selectedUnidadId,
+                      decoration: InputDecoration(
+                        labelText: 'ID Unidad',
+                        prefixIcon: Icon(Icons.directions_bus),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      items: _unidades
+                          .map<DropdownMenuItem<String>>((u) => DropdownMenuItem(
+                                value: u['ID'].toString(),
+                                child: Text('Unidad #${u['ID']} - ${u['NombreRuta'] ?? "-"}'),
+                              ))
+                          .toList(),
+                      onChanged: (val) => setState(() => _selectedUnidadId = val),
+                      validator: (v) => v == null || v.isEmpty ? 'Seleccione una unidad' : null,
+                    ),
+                    const SizedBox(height: 12),
+                    TextFormField(
+                      controller: _estadoController,
+                      decoration: InputDecoration(
+                        labelText: 'Estado de Incidencia',
+                        prefixIcon: Icon(Icons.info_outline),
+                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      validator: (v) => v == null || v.isEmpty ? 'Ingrese el estado' : null,
+                    ),
+                    const SizedBox(height: 20),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton.icon(
+                        icon: _loading
+                            ? SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                            : Icon(Icons.save),
+                        label: Text(_loading ? 'Actualizando...' : 'Actualizar'),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Theme.of(context).primaryColor,
+                          foregroundColor: Colors.white,
+                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
+                        onPressed: _loading ? null : _submit,
+                      ),
+                    ),
+                    if (_error != null) ...[
+                      const SizedBox(height: 12),
+                      Text(_error!, style: TextStyle(color: Colors.red)),
+                    ],
+                    if (_success != null) ...[
+                      const SizedBox(height: 12),
+                      Text(_success!, style: TextStyle(color: Colors.green)),
+                    ],
+                  ],
+                ),
+              ),
+      ),
+    );
+  }
+}
+class EliminarIncidenciaWidget extends StatefulWidget {
+  final String token;
+  const EliminarIncidenciaWidget({required this.token, Key? key}) : super(key: key);
+
+  @override
+  State<EliminarIncidenciaWidget> createState() => _EliminarIncidenciaWidgetState();
+}
+
+class _EliminarIncidenciaWidgetState extends State<EliminarIncidenciaWidget> {
+  List<dynamic> _incidencias = [];
+  String? _selectedId;
+  bool _loading = false;
+  String? _error;
+  String? _success;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchIncidencias();
+  }
+
+  Future<void> _fetchIncidencias() async {
+    setState(() => _loading = true);
+    try {
+      final resp = await http.get(
+        Uri.parse('${AppConfig.baseUrl}/incidences/'),
+        headers: {
+          'Authorization': 'Bearer ${widget.token}',
+          'accept': 'application/json',
+        },
+      );
+      if (resp.statusCode == 200) {
+        setState(() {
+          _incidencias = json.decode(resp.body);
+        });
+      }
+    } catch (_) {}
+    setState(() => _loading = false);
+  }
+
+  Future<void> _eliminar() async {
+    if (_selectedId == null) return;
+    setState(() {
+      _loading = true;
+      _error = null;
+      _success = null;
+    });
+    final response = await http.post(
+      Uri.parse('${AppConfig.baseUrl}/incidences/delete'),
+      headers: {
+        'Authorization': 'Bearer ${widget.token}',
+        'accept': 'application/json',
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: {
+        'ID': _selectedId ?? '',
+      },
+    );
+    setState(() => _loading = false);
+    if (response.statusCode == 200) {
+      setState(() {
+        _success = 'Incidencia eliminada exitosamente.';
+        _selectedId = null;
+      });
+      await _fetchIncidencias();
+    } else {
+      String msg = 'Error al eliminar incidencia';
+      try {
+        final data = json.decode(response.body);
+        msg = data['detail']?.toString() ?? msg;
+      } catch (_) {}
+      setState(() {
+        _error = msg;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      margin: const EdgeInsets.symmetric(vertical: 24, horizontal: 8),
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18)),
+      child: Padding(
+        padding: const EdgeInsets.all(24),
+        child: _loading && _incidencias.isEmpty
+            ? Center(child: CircularProgressIndicator())
+            : Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Eliminar Incidencia',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 20,
+                      color: Theme.of(context).primaryColor,
+                    ),
+                  ),
+                  const SizedBox(height: 18),
+                  DropdownButtonFormField<String>(
+                    value: _selectedId,
+                    decoration: InputDecoration(
+                      labelText: 'ID de Incidencia',
+                      prefixIcon: Icon(Icons.confirmation_number),
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    items: _incidencias
+                        .map<DropdownMenuItem<String>>((i) => DropdownMenuItem(
+                              value: i['ID'].toString(),
+                              child: Text('Incidencia #${i['ID']} - ${i['Descripcion'] ?? ""}'),
+                            ))
+                        .toList(),
+                    onChanged: (val) => setState(() => _selectedId = val),
+                    validator: (v) => v == null || v.isEmpty ? 'Seleccione una incidencia' : null,
+                  ),
+                  const SizedBox(height: 20),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      icon: _loading
+                          ? SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                          : Icon(Icons.delete),
+                      label: Text(_loading ? 'Eliminando...' : 'Eliminar'),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      ),
+                      onPressed: _loading ? null : _eliminar,
+                    ),
+                  ),
+                  if (_error != null) ...[
+                    const SizedBox(height: 12),
+                    Text(_error!, style: TextStyle(color: Colors.red)),
+                  ],
+                  if (_success != null) ...[
+                    const SizedBox(height: 12),
+                    Text(_success!, style: TextStyle(color: Colors.green)),
+                  ],
+                ],
+              ),
       ),
     );
   }

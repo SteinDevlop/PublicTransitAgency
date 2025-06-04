@@ -344,7 +344,7 @@ _buildMenuItem(
               final unidad = unidades[i];
               return ListTile(
                 title: Text('Unidad #${unidad['ID']}'),
-                subtitle: Text('Ruta actual: ${unidad['IDRuta']}'),
+                subtitle: Text('Ruta actual: ${unidad['NombreRuta'] ?? '-'}'),
                 trailing: Icon(Icons.alt_route),
                 onTap: () {
                   Navigator.pop(context);
