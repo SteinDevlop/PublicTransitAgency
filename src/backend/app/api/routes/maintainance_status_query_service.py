@@ -3,7 +3,7 @@ from fastapi import APIRouter, Depends
 from fastapi.responses import JSONResponse
 from backend.app.logic.universal_controller_instance import universal_controller as controller
 from backend.app.models.maintainance_status import MaintainanceStatus
-from backend.app.core.auth import get_current_active_user
+from backend.app.core.auth import get_current_user
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -12,7 +12,7 @@ app = APIRouter(prefix="/maintainance_status", tags=["maintainance_status"])
 
 @app.get("/", response_class=JSONResponse)
 def listar_estados(
-     current_user: dict = Depends(get_current_active_user)
+     current_user: dict = Depends(get_current_user)
 ):
     """
     Lista todos los estados de mantenimiento.
@@ -34,7 +34,7 @@ def listar_estados(
 @app.get("/{id:int}", response_class=JSONResponse)
 def detalle_estado(
     id: int,
-    # current_user: dict = Depends(get_current_active_user)
+    # current_user: dict = Depends(get_current_user)
 ):
     """
     Obtiene el detalle de un estado de mantenimiento por su ID.
