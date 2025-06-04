@@ -2868,7 +2868,7 @@ class _CrearAsistenciaScreenState extends State<CrearAsistenciaScreen> {
                   prefixIcon: Icon(Icons.person),
                 ),
                 validator: (value) => value == null || value.isEmpty
-                    ? 'Ingrese el ID Usuario'
+                    ? 'Ingrese el número de Identificación del Usuario'
                     : null,
               ),
               const SizedBox(height: 16),
@@ -5145,7 +5145,7 @@ class _PqrCrudWidgetState extends State<PqrCrudWidget>
             controller: controller.iduserController,
             label: 'ID Usuario',
             keyboardType: TextInputType.number,
-            validator: (v) => v == null || v.isEmpty ? 'Ingrese el ID del usuario' : null,
+            validator: (v) => v == null || v.isEmpty ? 'Ingrese el número de Identificación del usuario' : null,
           ),
           const SizedBox(height: 16),
           // Menú desplegable para tipo
@@ -5246,7 +5246,7 @@ class _PqrCrudWidgetState extends State<PqrCrudWidget>
             controller: controller.iduserController,
             label: 'ID Usuario',
             keyboardType: TextInputType.number,
-            validator: (v) => v == null || v.isEmpty ? 'Ingrese ID de usuario' : null,
+            validator: (v) => v == null || v.isEmpty ? 'Ingrese el número de Identificación de usuario' : null,
           ),
           const SizedBox(height: 16),
           CustomElevatedButton(
@@ -6721,7 +6721,7 @@ class _AsistanceCrudWidgetState extends State<AsistanceCrudWidget>
             controller: controller.iduserController,
             label: 'ID Usuario',
             keyboardType: TextInputType.number,
-            validator: (v) => v == null || v.isEmpty ? 'Ingrese el ID del usuario' : null,
+            validator: (v) => v == null || v.isEmpty ? 'Ingrese el número de Identificación del usuario' : null,
           ),
           const SizedBox(height: 16),
           CustomTimeField(
@@ -6821,7 +6821,7 @@ class _AsistanceCrudWidgetState extends State<AsistanceCrudWidget>
             controller: controller.iduserController,
             label: 'ID Usuario',
             keyboardType: TextInputType.number,
-            validator: (v) => v == null || v.isEmpty ? 'Ingrese ID de usuario' : null,
+            validator: (v) => v == null || v.isEmpty ? 'Ingrese el número de Identificación de usuario' : null,
           ),
           const SizedBox(height: 16),
           CustomElevatedButton(
