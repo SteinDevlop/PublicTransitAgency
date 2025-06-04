@@ -49,10 +49,12 @@ app = FastAPI(title=settings.PROJECT_NAME)
 # Añadir middlewares globales
 add_middlewares(app)
 
-# Configurar CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:8000", "https://publictransitagency-frontend.up.railway.app"],
+    allow_origins=[
+        "http://localhost:8000",  # solo si aún pruebas en local
+        "https://publictransitagency-frontend-production.up.railway.app"  # frontend en Railway
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
