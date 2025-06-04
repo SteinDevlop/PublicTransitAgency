@@ -1207,7 +1207,7 @@ class _CrearAsistenciaScreenState extends State<CrearAsistenciaScreen> {
                   prefixIcon: Icon(Icons.person),
                 ),
                 validator: (value) => value == null || value.isEmpty
-                    ? 'Ingrese el ID Usuario'
+                    ? 'Ingrese el número de Identificación del Usuario'
                     : null,
               ),
               const SizedBox(height: 16),
