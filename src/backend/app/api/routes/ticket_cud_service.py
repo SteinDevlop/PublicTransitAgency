@@ -3,8 +3,8 @@ from fastapi import APIRouter, Form, HTTPException, Security
 from fastapi.responses import JSONResponse
 from backend.app.logic.universal_controller_instance import universal_controller as controller
 from backend.app.models.ticket import Ticket
-# from backend.app.core.auth import get_current_user  # Comentado para inutilizar autenticación temporalmente
-# from backend.app.core.conf import headers  # Comentado para inutilizar autenticación temporalmente
+from backend.app.core.auth import get_current_user  # Comentado para inutilizar autenticación temporalmente
+from backend.app.core.conf import headers  # Comentado para inutilizar autenticación temporalmente
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -20,7 +20,7 @@ app = APIRouter(prefix="/tickets", tags=["tickets"])
 def crear_ticket(
     ID: int = Form(...),
     EstadoIncidencia: str = Form(...),
-    # current_user: dict = Security(get_current_user, scopes=["system"])  # Comentado para inutilizar autenticación temporalmente
+    current_user: dict = Security(get_current_user, scopes=["system"])  # Comentado para inutilizar autenticación temporalmente
 ):
     """
     Crea un nuevo ticket.
@@ -41,7 +41,7 @@ def crear_ticket(
 def actualizar_ticket(
     ID: int = Form(...),
     EstadoIncidencia: str = Form(...),
-    # current_user: dict = Security(get_current_user, scopes=["system"])  # Comentado para inutilizar autenticación temporalmente
+    current_user: dict = Security(get_current_user, scopes=["system"])  # Comentado para inutilizar autenticación temporalmente
 ):
     try:
         existing_ticket = controller.get_by_id(Ticket, ID)
@@ -65,7 +65,7 @@ def actualizar_ticket(
 @app.post("/delete")
 def eliminar_ticket(
     ID: int = Form(...),
-    # current_user: dict = Security(get_current_user, scopes=["system"])  # Comentado para inutilizar autenticación temporalmente
+    current_user: dict = Security(get_current_user, scopes=["system"])  # Comentado para inutilizar autenticación temporalmente
 ):
     try:
         existing_ticket = controller.get_by_id(Ticket, ID)

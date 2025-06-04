@@ -3,8 +3,9 @@ import re
 from fastapi import APIRouter
 from fastapi.responses import JSONResponse
 from backend.app.logic.universal_controller_instance import universal_controller as controller
-
 from backend.app.models.transport import UnidadTransporte
+from backend.app.core.auth import get_current_user
+from fastapi import Security
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -12,7 +13,9 @@ logging.basicConfig(level=logging.INFO)
 app = APIRouter(prefix="/transport_units", tags=["transport_units"])
 
 @app.get("/", response_class=JSONResponse)
-def listar_unidades_transporte():
+def listar_unidades_transporte(
+    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "operario"])
+):
     try:
         unidades = controller.read_all(UnidadTransporte)
         logger.info("[GET /transport_units/] Unidades de transporte listadas.")
@@ -30,7 +33,9 @@ def listar_unidades_transporte():
             content={"detail": "Error al listar unidades de transporte."}
         )
 @app.get("/with_names", response_class=JSONResponse)
-def listar_unidades_con_nombres():
+def listar_unidades_con_nombres(
+    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "operario"])
+):
     """
     Lista todas las unidades de transporte mostrando los nombres de ruta y tipo de transporte.
     """
@@ -46,7 +51,9 @@ def listar_unidades_con_nombres():
         )
 
 @app.get("/with_schedules", response_class=JSONResponse)
-def listar_unidades_con_horarios():
+def listar_unidades_con_horarios(
+    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "operario"])
+):
     """
     Lista todas las unidades de transporte con sus horarios asociados (por IDRuta).
     """
@@ -61,7 +68,10 @@ def listar_unidades_con_horarios():
             content={"detail": "Error al listar unidades de transporte con horarios."}
         )
 @app.get("/{ID}", response_class=JSONResponse)
-def detalle_unidad_transporte(ID: str):
+def detalle_unidad_transporte(
+    ID: str,
+    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "operario"])
+):
     safe_id = re.sub(r"[^\w\-]", "_", ID)
     try:
         unidad = controller.get_by_id(UnidadTransporte, safe_id)

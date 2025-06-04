@@ -14,7 +14,7 @@ app = APIRouter(prefix="/maintainance_status", tags=["maintainance_status"])
 def crear_estado_mantenimiento(
     ID: str = Form(...),
     TipoEstado: str = Form(...),
-    #current_user: dict = Security(get_current_user, scopes=["system", "mantenimiento"])
+    current_user: dict = Security(get_current_user, scopes=["system", "mantenimiento"])
 ):
     """
     Crea un nuevo estado de mantenimiento.
@@ -38,7 +38,7 @@ def crear_estado_mantenimiento(
 def actualizar_estado(
     id: int = Form(...),
     TipoEstado: str = Form(...),
-    #current_user: dict = Security(get_current_user, scopes=["system", "mantenimiento"])
+    current_user: dict = Security(get_current_user, scopes=["system", "mantenimiento"])
 ):
     """
     Actualiza un estado de mantenimiento existente.
@@ -69,7 +69,7 @@ def actualizar_estado(
 @app.post("/delete", response_class=JSONResponse)
 def eliminar_estado(
     id: int = Form(...),
-    #current_user: dict = Security(get_current_user, scopes=["system", "mantenimiento"])
+    current_user: dict = Security(get_current_user, scopes=["system", "mantenimiento"])
 ):
     """
     Elimina un estado de mantenimiento por su ID.

@@ -13,7 +13,7 @@ app = APIRouter(prefix="/shifts", tags=["shifts"])
 def crear_turno(
     id: int = Form(...),
     TipoTurno: str = Form(...),
-   #current_user: dict  = Security(get_current_user, scopes=["system", "administrador", "supervisor"])
+    current_user: dict  = Security(get_current_user, scopes=["system", "administrador", "supervisor"])
 ):
     """
     Crea un turno con los datos proporcionados.
@@ -31,7 +31,7 @@ def crear_turno(
 def actualizar_turno(
     id: int = Form(...),
     TipoTurno: str = Form(...),
-   #current_user: dict  = Security(get_current_user, scopes=["system", "administrador", "supervisor"])
+    current_user: dict  = Security(get_current_user, scopes=["system", "administrador", "supervisor"])
 ):
     """
     Actualiza la información de un turno existente.
@@ -53,7 +53,7 @@ def actualizar_turno(
 @app.post("/delete")
 def eliminar_turno(
     id: int = Form(...),
-   #current_user: dict  = Security(get_current_user, scopes=["system", "administrador", "supervisor"])
+    current_user: dict  = Security(get_current_user, scopes=["system", "administrador", "supervisor"])
 ):
     """
     Elimina un turno existente por su ID.

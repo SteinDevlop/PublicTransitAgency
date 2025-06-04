@@ -1,9 +1,10 @@
 import logging
 import re
-from fastapi import APIRouter, Form, HTTPException
+from fastapi import APIRouter, Form, HTTPException, Security
 from fastapi.responses import JSONResponse
 from backend.app.logic.universal_controller_instance import universal_controller as controller
 from backend.app.models.payments import Payment
+from backend.app.core.auth import get_current_user
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -17,6 +18,7 @@ def crear_pago(
     IDTarjeta: int = Form(...),
     IDUnidad: str = Form("EMPTY"),
     ID: int = Form(...),
+    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "operario"]),
 ):
     safe_unidad = re.sub(r"[^\w\-]", "_", IDUnidad)
     try:
@@ -41,6 +43,7 @@ def actualizar_pago(
     IDPrecio: int = Form(...),
     IDTarjeta: int = Form(...),
     IDUnidad: str = Form(...),
+    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "operario"]),
 ):
     try:
         existing = controller.get_by_id(Payment, ID)
@@ -64,7 +67,10 @@ def actualizar_pago(
         raise HTTPException(status_code=500, detail=str(e))
     
 @app.post("/delete", response_class=JSONResponse)
-def eliminar_pago(ID: int = Form(...)):
+def eliminar_pago(
+    ID: int = Form(...),
+    current_user: dict = Security(get_current_user, scopes=["system", "administrador"]),
+):
     try:
         existing = controller.get_by_id(Payment, ID)
         if not existing:

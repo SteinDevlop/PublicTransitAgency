@@ -1,8 +1,9 @@
 import logging
-from fastapi import APIRouter, Form, HTTPException
+from fastapi import APIRouter, Form, HTTPException, Security
 from fastapi.responses import JSONResponse
 from backend.app.models.rutaparada import RutaParada
 from backend.app.logic.universal_controller_instance import universal_controller as controller
+from backend.app.core.auth import get_current_user
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -16,7 +17,8 @@ app = APIRouter(
 @app.post("/create", response_class=JSONResponse)
 def crear_rutaparada(
     IDParada: int = Form(...),
-    IDRuta: int = Form(...)
+    IDRuta: int = Form(...),
+    current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
 ):
     try:
         existentes = controller.get_ruta_parada(id_ruta=IDRuta, id_parada=IDParada)
@@ -44,7 +46,8 @@ def actualizar_rutaparada(
     IDParada: int = Form(...),
     IDRuta: int = Form(...),
     nuevo_IDParada: int = Form(None),
-    nuevo_IDRuta: int = Form(None)
+    nuevo_IDRuta: int = Form(None),
+    current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
 ):
     try:
         existentes = controller.get_ruta_parada(id_ruta=IDRuta, id_parada=IDParada)
@@ -80,7 +83,8 @@ def actualizar_rutaparada(
 @app.post("/delete", response_class=JSONResponse)
 def eliminar_rutaparada(
     IDParada: int = Form(...),
-    IDRuta: int = Form(...)
+    IDRuta: int = Form(...),
+    current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
 ):
     try:
         existentes = controller.get_ruta_parada(id_ruta=IDRuta, id_parada=IDParada)

@@ -1,7 +1,8 @@
 import logging
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, HTTPException, Query, Security
 from fastapi.responses import JSONResponse
 from backend.app.logic.universal_controller_instance import universal_controller as controller
+from backend.app.core.auth import get_current_user
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -9,7 +10,9 @@ logging.basicConfig(level=logging.INFO)
 app = APIRouter(prefix="/ruta_parada", tags=["ruta_parada"])
 
 @app.get("/", response_class=JSONResponse)
-def listar_rutaparada():
+def listar_rutaparada(
+    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "operario"])
+):
     """
     Lista todas las relaciones Ruta-Parada.
     """
@@ -30,7 +33,9 @@ def listar_rutaparada():
             content={"detail": "Error interno al listar las relaciones Ruta-Parada."}
         )
 @app.get("/solo_nombres", response_class=JSONResponse)
-def listar_rutaparada_nombres():
+def listar_rutaparada_nombres(
+    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "operario"])
+):
     """
     Lista solo los nombres de las rutas y paradas.
     """
@@ -52,7 +57,10 @@ def listar_rutaparada_nombres():
         )
 
 @app.get("/{id_parada}", response_class=JSONResponse)
-def detalle_rutaparada(id_parada: int):
+def detalle_rutaparada(
+    id_parada: int,
+    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "operario"])
+):
     """
     Obtiene el detalle de una relación Ruta-Parada por su IDParada.
     """

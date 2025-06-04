@@ -2,6 +2,7 @@ import logging
 from fastapi.testclient import TestClient
 from backend.app.api.routes.rutaparada_query_service import app as rutaparada_router
 from unittest.mock import patch
+from backend.app.core.conf import headers
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("backend.app.api.routes.rutaparada_query_service")
@@ -12,7 +13,7 @@ def test_listar_rutas_con_paradas():
     """
     Prueba para listar todas las rutas junto con sus paradas.
     """
-    response = client.get("/ruta_parada/")
+    response = client.get("/ruta_parada/", headers=headers)
     assert response.status_code in (200, 404), f"Error inesperado: {response.status_code}"
     if response.status_code == 200:
         assert "data" in response.json(), "La respuesta no contiene el campo 'data'."
@@ -26,7 +27,7 @@ def test_listar_rutas_con_paradas_no_registros():
     Prueba para el caso en que no hay registros de ruta-parada (404 o 200 vacío).
     """
     with patch("backend.app.logic.universal_controller_instance.universal_controller.read_all", return_value=[]):
-        response = client.get("/ruta_parada/")
+        response = client.get("/ruta_parada/", headers=headers)
         # Acepta 404 (preferido) o 200 con data vacía
         if response.status_code == 404:
             assert "No se encontraron registros." in response.json().get("detail", "")
@@ -42,7 +43,7 @@ def test_buscar_por_id_parada_existente():
     """
     Prueba para buscar rutas asociadas a una parada existente (IDParada=30).
     """
-    response = client.get("/ruta_parada/30")
+    response = client.get("/ruta_parada/30", headers=headers)
     assert response.status_code == 200, f"Error inesperado: {response.status_code}"
     assert "data" in response.json(), "La respuesta no contiene el campo 'data'."
     assert isinstance(response.json()["data"], list), "El campo 'data' no es una lista."
@@ -53,7 +54,7 @@ def test_buscar_por_id_parada_no_existente():
     """
     Prueba para buscar rutas asociadas a una parada inexistente (IDParada=99999).
     """
-    response = client.get("/ruta_parada/99999")
+    response = client.get("/ruta_parada/99999", headers=headers)
     assert response.status_code == 404, f"Error inesperado: {response.status_code}"
     assert "No se encontraron registros para la parada especificada." in response.json()["detail"], "El mensaje de error no es el esperado."
     logger.warning("Test buscar_por_id_parada_no_existente ejecutado correctamente para IDParada=99999.")
@@ -63,7 +64,7 @@ def test_listar_rutas_con_paradas_error_interno():
     Prueba para manejar un error interno al listar las relaciones Ruta-Parada.
     """
     with patch("backend.app.logic.universal_controller_instance.universal_controller.read_all", side_effect=Exception("Simulated error")):
-        response = client.get("/ruta_parada/")
+        response = client.get("/ruta_parada/", headers=headers)
         # Acepta 500 (preferido) o 200 con mensaje de error o data vacía
         if response.status_code == 500:
             assert "Simulated error" in response.json().get("detail", "") or "Error interno" in response.json().get("detail", "")
@@ -85,7 +86,7 @@ def test_buscar_por_id_parada_error_interno():
     Prueba para manejar un error interno al obtener el detalle de la relación Ruta-Parada.
     """
     with patch("backend.app.logic.universal_controller_instance.universal_controller.get_by_id", side_effect=Exception("Simulated error")):
-        response = client.get("/ruta_parada/99999")
+        response = client.get("/ruta_parada/99999", headers=headers)
         # Acepta 500 (preferido) o 404 si la implementación lo maneja así
         if response.status_code == 500:
             assert "Simulated error" in response.json().get("detail", "") or "Error interno" in response.json().get("detail", "")
@@ -112,7 +113,7 @@ def test_listar_rutaparada_solo_nombres(monkeypatch):
         fake_get_ruta_parada_nombres
     )
 
-    response = client.get("/ruta_parada/solo_nombres")
+    response = client.get("/ruta_parada/solo_nombres", headers=headers)
     assert response.status_code == 200
     json_data = response.json()
     assert isinstance(json_data, list)

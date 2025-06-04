@@ -2,6 +2,7 @@ from fastapi import APIRouter, Form, HTTPException, Security
 from backend.app.logic.universal_controller_instance import universal_controller as controller
 from backend.app.models.transport import UnidadTransporte
 from backend.app.core.auth import get_current_user
+from fastapi import Security
 
 import logging
 logger = logging.getLogger(__name__)
@@ -20,6 +21,7 @@ def crear_unidad_transporte(
     IDRuta: int = Form(...),
     IDTipo: int = Form(...),
     ID: str = Form("EMPTY"),
+    current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
 ):
     try:
         unidad = UnidadTransporte(Ubicacion=Ubicacion, Capacidad=Capacidad, IDRuta=IDRuta, IDTipo=IDTipo, ID=ID)
@@ -37,6 +39,7 @@ def actualizar_unidad_transporte(
     Capacidad: int = Form(...),
     IDRuta: int = Form(...),
     IDTipo: int = Form(...),
+    current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
 ):
     # Sanitizar el ID recibido
     safe_id = re.sub(r"[^\w\-]", "_", ID)
@@ -58,6 +61,7 @@ def actualizar_unidad_transporte(
 @app.post("/delete")
 def eliminar_unidad_transporte(
     ID: str = Form(...),
+    current_user: dict = Security(get_current_user, scopes=["system", "administrador"])
 ):
     # Sanitizar el ID recibido
     safe_id = re.sub(r"[^\w\-]", "_", ID)

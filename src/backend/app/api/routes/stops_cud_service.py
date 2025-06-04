@@ -14,7 +14,7 @@ def crear_parada(
     id: int = Form(...),
     Nombre: str = Form(...),
     Ubicacion: str = Form(...),
-   #current_user: dict  = Security(get_current_user)
+    current_user: dict  = Security(get_current_user)
 ):
     """
     Endpoint para crear una parada.
@@ -33,7 +33,7 @@ def actualizar_parada(
     id: int = Form(...),
     Nombre: str = Form(...),
     Ubicacion: str = Form(...),
-   #current_user: dict  = Security(get_current_user)
+    current_user: dict  = Security(get_current_user)
 ):
     """
     Endpoint para actualizar una parada existente.
@@ -55,7 +55,7 @@ def actualizar_parada(
 @app.post("/delete")
 def eliminar_parada(
     id: int = Form(...),
-   #current_user: dict  = Security(get_current_user)
+    current_user: dict  = Security(get_current_user)
 ):
     """
     Endpoint para eliminar una parada por su ID.

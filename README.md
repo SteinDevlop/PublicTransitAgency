@@ -6,6 +6,8 @@
 
 The system provides features for managing transport units, drivers and operators, a passenger information portal with real-time updates, electronic payment processing, incident and maintenance management, and more.
 
+Backend link: [publictransitagency-production.up.railway.app](https://publictransitagency-production.up.railway.app/docs)
+Frontend link: [publictransitagency-frontend-production.up.railway.app](https://publictransitagency-frontend-production.up.railway.app/#/home)
 ---
 
 ## 🚦 Main Functional Requirements
@@ -43,7 +45,7 @@ The system provides features for managing transport units, drivers and operators
 
 ## 📈 Project Status
 
-> **Current Phase:** In Development
+> **Current Phase:** Completed
 
 [![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=ISCODEVUTB_PublicTransitAgency&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=ISCODEVUTB_PublicTransitAgency)
 [![Coverage](https://sonarcloud.io/api/project_badges/measure?project=ISCODEVUTB_PublicTransitAgency&metric=coverage)](https://sonarcloud.io/summary/new_code?id=ISCODEVUTB_PublicTransitAgency)

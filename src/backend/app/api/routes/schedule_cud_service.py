@@ -3,8 +3,8 @@ from fastapi import APIRouter, Form, HTTPException, Security
 from fastapi.responses import JSONResponse
 from backend.app.logic.universal_controller_instance import universal_controller as controller
 from backend.app.models.schedule import Schedule
-# from backend.app.core.auth import get_current_user  # Comentado para inutilizar autenticación temporalmente
-# from backend.app.core.conf import headers  # Comentado para inutilizar autenticación temporalmente
+from backend.app.core.auth import get_current_user  
+from backend.app.core.conf import headers  
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -21,7 +21,7 @@ def crear_horario(
     ID: int = Form(...),
     Llegada: str = Form(...),
     Salida: str = Form(...),
-    # current_user: dict = Security(get_current_user, scopes=["system"])  # Comentado para inutilizar autenticación temporalmente
+    current_user: dict = Security(get_current_user, scopes=["system"])  
 ):
     """
     Crea un nuevo horario.
@@ -43,7 +43,7 @@ def actualizar_horario(
     ID: int = Form(...),
     Llegada: str = Form(...),
     Salida: str = Form(...),
-    # current_user: dict = Security(get_current_user, scopes=["system"])  # Comentado para inutilizar autenticación temporalmente
+    current_user: dict = Security(get_current_user, scopes=["system"])  # Comentado para inutilizar autenticación temporalmente
 ):
     updated_schedule = Schedule(ID=ID, Llegada=Llegada, Salida=Salida)
     try:
@@ -60,7 +60,7 @@ def actualizar_horario(
 @app.post("/delete")
 def eliminar_horario(
     ID: int = Form(...),
-    # current_user: dict = Security(get_current_user, scopes=["system"])  # Comentado para inutilizar autenticación temporalmente
+    current_user: dict = Security(get_current_user, scopes=["system"])  # Comentado para inutilizar autenticación temporalmente
 ):
     try:
         existing_schedule = controller.get_by_id(Schedule, ID)

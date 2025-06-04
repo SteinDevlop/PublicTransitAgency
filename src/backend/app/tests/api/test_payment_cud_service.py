@@ -4,6 +4,7 @@ from fastapi.testclient import TestClient
 from backend.app.api.routes.payment_cud_service import app
 from backend.app.models.payments import Payment
 from backend.app.logic.universal_controller_instance import universal_controller as controller
+from backend.app.core.conf import headers
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("backend.app.api.routes.payment_cud_service")
@@ -29,7 +30,7 @@ def test_crear_pago():
     """
     pago = Payment(IDMovimiento=2, IDPrecio=1, IDTarjeta=42, IDUnidad="1", ID=67890)
     try:
-        response = client.post("/payments/create", data=pago.model_dump())
+        response = client.post("/payments/create", data=pago.model_dump(), headers=headers)
         assert response.status_code == 200
         assert response.json()["message"] == "Pago creado exitosamente."
         logger.info("Test crear_pago ejecutado correctamente.")
@@ -42,7 +43,7 @@ def test_crear_pago_existente():
     """
     pago = Payment(IDMovimiento=2, IDPrecio=1, IDTarjeta=42, IDUnidad="1", ID=54321)
     controller.add(pago)
-    response = client.post("/payments/create", data=pago.model_dump())
+    response = client.post("/payments/create", data=pago.model_dump(), headers=headers)
     assert response.status_code in (409, 500)
     if response.status_code == 409:
         assert "ya existe" in response.json().get("detail", "").lower() or "existe" in response.json().get("detail", "").lower()
@@ -56,7 +57,7 @@ def test_eliminar_pago(setup_and_teardown):
     Prueba para eliminar un pago existente.
     """
     pago = setup_and_teardown
-    response = client.post("/payments/delete", data={"ID": pago.ID})
+    response = client.post("/payments/delete", data={"ID": pago.ID}, headers=headers)
     assert response.status_code == 200
     assert response.json()["message"] == "Pago eliminado exitosamente."
     logger.info(f"Test eliminar_pago ejecutado correctamente para ID={pago.ID}.")
@@ -69,7 +70,7 @@ def test_eliminar_pago_no_existente():
     """
     Prueba para eliminar un pago que no existe.
     """
-    response = client.post("/payments/delete", data={"ID": 9999999})
+    response = client.post("/payments/delete", data={"ID": 9999999}, headers=headers)
     assert response.status_code in (404, 500)
     if response.status_code == 404:
         assert "no encontrado" in response.json().get("detail", "").lower()
@@ -82,7 +83,6 @@ def test_update_pago(setup_and_teardown):
     Prueba para actualizar un pago existente.
     """
     pago = setup_and_teardown
-    # Cambiamos el IDUnidad
     updated_data = {
         "ID": pago.ID,
         "IDMovimiento": pago.IDMovimiento,
@@ -90,7 +90,7 @@ def test_update_pago(setup_and_teardown):
         "IDTarjeta": pago.IDTarjeta,
         "IDUnidad": "1"
     }
-    response = client.post("/payments/update", data=updated_data)
+    response = client.post("/payments/update", data=updated_data, headers=headers)
     assert response.status_code == 200
     assert response.json()["message"] == "Pago actualizado exitosamente."
     # Verifica que el cambio se haya realizado
@@ -109,7 +109,7 @@ def test_update_pago_no_existente():
         "IDTarjeta": 42,
         "IDUnidad": "1"
     }
-    response = client.post("/payments/update", data=updated_data)
+    response = client.post("/payments/update", data=updated_data, headers=headers)
     assert response.status_code in (404, 500)
     if response.status_code == 404:
         assert "no encontrado" in response.json().get("detail", "").lower()

@@ -1,8 +1,9 @@
 import logging
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Security
 from fastapi.responses import JSONResponse
 from backend.app.logic.universal_controller_instance import universal_controller as controller
 from backend.app.models.payments import Payment
+from backend.app.core.auth import get_current_user
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -11,7 +12,9 @@ glob="Detalle pago consultado exitosamente."
 app = APIRouter(prefix="/payments", tags=["payments"])
 
 @app.get("/", response_class=JSONResponse)
-def listar_pagos():
+def listar_pagos(
+    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "operario"])
+):
     try:
         pagos = controller.read_all(Payment)
         logger.info("[GET /payments/] Pagos listados.")
@@ -30,7 +33,10 @@ def listar_pagos():
         )
 
 @app.get("/{ID}", response_class=JSONResponse)
-def detalle_pago(ID: int):
+def detalle_pago(
+    ID: int,
+    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "operario"])
+):
     try:
         pago = controller.get_by_id(Payment, ID)
         if not pago:

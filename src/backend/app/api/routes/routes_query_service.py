@@ -1,8 +1,9 @@
 import logging
-from fastapi import APIRouter
+from fastapi import APIRouter, Security
 from fastapi.responses import JSONResponse
 from backend.app.models.routes import Ruta
 from backend.app.logic.universal_controller_instance import universal_controller as controller
+from backend.app.core.auth import get_current_user
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -10,7 +11,9 @@ logging.basicConfig(level=logging.INFO)
 app = APIRouter(prefix="/routes", tags=["routes"])
 
 @app.get("/", response_class=JSONResponse)
-def listar_rutas():
+def listar_rutas(
+    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "operario"])
+):
     """
     Lista todas las rutas.
     """
@@ -32,7 +35,10 @@ def listar_rutas():
         )
 
 @app.get("/{ID}", response_class=JSONResponse)
-def detalle_ruta(ID: int):
+def detalle_ruta(
+    ID: int,
+    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "operario"])
+):
     """
     Obtiene el detalle de una ruta por su ID.
     """

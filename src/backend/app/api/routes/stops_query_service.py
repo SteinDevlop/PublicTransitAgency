@@ -2,6 +2,8 @@ import logging
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import JSONResponse
 from backend.app.logic.universal_controller_instance import universal_controller as controller
+from backend.app.core.auth import get_current_user
+from fastapi import Security
 
 from backend.app.models.stops import Parada
 
@@ -11,7 +13,9 @@ logging.basicConfig(level=logging.INFO)
 app = APIRouter(prefix="/stops", tags=["stops"])
 
 @app.get("/", response_class=JSONResponse)
-def listar_paradas():
+def listar_paradas(
+    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "operario"])
+):
     """
     Lista todas las paradas.
     """
@@ -30,7 +34,10 @@ def listar_paradas():
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/{id}", response_class=JSONResponse)
-def obtener_detalle_parada(id: int):
+def obtener_detalle_parada(
+    id: int,
+    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "operario"])
+):
     """
     Obtiene el detalle de una parada por su ID.
     """

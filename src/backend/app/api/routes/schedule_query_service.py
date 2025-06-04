@@ -3,8 +3,8 @@ from fastapi import APIRouter, HTTPException, Security
 from fastapi.responses import JSONResponse
 from backend.app.logic.universal_controller_instance import universal_controller as controller
 from backend.app.models.schedule import Schedule
-# from backend.app.core.auth import get_current_user  # Comentado para inutilizar autenticación
-# from backend.app.core.conf import headers  # Comentado para inutilizar autenticación
+from backend.app.core.auth import get_current_user 
+from backend.app.core.conf import headers  
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -14,7 +14,7 @@ app = APIRouter(prefix="/schedules", tags=["schedules"])
 
 @app.get("/", response_class=JSONResponse)
 def listar_horarios(
-    # current_user: dict = Security(get_current_user, scopes=["system"])  # Comentado para inutilizar autenticación
+    current_user: dict = Security(get_current_user, scopes=["system"])  # Comentado para inutilizar autenticación
 ):
     """
     Lista todos los horarios.
@@ -39,7 +39,7 @@ def listar_horarios(
 @app.get("/{id}", response_class=JSONResponse)
 def obtener_detalle_horario(
     id: int,
-    # current_user: dict = Security(get_current_user, scopes=["system"])  # Comentado para inutilizar autenticación
+    current_user: dict = Security(get_current_user, scopes=["system"])  # Comentado para inutilizar autenticación
 ):
     """
     Obtiene el detalle de un horario por su ID.

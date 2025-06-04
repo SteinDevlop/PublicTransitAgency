@@ -13,7 +13,7 @@ app = APIRouter(prefix="/incidences", tags=["incidences"])
 
 @app.get("/", response_class=JSONResponse)
 def listar_incidencias(
-    #current_user: dict = Security(get_current_user, scopes=["system", "administrador", "supervisor"])
+    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "supervisor"])
 ):
     """
     Lista todas las incidencias.
@@ -31,7 +31,7 @@ def listar_incidencias(
 @app.get("/{ID}", response_class=JSONResponse)
 def detalle_incidencia(
     ID: int,
-    #current_user: dict = Security(get_current_user, scopes=["system", "administrador", "supervisor"])
+    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "supervisor"])
 ):
     """
     Obtiene el detalle de una incidencia por su ID.

@@ -14,7 +14,7 @@ def crear_ruta(
     ID: int = Form(...),
     IDHorario: int = Form(...),
     Nombre: str = Form(...),
-    #current_user: dict = Security(get_current_user, scopes=["system", "administrador", "planificador"])
+    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "planificador"])
 ):
     """
     Crea una nueva ruta.
@@ -33,7 +33,7 @@ def actualizar_ruta(
     ID: int = Form(...),
     IDHorario: int = Form(...),
     Nombre: str = Form(...),
-    #current_user: dict = Security(get_current_user, scopes=["system", "administrador", "planificador"])
+    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "planificador"])
 ):
     """
     Actualiza una ruta existente.
@@ -55,7 +55,7 @@ def actualizar_ruta(
 @app.post("/delete")
 def eliminar_ruta(
     ID: int = Form(...),
-    #current_user: dict = Security(get_current_user, scopes=["system", "administrador", "planificador"])
+    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "planificador"])
 ):
     """
     Elimina una ruta por su ID.

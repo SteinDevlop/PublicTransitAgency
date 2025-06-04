@@ -5,6 +5,7 @@ from backend.app.logic.universal_controller_instance import universal_controller
 
 from backend.app.models.shift import Shift
 from backend.app.core.auth import get_current_user
+from fastapi import Security
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -12,7 +13,9 @@ logging.basicConfig(level=logging.INFO)
 app = APIRouter(prefix="/shifts", tags=["shifts"])
 
 @app.get("/", response_class=JSONResponse)
-def listar_turnos():
+def listar_turnos(
+    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "operario"])
+):
     """
     Consulta la lista de todos los turnos.
     """
@@ -31,7 +34,9 @@ def listar_turnos():
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/turnos", response_class=JSONResponse)
-async def get_users():
+async def get_users(
+    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "operario"])
+):
     """
     Devuelve todos los usuarios registrados.
     """
@@ -40,7 +45,10 @@ async def get_users():
     return JSONResponse(content={"turnos": turnos or []})
 
 @app.get("/{id}", response_class=JSONResponse)
-def detalle_turno(id: int):
+def detalle_turno(
+    id: int,
+    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "operario"])
+):
     """
     Consulta el detalle de un turno en específico por su ID.
     """

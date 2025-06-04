@@ -1,9 +1,10 @@
 import logging
-from fastapi import APIRouter, Form
+from fastapi import APIRouter, Form, Depends, Security
 from fastapi.responses import JSONResponse
 
 from backend.app.logic.universal_controller_instance import universal_controller as controller
 from backend.app.models.incidence import Incidence
+from backend.app.core.auth import get_current_user
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -21,6 +22,7 @@ def crear_incidencia(
     Descripcion: str = Form(...),
     Tipo: str = Form(...),
     IDUnidad: str = Form(...),
+    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "operario"]),
 ):
     """
     Crea una nueva incidencia.
@@ -44,6 +46,7 @@ def actualizar_incidencia(
     Descripcion: str = Form(...),
     Tipo: str = Form(...),
     IDUnidad: str = Form(...),
+    current_user: dict = Security(get_current_user, scopes=["system", "administrador", "operario"]),
 ):
     try:
         existing_incidencia = controller.get_by_id(Incidence, ID)
@@ -66,6 +69,7 @@ def actualizar_incidencia(
 @app.post("/delete")
 def eliminar_incidencia(
     ID: int = Form(...),
+    current_user: dict = Security(get_current_user, scopes=["system", "administrador"]),
 ):
     try:
         existing_incidencia = controller.get_by_id(Incidence, ID)
