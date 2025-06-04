@@ -3254,27 +3254,26 @@ class _CrearUsuarioScreenState extends State<CrearUsuarioScreen> {
               ),
 
               const SizedBox(height: 16),
-              DropdownButtonFormField<int>(
-                value: _rolSeleccionado,
-                items: _rolusers.map((rol) {
-                  return DropdownMenuItem<int>(
-                    value: rol["ID"],
-                    child: Text(rol["Rol"] ?? rol["Rol"]),
-                  );
-                }).toList(),
-                decoration: InputDecoration(
-                  labelText: 'Rol',
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.timer),
-                ),
-                onChanged: (value) {
-                  setState(() {
-                    _rolSeleccionado = value;
-                  });
-                },
-                validator: (v) =>
-                  v == null ? 'Seleccione un rol' : null,
-              ),
+DropdownButtonFormField<int>(
+  value: _rolSeleccionado,
+  items: _rolusers.map((rol) {
+    return DropdownMenuItem<int>(
+      value: rol["ID"],
+      child: Text(rol["Rol"] ?? rol["ID"].toString()),
+    );
+  }).toList(),
+  decoration: const InputDecoration(
+    labelText: 'Rol de Usuario',
+    border: OutlineInputBorder(),
+    prefixIcon: Icon(Icons.person_outline),
+  ),
+  onChanged: (value) {
+    setState(() {
+      _rolSeleccionado = value;
+    });
+  },
+  validator: (v) => v == null ? 'Seleccione un rol de usuario' : null,
+),
 
               const SizedBox(height: 16),
               DropdownButtonFormField<int>(
@@ -3741,27 +3740,31 @@ class _ActualizarUsuarioScreenState extends State<ActualizarUsuarioScreen> {
                   ),
                 
                 const SizedBox(height: 16),
-                DropdownButtonFormField<int>(
-                  value: _rolSeleccionado,
-                  items: _rolusers.map((rol) {
-                    return DropdownMenuItem<int>(
-                      value: rol["ID"],
-                      child: Text(rol["Rol"] ?? rol["Rol"]),
-                    );
-                  }).toList(),
-                  decoration: InputDecoration(
-                    labelText: 'Rol',
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.timer),
-                  ),
-                  onChanged: (value) {
-                    setState(() {
-                      _rolSeleccionado = value;
-                    });
-                  },
-                  validator: (v) =>
-                    v == null ? 'Seleccione un rol' : null,
-                  ),
+DropdownButtonFormField<int>(
+  value: _rolSeleccionado,
+  items: _rolusers.map((rol) {
+    // Asegúrate de que los datos tengan los campos correctos
+    final id = rol["ID"] is int ? rol["ID"] : int.tryParse(rol["ID"].toString());
+    final nombre = rol["Rol"] ?? rol["rol"] ?? rol["Nombre"] ?? rol["nombre"] ?? rol.toString();
+    return DropdownMenuItem<int>(
+      value: id,
+      child: Text(nombre),
+    );
+  }).toList(),
+  decoration: const InputDecoration(
+    labelText: 'Rol de Usuario',
+    border: OutlineInputBorder(),
+    prefixIcon: Icon(Icons.person_outline),
+    filled: true,
+    fillColor: Color(0xFFF9F3FF), // Color de fondo suave
+  ),
+  onChanged: (value) {
+    setState(() {
+      _rolSeleccionado = value;
+    });
+  },
+  validator: (v) => v == null ? 'Seleccione un rol de usuario' : null,
+),
 
                   const SizedBox(height: 16),
                   DropdownButtonFormField<int>(
@@ -4129,49 +4132,52 @@ Widget build(BuildContext context) {
                       validator: (v) => v == null || v.isEmpty ? 'Ingrese la contraseña' : null,
                     ),
                     const SizedBox(height: 16),
-                    DropdownButtonFormField<int>(
-                      value: _rolSeleccionado,
-                      items: _rolusers.map((rol) {
-                        return DropdownMenuItem<int>(
-                          value: rol["ID"],
-                          child: Text(rol["Rol"] ?? rol["Rol"]),
-                        );
-                      }).toList(),
-                      decoration: InputDecoration(
-                        labelText: 'Rol',
-                        border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.timer),
-                      ),
-                      onChanged: (value) {
-                        setState(() {
-                          _rolSeleccionado = value;
-                        });
-                      },
-                      validator: (v) =>
-                        v == null ? 'Seleccione un rol' : null,
-                      ),
+DropdownButtonFormField<int>(
+  value: _rolSeleccionado,
+  items: _rolusers.map((rol) {
+    // Asegúrate de que los datos tengan los campos correctos
+    final id = rol["ID"] is int ? rol["ID"] : int.tryParse(rol["ID"].toString());
+    final nombre = rol["Rol"] ?? rol["rol"] ?? rol["Nombre"] ?? rol["nombre"] ?? rol.toString();
+    return DropdownMenuItem<int>(
+      value: id,
+      child: Text(nombre),
+    );
+  }).toList(),
+  decoration: const InputDecoration(
+    labelText: 'Rol de Usuario',
+    border: OutlineInputBorder(),
+    prefixIcon: Icon(Icons.person_outline),
+    filled: true,
+    fillColor: Color(0xFFF9F3FF), // Color de fondo suave
+  ),
+  onChanged: (value) {
+    setState(() {
+      _rolSeleccionado = value;
+    });
+  },
+  validator: (v) => v == null ? 'Seleccione un rol de usuario' : null,
+),
                     const SizedBox(height: 16),
-                    DropdownButtonFormField<int>(
-                      value: _turnoSeleccionado,
-                      items: _turnos.map((turno) {
-                        return DropdownMenuItem<int>(
-                          value: turno["ID"],
-                          child: Text(turno["TipoTurno"] ?? turno["TipoTurno"].toString()),
-                        );
-                      }).toList(),
-                      decoration: InputDecoration(
-                        labelText: 'Turno',
-                        border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.timer),
-                      ),
-                      onChanged: (value) {
-                        setState(() {
-                          _turnoSeleccionado = value;
-                        });
-                      },
-                      validator: (v) =>
-                        v == null ? 'Seleccione un turno' : null,
-                    ),
+DropdownButtonFormField<int>(
+  value: _turnoSeleccionado,
+  items: _turnos.map((turno) {
+    return DropdownMenuItem<int>(
+      value: turno["ID"],
+      child: Text(turno["TipoTurno"] ?? turno["TipoTurno"].toString()),
+    );
+  }).toList(),
+  decoration: InputDecoration(
+    labelText: 'Turno',
+    border: OutlineInputBorder(),
+    prefixIcon: Icon(Icons.timer),
+  ),
+  onChanged: (value) {
+    setState(() {
+      _turnoSeleccionado = value;
+    });
+  },
+  validator: (v) => v == null ? 'Seleccione un turno' : null,
+),
                     const SizedBox(height: 16),
                     TextFormField(
                       controller: _idTarjetaController,
