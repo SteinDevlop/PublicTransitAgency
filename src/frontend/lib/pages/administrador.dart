@@ -4697,7 +4697,7 @@ class PqrApiService {
   Future<ApiResponse<int>> getNextId() async {
     try {
       final response = await http.get(
-        Uri.parse('$baseUrl/pqr/pqrs'),
+        Uri.parse('$baseUrl/pqr/administrador/pqrs'),
         headers: _headers,
       );
       if (response.statusCode == 200) {
@@ -4771,7 +4771,7 @@ class PqrApiService {
   Future<ApiResponse<List<PqrModel>>> getAllPqrs() async {
     try {
       final response = await http.get(
-        Uri.parse('$baseUrl/pqr/pqrs'),
+        Uri.parse('$baseUrl/pqr/administrador/pqrs'),
         headers: _headers,
       );
       if (response.statusCode == 200) {
