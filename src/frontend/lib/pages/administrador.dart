@@ -977,10 +977,8 @@ _buildMenuItem(
                                       onPressed: () => showDialog(
                                         context: context,
                                         builder: (_) => Dialog(
-                                          child: CrearUsuarioWidget(
+                                          child: CrearUsuarioScreen(
                                             token: token,
-                                            onCreated: () =>
-                                                Navigator.pop(context),
                                           ),
                                         ),
                                       ),
@@ -999,11 +997,6 @@ _buildMenuItem(
                                           ),
                                         ),
                                       ),
-                                    ),
-                                    _buildActionButton(
-                                      label: 'Generar Reporte',
-                                      icon: Icons.assessment_outlined,
-                                      color: accentColor,
                                     ),
                                     _buildActionButton(
                                       label: 'Registrar Asistencia',
@@ -3030,13 +3023,32 @@ class _CrearUsuarioScreenState extends State<CrearUsuarioScreen> {
   bool _loading = false;
   String? _response;
   String? _error;
-  @override
-  void initState() {
-    super.initState();
-    _fetchNextId();
-    _fetchTurnos();
-    _fetchRoles();
+  bool _obscurePassword = true;
+  int _passwordLength = 0;
+  int _identificacionLength = 0;
+  int _idTarjetaLength = 0;
+
+
+@override
+void initState() {
+  super.initState();
+  _initData();
+}
+
+Future<void> _initData() async {
+  setState(() => _loading = true);
+  try {
+    await _fetchNextId();
+    await _fetchTurnos();
+    await _fetchRoles();
+  } catch (e) {
+    setState(() {
+      _error = 'Error al cargar datos iniciales.';
+    });
+  } finally {
+    setState(() => _loading = false);
   }
+}
   Future<void> _fetchNextId() async {
     try {
       final response = await http.get(
@@ -3074,8 +3086,6 @@ class _CrearUsuarioScreenState extends State<CrearUsuarioScreen> {
       );
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        // Ajusta esto según cómo responde tu API
-        // Por ejemplo, si tu API retorna {"turnos": [{ID: 1, nombre: "Mañana"}, ...]}
         setState(() {
           _turnos = List<Map<String, dynamic>>.from(data["turnos"] ?? data);
         });
@@ -3102,8 +3112,6 @@ class _CrearUsuarioScreenState extends State<CrearUsuarioScreen> {
       );
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
-        // Ajusta esto según cómo responde tu API
-        // Por ejemplo, si tu API retorna {"roles": [{ID: 1, nombre: "Pasajero"}, ...]}
         setState(() {
           _rolusers = List<Map<String, dynamic>>.from(data["rolusers"] ?? data);
         });
@@ -3181,34 +3189,47 @@ class _CrearUsuarioScreenState extends State<CrearUsuarioScreen> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('Complete los datos para crear un usuario:',
-                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              Text('Complete los datos para crear un usuario:', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
               const SizedBox(height: 24),
-
-              // Campos del formulario
               TextFormField(
-                              controller: _idController,
-                              keyboardType: TextInputType.number,
-                              decoration: InputDecoration(
-                                labelText: 'ID de Usuario',
-                                border: OutlineInputBorder(),
-                                prefixIcon: Icon(Icons.confirmation_number),
-                              ),
-                              enabled: false,
-                            ),
+                controller: _idController,
+                keyboardType: TextInputType.number,
+                decoration: InputDecoration(
+                  labelText: 'ID de Usuario',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.confirmation_number),
+                  ),
+                enabled: false,
+              ),
 
+              const SizedBox(height: 16),
               TextFormField(
                 controller: _identificacionController,
                 keyboardType: TextInputType.number,
+                maxLength: 4, // Opcional: limita el máximo, puedes quitarlo si solo quieres contador personalizado
                 decoration: InputDecoration(
                   labelText: 'Identificación',
                   border: OutlineInputBorder(),
                   prefixIcon: Icon(Icons.badge),
+                  counterText: '$_identificacionLength/4 dígitos', // Contador personalizado
                 ),
-                validator: (v) => v == null || v.isEmpty ? 'Ingrese la identificación' : null,
+                onChanged: (value) {
+                  setState(() {
+                    _identificacionLength = value.length;
+                  });
+                },
+                validator: (v) {
+                  if (v == null || v.isEmpty) {
+                    return 'Ingrese la identificación';
+                  }
+                  if (v.length > 4) {
+                    return 'La identificación debe tener como máximo 4 dígitos';
+                  }
+                  return null;
+                },
               ),
-              const SizedBox(height: 16),
 
+              const SizedBox(height: 16),
               TextFormField(
                 controller: _nombreController,
                 decoration: InputDecoration(
@@ -3218,8 +3239,8 @@ class _CrearUsuarioScreenState extends State<CrearUsuarioScreen> {
                 ),
                 validator: (v) => v == null || v.isEmpty ? 'Ingrese el nombre' : null,
               ),
-              const SizedBox(height: 16),
 
+              const SizedBox(height: 16),
               TextFormField(
                 controller: _apellidoController,
                 decoration: InputDecoration(
@@ -3229,8 +3250,8 @@ class _CrearUsuarioScreenState extends State<CrearUsuarioScreen> {
                 ),
                 validator: (v) => v == null || v.isEmpty ? 'Ingrese el apellido' : null,
               ),
-              const SizedBox(height: 16),
 
+              const SizedBox(height: 16),
               TextFormField(
                 controller: _correoController,
                 decoration: InputDecoration(
@@ -3240,40 +3261,66 @@ class _CrearUsuarioScreenState extends State<CrearUsuarioScreen> {
                 ),
                 validator: (v) => v == null || v.isEmpty ? 'Ingrese el correo' : null,
               ),
-              const SizedBox(height: 16),
 
+              const SizedBox(height: 16),
               TextFormField(
                 controller: _contrasenaController,
-                obscureText: true,
+                obscureText: _obscurePassword,
+                maxLength: 15, // Opcional: limita el máximo, puedes quitarlo si no quieres limitar
                 decoration: InputDecoration(
                   labelText: 'Contraseña',
                   border: OutlineInputBorder(),
                   prefixIcon: Icon(Icons.lock),
+                  suffixIcon: IconButton(
+                    icon: Icon(
+                      _obscurePassword ? Icons.visibility : Icons.visibility_off,
+                    ),
+                    onPressed: () {
+                      setState(() {
+                        _obscurePassword = !_obscurePassword;
+                      });
+                    },
+                  ),
+                  counterText: '$_passwordLength/15 caracteres', // Aquí se muestra el contador
                 ),
-                validator: (v) => v == null || v.isEmpty ? 'Ingrese la contraseña' : null,
+                onChanged: (value) {
+                  setState(() {
+                    _passwordLength = value.length;
+                  });
+                },
+                validator: (v) {
+                  if (v == null || v.isEmpty) {
+                    return 'Ingrese la contraseña';
+                  }
+                  if (v.length > 15) {
+                    return 'La contraseña debe tener un máximo de 15 caracteres';
+                  }
+                  return null;
+                },
               ),
 
               const SizedBox(height: 16),
-DropdownButtonFormField<int>(
-  value: _rolSeleccionado,
-  items: _rolusers.map((rol) {
-    return DropdownMenuItem<int>(
-      value: rol["ID"],
-      child: Text(rol["Rol"] ?? rol["ID"].toString()),
-    );
-  }).toList(),
-  decoration: const InputDecoration(
-    labelText: 'Rol de Usuario',
-    border: OutlineInputBorder(),
-    prefixIcon: Icon(Icons.person_outline),
-  ),
-  onChanged: (value) {
-    setState(() {
-      _rolSeleccionado = value;
-    });
-  },
-  validator: (v) => v == null ? 'Seleccione un rol de usuario' : null,
-),
+              DropdownButtonFormField<int>(
+                value: _rolSeleccionado,
+                items: _rolusers.map((rol) {
+                  return DropdownMenuItem<int>(
+                    value: rol["ID"],
+                    child: Text(rol["Rol"] ?? rol["Rol"]),
+                  );
+                }).toList(),
+                decoration: InputDecoration(
+                  labelText: 'Rol',
+                  border: OutlineInputBorder(),
+                  prefixIcon: Icon(Icons.timer),
+                ),
+                onChanged: (value) {
+                  setState(() {
+                    _rolSeleccionado = value;
+                  });
+                },
+                validator: (v) =>
+                  v == null ? 'Seleccione un rol' : null,
+              ),
 
               const SizedBox(height: 16),
               DropdownButtonFormField<int>(
@@ -3302,15 +3349,30 @@ DropdownButtonFormField<int>(
               TextFormField(
                 controller: _idTarjetaController,
                 keyboardType: TextInputType.number,
+                maxLength: 4, // Opcional: limita la entrada a 4 dígitos
                 decoration: InputDecoration(
                   labelText: 'ID Tarjeta',
                   border: OutlineInputBorder(),
                   prefixIcon: Icon(Icons.credit_card),
+                  counterText: '$_idTarjetaLength/4 dígitos', // Muestra el contador
                 ),
-                validator: (v) => v == null || v.isEmpty ? 'Ingrese el ID de tarjeta' : null,
+                onChanged: (value) {
+                  setState(() {
+                    _idTarjetaLength = value.length;
+                  });
+                },
+                validator: (v) {
+                  if (v == null || v.isEmpty) {
+                    return 'Ingrese el ID de tarjeta';
+                  }
+                  if (v.length > 4) {
+                    return 'El ID de tarjeta debe tener como máximo 4 dígitos';
+                  }
+                  return null;
+                },
               ),
-              const SizedBox(height: 24),
 
+              const SizedBox(height: 24),
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
@@ -3471,13 +3533,25 @@ class _ActualizarUsuarioScreenState extends State<ActualizarUsuarioScreen> {
   String? _error;
   bool _userLoaded = false;
 
-  @override
-  void initState() {
-    super.initState();
-    _fetchTurnos();
-    _fetchRoles();
-  }
+ @override
+void initState() {
+  super.initState();
+  _initData();
+}
 
+Future<void> _initData() async {
+  setState(() => _loading = true);
+  try {
+    await _fetchTurnos();
+    await _fetchRoles();
+  } catch (e) {
+    setState(() {
+      _error = 'Error al cargar datos iniciales.';
+    });
+  } finally {
+    setState(() => _loading = false);
+  }
+}
   Future<void> _fetchTurnos() async {
     try {
       final response = await http.get(
@@ -3506,11 +3580,7 @@ class _ActualizarUsuarioScreenState extends State<ActualizarUsuarioScreen> {
   Future<void> _fetchRoles() async {
     try {
       final response = await http.get(
-        Uri.parse('${AppConfig.baseUrl}/roluser/administrador/rolusers'),
-        headers: {
-          'Authorization': 'Bearer ${widget.token}',
-          'accept': 'application/json',
-        },
+        Uri.parse('${AppConfig.baseUrl}/roluser/administrador/rolusers')
       );
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
@@ -3556,7 +3626,7 @@ class _ActualizarUsuarioScreenState extends State<ActualizarUsuarioScreen> {
         });
       } else {
         setState(() {
-          _error = 'Usuario no encontrado (${response.body})';
+          _error = 'Usuario no encontrado: Asegurese de haber colocado el ID correctamente.';
         });
       }
     } catch (e) {
@@ -3740,31 +3810,27 @@ class _ActualizarUsuarioScreenState extends State<ActualizarUsuarioScreen> {
                   ),
                 
                 const SizedBox(height: 16),
-DropdownButtonFormField<int>(
-  value: _rolSeleccionado,
-  items: _rolusers.map((rol) {
-    // Asegúrate de que los datos tengan los campos correctos
-    final id = rol["ID"] is int ? rol["ID"] : int.tryParse(rol["ID"].toString());
-    final nombre = rol["Rol"] ?? rol["rol"] ?? rol["Nombre"] ?? rol["nombre"] ?? rol.toString();
-    return DropdownMenuItem<int>(
-      value: id,
-      child: Text(nombre),
-    );
-  }).toList(),
-  decoration: const InputDecoration(
-    labelText: 'Rol de Usuario',
-    border: OutlineInputBorder(),
-    prefixIcon: Icon(Icons.person_outline),
-    filled: true,
-    fillColor: Color(0xFFF9F3FF), // Color de fondo suave
-  ),
-  onChanged: (value) {
-    setState(() {
-      _rolSeleccionado = value;
-    });
-  },
-  validator: (v) => v == null ? 'Seleccione un rol de usuario' : null,
-),
+                DropdownButtonFormField<int>(
+                  value: _rolSeleccionado,
+                  items: _rolusers.map((rol) {
+                    return DropdownMenuItem<int>(
+                      value: rol["ID"],
+                      child: Text(rol["Rol"] ?? rol["Rol"]),
+                    );
+                  }).toList(),
+                  decoration: InputDecoration(
+                    labelText: 'Rol',
+                    border: OutlineInputBorder(),
+                    prefixIcon: Icon(Icons.timer),
+                  ),
+                  onChanged: (value) {
+                    setState(() {
+                      _rolSeleccionado = value;
+                    });
+                  },
+                  validator: (v) =>
+                    v == null ? 'Seleccione un rol' : null,
+                  ),
 
                   const SizedBox(height: 16),
                   DropdownButtonFormField<int>(
@@ -3876,402 +3942,7 @@ DropdownButtonFormField<int>(
       ),
     );
   }
-}
-///
-///
-class CrearUsuarioWidget extends StatefulWidget {
-  final String token;
-  final VoidCallback onCreated;
-  const CrearUsuarioWidget({Key? key, required this.onCreated,required this.token}) : super(key: key);
-
-  static const primaryColor = Color(0xFF1A73E8);
-
-  @override
-  State<CrearUsuarioWidget> createState() => _CrearUsuarioWidgetState();
-}
-
-class _CrearUsuarioWidgetState extends State<CrearUsuarioWidget> {
-  final _formKey = GlobalKey<FormState>();
-
-  // Controladores para los campos
-  final TextEditingController _idController = TextEditingController();
-  final TextEditingController _identificacionController = TextEditingController();
-  final TextEditingController _nombreController = TextEditingController();
-  final TextEditingController _apellidoController = TextEditingController();
-  final TextEditingController _correoController = TextEditingController();
-  final TextEditingController _contrasenaController = TextEditingController();
-  final TextEditingController _idTarjetaController = TextEditingController();
-  List<Map<String, dynamic>> _turnos = [];
-  List<Map<String, dynamic>> _rolusers = [];
-  int? _rolSeleccionado;
-  int? _turnoSeleccionado;
-
-  bool _loading = false;
-  String? _response;
-  String? _error;
-
-  @override
-  void initState() {
-    super.initState();
-    _fetchNextId();
-    _fetchTurnos();
-    _fetchRoles();
-  }
-
-  Future<void> _fetchNextId() async {
-    try {
-      final response = await http.get(
-        Uri.parse('${AppConfig.baseUrl}/user/users'),
-        headers: {
-          'Authorization': 'Bearer ${widget.token}',
-          'accept': 'application/json',
-        },
-      );
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        final nextId = (data['cantidad'] ?? 0) + 1;
-        setState(() {
-          _idController.text = nextId.toString();
-        });
-      } else {
-        setState(() {
-          _error = 'No se pudo obtener el siguiente ID. (${response.body})';
-        });
-      }
-    } catch (e) {
-      setState(() {
-        _error = 'Error de conexión al consultar el ID.';
-      });
-    }
-  }
-
-  Future<void> _fetchTurnos() async {
-    try {
-      final response = await http.get(
-        Uri.parse('${AppConfig.baseUrl}/shifts/turnos'),
-        headers: {
-          'Authorization': 'Bearer ${widget.token}',
-          'accept': 'application/json',
-        },
-      );
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        setState(() {
-          _turnos = List<Map<String, dynamic>>.from(data["turnos"] ?? data);
-        });
-      } else {
-        setState(() {
-          _error = 'No se pudieron cargar los turnos. (${response.body})';
-        });
-      }
-    } catch (e) {
-      setState(() {
-        _error = 'Error de conexión al cargar turnos.';
-      });
-    }
-  }
-  Future<void> _fetchRoles() async {
-    try {
-      final response = await http.get(
-        Uri.parse('${AppConfig.baseUrl}/roluser/administrador/rolusers'),
-        headers: {
-          'Authorization': 'Bearer ${widget.token}',
-          'accept': 'application/json',
-        },
-      );
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        // Ajusta esto según cómo responde tu API
-        // Por ejemplo, si tu API retorna {"roles": [{ID: 1, nombre: "Pasajero"}, ...]}
-        setState(() {
-          _rolusers = List<Map<String, dynamic>>.from(data["rolusers"] ?? data);
-        });
-      } else {
-        setState(() {
-          _error = 'No se pudieron cargar los roles. (${response.body})';
-        });
-      }
-    } catch (e) {
-      setState(() {
-        _error = 'Error de conexión al cargar roles.';
-      });
-    }
-  }
-  Future<void> _crearUsuario() async {
-    if (!_formKey.currentState!.validate()) return;
-    setState(() {
-      _loading = true;
-      _response = null;
-      _error = null;
-    });
-    try {
-      final response = await http.post(
-        Uri.parse('${AppConfig.baseUrl}/user/create'),
-        headers: {
-          'Authorization': 'Bearer ${widget.token}',
-          'accept': 'application/json',
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: {
-          'ID': _idController.text.trim(),
-          'Identificacion': _identificacionController.text.trim(),
-          'Nombre': _nombreController.text.trim(),
-          'Apellido': _apellidoController.text.trim(),
-          'Correo': _correoController.text.trim(),
-          'Contrasena': _contrasenaController.text.trim(),
-          'IDRolUsuario': _rolSeleccionado?.toString() ?? '',
-          'IDTurno': _turnoSeleccionado?.toString() ?? '',
-          'IDTarjeta': _idTarjetaController.text.trim(),
-        },
-      );
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        setState(() {
-          _response = 'Usuario creado exitosamente.';
-        });
-        _fetchNextId();
-      } else {
-        setState(() {
-          _error = 'No se pudo crear el usuario. (${response.body})';
-        });
-      }
-    } catch (e) {
-      setState(() {
-        _error = 'Error de conexión.';
-      });
-    } finally {
-      setState(() {
-        _loading = false;
-      });
-    }
-  }
-
-@override
-Widget build(BuildContext context) {
-  return Card(
-    elevation: 4,
-    margin: const EdgeInsets.all(16.0),
-    child: Padding(
-      padding: const EdgeInsets.all(24.0),
-      child: Form(
-        key: _formKey,
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            return ConstrainedBox(
-              constraints: BoxConstraints(
-                maxHeight: MediaQuery.of(context).size.height * 0.8,
-              ),
-              child: SingleChildScrollView(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text('Complete los datos para crear un usuario:',
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                    const SizedBox(height: 24),
-                    // ...todos tus campos aquí...
-                    TextFormField(
-                      controller: _idController,
-                      keyboardType: TextInputType.number,
-                      decoration: InputDecoration(
-                        labelText: 'ID de Usuario',
-                        border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.confirmation_number),
-                      ),
-                      enabled: false,
-                    ),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      controller: _identificacionController,
-                      keyboardType: TextInputType.number,
-                      decoration: InputDecoration(
-                        labelText: 'Identificación',
-                        border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.badge),
-                      ),
-                      validator: (v) => v == null || v.isEmpty ? 'Ingrese la identificación' : null,
-                    ),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      controller: _nombreController,
-                      decoration: InputDecoration(
-                        labelText: 'Nombre',
-                        border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.person),
-                      ),
-                      validator: (v) => v == null || v.isEmpty ? 'Ingrese el nombre' : null,
-                    ),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      controller: _apellidoController,
-                      decoration: InputDecoration(
-                        labelText: 'Apellido',
-                        border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.person_outline),
-                      ),
-                      validator: (v) => v == null || v.isEmpty ? 'Ingrese el apellido' : null,
-                    ),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      controller: _correoController,
-                      decoration: InputDecoration(
-                        labelText: 'Correo',
-                        border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.email),
-                      ),
-                      validator: (v) => v == null || v.isEmpty ? 'Ingrese el correo' : null,
-                    ),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      controller: _contrasenaController,
-                      obscureText: true,
-                      decoration: InputDecoration(
-                        labelText: 'Contraseña',
-                        border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.lock),
-                      ),
-                      validator: (v) => v == null || v.isEmpty ? 'Ingrese la contraseña' : null,
-                    ),
-                    const SizedBox(height: 16),
-DropdownButtonFormField<int>(
-  value: _rolSeleccionado,
-  items: _rolusers.map((rol) {
-    // Asegúrate de que los datos tengan los campos correctos
-    final id = rol["ID"] is int ? rol["ID"] : int.tryParse(rol["ID"].toString());
-    final nombre = rol["Rol"] ?? rol["rol"] ?? rol["Nombre"] ?? rol["nombre"] ?? rol.toString();
-    return DropdownMenuItem<int>(
-      value: id,
-      child: Text(nombre),
-    );
-  }).toList(),
-  decoration: const InputDecoration(
-    labelText: 'Rol de Usuario',
-    border: OutlineInputBorder(),
-    prefixIcon: Icon(Icons.person_outline),
-    filled: true,
-    fillColor: Color(0xFFF9F3FF), // Color de fondo suave
-  ),
-  onChanged: (value) {
-    setState(() {
-      _rolSeleccionado = value;
-    });
-  },
-  validator: (v) => v == null ? 'Seleccione un rol de usuario' : null,
-),
-                    const SizedBox(height: 16),
-DropdownButtonFormField<int>(
-  value: _turnoSeleccionado,
-  items: _turnos.map((turno) {
-    return DropdownMenuItem<int>(
-      value: turno["ID"],
-      child: Text(turno["TipoTurno"] ?? turno["TipoTurno"].toString()),
-    );
-  }).toList(),
-  decoration: InputDecoration(
-    labelText: 'Turno',
-    border: OutlineInputBorder(),
-    prefixIcon: Icon(Icons.timer),
-  ),
-  onChanged: (value) {
-    setState(() {
-      _turnoSeleccionado = value;
-    });
-  },
-  validator: (v) => v == null ? 'Seleccione un turno' : null,
-),
-                    const SizedBox(height: 16),
-                    TextFormField(
-                      controller: _idTarjetaController,
-                      keyboardType: TextInputType.number,
-                      decoration: InputDecoration(
-                        labelText: 'ID Tarjeta',
-                        border: OutlineInputBorder(),
-                        prefixIcon: Icon(Icons.credit_card),
-                      ),
-                      validator: (v) => v == null || v.isEmpty ? 'Ingrese el ID de tarjeta' : null,
-                    ),
-                    const SizedBox(height: 24),
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: _loading ? null : _crearUsuario,
-                        child: _loading
-                            ? SizedBox(
-                                width: 20,
-                                height: 20,
-                                child: CircularProgressIndicator(
-                                    strokeWidth: 2, color: Colors.white),
-                              )
-                            : Text('Crear Usuario'),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: CrearUsuarioWidget.primaryColor,
-                          foregroundColor: Colors.white,
-                          padding: EdgeInsets.symmetric(vertical: 14),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                      ),
-                    ),
-                    if (_response != null) ...[
-                      const SizedBox(height: 24),
-                      Card(
-                        color: Colors.green[50],
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: Row(
-                            children: [
-                              Icon(Icons.check_circle, color: Colors.green[700]),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                  child: Text(_response!,
-                                      style: TextStyle(
-                                          color: Colors.green[900],
-                                          fontWeight: FontWeight.bold))),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                    if (_error != null) ...[
-                      const SizedBox(height: 24),
-                      Card(
-                        color: Colors.red[50],
-                        elevation: 0,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: Row(
-                            children: [
-                              Icon(Icons.error, color: Colors.red[700]),
-                              const SizedBox(width: 12),
-                              Expanded(
-                                  child: Text(_error!,
-                                      style: TextStyle(
-                                          color: Colors.red[900],
-                                          fontWeight: FontWeight.bold))),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-            );
-          },
-        ),
-      ),
-    ),
-  );
-}
-}
-///
+}///
 ///
 enum EliminarUsuarioFormMode { normal }
 

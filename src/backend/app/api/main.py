@@ -52,7 +52,7 @@ add_middlewares(app)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
-        "http://localhost:8000",  # solo si aún pruebas en local
+        "http://localhost:49607",  # solo si aún pruebas en local
         "https://publictransitagency-frontend-production.up.railway.app"  # frontend en Railway
     ],
     allow_credentials=True,

@@ -431,6 +431,8 @@ class CreateUserWidget extends StatefulWidget {
 
 class _CreateUserWidgetState extends State<CreateUserWidget> {
   final _formKey = GlobalKey<FormState>();
+
+  // Text Controllers
   final TextEditingController _idController = TextEditingController();
   final TextEditingController _identificacionController = TextEditingController();
   final TextEditingController _nombreController = TextEditingController();
@@ -439,38 +441,28 @@ class _CreateUserWidgetState extends State<CreateUserWidget> {
   final TextEditingController _contrasenaController = TextEditingController();
   final TextEditingController _idTarjetaController = TextEditingController();
 
+  // Focus Nodes
+  final FocusNode _identificacionFocus = FocusNode();
+  final FocusNode _nombreFocus = FocusNode();
+  final FocusNode _apellidoFocus = FocusNode();
+  final FocusNode _correoFocus = FocusNode();
+  final FocusNode _contrasenaFocus = FocusNode();
+  final FocusNode _idTarjetaFocus = FocusNode();
+
+  // State Variables
   bool _loading = false;
   String? _responseMessage;
-  bool _success = false;
+  bool _isSuccess = false;
   String? _error;
+  bool _obscurePassword = true;
+  int _identificacionLength = 0;
+  int _passwordLength = 0;
+  int _idTarjetaLength = 0;
 
   @override
   void initState() {
     super.initState();
     _fetchNextId();
-  }
-
-  Future<void> _fetchNextId() async {
-    try {
-      final response = await http.get(
-        Uri.parse('${AppConfig.baseUrl}/user/users'),
-      );
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        final nextId = (data['cantidad'] ?? 0) + 1;
-        setState(() {
-          _idController.text = nextId.toString();
-        });
-      } else {
-        setState(() {
-          _error = 'No se pudo obtener el siguiente ID. (${response.body})';
-        });
-      }
-    } catch (e) {
-      setState(() {
-        _error = 'Error de conexión al consultar el ID.{$e}';
-      });
-    }
   }
 
   @override
@@ -482,20 +474,232 @@ class _CreateUserWidgetState extends State<CreateUserWidget> {
     _correoController.dispose();
     _contrasenaController.dispose();
     _idTarjetaController.dispose();
+    _identificacionFocus.dispose();
+    _nombreFocus.dispose();
+    _apellidoFocus.dispose();
+    _correoFocus.dispose();
+    _contrasenaFocus.dispose();
+    _idTarjetaFocus.dispose();
     super.dispose();
   }
 
-  Widget _buildRegisterButton() {
-    return Align(
-      alignment: Alignment.centerRight,
-      child: TextButton(
-        onPressed: () {
-          // Aquí podrías navegar a otra pantalla de registro si lo deseas
+  Future<void> _fetchNextId() async {
+    try {
+      final response = await http.get(
+        Uri.parse('${AppConfig.baseUrl}/user/users'),
+        headers: {'Content-Type': 'application/json'},
+      ).timeout(const Duration(seconds: 10));
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final nextId = (data['cantidad'] ?? 0) + 1;
+        setState(() {
+          _idController.text = nextId.toString();
+        });
+      } else {
+        _showError('No se pudo obtener el siguiente ID');
+      }
+    } catch (e) {
+      _showError('Error de conexión');
+    }
+  }
+
+  Future<void> _crearUsuario() async {
+    if (!_formKey.currentState!.validate()) return;
+
+    setState(() {
+      _loading = true;
+      _responseMessage = null;
+      _error = null;
+      _isSuccess = false;
+    });
+
+    try {
+      final response = await http.post(
+        Uri.parse('${AppConfig.baseUrl}/user/create'),
+        headers: {'Content-Type': 'application/x-www-form-urlencoded'},
+        body: {
+          'ID': _idController.text.trim(),
+          'Identificacion': _identificacionController.text.trim(),
+          'Nombre': _nombreController.text.trim(),
+          'Apellido': _apellidoController.text.trim(),
+          'Correo': _correoController.text.trim(),
+          'Contrasena': _contrasenaController.text.trim(),
+          'IDRolUsuario': '1',
+          'IDTurno': '10',
+          'IDTarjeta': _idTarjetaController.text.trim(),
         },
-        style: TextButton.styleFrom(
-          foregroundColor: Theme.of(context).primaryColor,
+      ).timeout(const Duration(seconds: 15));
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        setState(() {
+          _responseMessage = 'Usuario registrado exitosamente';
+          _isSuccess = true;
+        });
+        
+        await _fetchNextId();
+        _clearForm();
+        _showSuccessMessage();
+      } else {
+        _showError('No se pudo crear el usuario');
+      }
+    } catch (e) {
+      _showError('Error de conexión');
+    } finally {
+      setState(() {
+        _loading = false;
+      });
+    }
+  }
+
+  void _showError(String message) {
+    setState(() {
+      _error = message;
+      _isSuccess = false;
+    });
+    
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message),
+        backgroundColor: Colors.red[700],
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+
+  void _showSuccessMessage() {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Usuario registrado exitosamente'),
+        backgroundColor: Colors.green,
+        behavior: SnackBarBehavior.floating,
+      ),
+    );
+  }
+
+  void _clearForm() {
+    _identificacionController.clear();
+    _nombreController.clear();
+    _apellidoController.clear();
+    _correoController.clear();
+    _contrasenaController.clear();
+    _idTarjetaController.clear();
+    
+    setState(() {
+      _identificacionLength = 0;
+      _passwordLength = 0;
+      _idTarjetaLength = 0;
+    });
+  }
+
+  String? _validateEmail(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'Requerido';
+    }
+    final emailRegex = RegExp(r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$');
+    if (!emailRegex.hasMatch(value)) {
+      return 'Email inválido';
+    }
+    return null;
+  }
+
+  String? _validatePassword(String? value) {
+    if (value == null || value.isEmpty) {
+      return 'Requerido';
+    }
+    if (value.length < 6) {
+      return 'Mínimo 6 caracteres';
+    }
+    if (value.length > 15) {
+      return 'Máximo 15 caracteres';
+    }
+    return null;
+  }
+
+  Widget _buildTextField({
+    required TextEditingController controller,
+    required String label,
+    TextInputType? keyboardType,
+    bool obscureText = false,
+    Widget? suffixIcon,
+    String? Function(String?)? validator,
+    void Function(String)? onChanged,
+    FocusNode? focusNode,
+    FocusNode? nextFocus,
+    bool readOnly = false,
+    int? maxLength,
+    String? counterText,
+    List<TextInputFormatter>? inputFormatters,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: TextFormField(
+        controller: controller,
+        focusNode: focusNode,
+        keyboardType: keyboardType,
+        obscureText: obscureText,
+        readOnly: readOnly,
+        maxLength: maxLength,
+        inputFormatters: inputFormatters,
+        decoration: InputDecoration(
+          labelText: label,
+          suffixIcon: suffixIcon,
+          counterText: counterText,
+          filled: readOnly,
+          fillColor: readOnly ? Colors.grey[100] : null,
+          border: const OutlineInputBorder(),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         ),
-        child: const Text('¿Primera Vez? Registrarme'),
+        validator: validator,
+        onChanged: onChanged,
+        onFieldSubmitted: (_) {
+          if (nextFocus != null) {
+            FocusScope.of(context).requestFocus(nextFocus);
+          }
+        },
+      ),
+    );
+  }
+
+  Widget _buildInfoRow(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        children: [
+          SizedBox(
+            width: 100,
+            child: Text(
+              label,
+              style: const TextStyle(
+                fontWeight: FontWeight.w500,
+                color: Colors.grey,
+              ),
+            ),
+          ),
+          Text(value),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatusMessage() {
+    if (_responseMessage == null && _error == null) return const SizedBox.shrink();
+
+    return Container(
+      margin: const EdgeInsets.only(top: 16),
+      padding: const EdgeInsets.all(12),
+      decoration: BoxDecoration(
+        color: _isSuccess ? Colors.green[50] : Colors.red[50],
+        border: Border.all(
+          color: _isSuccess ? Colors.green : Colors.red,
+          width: 1,
+        ),
+      ),
+      child: Text(
+        _responseMessage ?? _error ?? '',
+        style: TextStyle(
+          color: _isSuccess ? Colors.green[800] : Colors.red[800],
+        ),
       ),
     );
   }
@@ -503,107 +707,163 @@ class _CreateUserWidgetState extends State<CreateUserWidget> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Registrar Usuario')),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
+      appBar: AppBar(
+        title: const Text('Registro de Usuario'),
+        backgroundColor: Colors.white,
+        foregroundColor: Colors.black,
+        elevation: 0,
+        bottom: const PreferredSize(
+          preferredSize: Size.fromHeight(1),
+          child: Divider(height: 1),
+        ),
+      ),
+      backgroundColor: Colors.white,
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(24),
         child: Form(
           key: _formKey,
-          child: ListView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              _buildRegisterButton(),
-              const SizedBox(height: 24),
-              if (_error != null)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: 8.0),
-                  child: Text(
-                    _error!,
-                    style: const TextStyle(color: Colors.red),
-                  ),
-                ),
-              TextFormField(
+              _buildTextField(
                 controller: _idController,
-                decoration: const InputDecoration(
-                  labelText: 'ID (autoasignado)',
-                  prefixIcon: Icon(Icons.verified_user),
-                  filled: true,
-                  fillColor: Color(0xFFE0E0E0), // gris claro para resaltar
-                ),
+                label: 'ID',
                 keyboardType: TextInputType.number,
-                readOnly: true, // <-- Esto permite ver el valor pero no editarlo
+                readOnly: true,
               ),
-              TextFormField(
+              
+              _buildTextField(
                 controller: _identificacionController,
-                decoration: const InputDecoration(labelText: 'Identificación'),
+                label: 'Identificación',
                 keyboardType: TextInputType.number,
-                validator: (value) =>
-                    value == null || value.isEmpty ? 'Campo requerido' : null,
+                maxLength: 4,
+                counterText: '$_identificacionLength/4',
+                focusNode: _identificacionFocus,
+                nextFocus: _nombreFocus,
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                onChanged: (value) {
+                  setState(() {
+                    _identificacionLength = value.length;
+                  });
+                },
+                validator: (value) {
+                  if (value == null || value.isEmpty) return 'Requerido';
+                  if (value.length > 4) return 'Máximo 4 dígitos';
+                  return null;
+                },
               ),
-              TextFormField(
+              
+              _buildTextField(
                 controller: _nombreController,
-                decoration: const InputDecoration(labelText: 'Nombre'),
-                validator: (value) =>
-                    value == null || value.isEmpty ? 'Campo requerido' : null,
+                label: 'Nombre',
+                focusNode: _nombreFocus,
+                nextFocus: _apellidoFocus,
+                validator: (value) => value == null || value.isEmpty ? 'Requerido' : null,
               ),
-              TextFormField(
+              
+              _buildTextField(
                 controller: _apellidoController,
-                decoration: const InputDecoration(labelText: 'Apellido'),
-                validator: (value) =>
-                    value == null || value.isEmpty ? 'Campo requerido' : null,
+                label: 'Apellido',
+                focusNode: _apellidoFocus,
+                nextFocus: _correoFocus,
+                validator: (value) => value == null || value.isEmpty ? 'Requerido' : null,
               ),
-              TextFormField(
+              
+              _buildTextField(
                 controller: _correoController,
-                decoration: const InputDecoration(labelText: 'Correo'),
+                label: 'Correo',
                 keyboardType: TextInputType.emailAddress,
-                validator: (value) =>
-                    value == null || value.isEmpty ? 'Campo requerido' : null,
+                focusNode: _correoFocus,
+                nextFocus: _contrasenaFocus,
+                validator: _validateEmail,
               ),
-              TextFormField(
+              
+              _buildTextField(
                 controller: _contrasenaController,
-                decoration: const InputDecoration(labelText: 'Contraseña'),
-                obscureText: true,
-                validator: (value) =>
-                    value == null || value.isEmpty ? 'Campo requerido' : null,
+                label: 'Contraseña',
+                obscureText: _obscurePassword,
+                maxLength: 15,
+                counterText: '$_passwordLength/15',
+                focusNode: _contrasenaFocus,
+                nextFocus: _idTarjetaFocus,
+                suffixIcon: IconButton(
+                  icon: Icon(_obscurePassword ? Icons.visibility : Icons.visibility_off),
+                  onPressed: () {
+                    setState(() {
+                      _obscurePassword = !_obscurePassword;
+                    });
+                  },
+                ),
+                onChanged: (value) {
+                  setState(() {
+                    _passwordLength = value.length;
+                  });
+                },
+                validator: _validatePassword,
               ),
-              TextFormField(
+              
+              _buildTextField(
                 controller: _idTarjetaController,
-                decoration: const InputDecoration(labelText: 'ID Tarjeta'),
+                label: 'ID Tarjeta',
                 keyboardType: TextInputType.number,
-                validator: (value) =>
-                    value == null || value.isEmpty ? 'Campo requerido' : null,
+                maxLength: 4,
+                counterText: '$_idTarjetaLength/4',
+                focusNode: _idTarjetaFocus,
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                onChanged: (value) {
+                  setState(() {
+                    _idTarjetaLength = value.length;
+                  });
+                },
+                validator: (value) {
+                  if (value == null || value.isEmpty) return 'Requerido';
+                  if (value.length > 4) return 'Máximo 4 dígitos';
+                  return null;
+                },
               ),
-              const SizedBox(height: 16),
-              const ListTile(
-                title: Text('Rol de usuario'),
-                subtitle: Text('Pasajero (ID = 1)'),
-                leading: Icon(Icons.person),
+              
+              const SizedBox(height: 24),
+              
+              const Text(
+                'Información del sistema',
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                ),
               ),
-              const ListTile(
-                title: Text('Turno'),
-                subtitle: Text('Ninguno (ID = 10)'),
-                leading: Icon(Icons.timelapse),
-              ),
-              const SizedBox(height: 16),
-              _loading
-                  ? const Center(child: CircularProgressIndicator())
-                  : ElevatedButton(
-                      onPressed: () {
-                        if (_formKey.currentState!.validate()) {
-                          // Aquí podrías llamar a _createUser si decides habilitar el registro
-                        }
-                      },
-                      child: const Text('Registrar Usuario'),
-                    ),
-              if (_responseMessage != null)
-                Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 16.0),
-                  child: Text(
-                    _responseMessage!,
-                    style: TextStyle(
-                      color: _success ? Colors.green : Colors.red,
-                      fontWeight: FontWeight.bold,
+              const SizedBox(height: 12),
+              
+              _buildInfoRow('Rol:', 'Pasajero (ID = 1)'),
+              _buildInfoRow('Turno:', 'Ninguno (ID = 10)'),
+              
+              const SizedBox(height: 32),
+              
+              SizedBox(
+                width: double.infinity,
+                height: 48,
+                child: ElevatedButton(
+                  onPressed: _loading ? null : _crearUsuario,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.black,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(4),
                     ),
                   ),
+                  child: _loading
+                      ? const SizedBox(
+                          height: 20,
+                          width: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                          ),
+                        )
+                      : const Text('Registrar Usuario'),
                 ),
+              ),
+              
+              _buildStatusMessage(),
             ],
           ),
         ),
