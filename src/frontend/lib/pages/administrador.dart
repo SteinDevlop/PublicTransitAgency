@@ -4162,12 +4162,14 @@ class _ConsultarUsuarioScreenState extends State<ConsultarUsuarioScreen> {
   bool _loading = false;
   String? _error;
   Map<String, dynamic>? _usuario;
+  List<dynamic>? _usuarios; // Para almacenar la lista de usuarios
 
   Future<void> _consultarUsuario() async {
     setState(() {
       _loading = true;
       _error = null;
       _usuario = null;
+      _usuarios = null;
     });
 
     try {
@@ -4191,6 +4193,45 @@ class _ConsultarUsuarioScreenState extends State<ConsultarUsuarioScreen> {
       } else {
         setState(() {
           _error = "Error al consultar el usuario: (${response.body})";
+        });
+      }
+    } catch (e) {
+      setState(() {
+        _error = "Error de conexión.";
+      });
+    } finally {
+      setState(() {
+        _loading = false;
+      });
+    }
+  }
+
+  Future<void> _consultarTodosUsuarios() async {
+    setState(() {
+      _loading = true;
+      _error = null;
+      _usuario = null;
+      _usuarios = null;
+    });
+
+    try {
+      final response = await http.get(
+        Uri.parse('${AppConfig.baseUrl}/user/users'),
+        headers: {
+          'Authorization': 'Bearer ${widget.token}',
+          'accept': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        setState(() {
+          // La lista de usuarios viene en data['usuarios']
+          _usuarios = data['usuarios'] as List<dynamic>;
+        });
+      } else {
+        setState(() {
+          _error = "Error al consultar los usuarios: (${response.body})";
         });
       }
     } catch (e) {
@@ -4237,6 +4278,26 @@ class _ConsultarUsuarioScreenState extends State<ConsultarUsuarioScreen> {
     );
   }
 
+  Widget _usuariosList(List<dynamic> usuarios) {
+    if (usuarios.isEmpty) {
+      return const Padding(
+        padding: EdgeInsets.only(top: 24),
+        child: Text('No hay usuarios registrados.'),
+      );
+    }
+    return Column(
+      children: [
+        const SizedBox(height: 24),
+        ...usuarios.map<Widget>((usuario) {
+          if (usuario is Map<String, dynamic>) {
+            return _usuarioCard(usuario);
+          }
+          return Container();
+        }).toList(),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return SingleChildScrollView(
@@ -4256,32 +4317,61 @@ class _ConsultarUsuarioScreenState extends State<ConsultarUsuarioScreen> {
               enabled: !_loading,
             ),
             const SizedBox(height: 16),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                icon: const Icon(Icons.search),
-                label: _loading
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          color: Colors.white,
-                        ),
-                      )
-                    : const Text('Consultar Usuario'),
-                onPressed: _loading ? null : _consultarUsuario,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+            Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton.icon(
+                    icon: const Icon(Icons.search),
+                    label: _loading
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
+                        : const Text('Consultar Usuario'),
+                    onPressed: _loading ? null : _consultarUsuario,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
                   ),
                 ),
-              ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: ElevatedButton.icon(
+                    icon: const Icon(Icons.group),
+                    label: _loading
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
+                        : const Text('Ver Todos los Usuarios'),
+                    onPressed: _loading ? null : _consultarTodosUsuarios,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.green,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
             if (_usuario != null) _usuarioCard(_usuario!),
+            if (_usuarios != null) _usuariosList(_usuarios!),
             if (_error != null) ...[
               const SizedBox(height: 24),
               Card(
