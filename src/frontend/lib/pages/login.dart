@@ -303,7 +303,7 @@ class _LoginPageState extends State<LoginPage> {
                               TextField(
                                 controller: _passwordController,
                                 obscureText: _obscurePassword,
-                                maxLength: 12,
+                                maxLength: 15,
                                 decoration: InputDecoration(
                                   labelText: 'Contraseña',
                                   hintText: 'Ingresa tu contraseña',
