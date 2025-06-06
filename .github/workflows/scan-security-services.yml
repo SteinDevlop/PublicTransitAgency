@@ -1,11 +1,7 @@
 name: Escaneo Completo API OWASP ZAP
 
 on:
-  push:
-    branches: [ main ]
-  pull_request:
-    branches: [ main ]
-  workflow_dispatch:
+  workflow_dispatch: 
 
 jobs:
   zap_scan:
